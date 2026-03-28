@@ -2,7 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#58a6ff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Task OS">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon.svg">
 <title>Task OS — Panos</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -144,9 +150,42 @@ select.fc option{background:var(--surface2);}
 @keyframes fi{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 .fi{animation:fi .18s ease;}
 @media(max-width:900px){.bgrid{grid-template-columns:1fr 1fr;}.stats{grid-template-columns:repeat(3,1fr);}.t3g{grid-template-columns:1fr;}.eg{height:auto;grid-template-columns:1fr;}.g2{grid-template-columns:1fr;}}
+/* ── MOBILE ─────────────────────────────────────────────────── */
+.ham-btn{display:none;position:fixed;top:11px;left:11px;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:8px;width:38px;height:38px;cursor:pointer;align-items:center;justify-content:center;flex-direction:column;gap:5px;padding:0;}
+.ham-btn span{display:block;width:18px;height:2px;background:var(--text);border-radius:2px;transition:all .2s;}
+.s-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:155;}
+.bnav{display:none;}
+@media(max-width:768px){
+  .ham-btn{display:flex;}
+  .sidebar{position:fixed;left:-220px;top:0;bottom:0;height:100%;z-index:160;transition:left .25s ease;overflow-y:auto;}
+  .sidebar.open{left:0;}
+  .s-ov.open{display:block;}
+  body{height:auto;overflow:auto;}
+  .main{padding:60px 14px 72px;overflow-y:visible;height:auto;}
+  .stats{grid-template-columns:repeat(2,1fr);}
+  .bgrid{grid-template-columns:1fr;}
+  .t3g{grid-template-columns:1fr;}
+  .eg{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto;height:auto;gap:8px;}
+  .eg>div:nth-child(1),.eg>div:nth-child(2),.eg>div:nth-child(3),.eg>div:nth-child(4),.eg>div:nth-child(7){display:none;}
+  .g2,.g3,.g4,.fr{grid-template-columns:1fr;}
+  .fab{bottom:74px;}
+  .mo{align-items:flex-end;}
+  .md{width:100%;max-width:100%;border-radius:16px 16px 0 0;margin:0;max-height:90vh;}
+  .ph{flex-direction:column;align-items:flex-start;gap:8px;}
+  .ph .row{width:100%;flex-wrap:wrap;}
+  .ph .row .sb{flex:1;min-width:0;}
+  h1{font-size:18px;}
+  .bnav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:100;padding-bottom:max(env(safe-area-inset-bottom,0px),4px);}
+  .bni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px;cursor:pointer;color:var(--muted);font-size:9px;gap:2px;border:none;background:transparent;transition:color .12s;}
+  .bni.active{color:var(--accent);}
+  .bni-ic{font-size:18px;line-height:1.2;}
+}
 </style>
 </head>
 <body>
+
+<button class="ham-btn" onclick="toggleSB()" aria-label="Menu"><span></span><span></span><span></span></button>
+<div class="s-ov" id="s-ov" onclick="toggleSB()"></div>
 
 <nav class="sidebar">
   <div class="logo">Task <span>OS</span></div>
@@ -291,6 +330,14 @@ select.fc option{background:var(--surface2);}
 
 <button class="fab" onclick="openAdd()">+</button>
 
+<nav class="bnav">
+  <button class="bni active" data-v="dashboard" onclick="nav('dashboard')"><span class="bni-ic">🏠</span>Home</button>
+  <button class="bni" data-v="capture" onclick="nav('capture')"><span class="bni-ic">⚡</span>Capture</button>
+  <button class="bni" data-v="buckets" onclick="nav('buckets')"><span class="bni-ic">📦</span>Buckets</button>
+  <button class="bni" data-v="all" onclick="nav('all')"><span class="bni-ic">✅</span>Tasks</button>
+  <button class="bni" data-v="goals" onclick="nav('goals')"><span class="bni-ic">🏆</span>Goals</button>
+</nav>
+
 <!-- TASK MODAL -->
 <div class="mo hidden" id="tm">
   <div class="md">
@@ -415,6 +462,10 @@ function nav(v){
   document.getElementById('v-'+v).classList.add('active');
   document.querySelectorAll('.ni').forEach(x=>{if(x.getAttribute('onclick')?.includes("'"+v+"'"))x.classList.add('active');});
   renderView(v);
+  // mobile: close sidebar, sync bottom nav
+  document.querySelector('.sidebar')?.classList.remove('open');
+  document.getElementById('s-ov')?.classList.remove('open');
+  document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
 function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview})[v]?.();}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
@@ -1205,8 +1256,15 @@ function seedGoals(){
   save();
 }
 
+// ── MOBILE ────────────────────────────────────────────────────
+function toggleSB(){
+  document.querySelector('.sidebar').classList.toggle('open');
+  document.getElementById('s-ov').classList.toggle('open');
+}
+
 // ── INIT ──────────────────────────────────────────────────────
 load();seed();seedGoals();renderDash();
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 </script>
 </body>
 </html>

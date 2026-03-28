@@ -2,7 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#3b82f6">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Givelink">
+<link rel="manifest" href="manifest-givelink.json">
+<link rel="apple-touch-icon" href="icon-gl.svg">
 <title>Givelink — Sprint Board</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -141,9 +147,38 @@ select.fc option{background:var(--s2);}
 .fi{animation:fi .15s ease;}
 @media(max-width:1100px){.pcards{grid-template-columns:repeat(3,1fr);}}
 @media(max-width:800px){.pcards{grid-template-columns:1fr 1fr;}.stats2{grid-template-columns:1fr 1fr;}}
+/* ── MOBILE ─────────────────────────────────────────────────── */
+.ham-btn{display:none;position:fixed;top:11px;left:11px;z-index:200;background:var(--sf);border:1px solid var(--border);border-radius:8px;width:38px;height:38px;cursor:pointer;align-items:center;justify-content:center;flex-direction:column;gap:5px;padding:0;}
+.ham-btn span{display:block;width:18px;height:2px;background:var(--text);border-radius:2px;transition:all .2s;}
+.sb-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:155;}
+.bnav{display:none;}
+@media(max-width:768px){
+  .ham-btn{display:flex;}
+  .sb{position:fixed;left:-220px;top:0;bottom:0;height:100%;z-index:160;transition:left .25s ease;}
+  .sb.open{left:0;}
+  .sb-ov.open{display:block;}
+  body{height:auto;overflow:auto;}
+  .main{flex-direction:column;}
+  .sprint-bar{padding:10px 14px;padding-left:58px;}
+  .content{padding:14px;padding-bottom:72px;}
+  .pcards{grid-template-columns:1fr 1fr;}
+  .stats2{grid-template-columns:1fr 1fr;}
+  .g2,.fr{grid-template-columns:1fr;}
+  .fab{bottom:74px;}
+  .mo{align-items:flex-end;}
+  .md{width:100%;max-width:100%;border-radius:16px 16px 0 0;margin:0;max-height:90vh;}
+  h1{font-size:18px;}
+  .bnav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--sf);border-top:1px solid var(--border);z-index:100;padding-bottom:max(env(safe-area-inset-bottom,0px),4px);}
+  .bni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px;cursor:pointer;color:var(--muted);font-size:9px;gap:2px;border:none;background:transparent;transition:color .12s;}
+  .bni.active{color:var(--accent);}
+  .bni-ic{font-size:18px;line-height:1.2;}
+}
 </style>
 </head>
 <body>
+
+<button class="ham-btn" onclick="toggleSB()" aria-label="Menu"><span></span><span></span><span></span></button>
+<div class="sb-ov" id="sb-ov" onclick="toggleSB()"></div>
 
 <nav class="sb">
   <div class="logo">
@@ -212,6 +247,14 @@ select.fc option{background:var(--s2);}
 </div><!-- /main -->
 
 <button class="fab" onclick="openAdd()">+</button>
+
+<nav class="bnav">
+  <button class="bni active" data-v="overview" onclick="nav('overview')"><span class="bni-ic">📊</span>Overview</button>
+  <button class="bni" data-v="growth" onclick="nav('growth')"><span class="bni-ic">🚀</span>Growth</button>
+  <button class="bni" data-v="product" onclick="nav('product')"><span class="bni-ic">🏗️</span>Product</button>
+  <button class="bni" data-v="execution" onclick="nav('execution')"><span class="bni-ic">⚡</span>Execute</button>
+  <button class="bni" data-v="backlog" onclick="nav('backlog')"><span class="bni-ic">📋</span>Backlog</button>
+</nav>
 
 <!-- ADD/EDIT TASK MODAL -->
 <div class="mo hidden" id="tm">
@@ -329,6 +372,10 @@ function nav(v){
   document.querySelectorAll('.ni').forEach(x=>{if(x.getAttribute('onclick')?.includes("'"+v+"'"))x.classList.add('active');});
   renderView(v);
   updateSidebar();
+  // mobile: close sidebar, sync bottom nav
+  document.querySelector('.sb')?.classList.remove('open');
+  document.getElementById('sb-ov')?.classList.remove('open');
+  document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
 function renderView(v){
   if(v==='overview')renderOverview();
@@ -799,10 +846,17 @@ function seed(){
   save();
 }
 
+// ── MOBILE ────────────────────────────────────────────────────────
+function toggleSB(){
+  document.querySelector('.sb').classList.toggle('open');
+  document.getElementById('sb-ov').classList.toggle('open');
+}
+
 // ── INIT ─────────────────────────────────────────────────────────
 load();seed();
 renderSprintBar();updateSidebar();
 renderOverview();
+if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 </script>
 </body>
 </html>

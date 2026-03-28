@@ -392,7 +392,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[]};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false};
 let editT=null,editG=null,fCat='all';
 
 // ── PERSIST ───────────────────────────────────────────────────
@@ -737,11 +737,7 @@ function seed(){
   if(S.seededV2)return;
   S.seededV2=true;
   const now=new Date().toISOString();
-  if(!S.goals.length)S.goals=[
-    {id:uid(),title:'Scale Givelink to 100 nonprofits',description:'Build donation infrastructure that powers 100 nonprofit partners',category:'givelink',isTop3:true},
-    {id:uid(),title:'Perfect healthy aesthetics body — Body fat % goal',description:'Workout 5x/week, 8hrs sleep, eat clean, measure body fat',category:'health',isTop3:true},
-    {id:uid(),title:'Read 24 books this year',description:'One book every 2 weeks — business, philosophy, health',category:'learning',isTop3:true}
-  ];
+  // goals seeded below via seededGoalsV3
   const mk=(title,bucket,cat,urg,imp,eng)=>({id:uid(),title,notes:'',bucket,category:cat,urgency:urg,importance:imp,energy:eng,status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,createdAt:now,completedAt:null});
   const newTasks=[
     // ── THIS WEEK ──
@@ -1130,8 +1126,87 @@ function seed(){
   save();
 }
 
+// ── ANNUAL GOALS SEED (v3) ─────────────────────────────────────
+function seedGoals(){
+  if(S.seededGoalsV3)return;
+  S.seededGoalsV3=true;
+  const g=(title,desc,cat,top)=>({id:uid(),title,description:desc,category:cat,isTop3:!!top});
+  S.goals=[
+    // TOP 3
+    g('Financial Independency w/ Givelink','Build Givelink into a self-sustaining company that funds my independence. Reach 100+ nonprofits, own equity, generate meaningful income.','givelink',true),
+    g('Aesthetics Body — 10–14% BF, 1:1.618 Ratio','Reach and maintain 10–14% body fat with proportional physique. Workout 5x/week, sleep 8hrs, track macros, measure monthly.','health',true),
+    g('100+ AI Workflows & Systems — Replace 90%+ of Life with AI','Build, document and deploy 100+ personal + professional AI automations. Let AI handle research, scheduling, outreach, content, and admin.','automation',true),
+    // HEALTH
+    g('Health & Injury Prevention','Prevent injuries proactively — knee X-ray, blood tests, physiotherapy, proper warm-up. Zero injuries = maximum output.','health'),
+    g('Increase Health Span — Longevity','Optimize for a long, healthy life: sleep, Zone 2 cardio, strength, supplements, bloodwork. Slow biological aging.','health'),
+    g('85+ Sleep Score','Consistently hit 85+ on Whoop. Protect sleep with good wind-down, dark room, cool temp, phone out of bedroom.','health'),
+    g('Mental Health','Maintain emotional resilience through journaling, breathing, meditation, therapy if needed, and strong social connections.','health'),
+    g('Follow Routine — Remove Bad Habits & Distractions','Execute morning + evening routine daily. Eliminate phone in bedroom, doom-scrolling, energy drinks. Replace with high-leverage defaults.','health'),
+    // FINANCE
+    g('25,000€+ Annual Income (100,000€+ Impossible Goal)','Grow total income to 25k+ this year. Long-term impossible goal: 100k+. Track monthly, diversify sources.','finance'),
+    g('12+ Investments (600€/month)','Invest minimum 600€/month across 12+ vehicles: ETFs, crypto, pre-IPO, angel. Track returns vs S&P yearly.','finance'),
+    g('300€+ Monthly Passive Income','Build passive income streams: royalties, dividends, rentals, digital products. Track and grow month over month.','finance'),
+    g('3+ Assets (Maximize Leverage)','Own 3+ appreciating assets: Givelink equity, investments, IP/content. Board Member ET counts. Maximize leverage on each.','finance'),
+    g('Financial Management System','Full visibility of every euro: income, expenses, investments, net worth. Automate tracking with AI.','finance'),
+    // RELATIONSHIPS
+    g('Invest in Top Relationships','Identify my 10 most important relationships. Schedule regular calls, visits, handwritten notes. Be a net giver.','relationships'),
+    g('X+ Most Interesting People in Life','Deliberately meet and cultivate relationships with extraordinary people: founders, scientists, thinkers, athletes. Track in CRM.','relationships'),
+    g('Get an Accountability Partner','Find 1 true accountability partner who checks in weekly on goals, habits, and commitments. Reciprocal.','relationships'),
+    g('Love Goals','Actively invest in romantic life. Be intentional, open, and present. Use AI agent for logistics if needed.','relationships'),
+    g('Mentor 5 Areas of Life','Find mentors in: health, finance, relationships, entrepreneurship, and one wildcard domain. Learn from the best.','relationships'),
+    // LEARNING & WISDOM
+    g('Learn New Key Skills','Master 3+ high-leverage skills this year: coding basics, AI engineering, a physical skill (e.g. self-defense, sport).','learning'),
+    g('Attain Wisdom','Go beyond knowledge — develop judgment, discernment, and first-principles thinking. Read deeply, reflect daily.','learning'),
+    g('Know Thyself','Deep self-awareness: understand my patterns, biases, values, fears, and drives. Journal, therapy, psychometrics.','learning'),
+    g('AGI Preparation','Understand AGI timelines, implications, and how to position myself optimally — personally and professionally.','automation'),
+    // LIFE QUALITY
+    g('12+ Meaningful Life Experiences','Create 12+ unforgettable experiences this year: travel, challenges, concerts, adventures. Document all of them.','other'),
+    g('New Activities & Hobbies','Explore 3+ new activities: a sport, a creative skill, an outdoor pursuit. Broaden identity beyond work.','other'),
+    g('Self-Actualization / Transcendence / Peace','Develop inner peace independent of outcomes. Practice presence, gratitude, and alignment with deepest values.','other'),
+    g('Day-to-Day Satisfaction & Happiness','Optimize for daily joy — not just future milestones. Build a life I don\'t need to escape from.','other'),
+    g('Voluntary Discomfort & Calculated Risks','Deliberately seek discomfort: cold exposure, public speaking, hard conversations, bold bets. Build antifragility.','other'),
+    // SYSTEMS & LEVERAGE
+    g('Quantifiable & Quality Systems in Life (System Builder)','Build measurable systems for every area: health, finance, work, relationships. If it\'s not tracked, it doesn\'t improve.','automation'),
+    g('Build Antifragile Systems','Design systems that get stronger under stress: diversified income, redundant habits, backup plans, optionality.','automation'),
+    g('Maximize Leverage (AI, Capital, People)','Use AI agents, invested capital, and key people to multiply my output. 10x via leverage, not 10x via effort.','automation'),
+    g('Minimize Bad Things','Systematically identify and eliminate: bad habits, toxic inputs, low-ROI activities, draining relationships, noise.','other'),
+    // IMPACT & LEGACY
+    g('Positively Impact 1M People','Long-term north star: reach and meaningfully improve the lives of 1 million people through Givelink + content + ideas.','givelink'),
+    g('Give Back','Donate time, money, and knowledge. Volunteer. Mentor. Create content that helps others. Be a net positive force.','givelink'),
+    g('Board Member ET (Asset)','Join the ET (Endeavor?) board as a meaningful leadership role. Treat as a strategic asset and network multiplier.','givelink'),
+    // REVIEWS & TRACKING
+    g('50+ Weekly / 11+ Monthly / 3+ Quarterly / 1+ Annual Reviews','Build and maintain a rigorous review cadence. Weekly: goals + wins. Monthly: metrics. Quarterly: direction. Annual: reset.','other'),
+    // PERSONAL
+    g('6+ Months in SF','Spend 6+ months in San Francisco. Build roots, grow network, expand Givelink in the US market.','other'),
+    g('Sports Competition (Impossible Goal)','Complete a serious athletic competition: Hyrox, half-marathon, triathlon, or similar. Train consistently to get there.','health'),
+    g('Stratos Solve','Solve the Stratos challenge/goal. Define clearly, break into steps, execute.','other'),
+  ];
+  // seed routine-enabling tasks (deduplicate)
+  const now2=new Date().toISOString();
+  const rmk=(title,bucket,cat,urg,imp,eng)=>({id:uid(),title,notes:'',bucket,category:cat,urgency:urg,importance:imp,energy:eng,status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,createdAt:now2,completedAt:null});
+  const routineTasks=[
+    rmk('Set up cold exposure habit — cold shower protocol','backlog','health','low','high','high'),
+    rmk('Morning Pages — 3 pages daily journaling habit','backlog','health','low','high','low'),
+    rmk('Binaural beats 40Hz playlist for deep focus sessions','backlog','automation','low','high','low'),
+    rmk('Ultradian cycles schedule — 90min deep work + 20-30min rest','backlog','automation','low','high','high'),
+    rmk('Theme Days weekly calendar design','backlog','automation','low','high','high'),
+    rmk('Sit-stand desk solution (box/books) — posture + energy','backlog','health','low','high','low'),
+    rmk('Morning sunlight habit — 5-10min daily within 30min of waking','backlog','health','low','high','low'),
+    rmk('End-of-day shutdown ritual — define & automate','backlog','automation','low','high','high'),
+    rmk('Evening wind-down routine — design for 85+ sleep score','backlog','health','low','high','low'),
+    rmk('Weekly review template — build in Notion/app','backlog','other','low','high','high'),
+    rmk('Caffeine timing reminder — 60-90min after waking','backlog','automation','low','high','low'),
+    rmk('Pre-sleep phone lockout system','backlog','automation','low','high','low'),
+    rmk('Smoothie morning recipe — optimize ingredients','backlog','health','low','high','low'),
+    rmk('Supplements stack — order & automate reorder (Mg, Fe, Mv, creatine, collagen)','backlog','health','low','high','low'),
+  ];
+  const ex2=new Set(S.tasks.map(t=>t.title));
+  routineTasks.forEach(t=>{if(!ex2.has(t.title))S.tasks.push(t);});
+  save();
+}
+
 // ── INIT ──────────────────────────────────────────────────────
-load();seed();renderDash();
+load();seed();seedGoals();renderDash();
 </script>
 </body>
 </html>

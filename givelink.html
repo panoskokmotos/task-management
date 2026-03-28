@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Givelink — Sprint Board</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+:root{
+  --bg:#070d1a;--sf:#0e1628;--s2:#162035;--border:#1c2d47;
+  --text:#e2e8f0;--muted:#4e6180;--accent:#3b82f6;
+  --gr:#4ade80;--np:#60a5fa;--pr:#f472b6;--ex:#fbbf24;--op:#a78bfa;
+  --done:#22c55e;--prog:#3b82f6;--block:#ef4444;--todo:#475569;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden;}
+/* SIDEBAR */
+.sb{width:216px;background:var(--sf);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;overflow-y:auto;}
+.logo{padding:16px;border-bottom:1px solid var(--border);}
+.logo-main{font-size:16px;font-weight:700;color:var(--accent);letter-spacing:.3px;}
+.logo-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+.sprint-banner{margin:10px 10px 0;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;}
+.sprint-name{font-size:12px;font-weight:700;color:var(--accent);letter-spacing:.3px;}
+.sprint-meta{font-size:10px;color:var(--muted);margin-top:2px;}
+.sprint-days{font-size:18px;font-weight:700;color:var(--text);margin-top:4px;}
+.sprint-days span{font-size:10px;font-weight:400;color:var(--muted);margin-left:2px;}
+.ns{padding:8px 14px 3px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:8px;}
+.ni{padding:8px 14px;cursor:pointer;border-radius:6px;margin:1px 6px;font-size:13px;display:flex;align-items:center;gap:8px;color:var(--muted);transition:background .12s;position:relative;}
+.ni:hover{background:var(--s2);color:var(--text);}
+.ni.active{background:var(--s2);color:var(--text);}
+.ni.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:60%;border-radius:2px;background:var(--accent);}
+.pip{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.bcnt2{margin-left:auto;background:var(--s2);color:var(--muted);font-size:10px;padding:1px 6px;border-radius:8px;}
+/* MAIN */
+.main{flex:1;overflow-y:auto;display:flex;flex-direction:column;}
+.sprint-bar{background:var(--sf);border-bottom:1px solid var(--border);padding:10px 24px;display:flex;align-items:center;gap:16px;flex-shrink:0;}
+.sprint-bar-name{font-size:13px;font-weight:700;color:var(--accent);}
+.sprint-bar-dates{font-size:12px;color:var(--muted);}
+.sprint-bar-pct{margin-left:auto;font-size:12px;color:var(--muted);}
+.sprint-bar-pct strong{color:var(--text);}
+.spb{width:120px;height:4px;background:var(--border);border-radius:2px;margin-left:8px;display:inline-block;vertical-align:middle;}
+.spb-f{height:100%;border-radius:2px;background:var(--accent);transition:width .3s;}
+.content{padding:22px 26px;flex:1;}
+.view{display:none;}.view.active{display:block;}
+/* TYPOGRAPHY */
+h1{font-size:20px;font-weight:700;margin-bottom:3px;}
+h2{font-size:15px;font-weight:600;margin-bottom:12px;}
+h3{font-size:13px;font-weight:600;}
+.sub{color:var(--muted);font-size:12px;margin-bottom:18px;}
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.row{display:flex;align-items:center;gap:8px;}
+hr{border:none;border-top:1px solid var(--border);margin:16px 0;}
+/* CARDS */
+.card{background:var(--sf);border:1px solid var(--border);border-radius:10px;padding:14px;}
+/* GOAL CARD */
+.gc2{background:var(--sf);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:8px;cursor:pointer;transition:border-color .12s;}
+.gc2:hover{border-color:var(--accent);}
+.gc2.done-g{opacity:.55;}
+.gc2-header{display:flex;align-items:flex-start;gap:10px;}
+.gcheck{width:20px;height:20px;border:2px solid var(--border);border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:all .12s;margin-top:1px;}
+.gcheck:hover{border-color:var(--accent);}
+.gcheck.on{background:var(--done);border-color:var(--done);}
+.gc2-title{font-size:13px;font-weight:600;line-height:1.4;flex:1;}
+.gc2-prog{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.prog-row{display:flex;align-items:center;gap:8px;}
+.prog-label{font-size:11px;color:var(--muted);}
+.prog-num{font-size:13px;font-weight:700;}
+.prog-bar{flex:1;height:4px;background:var(--border);border-radius:2px;}
+.prog-fill{height:100%;border-radius:2px;transition:width .3s;}
+.prog-pct{font-size:11px;color:var(--muted);}
+/* TASK CARD */
+.tc2{background:var(--sf);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px;cursor:pointer;transition:border-color .12s,background .12s;display:flex;align-items:flex-start;gap:8px;}
+.tc2:hover{border-color:var(--accent);background:var(--s2);}
+.tc2.done-t{opacity:.5;}
+.tc2.done-t .tt2{text-decoration:line-through;}
+.ck2{width:16px;height:16px;border:2px solid var(--border);border-radius:4px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .12s;}
+.ck2:hover{border-color:var(--done);}
+.ck2.on{background:var(--done);border-color:var(--done);}
+.tb2{flex:1;min-width:0;}
+.tt2{font-size:13px;font-weight:500;line-height:1.4;}
+.tm2{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;align-items:center;}
+/* BADGES */
+.badge{font-size:10px;padding:2px 7px;border-radius:8px;font-weight:500;display:inline-flex;align-items:center;gap:3px;}
+.st-todo{background:rgba(71,85,105,.2);color:var(--todo);}
+.st-inprog{background:rgba(59,130,246,.15);color:var(--prog);}
+.st-done{background:rgba(34,197,94,.15);color:var(--done);}
+.st-blocked{background:rgba(239,68,68,.15);color:var(--block);}
+.pri-high{background:rgba(239,68,68,.12);color:#ef4444;}
+.pri-med{background:rgba(251,191,36,.12);color:#fbbf24;}
+.pri-low{background:rgba(100,116,139,.12);color:#64748b;}
+/* PILLAR OVERVIEW CARDS */
+.pcards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
+.pcard{background:var(--sf);border:1px solid var(--border);border-radius:10px;padding:14px;cursor:pointer;transition:border-color .12s;}
+.pcard:hover{border-color:var(--accent);}
+.pcard-emoji{font-size:20px;margin-bottom:8px;}
+.pcard-label{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;}
+.pcard-stats{font-size:22px;font-weight:700;margin-bottom:6px;}
+.pcard-sub{font-size:11px;color:var(--muted);}
+/* STAT CARDS */
+.stats2{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+.sc2{background:var(--sf);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;}
+.sn2{font-size:24px;font-weight:700;}.sl2{font-size:11px;color:var(--muted);margin-top:2px;}
+/* BUTTONS */
+.btn{padding:6px 12px;border-radius:6px;border:none;cursor:pointer;font-size:12px;font-weight:500;transition:all .12s;display:inline-flex;align-items:center;gap:5px;}
+.bp{background:var(--accent);color:#fff;}.bp:hover{opacity:.88;}
+.bg{background:transparent;color:var(--muted);border:1px solid var(--border);}.bg:hover{background:var(--s2);color:var(--text);}
+.bd{background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.25);}
+.sm{padding:3px 8px;font-size:11px;}
+/* FORMS */
+.fg{margin-bottom:12px;}
+.fg label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:500;}
+.fc{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:7px 10px;color:var(--text);font-size:13px;outline:none;transition:border-color .12s;}
+.fc:focus{border-color:var(--accent);}
+textarea.fc{resize:vertical;min-height:64px;}
+select.fc option{background:var(--s2);}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px);}
+.mo.hidden{display:none;}
+.md{background:var(--sf);border:1px solid var(--border);border-radius:12px;width:520px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:20px;}
+.mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.mc{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding:3px;border-radius:4px;}.mc:hover{color:var(--text);}
+.mf{display:flex;gap:6px;justify-content:flex-end;margin-top:16px;padding-top:12px;border-top:1px solid var(--border);}
+/* SECTION HEADER */
+.sh{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.sh-left{display:flex;align-items:center;gap:8px;}
+/* EMPTY */
+.empty{text-align:center;color:var(--muted);padding:28px;font-size:12px;}
+/* FAB */
+.fab{position:fixed;bottom:22px;right:22px;width:44px;height:44px;background:var(--accent);border:none;border-radius:50%;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(59,130,246,.4);transition:transform .12s;z-index:100;}
+.fab:hover{transform:scale(1.08);}
+/* FILTER TABS */
+.ftabs{display:flex;gap:6px;margin-bottom:14px;}
+.ftab{padding:4px 10px;border-radius:14px;font-size:11px;cursor:pointer;border:1px solid var(--border);color:var(--muted);background:transparent;transition:all .12s;}
+.ftab:hover,.ftab.active{background:var(--s2);color:var(--text);border-color:var(--accent);}
+/* SPRINT GOAL TAG */
+.goal-tag{font-size:9px;padding:1px 5px;border-radius:4px;background:rgba(59,130,246,.15);color:var(--accent);font-weight:700;letter-spacing:.3px;text-transform:uppercase;}
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+@keyframes fi{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
+.fi{animation:fi .15s ease;}
+@media(max-width:1100px){.pcards{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:800px){.pcards{grid-template-columns:1fr 1fr;}.stats2{grid-template-columns:1fr 1fr;}}
+</style>
+</head>
+<body>
+
+<nav class="sb">
+  <div class="logo">
+    <div class="logo-main">Givelink</div>
+    <div class="logo-sub">Sprint Board</div>
+  </div>
+  <div class="sprint-banner">
+    <div class="sprint-name" id="sb-name">Sprint 1</div>
+    <div class="sprint-meta" id="sb-dates"></div>
+    <div class="sprint-days" id="sb-days">— <span>days left</span></div>
+  </div>
+  <div class="ns">Sprint</div>
+  <div class="ni active" onclick="nav('overview')">📊 Overview</div>
+  <div class="ns">Pillars</div>
+  <div class="ni" onclick="nav('growth')"><span class="pip" style="background:var(--gr)"></span>US Growth <span class="bcnt2" id="cnt-growth"></span></div>
+  <div class="ni" onclick="nav('nonprofits')"><span class="pip" style="background:var(--np)"></span>Nonprofits <span class="bcnt2" id="cnt-nonprofits"></span></div>
+  <div class="ni" onclick="nav('product')"><span class="pip" style="background:var(--pr)"></span>Product <span class="bcnt2" id="cnt-product"></span></div>
+  <div class="ni" onclick="nav('execution')"><span class="pip" style="background:var(--ex)"></span>Execution <span class="bcnt2" id="cnt-execution"></span></div>
+  <div class="ni" onclick="nav('ops')"><span class="pip" style="background:var(--op)"></span>Smooth Ops <span class="bcnt2" id="cnt-ops"></span></div>
+  <div class="ns">More</div>
+  <div class="ni" onclick="nav('backlog')">📋 Backlog <span class="bcnt2" id="cnt-backlog"></span></div>
+  <div class="ni" onclick="openSprintSettings()">⚙️ Sprint Settings</div>
+</nav>
+
+<div class="main">
+  <div class="sprint-bar">
+    <span class="sprint-bar-name" id="bar-name">Sprint 1</span>
+    <span class="sprint-bar-dates" id="bar-dates"></span>
+    <span class="sprint-bar-pct" id="bar-pct" style="display:flex;align-items:center;gap:6px;"></span>
+  </div>
+
+  <div class="content">
+
+  <!-- OVERVIEW -->
+  <div id="v-overview" class="view active">
+    <div class="ph"><div><h1>Sprint Overview 📊</h1><p class="sub" id="ov-sub"></p></div><button class="btn bp" onclick="openAdd()">+ Add Task</button></div>
+    <div class="stats2" id="ov-stats"></div>
+    <div class="pcards" id="ov-pillars"></div>
+    <hr>
+    <h2>🎯 Sprint Goals</h2>
+    <div id="ov-goals"></div>
+  </div>
+
+  <!-- PILLAR VIEWS (generated) -->
+  <div id="v-growth" class="view"></div>
+  <div id="v-nonprofits" class="view"></div>
+  <div id="v-product" class="view"></div>
+  <div id="v-execution" class="view"></div>
+  <div id="v-ops" class="view"></div>
+
+  <!-- BACKLOG -->
+  <div id="v-backlog" class="view">
+    <div class="ph"><div><h1>📋 Backlog</h1><p class="sub" id="bl-sub"></p></div><button class="btn bp" onclick="openAdd('','backlog')">+ Add to Backlog</button></div>
+    <div class="ftabs" id="bl-filters">
+      <button class="ftab active" onclick="setBLFilter('all',this)">All</button>
+      <button class="ftab" onclick="setBLFilter('growth',this)">🚀 Growth</button>
+      <button class="ftab" onclick="setBLFilter('nonprofits',this)">🤝 Nonprofits</button>
+      <button class="ftab" onclick="setBLFilter('product',this)">🏗️ Product</button>
+      <button class="ftab" onclick="setBLFilter('execution',this)">⚡ Execution</button>
+      <button class="ftab" onclick="setBLFilter('ops',this)">🔧 Ops</button>
+    </div>
+    <div id="backlog-list"></div>
+  </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<button class="fab" onclick="openAdd()">+</button>
+
+<!-- ADD/EDIT TASK MODAL -->
+<div class="mo hidden" id="tm">
+  <div class="md">
+    <div class="mh"><h3 id="tm-title">Add Task</h3><button class="mc" onclick="closeM('tm')">×</button></div>
+    <div class="fg"><label>Title *</label><input class="fc" id="t-title" placeholder="What needs to be done?"></div>
+    <div class="fg"><label>Notes</label><textarea class="fc" id="t-notes" placeholder="Details, context, links..."></textarea></div>
+    <div class="fr">
+      <div class="fg"><label>Pillar</label>
+        <select class="fc" id="t-pillar">
+          <option value="growth">🚀 US Growth</option>
+          <option value="nonprofits">🤝 Nonprofits & Communities</option>
+          <option value="product">🏗️ Product & Magic</option>
+          <option value="execution">⚡ Execution & Systems</option>
+          <option value="ops">🔧 Smooth Ops</option>
+        </select>
+      </div>
+      <div class="fg"><label>Sprint</label>
+        <select class="fc" id="t-sprint">
+          <option value="current">Current Sprint</option>
+          <option value="backlog">Backlog</option>
+        </select>
+      </div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Status</label>
+        <select class="fc" id="t-status">
+          <option value="todo">⬜ Todo</option>
+          <option value="in-progress">🔵 In Progress</option>
+          <option value="done">✅ Done</option>
+          <option value="blocked">🔴 Blocked</option>
+        </select>
+      </div>
+      <div class="fg"><label>Priority</label>
+        <select class="fc" id="t-pri">
+          <option value="high">🔴 High</option>
+          <option value="medium">🟡 Medium</option>
+          <option value="low">⚪ Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Target # (optional)</label><input class="fc" id="t-target" type="number" placeholder="e.g. 20" min="0"></div>
+      <div class="fg"><label>Current # (optional)</label><input class="fc" id="t-current" type="number" placeholder="e.g. 5" min="0"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Assignee</label><input class="fc" id="t-assignee" placeholder="e.g. Panos, Fanos..."></div>
+      <div class="fg"><label>Sprint Goal?</label><select class="fc" id="t-isgoal"><option value="false">No — regular task</option><option value="true">Yes — sprint goal</option></select></div>
+    </div>
+    <div class="mf">
+      <button class="btn bd sm" id="del-btn" style="margin-right:auto;display:none;" onclick="delCur()">🗑 Delete</button>
+      <button class="btn bg" onclick="closeM('tm')">Cancel</button>
+      <button class="btn bp" onclick="saveTask()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- SPRINT SETTINGS MODAL -->
+<div class="mo hidden" id="sm">
+  <div class="md" style="width:420px;">
+    <div class="mh"><h3>⚙️ Sprint Settings</h3><button class="mc" onclick="closeM('sm')">×</button></div>
+    <div class="fg"><label>Sprint Name</label><input class="fc" id="s-name" placeholder="Sprint 1"></div>
+    <div class="fr">
+      <div class="fg"><label>Start Date</label><input class="fc" id="s-start" type="date"></div>
+      <div class="fg"><label>End Date</label><input class="fc" id="s-end" type="date"></div>
+    </div>
+    <div class="mf"><button class="btn bg" onclick="closeM('sm')">Cancel</button><button class="btn bp" onclick="saveSprint()">Save Sprint</button></div>
+  </div>
+</div>
+
+<script>
+// ── DATA ────────────────────────────────────────────────────────
+const PILLARS={
+  growth:{l:'US Growth',e:'🚀',c:'var(--gr)',hex:'#4ade80'},
+  nonprofits:{l:'Nonprofits & Communities',e:'🤝',c:'var(--np)',hex:'#60a5fa'},
+  product:{l:'Product & Magic',e:'🏗️',c:'var(--pr)',hex:'#f472b6'},
+  execution:{l:'Execution & Systems',e:'⚡',c:'var(--ex)',hex:'#fbbf24'},
+  ops:{l:'Smooth Ops',e:'🔧',c:'var(--op)',hex:'#a78bfa'}
+};
+const STATUS={
+  'todo':{l:'Todo',cls:'st-todo'},
+  'in-progress':{l:'In Progress',cls:'st-inprog'},
+  'done':{l:'Done',cls:'st-done'},
+  'blocked':{l:'Blocked',cls:'st-blocked'}
+};
+const PRI={high:{l:'High',cls:'pri-high'},medium:{l:'Medium',cls:'pri-med'},low:{l:'Low',cls:'pri-low'}};
+
+let S={
+  sprint:{name:'Sprint 1 — US Growth Push',start:'2026-03-28',end:'2026-04-11'},
+  tasks:[],
+  blFilter:'all'
+};
+let editId=null;
+
+// ── PERSIST ─────────────────────────────────────────────────────
+function save(){localStorage.setItem('givelink_sprint',JSON.stringify(S));}
+function load(){const d=localStorage.getItem('givelink_sprint');if(d){const p=JSON.parse(d);S={...S,...p};}}
+
+// ── UTILS ───────────────────────────────────────────────────────
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+function daysLeft(){const e=new Date(S.sprint.end);const n=new Date();const d=Math.ceil((e-n)/(1000*60*60*24));return Math.max(0,d);}
+function sprintPct(){const s=new Date(S.sprint.start),e=new Date(S.sprint.end),n=new Date();const total=e-s,elapsed=Math.min(n-s,total);return Math.round(Math.max(0,elapsed/total)*100);}
+function fd(d){if(!d)return'';return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+function curTasks(){return S.tasks.filter(t=>t.sprint==='current');}
+function blTasks(){return S.tasks.filter(t=>t.sprint==='backlog');}
+function doneCount(){return curTasks().filter(t=>t.status==='done').length;}
+
+// ── NAV ─────────────────────────────────────────────────────────
+let curView='overview';
+function nav(v){
+  curView=v;
+  document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
+  document.getElementById('v-'+v).classList.add('active');
+  document.querySelectorAll('.ni').forEach(x=>{if(x.getAttribute('onclick')?.includes("'"+v+"'"))x.classList.add('active');});
+  renderView(v);
+  updateSidebar();
+}
+function renderView(v){
+  if(v==='overview')renderOverview();
+  else if(PILLARS[v])renderPillar(v);
+  else if(v==='backlog')renderBacklog();
+}
+function refresh(){renderView(curView);updateSidebar();}
+
+// ── SPRINT BAR ───────────────────────────────────────────────────
+function renderSprintBar(){
+  const sp=S.sprint;
+  document.getElementById('sb-name').textContent=sp.name;
+  document.getElementById('sb-dates').textContent=fd(sp.start)+' – '+fd(sp.end);
+  document.getElementById('sb-days').innerHTML=daysLeft()+'<span> days left</span>';
+  document.getElementById('bar-name').textContent=sp.name;
+  document.getElementById('bar-dates').textContent=fd(sp.start)+' – '+fd(sp.end);
+  const pct=sprintPct();
+  const done=doneCount(),total=curTasks().length;
+  document.getElementById('bar-pct').innerHTML=`<strong>${done}/${total}</strong> tasks done&nbsp;<span class="spb"><span class="spb-f" style="width:${total?Math.round(done/total*100):0}%"></span></span>`;
+}
+
+// ── SIDEBAR COUNTS ────────────────────────────────────────────────
+function updateSidebar(){
+  renderSprintBar();
+  Object.keys(PILLARS).forEach(p=>{
+    const c=curTasks().filter(t=>t.pillar===p&&t.status!=='done').length;
+    document.getElementById('cnt-'+p).textContent=c||'';
+  });
+  document.getElementById('cnt-backlog').textContent=blTasks().length||'';
+}
+
+// ── OVERVIEW ─────────────────────────────────────────────────────
+function renderOverview(){
+  const ct=curTasks();
+  const done=ct.filter(t=>t.status==='done').length;
+  const inprog=ct.filter(t=>t.status==='in-progress').length;
+  const blocked=ct.filter(t=>t.status==='blocked').length;
+  const todo=ct.filter(t=>t.status==='todo').length;
+  document.getElementById('ov-sub').textContent=`${ct.length} sprint tasks · ${blTasks().length} in backlog`;
+  document.getElementById('ov-stats').innerHTML=`
+    <div class="sc2"><div class="sn2" style="color:var(--done)">${done}</div><div class="sl2">Done</div></div>
+    <div class="sc2"><div class="sn2" style="color:var(--prog)">${inprog}</div><div class="sl2">In Progress</div></div>
+    <div class="sc2"><div class="sn2" style="color:#fbbf24">${todo}</div><div class="sl2">Todo</div></div>
+    <div class="sc2"><div class="sn2" style="color:var(--block)">${blocked}</div><div class="sl2">Blocked</div></div>`;
+  document.getElementById('ov-pillars').innerHTML=Object.entries(PILLARS).map(([k,p])=>{
+    const tasks=ct.filter(t=>t.pillar===k);
+    const d=tasks.filter(t=>t.status==='done').length;
+    const pct=tasks.length?Math.round(d/tasks.length*100):0;
+    return`<div class="pcard" onclick="nav('${k}')">
+      <div class="pcard-emoji">${p.e}</div>
+      <div class="pcard-label">${p.l}</div>
+      <div class="pcard-stats" style="color:${p.hex}">${d}<span style="font-size:13px;font-weight:400;color:var(--muted)">/${tasks.length}</span></div>
+      <div style="height:3px;background:var(--border);border-radius:2px;margin:6px 0 4px;">
+        <div style="height:100%;border-radius:2px;background:${p.hex};width:${pct}%;transition:width .3s;"></div>
+      </div>
+      <div class="pcard-sub">${pct}% complete</div>
+    </div>`;
+  }).join('');
+  const goals=ct.filter(t=>t.isGoal);
+  document.getElementById('ov-goals').innerHTML=goals.length?goals.map(t=>goalHTML(t)).join(''):'<div class="empty">No sprint goals yet. Add one!</div>';
+}
+
+// ── PILLAR VIEW ───────────────────────────────────────────────────
+function renderPillar(p){
+  const P=PILLARS[p];
+  const tasks=curTasks().filter(t=>t.pillar===p);
+  const goals=tasks.filter(t=>t.isGoal);
+  const subtasks=tasks.filter(t=>!t.isGoal);
+  const done=tasks.filter(t=>t.status==='done').length;
+  document.getElementById('v-'+p).innerHTML=`
+    <div class="ph">
+      <div><h1>${P.e} ${P.l}</h1><p class="sub">${done}/${tasks.length} done · Sprint</p></div>
+      <div class="row">
+        <button class="btn bg" onclick="openAdd('${p}','current',true)">+ Goal</button>
+        <button class="btn bp" onclick="openAdd('${p}')">+ Task</button>
+      </div>
+    </div>
+    ${goals.length?`<div class="sh"><div class="sh-left"><span style="font-size:12px;font-weight:700;color:${P.hex};">Sprint Goals</span></div></div>${goals.map(t=>goalHTML(t)).join('')}<hr>`:``}
+    <div class="sh">
+      <div class="sh-left"><span style="font-size:12px;font-weight:700;color:var(--muted);">Tasks (${subtasks.filter(t=>t.status!=='done').length} active)</span></div>
+      <div class="row">
+        <button class="ftab active" id="pf-all-${p}" onclick="setPFilter('all','${p}',this)" style="padding:3px 8px;font-size:10px;">All</button>
+        <button class="ftab" onclick="setPFilter('todo','${p}',this)" style="padding:3px 8px;font-size:10px;">Todo</button>
+        <button class="ftab" onclick="setPFilter('in-progress','${p}',this)" style="padding:3px 8px;font-size:10px;">In Progress</button>
+        <button class="ftab" onclick="setPFilter('done','${p}',this)" style="padding:3px 8px;font-size:10px;">Done</button>
+        <button class="ftab" onclick="setPFilter('blocked','${p}',this)" style="padding:3px 8px;font-size:10px;">Blocked</button>
+      </div>
+    </div>
+    <div id="plist-${p}">${subtasks.length?subtasks.map(t=>taskHTML(t)).join(''):'<div class="empty">No tasks yet for this pillar.</div>'}</div>
+  `;
+}
+function setPFilter(status,pillar,el){
+  el.closest('.sh').querySelectorAll('.ftab').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  const tasks=curTasks().filter(t=>t.pillar===pillar&&!t.isGoal);
+  const filtered=status==='all'?tasks:tasks.filter(t=>t.status===status);
+  document.getElementById('plist-'+pillar).innerHTML=filtered.length?filtered.map(t=>taskHTML(t)).join(''):'<div class="empty">No tasks matching this filter.</div>';
+}
+
+// ── BACKLOG ────────────────────────────────────────────────────────
+function setBLFilter(f,el){
+  S.blFilter=f;
+  document.querySelectorAll('#bl-filters .ftab').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  renderBacklog();
+}
+function renderBacklog(){
+  let tasks=blTasks();
+  document.getElementById('bl-sub').textContent=tasks.length+' items in backlog';
+  if(S.blFilter!=='all')tasks=tasks.filter(t=>t.pillar===S.blFilter);
+  if(!tasks.length){document.getElementById('backlog-list').innerHTML='<div class="empty">Backlog is empty for this filter.</div>';return;}
+  // Group by pillar
+  const grouped={};
+  tasks.forEach(t=>{(grouped[t.pillar]=grouped[t.pillar]||[]).push(t);});
+  let html='';
+  Object.entries(grouped).forEach(([p,ts])=>{
+    const P=PILLARS[p];
+    html+=`<div style="margin-bottom:16px;"><div style="font-size:11px;font-weight:700;color:${P.hex};margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px;">${P.e} ${P.l} (${ts.length})</div>`;
+    html+=ts.map(t=>`
+      <div class="tc2 fi" onclick="openEdit('${t.id}')">
+        <div class="ck2 ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')"></div>
+        <div class="tb2">
+          <div class="tt2">${t.title}</div>
+          <div class="tm2">
+            <span class="badge ${STATUS[t.status]?.cls||'st-todo'}">${STATUS[t.status]?.l||'Todo'}</span>
+            <span class="badge ${PRI[t.priority]?.cls||'pri-med'}">${PRI[t.priority]?.l||'Medium'}</span>
+          </div>
+        </div>
+        <button class="btn bg sm" onclick="event.stopPropagation();moveSprint('${t.id}','current')">→ Sprint</button>
+      </div>`).join('');
+    html+='</div>';
+  });
+  document.getElementById('backlog-list').innerHTML=html;
+}
+
+// ── GOAL HTML ─────────────────────────────────────────────────────
+function goalHTML(t){
+  const P=PILLARS[t.pillar];
+  const isDone=t.status==='done';
+  const hasProg=t.target&&t.target>0;
+  const pct=hasProg?Math.min(100,Math.round((t.current||0)/t.target*100)):0;
+  return`<div class="gc2 ${isDone?'done-g':''} fi" onclick="openEdit('${t.id}')">
+    <div class="gc2-header">
+      <div class="gcheck ${isDone?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${isDone?'<span style="color:#fff;font-size:10px;">✓</span>':''}</div>
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+          <span style="font-size:11px;color:${P.hex};font-weight:700;">${P.e} ${P.l}</span>
+          <span class="goal-tag">Goal</span>
+          <span class="badge ${STATUS[t.status]?.cls||'st-todo'}" style="margin-left:auto;">${STATUS[t.status]?.l||'Todo'}</span>
+        </div>
+        <div class="gc2-title">${t.title}</div>
+        ${t.notes?`<div style="font-size:11px;color:var(--muted);margin-top:4px;">${t.notes}</div>`:''}
+      </div>
+    </div>
+    ${hasProg?`<div class="gc2-prog">
+      <div class="prog-row">
+        <span class="prog-label">Progress</span>
+        <span class="prog-num" style="color:${P.hex}">${t.current||0}</span>
+        <span class="prog-label">/ ${t.target}</span>
+        <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${P.hex}"></div></div>
+        <span class="prog-pct">${pct}%</span>
+      </div>
+    </div>`:''}
+    ${t.assignee?`<div style="font-size:11px;color:var(--muted);margin-top:6px;">👤 ${t.assignee}</div>`:''}
+  </div>`;
+}
+
+// ── TASK HTML ─────────────────────────────────────────────────────
+function taskHTML(t){
+  const P=PILLARS[t.pillar];
+  const hasProg=t.target&&t.target>0;
+  const pct=hasProg?Math.min(100,Math.round((t.current||0)/t.target*100)):0;
+  return`<div class="tc2 fi ${t.status==='done'?'done-t':''}" onclick="openEdit('${t.id}')">
+    <div class="ck2 ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${t.status==='done'?'<span style="color:#fff;font-size:9px;">✓</span>':''}</div>
+    <div class="tb2">
+      <div class="tt2">${t.title}</div>
+      <div class="tm2">
+        <span class="badge ${STATUS[t.status]?.cls||'st-todo'}">${STATUS[t.status]?.l||'Todo'}</span>
+        <span class="badge ${PRI[t.priority]?.cls||'pri-med'}">${t.priority||'medium'}</span>
+        ${hasProg?`<span style="font-size:11px;color:${P.hex};font-weight:600;">${t.current||0}/${t.target}</span>`:''}
+        ${t.assignee?`<span style="font-size:11px;color:var(--muted);">👤 ${t.assignee}</span>`:''}
+      </div>
+      ${hasProg?`<div style="height:3px;background:var(--border);border-radius:2px;margin-top:5px;"><div style="height:100%;border-radius:2px;background:${P.hex};width:${pct}%;transition:width .3s;"></div></div>`:''}
+    </div>
+  </div>`;
+}
+
+// ── TASK CRUD ─────────────────────────────────────────────────────
+function openAdd(pillar='growth',sprint='current',isGoal=false){
+  editId=null;
+  document.getElementById('tm-title').textContent='Add Task';
+  document.getElementById('t-title').value='';
+  document.getElementById('t-notes').value='';
+  document.getElementById('t-pillar').value=pillar||'growth';
+  document.getElementById('t-sprint').value=sprint;
+  document.getElementById('t-status').value='todo';
+  document.getElementById('t-pri').value='high';
+  document.getElementById('t-target').value='';
+  document.getElementById('t-current').value='';
+  document.getElementById('t-assignee').value='';
+  document.getElementById('t-isgoal').value=isGoal?'true':'false';
+  document.getElementById('del-btn').style.display='none';
+  document.getElementById('tm').classList.remove('hidden');
+  document.getElementById('t-title').focus();
+}
+function openEdit(id){
+  const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  editId=id;
+  document.getElementById('tm-title').textContent='Edit Task';
+  document.getElementById('t-title').value=t.title;
+  document.getElementById('t-notes').value=t.notes||'';
+  document.getElementById('t-pillar').value=t.pillar;
+  document.getElementById('t-sprint').value=t.sprint;
+  document.getElementById('t-status').value=t.status;
+  document.getElementById('t-pri').value=t.priority||'medium';
+  document.getElementById('t-target').value=t.target||'';
+  document.getElementById('t-current').value=t.current||'';
+  document.getElementById('t-assignee').value=t.assignee||'';
+  document.getElementById('t-isgoal').value=t.isGoal?'true':'false';
+  document.getElementById('del-btn').style.display='block';
+  document.getElementById('tm').classList.remove('hidden');
+  document.getElementById('t-title').focus();
+}
+function saveTask(){
+  const title=document.getElementById('t-title').value.trim();
+  if(!title){alert('Enter a task title.');return;}
+  const d={
+    title,
+    notes:document.getElementById('t-notes').value,
+    pillar:document.getElementById('t-pillar').value,
+    sprint:document.getElementById('t-sprint').value,
+    status:document.getElementById('t-status').value,
+    priority:document.getElementById('t-pri').value,
+    target:parseInt(document.getElementById('t-target').value)||null,
+    current:parseInt(document.getElementById('t-current').value)||0,
+    assignee:document.getElementById('t-assignee').value,
+    isGoal:document.getElementById('t-isgoal').value==='true'
+  };
+  if(editId){const i=S.tasks.findIndex(t=>t.id===editId);S.tasks[i]={...S.tasks[i],...d};}
+  else S.tasks.push({id:uid(),...d,createdAt:new Date().toISOString(),completedAt:null});
+  save();closeM('tm');refresh();
+}
+function delCur(){if(!editId||!confirm('Delete?'))return;S.tasks=S.tasks.filter(t=>t.id!==editId);save();closeM('tm');refresh();}
+function toggleDone(id){
+  const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  t.status=t.status==='done'?'todo':'done';
+  t.completedAt=t.status==='done'?new Date().toISOString():null;
+  if(t.status==='done'&&t.target)t.current=t.target;
+  save();refresh();
+}
+function moveSprint(id,sprint){
+  const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  t.sprint=sprint;save();refresh();
+}
+
+// ── SPRINT SETTINGS ───────────────────────────────────────────────
+function openSprintSettings(){
+  document.getElementById('s-name').value=S.sprint.name;
+  document.getElementById('s-start').value=S.sprint.start;
+  document.getElementById('s-end').value=S.sprint.end;
+  document.getElementById('sm').classList.remove('hidden');
+}
+function saveSprint(){
+  S.sprint.name=document.getElementById('s-name').value||'Sprint 1';
+  S.sprint.start=document.getElementById('s-start').value;
+  S.sprint.end=document.getElementById('s-end').value;
+  save();closeM('sm');renderSprintBar();updateSidebar();
+}
+
+// ── MODAL ─────────────────────────────────────────────────────────
+function closeM(id){document.getElementById(id).classList.add('hidden');editId=null;}
+document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',function(e){if(e.target===this){this.classList.add('hidden');editId=null;}}));
+document.addEventListener('keydown',e=>{
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+  if(e.key==='n')openAdd();
+  if(e.key==='Escape')document.querySelectorAll('.mo:not(.hidden)').forEach(m=>m.classList.add('hidden'));
+});
+
+// ── SEED ─────────────────────────────────────────────────────────
+function seed(){
+  if(S.seeded)return;S.seeded=true;
+  const now=new Date().toISOString();
+  const mk=(title,pillar,sprint,status,pri,isGoal,target,current,notes,assignee)=>({
+    id:uid(),title,notes:notes||'',pillar,sprint,status,priority:pri,
+    target:target||null,current:current||0,assignee:assignee||'',isGoal:!!isGoal,
+    createdAt:now,completedAt:status==='done'?now:null
+  });
+  S.tasks=[
+    // ── SPRINT GOALS ──────────────────────────────────────────────
+    mk('Complete & Announce Rebranding (off-product)','product','current','in-progress','high',true,null,null,''),
+    mk('20+ US Donors','growth','current','in-progress','high',true,20,1,''),
+    mk('Complete Nonprofit Sales Transition','nonprofits','current','todo','high',true,null,null,''),
+    mk('Communities Sales Transition & Improvement','nonprofits','current','in-progress','high',true,null,null,''),
+    mk('Positive Decision from 2+ New High-Innovative Nonprofits','nonprofits','current','in-progress','high',true,2,1,''),
+    mk('Onboard 1+ New High-Innovative Nonprofits','nonprofits','current','todo','high',true,1,0,''),
+    mk('Onboard 1+ Churches & Restart Sequence','nonprofits','current','todo','high',true,1,0,''),
+    mk('Promotion by 2+ High-Innovative Orgs','growth','current','todo','high',true,2,0,''),
+    mk('Meet w/ 2+ Strategic Partners & Proceed w/ 1+','growth','current','in-progress','high',true,2,1,'Booked: 2'),
+    mk('Promotion by 3+ Med+ Innovative Networks','growth','current','in-progress','medium',true,3,1,''),
+    mk('Onboard 2+ Med+ Innovative','nonprofits','current','in-progress','high',true,2,1,''),
+    mk('Launch 3+ CI Onboarding Improvements','product','current','todo','medium',true,3,0,''),
+    mk('Interview 5+ Users (2+ US) & Structure Automatic Outreach','product','current','in-progress','high',true,5,2,''),
+    mk('Decide on Gamification & Apply','product','current','todo','medium',true,null,null,''),
+    mk('Launch New Design System & Rebranding','product','current','in-progress','high',true,null,null,''),
+    mk('Weekly KPIs + MVPs Evaluation','execution','current','todo','high',true,null,null,''),
+    mk('Fanos Meeting','execution','current','todo','high',true,null,null,''),
+    mk('Smooth US Relocation','ops','current','in-progress','high',true,null,null,''),
+    mk('Create SF Investor Lead Tracking w/ 250+ leads','ops','current','done','high',true,250,250,''),
+    mk('No Serious US/GR Ops Mistakes','ops','current','in-progress','high',true,null,null,''),
+    mk('90% of Donors w/ delay <25 days & <5% with delay ≥50 days','ops','current','in-progress','high',true,null,null,''),
+    mk('O1 Application under legal processing','ops','current','in-progress','high',true,null,null,'Meeting with immigration specialist completed — next steps cleared'),
+    mk('Mar Admin Management 1','ops','current','todo','medium',true,null,null,''),
+    // ── SPRINT TASKS — GROWTH ─────────────────────────────────────
+    mk('2nd Calls with Nonprofits','growth','current','in-progress','high',false,3,0,'Booked: 1'),
+    mk('Get Promoted on 4+ Nonprofit Networks','growth','current','in-progress','high',false,4,3,'Current: 1 website + 2 social media'),
+    mk('Outreach others — follow up all leads','growth','current','todo','high',false,null,null,''),
+    mk('Build target list of 20 organizations (associations, giving circles, platforms)','growth','current','todo','high',false,20,0,'Nonprofit associations, giving circles, DonorsChoose, Grapevine, YNPN, AFP, NTC, ADPList, Score'),
+    mk('Add contacts to Apollo and start outreach','growth','current','in-progress','high',false,null,null,''),
+    mk('Follow up existing relationships: Networked, Uplodio, Aria Karafyllis','growth','current','todo','high',false,null,null,''),
+    mk('Book 2 partnership meetings this week','growth','current','todo','high',false,2,0,''),
+    mk('Bring 10+ US Donors','growth','current','in-progress','high',false,10,1,''),
+    mk('Launch micro-campaign with St. Anthony','growth','current','todo','high',false,null,null,''),
+    mk('Send direct outreach to 20 US contacts','growth','current','todo','high',false,20,0,''),
+    mk('Publish SEO / GEO blog post','growth','current','todo','medium',false,null,null,''),
+    mk('Ask mentors and network to support early donations','growth','current','todo','high',false,null,null,''),
+    mk('Bring in newsletter and push notifications','growth','current','todo','medium',false,null,null,''),
+    mk('250 in ads — bringing high-innovative nonprofits','growth','current','todo','medium',false,null,null,''),
+    mk('Global Philanthropy Forum Summit in SF — attend','growth','current','todo','medium',false,null,null,''),
+    mk('Check Bay Area events — attend relevant ones','growth','current','todo','medium',false,null,null,''),
+    mk('Forum Next Week — check and attend','growth','current','todo','medium',false,null,null,''),
+    mk('Charity Navigator meeting','growth','current','todo','medium',false,null,null,'Booking link available'),
+    mk('Philanthropy Together — outreach','growth','current','todo','medium',false,null,null,''),
+    mk('Find exited founders to donate — coffee, cause they care','growth','current','todo','medium',false,null,null,''),
+    mk('Company donations in USA — explore','growth','current','todo','medium',false,null,null,''),
+    mk('Girl who has 12 giving circles — contact','growth','current','todo','medium',false,null,null,''),
+    mk('Ask mentors for support on early donations','growth','current','todo','high',false,null,null,''),
+    mk('Mass Blogs — SEO/GEO content push','growth','current','todo','medium',false,null,null,''),
+    mk('PearVC, Bill Gates Foundation, Impact Accelerator — outreach','growth','current','todo','medium',false,null,null,''),
+    mk('Social Innovation Award — apply','growth','current','todo','medium',false,null,null,'fillout.applysocialinnovationaward.com/start'),
+    mk('Hellenic Impact Grant $20k — apply','growth','current','todo','medium',false,null,null,''),
+    mk('AFP Member — join AFP+','growth','current','todo','medium',false,null,null,''),
+    // ── SPRINT TASKS — NONPROFITS ─────────────────────────────────
+    mk('Run sales/communities transition meeting','nonprofits','current','todo','high',false,null,null,''),
+    mk('Define clear pipeline stages','nonprofits','current','todo','high',false,null,null,''),
+    mk('Improve Apollo targeting','nonprofits','current','in-progress','high',false,null,null,''),
+    mk('Create standard outreach templates','nonprofits','current','todo','high',false,null,null,''),
+    mk('Track daily outreach performance','nonprofits','current','todo','high',false,null,null,''),
+    mk('Follow Up Nonprofits — food banks, disaster relief, volunteer-heavy','nonprofits','current','in-progress','high',false,null,null,'Loom + Call'),
+    mk('Positive Decision from 2+ High-Innovative Nonprofits','nonprofits','current','in-progress','high',false,2,1,''),
+    mk('Onboard 2+ Med Innovative','nonprofits','current','in-progress','high',false,2,1,''),
+    mk('Create wishlist and product setup (finalize, from emails too)','nonprofits','current','todo','high',false,null,null,''),
+    mk('Import Amazon products — all','nonprofits','current','todo','high',false,null,null,''),
+    mk('Finalize onboarding for next nonprofit','nonprofits','current','in-progress','high',false,null,null,''),
+    mk('Make their wishlist','nonprofits','current','todo','high',false,null,null,''),
+    mk('Pay Gerald','nonprofits','current','todo','high',false,null,null,''),
+    mk('Customer Onboarding Apollo — Quo','nonprofits','current','todo','high',false,null,null,''),
+    mk('Rebranding Announcement — make sure what\'s needed','nonprofits','current','todo','high',false,null,null,''),
+    mk('Determine Churches Approach & Meet 2+','nonprofits','current','done','high',false,2,2,''),
+    mk('Communities to Apollo — migrate','nonprofits','current','todo','high',false,null,null,''),
+    mk('Educating Gen Z — Questions','nonprofits','current','todo','medium',false,null,null,''),
+    mk('Disaster Relief Fund nonprofits — outreach','nonprofits','current','todo','medium',false,null,null,''),
+    mk('Specific nonprofits — prioritize list','nonprofits','current','todo','high',false,null,null,''),
+    mk('Donor management & communications with impact photos','nonprofits','current','todo','medium',false,null,null,''),
+    mk('Send to Nonflickers and automate interview','nonprofits','current','todo','medium',false,null,null,''),
+    mk('Nonprofit pro reach out','nonprofits','current','todo','medium',false,null,null,''),
+    mk('Fifty & Fifty reach out and similar partnerships','nonprofits','current','todo','medium',false,null,null,''),
+    mk('Submit nonprofit tech to acole@napco.com — 2026 Nonprofit Technology Tracker','nonprofits','current','todo','low',false,null,null,'Subject: 2026 Nonprofit Technology Tracker'),
+    mk('New Amazon products (karat — almost) and photo upload','nonprofits','current','todo','medium',false,null,null,''),
+    mk('Quality products on Amazon — add new ones','nonprofits','current','todo','medium',false,null,null,''),
+    mk('St. Anthony — send materials','nonprofits','current','todo','medium',false,null,null,''),
+    mk('SF Safehouse social media','nonprofits','current','todo','medium',false,null,null,''),
+    mk('SF Safehouse marathon marketing','nonprofits','current','todo','medium',false,null,null,''),
+    mk('Wholesaleschoolwear.com — supplier check','nonprofits','current','todo','medium',false,null,null,''),
+    mk('Wholesale supplier needed (KSP)','nonprofits','current','todo','high',false,null,null,''),
+    mk('New products Edgewood','nonprofits','current','todo','medium',false,null,null,''),
+    mk('Swords to Plowshares — send materials','nonprofits','current','todo','medium',false,null,null,''),
+    mk('Nonprofits to Caitlin','nonprofits','current','todo','medium',false,null,null,''),
+    mk('Feedback items — follow up (razorfox integration, download receipts, in-kind receipts, customizable link, local suppliers)','nonprofits','current','todo','high',false,null,null,''),
+    mk('Dick\'s Sporting Goods gift cards — check availability for nonprofits','nonprofits','current','todo','medium',false,null,null,''),
+    // ── SPRINT TASKS — PRODUCT ────────────────────────────────────
+    mk('Interview 10+ Users (2+ US) & structure automatic outreach','product','current','in-progress','high',false,10,2,''),
+    mk('Improve and implement automatic outreach','product','current','in-progress','high',false,null,null,''),
+    mk('Notifications from admin (Made)','product','current','done','medium',false,null,null,''),
+    mk('After IRIS (Mailerlite) — implement','product','current','todo','high',false,null,null,''),
+    mk('2 Weekly General MVP & Changes Evaluations','product','current','in-progress','high',false,2,1,''),
+    mk('Gamification Finalization','product','current','todo','high',false,null,null,''),
+    mk('Sessions — product components merging/redesign/testing & analytics','product','current','in-progress','high',false,null,null,''),
+    mk('Testing rebranding','product','current','in-progress','high',false,null,null,''),
+    mk('Claude integration workflow','product','current','todo','medium',false,null,null,''),
+    mk('Move to Claude — migrate AI infrastructure','product','current','todo','high',false,null,null,''),
+    mk('Review design pages','product','current','todo','medium',false,null,null,''),
+    mk('Thumbnail improvement','product','current','todo','medium',false,null,null,''),
+    mk('Givelink search console improvements','product','current','todo','medium',false,null,null,''),
+    mk('Logo porta anoixti','product','current','todo','medium',false,null,null,''),
+    mk('Wix → documentations','product','current','todo','medium',false,null,null,''),
+    mk('Photo bigger — improve product photos','product','current','todo','medium',false,null,null,''),
+    // ── SPRINT TASKS — EXECUTION ──────────────────────────────────
+    mk('Fanos Meeting — schedule & attend','execution','current','todo','high',false,null,null,'','Fanos'),
+    mk('Apollo Together — team alignment','execution','current','todo','high',false,null,null,''),
+    mk('Sequence high innovatives — email sequence','execution','current','todo','high',false,null,null,''),
+    mk('Sequence Antonis — email sequence','execution','current','todo','high',false,null,null,''),
+    mk('High innovative prota email — send first emails','execution','current','todo','high',false,null,null,''),
+    mk('Team snippet Superhuman — set up','execution','current','todo','medium',false,null,null,''),
+    mk('Potential advisors check — advisors at for nonprofits and advisory agreement','execution','current','todo','medium',false,null,null,''),
+    mk('Communities check — pipeline review','execution','current','todo','high',false,null,null,''),
+    mk('Claude Code to Alex','execution','current','todo','medium',false,null,null,''),
+    mk('Share emails — distribution setup','execution','current','todo','medium',false,null,null,''),
+    mk('Check UTM referrals — attribution','execution','current','todo','medium',false,null,null,''),
+    mk('Greek Mailersend templates — set up','execution','current','todo','medium',false,null,null,''),
+    mk('System message write for CI','execution','current','todo','medium',false,null,null,''),
+    mk('Refine BD Strategy — replace 15-page deck with concise 1-pager','execution','current','todo','high',false,null,null,'Focus on tangible benefits: free access, 60% donor retention'),
+    mk('Systematize Follow-up — CRM tracking for all outreach','execution','current','todo','high',false,null,null,'Enable persistent, data-driven follow-up'),
+    mk('Daily Weather & Daylight Forecast automation (make.com for SF)','execution','current','todo','low',false,null,null,''),
+    // ── SPRINT TASKS — OPS ────────────────────────────────────────
+    mk('Send reminders to Metro','ops','current','todo','high',false,null,null,''),
+    mk('Send reminders to nonprofits','ops','current','todo','high',false,null,null,''),
+    mk('Send personalized follow-ups when needed','ops','current','todo','high',false,null,null,''),
+    mk('Email KSP','ops','current','todo','high',false,null,null,''),
+    mk('Follow up: KSP, Foteino Asteri, Principia','ops','current','todo','high',false,null,null,''),
+    mk('Confirm product additions and charity updates','ops','current','todo','high',false,null,null,''),
+    mk('Push to Finalize Visas','ops','current','done','high',false,null,null,''),
+    mk('Feb Admin Management 2 — send invoice follow-ups','ops','current','todo','medium',false,null,null,''),
+    mk('Invoices Pay','ops','current','todo','high',false,null,null,''),
+    mk('O1 things needed — next steps','ops','current','in-progress','high',false,null,null,'Advanced meeting done, next steps cleared'),
+    mk('Mercury Check','ops','current','todo','medium',false,null,null,''),
+    mk('Make.com for SF — set up automation','ops','current','todo','medium',false,null,null,''),
+    mk('Group sales 503','ops','current','todo','medium',false,null,null,''),
+    mk('Timologio thema — send something and remove after if needed','ops','current','todo','medium',false,null,null,''),
+    mk('Insurance to check','ops','current','todo','medium',false,null,null,''),
+    mk('Fathom AI later — check for meeting notes','ops','current','todo','low',false,null,null,''),
+    // ── BACKLOG ───────────────────────────────────────────────────
+    mk('Motion Use Cases','execution','backlog','todo','medium',false,null,null,''),
+    mk('Tidycall now — check','execution','backlog','todo','medium',false,null,null,''),
+    mk('Typeform check','product','backlog','todo','medium',false,null,null,''),
+    mk('Talk to embassy — Events & Content','ops','backlog','todo','medium',false,null,null,''),
+    mk('AI Tools check and to use','execution','backlog','todo','medium',false,null,null,''),
+    mk('Formalize n8n training plan and timeline','execution','backlog','todo','high',false,null,null,'Owner: Panagiotis'),
+    mk('Private Link High Innovative Charities — guerrilla strategy','growth','backlog','todo','medium',false,null,null,''),
+    mk('Daily metrics shown GR & US','product','backlog','todo','high',false,null,null,''),
+    mk('Custom Logo check','product','backlog','todo','medium',false,null,null,''),
+    mk('Improve Security/Compliance','product','backlog','todo','high',false,null,null,''),
+    mk('Alert me in Slack on Daily Apollo performance & feedback','execution','backlog','todo','medium',false,null,null,''),
+    mk('Awaken church — Merisa told to call office','nonprofits','backlog','todo','medium',false,null,null,''),
+    mk('Social media photos Exelixi Zois','nonprofits','backlog','todo','medium',false,null,null,''),
+    mk('GIVING — What we can as partners','growth','backlog','todo','medium',false,null,null,''),
+    mk('Systems of Sales — more and leverage','execution','backlog','todo','high',false,null,null,''),
+    mk('UGC — User Generated Content','growth','backlog','todo','medium',false,null,null,''),
+    mk('Make product cards from weekly overview','product','backlog','todo','medium',false,null,null,''),
+    mk('Workflow improvements — review and upgrade','execution','backlog','todo','high',false,null,null,''),
+    mk('Build systems for the tasks I do repeatedly','execution','backlog','todo','high',false,null,null,''),
+    mk('AI trends and platform opportunities — review past week, top strategic partners','execution','backlog','todo','high',false,null,null,''),
+    mk('Find problems of nonprofits — ask them, we want to help you','nonprofits','backlog','todo','high',false,null,null,''),
+    mk('Grapevine, DonorsChoose, NextDoor Communication — set up','growth','backlog','todo','medium',false,null,null,''),
+    mk('ADPList, Score, and others — outreach','growth','backlog','todo','medium',false,null,null,''),
+    mk('NTC (Nonprofit Technology Conference) & AFP Icon — conferences','growth','backlog','todo','medium',false,null,null,''),
+    mk('AFP (Golden Gate, Silicon Valley, Wine Country), GPA, DER — local groups','growth','backlog','todo','medium',false,null,null,''),
+    mk('YNPN (Young Nonprofit Professionals Network) — join','growth','backlog','todo','medium',false,null,null,''),
+    mk('TechSoup — partnership','growth','backlog','todo','medium',false,null,null,''),
+    mk('Euniece law website','ops','backlog','todo','low',false,null,null,''),
+    mk('Amazon Products — backlog review','nonprofits','backlog','todo','medium',false,null,null,''),
+    mk('Donor management system improvements','product','backlog','todo','high',false,null,null,''),
+    mk('Follow up if the others are good and helpful','nonprofits','backlog','todo','medium',false,null,null,''),
+    mk('Pencils, colorable books adults — add as products','nonprofits','backlog','todo','low',false,null,null,''),
+    mk('Advisors at for nonprofits and advisory agreement','execution','backlog','todo','medium',false,null,null,''),
+    mk('member AFP+','growth','backlog','todo','medium',false,null,null,''),
+    mk('Apply moonshots gathering and competition','growth','backlog','todo','medium',false,null,null,''),
+  ];
+  save();
+}
+
+// ── INIT ─────────────────────────────────────────────────────────
+load();seed();
+renderSprintBar();updateSidebar();
+renderOverview();
+</script>
+</body>
+</html>

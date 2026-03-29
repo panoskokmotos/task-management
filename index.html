@@ -282,9 +282,62 @@ select.fc option{background:var(--surface2);}
 /* ── CROSS APP LINK ──────────────────────────────────────────── */
 .app-link{padding:8px 16px;font-size:12px;color:var(--muted);border:1px solid var(--border);border-radius:6px;margin:2px 6px;display:flex;align-items:center;gap:6px;cursor:pointer;transition:all .12s;text-decoration:none;}
 .app-link:hover{border-color:var(--accent);color:var(--accent);}
+/* ── SAVE INDICATOR ──────────────────────────────────────────── */
+#save-dot{position:fixed;top:14px;right:14px;font-size:10px;color:var(--muted);opacity:0;transition:opacity .3s;z-index:150;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:2px 8px;pointer-events:none;}
+#save-dot.show{opacity:1;}
+/* ── STATISTICS ──────────────────────────────────────────────── */
+.stat-hero{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
+.sh{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;transition:transform .12s;}
+.sh:hover{transform:translateY(-1px);}
+.sh-n{font-size:28px;font-weight:800;line-height:1;margin-bottom:4px;}
+.sh-l{font-size:11px;color:var(--muted);}
+.chart-bar-wrap{display:flex;align-items:flex-end;gap:4px;height:80px;}
+.chart-bar{flex:1;border-radius:3px 3px 0 0;min-width:0;transition:height .4s ease;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;}
+.chart-bar-val{font-size:9px;color:var(--accent);margin-top:-14px;font-weight:700;white-space:nowrap;}
+.chart-bar-lbl{position:absolute;bottom:-16px;font-size:9px;color:var(--muted);white-space:nowrap;}
+.chart-row{position:relative;padding-bottom:18px;margin-bottom:4px;}
+.donut-wrap{display:flex;align-items:center;gap:16px;}
+.donut-legend{flex:1;min-width:0;}
+.donut-legend-item{display:flex;align-items:center;gap:6px;margin-bottom:5px;font-size:11px;}
+.donut-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.stat-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.stat-bar-outer{flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;}
+.stat-bar-inner{height:100%;border-radius:3px;transition:width .4s ease;}
+.stat-label{font-size:12px;min-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.stat-val{font-size:12px;color:var(--muted);min-width:30px;text-align:right;}
+.streak-card{background:linear-gradient(135deg,rgba(255,107,107,.08),rgba(255,169,77,.08));border:1px solid rgba(255,107,107,.2);border-radius:10px;padding:14px;text-align:center;margin-bottom:10px;}
+.streak-num{font-size:42px;font-weight:800;line-height:1;color:var(--bw);}
+.heatmap{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:8px;}
+.hm-cell{aspect-ratio:1;border-radius:2px;background:var(--surface2);}
+.hm-0{background:var(--surface2);}
+.hm-1{background:rgba(88,166,255,.3);}
+.hm-2{background:rgba(88,166,255,.6);}
+.hm-3{background:var(--accent);}
+/* ── PWA INSTALL BANNER ──────────────────────────────────────── */
+#pwa-banner{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(135deg,var(--surface2),var(--surface));border-top:1px solid rgba(88,166,255,.3);padding:14px 20px;display:flex;align-items:center;gap:12px;z-index:500;transform:translateY(100%);transition:transform .3s ease;}
+#pwa-banner.show{transform:translateY(0);}
+.pwa-icon{width:44px;height:44px;border-radius:10px;flex-shrink:0;}
+#pwa-banner p{margin:0;font-size:12px;color:var(--muted);flex:1;}
+#pwa-banner strong{display:block;font-size:13px;color:var(--text);margin-bottom:2px;}
+@media(max-width:768px){
+  .stat-hero{grid-template-columns:repeat(3,1fr);}
+  .stat-hero .sh:nth-child(n+4){display:none;}
+  #save-dot{top:max(14px,env(safe-area-inset-top,14px));right:14px;}
+}
 </style>
 </head>
 <body>
+
+<!-- ══ SAVE INDICATOR ════════════════════════════════════════════ -->
+<div id="save-dot">✓ Saved</div>
+
+<!-- ══ PWA INSTALL BANNER ════════════════════════════════════════ -->
+<div id="pwa-banner">
+  <img src="icon.svg" class="pwa-icon" alt="Task OS">
+  <p><strong>Add to Home Screen</strong>Install Task OS as an app on your phone — works offline, feels native.</p>
+  <button class="btn bp sm" onclick="pwaInstall()">Install</button>
+  <button class="btn bg sm" onclick="pwaDismiss()">Later</button>
+</div>
 
 <!-- ══ AUTH SCREEN ══════════════════════════════════════════════ -->
 <div id="auth-screen" class="hidden">
@@ -334,6 +387,7 @@ select.fc option{background:var(--surface2);}
   <div class="ni" onclick="nav('buckets')">📦 Buckets</div>
   <div class="ni" onclick="nav('eisenhower')">🎯 Eisenhower</div>
   <div class="ni" onclick="nav('all')">✅ All Tasks</div>
+  <div class="ni" onclick="nav('stats')">📊 Statistics</div>
   <div class="ni" onclick="nav('trash')">🗑 Trash <span id="trash-badge"></span></div>
   <div class="ns">Planning</div>
   <div class="ni" onclick="nav('goals')">🏆 Goals</div>
@@ -517,6 +571,64 @@ select.fc option{background:var(--surface2);}
     </div>
   </div>
   <div id="notes-list"></div>
+</div>
+
+<!-- STATISTICS -->
+<div id="v-stats" class="view">
+  <div class="ph">
+    <div><h1>📊 Statistics</h1><p class="sub">Your productivity at a glance. Every number tells a story.</p></div>
+    <button class="btn bg sm" onclick="renderStats()">🔄 Refresh</button>
+  </div>
+  <div class="stat-hero" id="stat-hero"></div>
+  <div class="g2" style="margin-bottom:16px;">
+    <div class="card">
+      <h3 style="margin-bottom:14px;">📅 Completions — Last 14 Days</h3>
+      <div class="chart-row" id="stat-trend-chart"></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:14px;">🔥 Streaks</h3>
+      <div id="stat-streaks"></div>
+    </div>
+  </div>
+  <div class="g2" style="margin-bottom:16px;">
+    <div class="card">
+      <h3 style="margin-bottom:14px;">🗂 Active Tasks by Category</h3>
+      <div class="donut-wrap" id="stat-cat-chart"></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:14px;">📦 Bucket Health</h3>
+      <div id="stat-buckets"></div>
+    </div>
+  </div>
+  <div class="g2" style="margin-bottom:16px;">
+    <div class="card">
+      <h3 style="margin-bottom:14px;">🏆 Goal Progress</h3>
+      <div id="stat-goals"></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:14px;">📆 Activity Heatmap (28 days)</h3>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:6px;">Mon → Sun, newest right</div>
+      <div class="heatmap" id="stat-heatmap"></div>
+      <div style="display:flex;align-items:center;gap:4px;margin-top:8px;font-size:10px;color:var(--muted);">
+        <span>Less</span>
+        <div style="width:10px;height:10px;border-radius:2px;background:var(--surface2);"></div>
+        <div style="width:10px;height:10px;border-radius:2px;background:rgba(88,166,255,.3);"></div>
+        <div style="width:10px;height:10px;border-radius:2px;background:rgba(88,166,255,.6);"></div>
+        <div style="width:10px;height:10px;border-radius:2px;background:var(--accent);"></div>
+        <span>More</span>
+      </div>
+    </div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <h3 style="margin-bottom:14px;">⚡ Energy & Status Breakdown</h3>
+      <div id="stat-energy"></div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:14px;">📈 Best Day of Week</h3>
+      <div class="chart-row" id="stat-dow-chart"></div>
+    </div>
+  </div>
 </div>
 
 <!-- WISDOM BASE -->
@@ -932,7 +1044,7 @@ function nav(v){
   document.getElementById('s-ov')?.classList.remove('open');
   document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
-function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,aicoach:renderAicoach,notes:renderNotes,wisdom:renderWisdom,reflect:renderReflect,trash:renderTrash})[v]?.();}
+function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,aicoach:renderAicoach,notes:renderNotes,wisdom:renderWisdom,reflect:renderReflect,trash:renderTrash,stats:renderStats})[v]?.();}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
 
 // ── DASHBOARD ─────────────────────────────────────────────────
@@ -2546,11 +2658,274 @@ async function aiSuggestFocus(){
   }catch(e){panel.innerHTML=`<div style="font-size:12px;color:var(--muted);white-space:pre-wrap;overflow:auto;max-height:180px;">${esc(result)}</div>`;}
 }
 
+// ── AUTO-SAVE ─────────────────────────────────────────────────
+let _saveIndicatorTimer=null;
+const _origSave=save;
+// Wrap save to also flash the indicator
+function save(){
+  try{localStorage.setItem('taskos',JSON.stringify(S));}
+  catch(e){if(e.name==='QuotaExceededError'||e.code===22){alert('Storage full! Export a backup first (Settings → Export).');}else{console.error('Save failed:',e);}}
+  const dot=document.getElementById('save-dot');
+  if(dot){
+    dot.classList.add('show');
+    clearTimeout(_saveIndicatorTimer);
+    _saveIndicatorTimer=setTimeout(()=>dot.classList.remove('show'),1800);
+  }
+}
+// Periodic backup save every 60s
+setInterval(()=>save(),60000);
+// Save on page close
+window.addEventListener('beforeunload',()=>save());
+// Save on visibility change (app backgrounded on mobile)
+document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});
+
+// ── PWA INSTALL ───────────────────────────────────────────────
+let _pwaPrompt=null;
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  _pwaPrompt=e;
+  // Only show if not already installed and not dismissed this session
+  if(!sessionStorage.getItem('pwa_dismissed')){
+    setTimeout(()=>document.getElementById('pwa-banner')?.classList.add('show'),3000);
+  }
+});
+window.addEventListener('appinstalled',()=>{
+  document.getElementById('pwa-banner')?.classList.remove('show');
+  toast('🎉 App installed! Find it on your home screen.');
+});
+function pwaInstall(){
+  if(_pwaPrompt){_pwaPrompt.prompt();_pwaPrompt.userChoice.then(()=>document.getElementById('pwa-banner')?.classList.remove('show'));}
+  else{
+    // iOS fallback — no prompt API
+    alert('To install on iPhone:\n1. Tap the Share button (□↑)\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add"');
+    pwaDismiss();
+  }
+}
+function pwaDismiss(){
+  sessionStorage.setItem('pwa_dismissed','1');
+  document.getElementById('pwa-banner')?.classList.remove('show');
+}
+// Show iOS install hint in sidebar if running in Safari (not standalone)
+function checkPWAStatus(){
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone=window.navigator.standalone||window.matchMedia('(display-mode: standalone)').matches;
+  if(isIOS&&!isStandalone&&!sessionStorage.getItem('pwa_dismissed')){
+    setTimeout(()=>document.getElementById('pwa-banner')?.classList.add('show'),2000);
+  }
+}
+
+// ── STATISTICS ────────────────────────────────────────────────
+const CAT_COLORS={givelink:'#cc5de8',finance:'#ffa94d',automation:'#22d3ee',health:'#ff6b6b',relationships:'#69db7c',learning:'#74c0fc',brand:'#f783ac',other:'#868e96'};
+
+function renderStats(){
+  const now=new Date();
+  const todayStr=now.toDateString();
+  const msDay=86400000;
+  const allTasks=S.tasks.filter(t=>t.bucket!=='trash');
+  const completed=allTasks.filter(t=>t.status==='done'&&t.completedAt);
+  const active=allTasks.filter(t=>t.status!=='done');
+  const doneToday=completed.filter(t=>new Date(t.completedAt).toDateString()===todayStr).length;
+  const done7=completed.filter(t=>new Date(t.completedAt)>=new Date(now-7*msDay)).length;
+  const done30=completed.filter(t=>new Date(t.completedAt)>=new Date(now-30*msDay)).length;
+  const compRate=allTasks.length?Math.round(completed.length/allTasks.length*100):0;
+  const streak=_calcStreak();
+  // Hero
+  const hero=document.getElementById('stat-hero');
+  if(hero)hero.innerHTML=[
+    {n:doneToday,l:'Done Today',c:'var(--accent)'},
+    {n:done7,l:'This Week',c:'var(--bw)'},
+    {n:done30,l:'This Month',c:'var(--bm)'},
+    {n:completed.length,l:'All Time ✓',c:'var(--bb)'},
+    {n:compRate+'%',l:'Completion Rate',c:'var(--cg)'}
+  ].map(s=>`<div class="sh"><div class="sh-n" style="color:${s.c}">${s.n}</div><div class="sh-l">${s.l}</div></div>`).join('');
+  _renderTrend14();
+  _renderStreakPanel(streak);
+  _renderCatDonut(active);
+  _renderBucketHealth(active);
+  _renderGoalStats();
+  _renderHeatmap();
+  _renderEnergyBreakdown(allTasks);
+  _renderDayOfWeek(completed);
+}
+
+function _calcStreak(){
+  const msDay=86400000;
+  const now=new Date();
+  const completedDates=new Set(S.tasks.filter(t=>t.completedAt).map(t=>new Date(t.completedAt).toDateString()));
+  let streak=0,d=new Date(now);
+  // Check today first, then go back
+  if(!completedDates.has(d.toDateString()))d.setDate(d.getDate()-1); // allow yesterday to still count
+  while(completedDates.has(d.toDateString())){streak++;d.setDate(d.getDate()-1);}
+  // Longest streak
+  let longest=0,cur=0;
+  const sorted=[...completedDates].map(s=>new Date(s)).sort((a,b)=>a-b);
+  for(let i=0;i<sorted.length;i++){
+    cur++;
+    if(longest<cur)longest=cur;
+    if(i+1<sorted.length&&sorted[i+1]-sorted[i]>msDay){cur=0;}
+  }
+  return{streak,longest};
+}
+
+function _barChart(data,color='var(--accent)',maxH=70){
+  const max=Math.max(...data.map(d=>d.v),1);
+  return`<div class="chart-bar-wrap">${data.map(d=>{
+    const h=Math.max(2,Math.round(d.v/max*maxH));
+    return`<div class="chart-bar" style="height:${h}px;background:${d.v>0?color:'var(--border)'};flex:1;">
+      ${d.v>0?`<div class="chart-bar-val" style="position:absolute;top:-16px;">${d.v}</div>`:''}
+      <div class="chart-bar-lbl">${d.l}</div>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function _renderTrend14(){
+  const el=document.getElementById('stat-trend-chart');if(!el)return;
+  const data=[];
+  for(let i=13;i>=0;i--){
+    const d=new Date(Date.now()-i*86400000);
+    const lbl=i===0?'Today':i===1?'Yest':d.toLocaleDateString('en',{weekday:'short'}).slice(0,2);
+    const v=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt).toDateString()===d.toDateString()).length;
+    data.push({v,l:lbl});
+  }
+  el.innerHTML=_barChart(data,'var(--accent)');
+}
+
+function _renderStreakPanel(s){
+  const el=document.getElementById('stat-streaks');if(!el)return;
+  const weekDone=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>=new Date(Date.now()-7*86400000)).length;
+  const weekTarget=10;
+  const weekPct=Math.min(100,Math.round(weekDone/weekTarget*100));
+  el.innerHTML=`
+    <div class="streak-card">
+      <div class="streak-num">${s.streak}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px;">Day Streak 🔥</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:2px;">Longest: ${s.longest} days</div>
+    </div>
+    <div style="margin-bottom:6px;">
+      <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+        <span>Weekly goal (${weekTarget} tasks)</span>
+        <span style="color:var(--accent);">${weekDone}/${weekTarget}</span>
+      </div>
+      <div class="stat-bar-outer"><div class="stat-bar-inner" style="width:${weekPct}%;background:${weekPct>=100?'var(--bb)':'var(--accent)'}"></div></div>
+    </div>
+    <div style="font-size:11px;color:var(--muted);">
+      📅 ${S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt).toDateString()===new Date().toDateString()).length} done today
+      · ✅ ${S.tasks.filter(t=>t.status==='done').length} all time
+    </div>`;
+}
+
+function _renderCatDonut(active){
+  const el=document.getElementById('stat-cat-chart');if(!el)return;
+  const counts={};
+  active.forEach(t=>{counts[t.category]=(counts[t.category]||0)+1;});
+  const total=Object.values(counts).reduce((a,b)=>a+b,0)||1;
+  const sorted=Object.entries(counts).sort((a,b)=>b[1]-a[1]);
+  // CSS conic-gradient donut
+  let pcts=[];let acc=0;
+  const gradParts=sorted.map(([cat,n])=>{
+    const pct=n/total*100;
+    const color=CAT_COLORS[cat]||'#868e96';
+    const part=`${color} ${acc}% ${acc+pct}%`;
+    acc+=pct;pcts.push({cat,n,pct,color});
+    return part;
+  });
+  const donut=`<div style="width:100px;height:100px;border-radius:50%;background:conic-gradient(${gradParts.join(',')});flex-shrink:0;position:relative;">
+    <div style="position:absolute;inset:18px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;flex-direction:column;">
+      <div style="font-size:16px;font-weight:800;color:var(--text);">${total}</div>
+      <div style="font-size:9px;color:var(--muted);">active</div>
+    </div>
+  </div>`;
+  const legend=`<div class="donut-legend">${pcts.slice(0,6).map(p=>`<div class="donut-legend-item"><div class="donut-dot" style="background:${p.color}"></div><span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${CATS[p.cat]?.l||p.cat}</span><span style="color:var(--muted);margin-left:4px;">${p.n}</span></div>`).join('')}</div>`;
+  el.innerHTML=donut+legend;
+}
+
+function _renderBucketHealth(active){
+  const el=document.getElementById('stat-buckets');if(!el)return;
+  const bkts=['this-week','this-month','backlog','someday','inbox'];
+  const maxes={'this-week':10,'this-month':20};
+  el.innerHTML=bkts.map(bid=>{
+    const b=BKTS[bid];
+    const tasks=active.filter(t=>t.bucket===bid);
+    const max=maxes[bid]||0;
+    const pct=max?Math.min(100,tasks.length/max*100):tasks.length>0?50:0;
+    const color=max&&tasks.length>max?'var(--bw)':max&&tasks.length>max*.8?'var(--bm)':BCOLORS[bid]||'var(--accent)';
+    return`<div class="stat-row">
+      <span class="stat-label">${b.e} ${b.l}</span>
+      <div class="stat-bar-outer" style="height:8px;">
+        <div class="stat-bar-inner" style="width:${pct}%;background:${color}"></div>
+      </div>
+      <span class="stat-val">${tasks.length}${max?'/'+max:''}</span>
+    </div>`;
+  }).join('');
+}
+
+function _renderGoalStats(){
+  const el=document.getElementById('stat-goals');if(!el)return;
+  const goals=S.goals.filter(g=>g.isTop3).concat(S.goals.filter(g=>!g.isTop3)).slice(0,8);
+  if(!goals.length){el.innerHTML='<div class="empty">No goals yet.</div>';return;}
+  el.innerHTML=goals.map(g=>{
+    const linked=S.tasks.filter(t=>t.goalId===g.id);
+    const done=linked.filter(t=>t.status==='done').length;
+    const total=linked.length;
+    const pct=total?Math.round(done/total*100):0;
+    const color=pct>=80?'var(--bb)':pct>=50?'var(--accent)':'var(--muted)';
+    return`<div class="stat-row">
+      <span class="stat-label">${g.isTop3?'⭐ ':''} ${esc(g.title.slice(0,28))}</span>
+      <div class="stat-bar-outer"><div class="stat-bar-inner" style="width:${pct}%;background:${color}"></div></div>
+      <span class="stat-val" style="color:${color}">${pct}%</span>
+    </div>`;
+  }).join('');
+}
+
+function _renderHeatmap(){
+  const el=document.getElementById('stat-heatmap');if(!el)return;
+  const cells=[];
+  for(let i=27;i>=0;i--){
+    const d=new Date(Date.now()-i*86400000);
+    const n=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt).toDateString()===d.toDateString()).length;
+    const level=n===0?0:n===1?1:n<=3?2:3;
+    cells.push(`<div class="hm-cell hm-${level}" title="${d.toLocaleDateString()} — ${n} tasks"></div>`);
+  }
+  el.innerHTML=cells.join('');
+}
+
+function _renderEnergyBreakdown(tasks){
+  const el=document.getElementById('stat-energy');if(!el)return;
+  const active=tasks.filter(t=>t.status!=='done'&&t.bucket!=='trash');
+  const high=active.filter(t=>t.energy==='high').length;
+  const low=active.filter(t=>t.energy==='low').length;
+  const inProg=tasks.filter(t=>t.status==='in-progress').length;
+  const doneRate={high:0,low:0};
+  ['high','low'].forEach(e=>{
+    const total=tasks.filter(t=>t.energy===e).length;
+    const done=tasks.filter(t=>t.energy===e&&t.status==='done').length;
+    doneRate[e]=total?Math.round(done/total*100):0;
+  });
+  el.innerHTML=`
+    <div class="stat-row"><span class="stat-label">🔥 High energy</span><div class="stat-bar-outer"><div class="stat-bar-inner" style="width:${high+low?Math.round(high/(high+low)*100):0}%;background:var(--bw)"></div></div><span class="stat-val">${high}</span></div>
+    <div class="stat-row"><span class="stat-label">💧 Low energy</span><div class="stat-bar-outer"><div class="stat-bar-inner" style="width:${high+low?Math.round(low/(high+low)*100):0}%;background:var(--accent)"></div></div><span class="stat-val">${low}</span></div>
+    <hr style="margin:10px 0;">
+    <div class="stat-row"><span class="stat-label">▶ In Progress</span><div class="stat-bar-outer"><div class="stat-bar-inner" style="width:${inProg?Math.min(100,inProg*10):0}%;background:var(--bm)"></div></div><span class="stat-val">${inProg}</span></div>
+    <div class="stat-row"><span class="stat-label">🔥 High done rate</span><div class="stat-bar-outer"><div class="stat-bar-inner" style="width:${doneRate.high}%;background:var(--bw)"></div></div><span class="stat-val">${doneRate.high}%</span></div>
+    <div class="stat-row"><span class="stat-label">💧 Low done rate</span><div class="stat-bar-outer"><div class="stat-bar-inner" style="width:${doneRate.low}%;background:var(--accent)"></div></div><span class="stat-val">${doneRate.low}%</span></div>`;
+}
+
+function _renderDayOfWeek(completed){
+  const el=document.getElementById('stat-dow-chart');if(!el)return;
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const counts=days.map((_,i)=>({l:days[i].slice(0,2),v:0}));
+  completed.filter(t=>new Date(t.completedAt)>=new Date(Date.now()-90*86400000)).forEach(t=>{
+    counts[new Date(t.completedAt).getDay()].v++;
+  });
+  el.innerHTML=_barChart(counts,'var(--cg)');
+}
+
 // ── INIT ──────────────────────────────────────────────────────
 function appInit(){
   load();seed();seedGoals();
   updTrashBadge();
   authInit();
+  checkPWAStatus();
   if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 }
 appInit();

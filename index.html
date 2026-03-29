@@ -324,6 +324,60 @@ select.fc option{background:var(--surface2);}
   .stat-hero .sh:nth-child(n+4){display:none;}
   #save-dot{top:max(14px,env(safe-area-inset-top,14px));right:14px;}
 }
+/* ── ARCHIVE ─────────────────────────────────────────────────── */
+.arc-item{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:6px;opacity:.75;}
+.arc-item:hover{opacity:1;border-color:var(--accent);}
+/* ── GOAL SUBTASKS ───────────────────────────────────────────── */
+.subtask-list{margin-top:10px;padding-top:8px;border-top:1px solid var(--border);}
+.subtask-item{display:flex;align-items:center;gap:7px;padding:4px 0;cursor:pointer;font-size:13px;}
+.subtask-check{flex-shrink:0;font-size:16px;line-height:1;}
+.st-add-row{display:flex;gap:6px;margin-top:8px;}
+/* ── GOAL SORT/FILTER ────────────────────────────────────────── */
+.goal-controls{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.goal-filter-tab{padding:4px 10px;border-radius:14px;font-size:11px;cursor:pointer;border:1px solid var(--border);color:var(--muted);background:transparent;transition:all .12s;}
+.goal-filter-tab.active{background:var(--surface2);color:var(--text);border-color:var(--accent);}
+.gc[draggable="true"]{cursor:grab;}.gc[draggable="true"]:active{cursor:grabbing;}
+.gc.drag-over{border-color:var(--accent);border-style:dashed;}
+/* ── MOBILE JOURNAL / REFLECTIONS ────────────────────────────── */
+@media(max-width:640px){
+  .refl-tabs{overflow-x:auto;white-space:nowrap;padding-bottom:4px;-webkit-overflow-scrolling:touch;}
+  .refl-tab{white-space:nowrap;padding:6px 12px;}
+  .refl-card{padding:12px;}
+  #j-intention{font-size:16px!important;}
+}
+
+.journal-priority{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.journal-priority-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#000;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.journal-check{background:none;border:none;cursor:pointer;font-size:20px;padding:0 2px;flex-shrink:0;line-height:1;transition:transform .15s;}
+.journal-check:hover{transform:scale(1.15);}
+.j-hist-entry{padding:10px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;transition:border-color .15s;}
+.j-hist-entry:hover{border-color:var(--accent);}
+.j-hist-body{display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.j-hist-body.open{display:block;}
+.j-streak{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(255,107,107,.15),rgba(255,169,77,.1));border:1px solid rgba(255,107,107,.3);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600;color:#ff9944;}
+@media(max-width:640px){.journal-split{grid-template-columns:1fr!important;}}
+.j-carryover{display:flex;align-items:flex-start;gap:10px;background:rgba(255,169,77,.1);border:1px solid rgba(255,169,77,.35);border-radius:10px;padding:12px 14px;margin-bottom:14px;flex-wrap:wrap;}
+.j-evening-prompt{border-color:rgba(255,169,77,.5)!important;box-shadow:0 0 0 1px rgba(255,169,77,.15)!important;}
+/* ── OVERDUE BANNER ─────────────────────────────────────────── */
+#overdue-banner{background:linear-gradient(135deg,rgba(255,90,90,.12),rgba(255,160,60,.08));border:1px solid rgba(255,90,90,.35);border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
+#overdue-banner.hidden{display:none!important;}
+/* ── SWIPE HINT ─────────────────────────────────────────────── */
+.swipe-hint-r,.swipe-hint-l{position:absolute;top:0;bottom:0;display:flex;align-items:center;padding:0 14px;font-size:12px;font-weight:700;opacity:0;transition:opacity .1s;pointer-events:none;}
+.swipe-hint-r{left:0;background:linear-gradient(90deg,rgba(105,219,124,.35),transparent);color:#69db7c;}
+.swipe-hint-l{right:0;background:linear-gradient(270deg,rgba(255,90,90,.35),transparent);color:#ff6b6b;}
+/* ── EMPTY STATES ───────────────────────────────────────────── */
+.es{text-align:center;padding:44px 20px;color:var(--muted);}
+.es-ic{font-size:42px;line-height:1;margin-bottom:12px;}
+.es h3{font-size:15px;font-weight:700;color:var(--text);margin:0 0 6px;}
+.es p{font-size:13px;margin:0 0 14px;line-height:1.6;}
+/* ── SHORTCUTS HELP ─────────────────────────────────────────── */
+#shortcuts-modal{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:500;display:flex;align-items:center;justify-content:center;}
+#shortcuts-modal.hidden{display:none!important;}
+#shortcuts-modal .sm-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:24px;width:340px;max-width:90vw;}
+.sk-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);}
+.sk-row:last-child{border:none;}
+.sk-key{background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:2px 8px;font-family:monospace;font-size:12px;font-weight:700;color:var(--text);}
+.sk-label{font-size:13px;color:var(--muted);}
 </style>
 </head>
 <body>
@@ -388,6 +442,7 @@ select.fc option{background:var(--surface2);}
   <div class="ni" onclick="nav('eisenhower')">🎯 Eisenhower</div>
   <div class="ni" onclick="nav('all')">✅ All Tasks</div>
   <div class="ni" onclick="nav('stats')">📊 Statistics</div>
+  <div class="ni" onclick="nav('archive')">📦 Archive</div>
   <div class="ni" onclick="nav('trash')">🗑 Trash <span id="trash-badge"></span></div>
   <div class="ns">Planning</div>
   <div class="ni" onclick="nav('goals')">🏆 Goals</div>
@@ -498,9 +553,12 @@ select.fc option{background:var(--surface2);}
 <!-- GOALS -->
 <div id="v-goals" class="view">
   <div class="ph"><div><h1>🏆 Goals & Values</h1><p class="sub">Top 3 priorities that make you happy. Everything else serves these.</p></div><button class="btn bp" onclick="openAddGoal()">+ Add Goal</button></div>
-  <div class="g2">
-    <div><h2>⭐ Top 3 Priorities</h2><div id="g-top3"></div></div>
-    <div><h2>📋 All Goals</h2><div id="g-all"></div></div>
+  <div id="goals-view">
+    <!-- sort/filter controls injected by renderGoals() -->
+      <div class="g2">
+      <div><h2>⭐ Top 3 Priorities</h2><div id="g-top3"></div></div>
+      <div><h2>📋 All Goals</h2><div id="g-all"></div></div>
+    </div>
   </div>
   <hr>
   <h2>💎 Core Values</h2>
@@ -776,6 +834,18 @@ select.fc option{background:var(--surface2);}
   </div>
 </div>
 
+<!-- ARCHIVE -->
+<div id="v-archive" class="view">
+  <div class="ph">
+    <div><h1>📦 Archive</h1><p class="sub">All completed tasks. Restore any task back to inbox.</p></div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <input class="fc" id="archive-search" placeholder="Search..." style="max-width:180px;" oninput="renderArchive()">
+      <button class="btn bd sm" onclick="clearArchive()">Clear All</button>
+    </div>
+  </div>
+  <div id="archive-list"></div>
+</div>
+
 <!-- TRASH -->
 <div id="v-trash" class="view">
   <div class="ph">
@@ -892,6 +962,19 @@ select.fc option{background:var(--surface2);}
         <select class="fc" id="g-top"><option value="false">No</option><option value="true">Yes ⭐</option></select>
       </div>
     </div>
+    <div class="fg"><label>Due Date <span style="color:var(--muted);font-weight:400;">(optional)</span></label><input class="fc" id="g-due" type="date"></div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:10px 0;">
+    <div class="fg">
+      <label style="display:flex;align-items:center;justify-content:space-between;">
+        <span>Subtasks / Milestones</span>
+        <span style="font-size:11px;color:var(--muted);">Check off as you progress</span>
+      </label>
+      <div id="g-subtasks-list" style="margin-bottom:8px;"></div>
+      <div class="st-add-row">
+        <input class="fc" id="g-st-inp" placeholder="Add subtask or milestone..." style="flex:1;" onkeydown="if(event.key==='Enter'){event.preventDefault();addGoalSubtask();}">
+        <button class="btn bg sm" onclick="addGoalSubtask()">+ Add</button>
+      </div>
+    </div>
     <div class="mf">
       <button class="btn bd sm" id="del-goal-btn" style="margin-right:auto;display:none;" onclick="delCurGoal()">🗑 Delete</button>
       <button class="btn bg" onclick="closeM('gm')">Cancel</button>
@@ -934,6 +1017,7 @@ select.fc option{background:var(--surface2);}
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         <button class="btn bg sm" onclick="exportData()">📤 JSON Backup</button>
         <button class="btn bg sm" onclick="exportCSV()">📊 CSV (spreadsheet)</button>
+        <button class="btn bg sm" onclick="deduplicateTasks()" style="color:#ffa94d;border-color:rgba(255,169,77,.4);">🧹 Remove Duplicate Tasks</button>
       </div>
     </div>
     <div class="mf">
@@ -1044,7 +1128,7 @@ function nav(v){
   document.getElementById('s-ov')?.classList.remove('open');
   document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
-function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,aicoach:renderAicoach,notes:renderNotes,wisdom:renderWisdom,reflect:renderReflect,trash:renderTrash,stats:renderStats})[v]?.();}
+function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,aicoach:renderAicoach,notes:renderNotes,wisdom:renderWisdom,reflect:renderReflect,trash:renderTrash,stats:renderStats,journal:renderJournal,archive:renderArchive})[v]?.();}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
 
 // ── DASHBOARD ─────────────────────────────────────────────────
@@ -1190,30 +1274,106 @@ function renderAll(){
 
 // ── GOALS ─────────────────────────────────────────────────────
 function renderGoals(){
-  const top=S.goals.filter(g=>g.isTop3),rest=S.goals.filter(g=>!g.isTop3);
-  document.getElementById('g-top3').innerHTML=top.length?top.map(goalHTML).join(''):'<div class="empty">Set your top 3 priorities!</div>';
-  document.getElementById('g-all').innerHTML=rest.length?rest.map(goalHTML).join(''):'<div class="empty">Add more goals.</div>';
+  // Assign sortOrder if missing
+  S.goals.forEach((g,i)=>{if(g.sortOrder===undefined)g.sortOrder=i;if(!g.subtasks)g.subtasks=[];});
+  const sortFn={
+    manual:(a,b)=>a.sortOrder-b.sortOrder,
+    progress:(a,b)=>_goalPct(b)-_goalPct(a),
+    title:(a,b)=>a.title.localeCompare(b.title),
+    category:(a,b)=>a.category.localeCompare(b.category)
+  }[_goalSort]||((a,b)=>a.sortOrder-b.sortOrder);
+  const filterFn={
+    all:()=>true,
+    active:g=>!g.done,
+    done:g=>g.done,
+    top3:g=>g.isTop3
+  }[_goalFilter]||(() =>true);
+  const top=S.goals.filter(g=>g.isTop3&&filterFn(g)).sort(sortFn);
+  const rest=S.goals.filter(g=>!g.isTop3&&filterFn(g)).sort(sortFn);
+  const ctrl=`<div class="goal-controls">
+    <span style="font-size:12px;color:var(--muted);">Filter:</span>
+    ${['all','active','done','top3'].map(f=>`<button class="goal-filter-tab ${_goalFilter===f?'active':''}" onclick="setGoalFilter('${f}')">${{all:'All',active:'Active',done:'Done',top3:'⭐ Top 3'}[f]}</button>`).join('')}
+    <span style="font-size:12px;color:var(--muted);margin-left:8px;">Sort:</span>
+    <select class="fc" style="width:auto;font-size:12px;padding:3px 8px;" onchange="_goalSort=this.value;renderGoals()">
+      ${['manual','progress','title','category'].map(s=>`<option value="${s}" ${_goalSort===s?'selected':''}>${{manual:'Manual',progress:'Progress %',title:'Title A–Z',category:'Category'}[s]}</option>`).join('')}
+    </select>
+  </div>`;
+  const el=document.getElementById('goals-view');
+  if(el)el.querySelector('.gc-ctrl')?.remove(),el.insertAdjacentHTML('afterbegin',ctrl);
+  document.getElementById('g-top3').innerHTML=top.length?top.map(goalHTML).join(''):`<div class="es"><div class="es-ic">🎯</div><h3>No top priorities yet</h3><p>Mark up to 3 goals as your top priorities.<br>Everything else should serve these.</p></div>`;
+  document.getElementById('g-all').innerHTML=rest.length?rest.map(goalHTML).join(''):`<div class="es"><div class="es-ic">🏆</div><h3>No goals yet</h3><p>What's the big picture you're working towards?<br>Add your first goal to get started.</p><button class="btn bp" onclick="openAddGoal()">+ Add Goal</button></div>`;
   document.getElementById('vals').innerHTML=S.values.length?`<div style="display:flex;flex-wrap:wrap;gap:7px;">${S.values.map(v=>`<span class="badge co" style="font-size:12px;padding:5px 12px;">💎 ${v}</span>`).join('')}</div>`:'<p style="color:var(--muted);">No values set.</p>';
   fillGoalDrop();
 }
+function _goalPct(g){const linked=S.tasks.filter(t=>t.goalId===g.id&&t.bucket!=='trash');const st=g.subtasks||[];const tot=linked.length+st.length;return tot>0?Math.round((linked.filter(t=>t.status==='done').length+st.filter(s=>s.done).length)/tot*100):0;}
+function setGoalFilter(f){_goalFilter=f;renderGoals();}
 
+function onGoalDragStart(id,e){_goalDragId=id;e.dataTransfer.effectAllowed='move';}
+function onGoalDragEnd(e){e.target.classList.remove('drag-over');_goalDragId=null;}
+function onGoalDrop(targetId,e){
+  e.preventDefault();e.stopPropagation();
+  document.querySelectorAll('.gc').forEach(el=>el.classList.remove('drag-over'));
+  if(!_goalDragId||_goalDragId===targetId)return;
+  const from=S.goals.find(g=>g.id===_goalDragId);
+  const to=S.goals.find(g=>g.id===targetId);
+  if(!from||!to)return;
+  const tmp=from.sortOrder;from.sortOrder=to.sortOrder;to.sortOrder=tmp;
+  save();renderGoals();
+}
+
+function toggleGoalSubtask(goalId,stId){
+  const g=S.goals.find(x=>x.id===goalId);if(!g)return;
+  const st=(g.subtasks||[]).find(s=>s.id===stId);if(!st)return;
+  st.done=!st.done;save();renderGoals();
+}
+
+function addGoalSubtask(){
+  const inp=document.getElementById('g-st-inp');if(!inp)return;
+  const text=inp.value.trim();if(!text)return;
+  if(!_editGSubtasks)return;
+  _editGSubtasks.push({id:uid(),text,done:false});
+  inp.value='';
+  _renderModalSubtasks();
+}
+
+let _goalDragId=null,_goalSort='manual',_goalFilter='all';
 function goalHTML(g){
   const c=CATS[g.category]||CATS.other;
-  const linked=S.tasks.filter(t=>t.goalId===g.id);
-  const done=linked.filter(t=>t.status==='done').length;
-  const total=linked.length;
-  const pct=total>0?Math.round(done/total*100):0;
-  return`<div class="gc ${g.isTop3?'top':''}" onclick="openEditGoal('${g.id}')">
-    ${g.isTop3?'<span style="float:right;font-size:16px;">⭐</span>':''}
-    <div style="font-weight:600;margin-bottom:5px;">${esc(g.title)}</div>
-    ${g.description?`<div style="font-size:12px;color:var(--muted);margin-bottom:7px;line-height:1.4;">${esc(g.description)}</div>`:''}
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-      <span class="badge c${g.category[0]}">${c.e} ${c.l}</span>
-      <button class="btn bg sm" style="font-size:10px;padding:2px 8px;" onclick="event.stopPropagation();aiGoalSuggest('${g.id}')">🤖 Suggest Tasks</button>
+  const linked=S.tasks.filter(t=>t.goalId===g.id&&t.bucket!=='trash');
+  const linkedDone=linked.filter(t=>t.status==='done').length;
+  const subtasks=g.subtasks||[];
+  const stDone=subtasks.filter(s=>s.done).length;
+  const total=linked.length+subtasks.length;
+  const done=linkedDone+stDone;
+  const pct=total>0?Math.round(done/total*100):(g.manualPct||0);
+  const isOverdue=g.dueDate&&new Date(g.dueDate)<new Date();
+  return`<div class="gc ${g.isTop3?'top':''} ${g.done?'done-g':''}" draggable="true"
+    data-gid="${g.id}"
+    ondragstart="onGoalDragStart('${g.id}',event)"
+    ondragend="onGoalDragEnd(event)"
+    ondragover="event.preventDefault();this.classList.add('drag-over')"
+    ondragleave="this.classList.remove('drag-over')"
+    ondrop="onGoalDrop('${g.id}',event)"
+    onclick="openEditGoal('${g.id}')">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:5px;">
+      <div style="font-weight:600;flex:1;line-height:1.4;">${g.isTop3?'⭐ ':''}${esc(g.title)}${isOverdue?'<span style="font-size:10px;color:var(--red);margin-left:6px;">⚠️ overdue</span>':''}</div>
+      <div style="display:flex;gap:4px;flex-shrink:0;">
+        <button class="btn bg sm" style="font-size:10px;padding:2px 7px;" onclick="event.stopPropagation();aiGoalSuggest('${g.id}')">🤖</button>
+      </div>
     </div>
-    ${total>0?`<div class="gp"><div class="gpf" style="width:${pct}%;"></div></div>
-    <div class="gps"><span>${done}/${total} tasks done</span><span style="font-weight:600;color:${pct>=100?'var(--bb)':pct>=50?'var(--accent)':'var(--muted)'};">${pct}%</span></div>`
-    :`<div style="font-size:11px;color:var(--muted);margin-top:6px;">No tasks linked yet — click 🤖 to get suggestions</div>`}
+    ${g.description?`<div style="font-size:12px;color:var(--muted);margin-bottom:7px;line-height:1.4;">${esc(g.description)}</div>`:''}
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
+      <span class="badge c${g.category[0]}">${c.e} ${c.l}</span>
+      ${g.dueDate?`<span style="font-size:11px;color:var(--muted);">📅 ${fd(g.dueDate)}</span>`:''}
+    </div>
+    <div class="gp"><div class="gpf" style="width:${pct}%;background:${pct>=100?'var(--bb)':pct>=50?'var(--accent)':'var(--muted)'};"></div></div>
+    <div class="gps"><span>${done}/${total||0} done${linked.length?` · ${linked.length} task${linked.length!==1?'s':''}`:''}</span><span style="font-weight:700;color:${pct>=100?'var(--bb)':pct>=50?'var(--accent)':'var(--muted)'};">${pct}%</span></div>
+    ${subtasks.length?`<div class="subtask-list" onclick="event.stopPropagation()">
+      ${subtasks.map(s=>`<div class="subtask-item" onclick="toggleGoalSubtask('${g.id}','${s.id}')">
+        <span class="subtask-check">${s.done?'✅':'⬜'}</span>
+        <span style="${s.done?'text-decoration:line-through;color:var(--muted)':''};">${esc(s.text)}</span>
+      </div>`).join('')}
+    </div>`:''}
   </div>`;
 }
 
@@ -1368,35 +1528,46 @@ function addT3(id){
 function rmT3(id){const t=S.tasks.find(x=>x.id===id);if(!t)return;t.isT3=false;t.t3s=null;save();refresh();}
 
 // ── GOALS CRUD ────────────────────────────────────────────────
+let _editGSubtasks=null;
+function _renderModalSubtasks(){
+  const el=document.getElementById('g-subtasks-list');if(!el)return;
+  el.innerHTML=(_editGSubtasks||[]).map((s,i)=>`<div class="subtask-item">
+    <span class="subtask-check" onclick="_editGSubtasks[${i}].done=!_editGSubtasks[${i}].done;_renderModalSubtasks()">${s.done?'✅':'⬜'}</span>
+    <span style="flex:1;${s.done?'text-decoration:line-through;color:var(--muted)':''}">${esc(s.text)}</span>
+    <button onclick="_editGSubtasks.splice(${i},1);_renderModalSubtasks()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 4px;">×</button>
+  </div>`).join('')||'<div style="font-size:12px;color:var(--muted);padding:4px 0;">No subtasks yet.</div>';
+}
 function openAddGoal(){
-  editG=null;
+  editG=null;_editGSubtasks=[];
   document.getElementById('gm-title').textContent='Add Goal';
   ['g-title','g-desc'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('g-cat').value='givelink';
   document.getElementById('g-top').value='false';
+  document.getElementById('g-due').value='';
   document.getElementById('del-goal-btn').style.display='none';
+  _renderModalSubtasks();
   document.getElementById('gm').classList.remove('hidden');
 }
-
 function openEditGoal(id){
   const g=S.goals.find(x=>x.id===id);if(!g)return;
-  editG=id;
+  editG=id;_editGSubtasks=JSON.parse(JSON.stringify(g.subtasks||[]));
   document.getElementById('gm-title').textContent='Edit Goal';
   document.getElementById('g-title').value=g.title;
   document.getElementById('g-desc').value=g.description||'';
   document.getElementById('g-cat').value=g.category;
   document.getElementById('g-top').value=g.isTop3?'true':'false';
+  document.getElementById('g-due').value=g.dueDate||'';
   document.getElementById('del-goal-btn').style.display='block';
+  _renderModalSubtasks();
   document.getElementById('gm').classList.remove('hidden');
 }
-
 function saveGoal(){
   const title=document.getElementById('g-title').value.trim();
   if(!title){alert('Enter a goal title.');return;}
-  const d={title,description:document.getElementById('g-desc').value,category:document.getElementById('g-cat').value,isTop3:document.getElementById('g-top').value==='true'};
+  const d={title,description:document.getElementById('g-desc').value,category:document.getElementById('g-cat').value,isTop3:document.getElementById('g-top').value==='true',dueDate:document.getElementById('g-due').value||null,subtasks:_editGSubtasks||[]};
   if(editG){const i=S.goals.findIndex(g=>g.id===editG);S.goals[i]={...S.goals[i],...d};}
-  else S.goals.push({id:uid(),...d});
-  save();closeM('gm');renderGoals();
+  else{const maxOrder=S.goals.reduce((m,g)=>Math.max(m,g.sortOrder||0),0);S.goals.push({id:uid(),sortOrder:maxOrder+1,...d});}
+  _editGSubtasks=null;save();closeM('gm');renderGoals();
 }
 
 function delCurGoal(){if(!editG||!confirm('Delete goal?'))return;S.goals=S.goals.filter(g=>g.id!==editG);save();closeM('gm');renderGoals();}

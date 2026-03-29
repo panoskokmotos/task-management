@@ -135,9 +135,29 @@ select.fc option{background:var(--s2);}
 .fab{position:fixed;bottom:22px;right:22px;width:44px;height:44px;background:var(--accent);border:none;border-radius:50%;color:#fff;font-size:18px;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(59,130,246,.4);transition:transform .12s;z-index:100;}
 .fab:hover{transform:scale(1.08);}
 /* FILTER TABS */
-.ftabs{display:flex;gap:6px;margin-bottom:14px;}
+.ftabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
 .ftab{padding:4px 10px;border-radius:14px;font-size:11px;cursor:pointer;border:1px solid var(--border);color:var(--muted);background:transparent;transition:all .12s;}
 .ftab:hover,.ftab.active{background:var(--s2);color:var(--text);border-color:var(--accent);}
+/* ROLE BADGES */
+.role-owner{background:rgba(59,130,246,.15);color:#60a5fa;}
+.role-collab{background:rgba(167,139,250,.15);color:#a78bfa;}
+.role-shared{background:rgba(74,222,128,.15);color:#4ade80;}
+/* GOAL TASK HIGHLIGHT */
+.tc2.is-goal{border-left:3px solid var(--accent);}
+/* AI VIEW */
+.ai-panel{background:var(--s2);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:12px;min-height:80px;font-size:13px;line-height:1.6;white-space:pre-wrap;color:var(--text);}
+.ai-panel.empty{color:var(--muted);font-style:italic;}
+.ai-key-row{display:flex;gap:8px;align-items:center;}
+.ai-key-row .fc{flex:1;}
+/* STATS VIEW */
+.pillar-pb{display:flex;align-items:center;gap:10px;margin-bottom:10px;}
+.pillar-pb-label{font-size:12px;width:130px;flex-shrink:0;}
+.pillar-pb-bar{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
+.pillar-pb-fill{height:100%;border-radius:4px;transition:width .3s;}
+.pillar-pb-count{font-size:11px;color:var(--muted);width:60px;text-align:right;flex-shrink:0;}
+.top-perf-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-size:12px;}
+.trend-item{padding:5px 0;border-bottom:1px solid var(--border);font-size:12px;display:flex;gap:8px;}
+.trend-date{color:var(--muted);flex-shrink:0;width:80px;}
 /* SPRINT GOAL TAG */
 .goal-tag{font-size:9px;padding:1px 5px;border-radius:4px;background:rgba(59,130,246,.15);color:var(--accent);font-weight:700;letter-spacing:.3px;text-transform:uppercase;}
 /* GRID */
@@ -200,6 +220,9 @@ select.fc option{background:var(--s2);}
   <div class="ni" onclick="nav('ops')"><span class="pip" style="background:var(--op)"></span>Smooth Ops <span class="bcnt2" id="cnt-ops"></span></div>
   <div class="ns">More</div>
   <div class="ni" onclick="nav('backlog')">📋 Backlog <span class="bcnt2" id="cnt-backlog"></span></div>
+  <div class="ni" onclick="nav('goals')">🎯 Goals</div>
+  <div class="ni" onclick="nav('stats')">📊 Stats</div>
+  <div class="ni" onclick="nav('ai')">🤖 AI</div>
   <div class="ni" onclick="openSprintSettings()">⚙️ Sprint Settings</div>
 </nav>
 
@@ -229,16 +252,92 @@ select.fc option{background:var(--s2);}
   <div id="v-execution" class="view"></div>
   <div id="v-ops" class="view"></div>
 
+  <!-- GOALS -->
+  <div id="v-goals" class="view">
+    <div class="ph"><div><h1>🎯 Goals</h1><p class="sub" id="gl-sub"></p></div>
+      <div class="row">
+        <select class="fc" id="gl-pillar" style="width:140px;font-size:12px;" onchange="renderGoals()">
+          <option value="all">All Pillars</option>
+          <option value="growth">🚀 Growth</option>
+          <option value="nonprofits">🤝 Nonprofits</option>
+          <option value="product">🏗️ Product</option>
+          <option value="execution">⚡ Execution</option>
+          <option value="ops">🔧 Ops</option>
+        </select>
+        <select class="fc" id="gl-status" style="width:130px;font-size:12px;" onchange="renderGoals()">
+          <option value="all">All Statuses</option>
+          <option value="todo">Todo</option>
+          <option value="in-progress">In Progress</option>
+          <option value="done">Done</option>
+          <option value="blocked">Blocked</option>
+        </select>
+      </div>
+    </div>
+    <div id="goals-list"></div>
+  </div>
+
+  <!-- STATS -->
+  <div id="v-stats" class="view">
+    <div class="ph"><div><h1>📊 Statistics</h1><p class="sub" id="st-sub"></p></div></div>
+    <div class="stats2" id="st-cards"></div>
+    <div class="g2" style="margin-bottom:20px;">
+      <div class="card">
+        <h2 style="margin-bottom:14px;">Pillar Breakdown</h2>
+        <div id="st-pillars"></div>
+      </div>
+      <div class="card">
+        <h2 style="margin-bottom:14px;">Goals Completion</h2>
+        <div id="st-goals-rate"></div>
+        <hr>
+        <h2 style="margin-bottom:10px;margin-top:14px;">Top Performers</h2>
+        <div id="st-top"></div>
+      </div>
+    </div>
+    <div class="card">
+      <h2 style="margin-bottom:14px;">Completion Trend (recent)</h2>
+      <div id="st-trend"></div>
+    </div>
+  </div>
+
+  <!-- AI -->
+  <div id="v-ai" class="view">
+    <div class="ph"><div><h1>🤖 AI Assistant</h1><p class="sub">Powered by Claude Haiku</p></div></div>
+    <div class="card" style="margin-bottom:16px;">
+      <h2 style="margin-bottom:10px;">🔑 Claude API Key</h2>
+      <div class="ai-key-row">
+        <input class="fc" id="ai-key" type="password" placeholder="sk-ant-...">
+        <button class="btn bp" onclick="saveAIKey()">Save Key</button>
+      </div>
+      <p style="font-size:11px;color:var(--muted);margin-top:6px;">Key is stored in your browser's localStorage only.</p>
+    </div>
+    <div class="card" style="margin-bottom:16px;">
+      <h2 style="margin-bottom:10px;">AI Actions</h2>
+      <div class="row" style="flex-wrap:wrap;gap:8px;">
+        <button class="btn bp" onclick="aiPlanDay()">🎯 Plan My Day</button>
+        <button class="btn bp" onclick="aiPlanWeek()">📅 Plan My Week</button>
+        <button class="btn bp" onclick="aiSuggestTasks()">✨ Suggest Tasks</button>
+      </div>
+      <div id="ai-status" style="font-size:12px;color:var(--muted);margin-top:8px;display:none;"></div>
+      <div id="ai-output" class="ai-panel empty" style="display:none;">Results will appear here…</div>
+    </div>
+  </div>
+
   <!-- BACKLOG -->
   <div id="v-backlog" class="view">
     <div class="ph"><div><h1>📋 Backlog</h1><p class="sub" id="bl-sub"></p></div><button class="btn bp" onclick="openAdd('','backlog')">+ Add to Backlog</button></div>
     <div class="ftabs" id="bl-filters">
-      <button class="ftab active" onclick="setBLFilter('all',this)">All</button>
-      <button class="ftab" onclick="setBLFilter('growth',this)">🚀 Growth</button>
-      <button class="ftab" onclick="setBLFilter('nonprofits',this)">🤝 Nonprofits</button>
-      <button class="ftab" onclick="setBLFilter('product',this)">🏗️ Product</button>
-      <button class="ftab" onclick="setBLFilter('execution',this)">⚡ Execution</button>
-      <button class="ftab" onclick="setBLFilter('ops',this)">🔧 Ops</button>
+      <button class="ftab active" onclick="setBLFilter('pillar','all',this)">All</button>
+      <button class="ftab" onclick="setBLFilter('pillar','growth',this)">🚀 Growth</button>
+      <button class="ftab" onclick="setBLFilter('pillar','nonprofits',this)">🤝 Nonprofits</button>
+      <button class="ftab" onclick="setBLFilter('pillar','product',this)">🏗️ Product</button>
+      <button class="ftab" onclick="setBLFilter('pillar','execution',this)">⚡ Execution</button>
+      <button class="ftab" onclick="setBLFilter('pillar','ops',this)">🔧 Ops</button>
+    </div>
+    <div class="ftabs" id="bl-role-filters">
+      <button class="ftab active" onclick="setBLFilter('role','all',this)">All Roles</button>
+      <button class="ftab" onclick="setBLFilter('role','owner',this)">🙋 Owner</button>
+      <button class="ftab" onclick="setBLFilter('role','collaborator',this)">🤝 Collab</button>
+      <button class="ftab" onclick="setBLFilter('role','shared',this)">🔗 Shared</button>
     </div>
     <div id="backlog-list"></div>
   </div>
@@ -251,9 +350,9 @@ select.fc option{background:var(--s2);}
 <nav class="bnav">
   <button class="bni active" data-v="overview" onclick="nav('overview')"><span class="bni-ic">📊</span>Overview</button>
   <button class="bni" data-v="growth" onclick="nav('growth')"><span class="bni-ic">🚀</span>Growth</button>
-  <button class="bni" data-v="product" onclick="nav('product')"><span class="bni-ic">🏗️</span>Product</button>
-  <button class="bni" data-v="execution" onclick="nav('execution')"><span class="bni-ic">⚡</span>Execute</button>
-  <button class="bni" data-v="backlog" onclick="nav('backlog')"><span class="bni-ic">📋</span>Backlog</button>
+  <button class="bni" data-v="goals" onclick="nav('goals')"><span class="bni-ic">🎯</span>Goals</button>
+  <button class="bni" data-v="stats" onclick="nav('stats')"><span class="bni-ic">📈</span>Stats</button>
+  <button class="bni" data-v="ai" onclick="nav('ai')"><span class="bni-ic">🤖</span>AI</button>
 </nav>
 
 <!-- ADD/EDIT TASK MODAL -->
@@ -304,6 +403,15 @@ select.fc option{background:var(--s2);}
       <div class="fg"><label>Assignee</label><input class="fc" id="t-assignee" placeholder="e.g. Panos, Fanos..."></div>
       <div class="fg"><label>Sprint Goal?</label><select class="fc" id="t-isgoal"><option value="false">No — regular task</option><option value="true">Yes — sprint goal</option></select></div>
     </div>
+    <div class="fr">
+      <div class="fg"><label>My Role</label>
+        <select class="fc" id="t-role">
+          <option value="owner">🙋 Owner</option>
+          <option value="collaborator">🤝 Collaborator</option>
+          <option value="shared">🔗 Shared</option>
+        </select>
+      </div>
+    </div>
     <div class="mf">
       <button class="btn bd sm" id="del-btn" style="margin-right:auto;display:none;" onclick="delCur()">🗑 Delete</button>
       <button class="btn bg" onclick="closeM('tm')">Cancel</button>
@@ -345,7 +453,8 @@ const PRI={high:{l:'High',cls:'pri-high'},medium:{l:'Medium',cls:'pri-med'},low:
 let S={
   sprint:{name:'Sprint 1 — US Growth Push',start:'2026-03-28',end:'2026-04-11'},
   tasks:[],
-  blFilter:'all'
+  blFilter:'all',
+  claudeKey:''
 };
 let editId=null;
 
@@ -381,6 +490,9 @@ function renderView(v){
   if(v==='overview')renderOverview();
   else if(PILLARS[v])renderPillar(v);
   else if(v==='backlog')renderBacklog();
+  else if(v==='goals')renderGoals();
+  else if(v==='stats')renderStats();
+  else if(v==='ai')renderAI();
 }
 function refresh(){renderView(curView);updateSidebar();}
 
@@ -454,38 +566,58 @@ function renderPillar(p){
       </div>
     </div>
     ${goals.length?`<div class="sh"><div class="sh-left"><span style="font-size:12px;font-weight:700;color:${P.hex};">Sprint Goals</span></div></div>${goals.map(t=>goalHTML(t)).join('')}<hr>`:``}
-    <div class="sh">
-      <div class="sh-left"><span style="font-size:12px;font-weight:700;color:var(--muted);">Tasks (${subtasks.filter(t=>t.status!=='done').length} active)</span></div>
-      <div class="row">
-        <button class="ftab active" id="pf-all-${p}" onclick="setPFilter('all','${p}',this)" style="padding:3px 8px;font-size:10px;">All</button>
-        <button class="ftab" onclick="setPFilter('todo','${p}',this)" style="padding:3px 8px;font-size:10px;">Todo</button>
-        <button class="ftab" onclick="setPFilter('in-progress','${p}',this)" style="padding:3px 8px;font-size:10px;">In Progress</button>
-        <button class="ftab" onclick="setPFilter('done','${p}',this)" style="padding:3px 8px;font-size:10px;">Done</button>
-        <button class="ftab" onclick="setPFilter('blocked','${p}',this)" style="padding:3px 8px;font-size:10px;">Blocked</button>
+    <div class="sh" style="flex-direction:column;align-items:flex-start;gap:6px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+        <span style="font-size:12px;font-weight:700;color:var(--muted);">Tasks (${subtasks.filter(t=>t.status!=='done').length} active)</span>
+      </div>
+      <div class="ftabs" id="pf-status-${p}" style="margin-bottom:4px;">
+        <button class="ftab active" onclick="setPFilter('status','all','${p}',this)">All Status</button>
+        <button class="ftab" onclick="setPFilter('status','todo','${p}',this)">Todo</button>
+        <button class="ftab" onclick="setPFilter('status','in-progress','${p}',this)">In Progress</button>
+        <button class="ftab" onclick="setPFilter('status','done','${p}',this)">Done</button>
+        <button class="ftab" onclick="setPFilter('status','blocked','${p}',this)">Blocked</button>
+      </div>
+      <div class="ftabs" id="pf-role-${p}" style="margin-bottom:0;">
+        <button class="ftab active" onclick="setPFilter('role','all','${p}',this)">All Roles</button>
+        <button class="ftab" onclick="setPFilter('role','owner','${p}',this)">🙋 Owner</button>
+        <button class="ftab" onclick="setPFilter('role','collaborator','${p}',this)">🤝 Collab</button>
+        <button class="ftab" onclick="setPFilter('role','shared','${p}',this)">🔗 Shared</button>
       </div>
     </div>
     <div id="plist-${p}">${subtasks.length?subtasks.map(t=>taskHTML(t)).join(''):'<div class="empty">No tasks yet for this pillar.</div>'}</div>
   `;
 }
-function setPFilter(status,pillar,el){
-  el.closest('.sh').querySelectorAll('.ftab').forEach(x=>x.classList.remove('active'));
+// pillarFilters stores current status+role filter per pillar
+const pillarFilters={};
+function setPFilter(type,val,pillar,el){
+  el.closest('.ftabs').querySelectorAll('.ftab').forEach(x=>x.classList.remove('active'));
   el.classList.add('active');
-  const tasks=curTasks().filter(t=>t.pillar===pillar&&!t.isGoal);
-  const filtered=status==='all'?tasks:tasks.filter(t=>t.status===status);
-  document.getElementById('plist-'+pillar).innerHTML=filtered.length?filtered.map(t=>taskHTML(t)).join(''):'<div class="empty">No tasks matching this filter.</div>';
+  if(!pillarFilters[pillar])pillarFilters[pillar]={status:'all',role:'all'};
+  pillarFilters[pillar][type]=val;
+  applyPFilter(pillar);
+}
+function applyPFilter(pillar){
+  const f=pillarFilters[pillar]||{status:'all',role:'all'};
+  let tasks=curTasks().filter(t=>t.pillar===pillar&&!t.isGoal);
+  if(f.status!=='all')tasks=tasks.filter(t=>t.status===f.status);
+  if(f.role!=='all')tasks=tasks.filter(t=>(t.role||'owner')===f.role);
+  document.getElementById('plist-'+pillar).innerHTML=tasks.length?tasks.map(t=>taskHTML(t)).join(''):'<div class="empty">No tasks matching this filter.</div>';
 }
 
 // ── BACKLOG ────────────────────────────────────────────────────────
-function setBLFilter(f,el){
-  S.blFilter=f;
-  document.querySelectorAll('#bl-filters .ftab').forEach(x=>x.classList.remove('active'));
+let blRoleFilter='all';
+function setBLFilter(type,val,el){
+  el.closest('.ftabs').querySelectorAll('.ftab').forEach(x=>x.classList.remove('active'));
   el.classList.add('active');
+  if(type==='pillar'){S.blFilter=val;save();}
+  else{blRoleFilter=val;}
   renderBacklog();
 }
 function renderBacklog(){
   let tasks=blTasks();
   document.getElementById('bl-sub').textContent=tasks.length+' items in backlog';
   if(S.blFilter!=='all')tasks=tasks.filter(t=>t.pillar===S.blFilter);
+  if(blRoleFilter!=='all')tasks=tasks.filter(t=>(t.role||'owner')===blRoleFilter);
   if(!tasks.length){document.getElementById('backlog-list').innerHTML='<div class="empty">Backlog is empty for this filter.</div>';return;}
   // Group by pillar
   const grouped={};
@@ -543,18 +675,28 @@ function goalHTML(t){
   </div>`;
 }
 
+// ── ROLE BADGE ────────────────────────────────────────────────────
+function roleBadge(role){
+  if(role==='collaborator')return`<span class="badge role-collab">🤝 Collab</span>`;
+  if(role==='shared')return`<span class="badge role-shared">🔗 Shared</span>`;
+  return`<span class="badge role-owner">🙋 Owner</span>`;
+}
+
 // ── TASK HTML ─────────────────────────────────────────────────────
 function taskHTML(t){
   const P=PILLARS[t.pillar];
   const hasProg=t.target&&t.target>0;
   const pct=hasProg?Math.min(100,Math.round((t.current||0)/t.target*100)):0;
-  return`<div class="tc2 fi ${t.status==='done'?'done-t':''}" onclick="openEdit('${t.id}')">
+  const goalClass=t.isGoal?' is-goal':'';
+  return`<div class="tc2 fi ${t.status==='done'?'done-t':''}${goalClass}" onclick="openEdit('${t.id}')">
     <div class="ck2 ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${t.status==='done'?'<span style="color:#fff;font-size:9px;">✓</span>':''}</div>
     <div class="tb2">
       <div class="tt2">${t.title}</div>
       <div class="tm2">
+        ${t.isGoal?`<span class="badge" style="background:rgba(59,130,246,.15);color:var(--accent);">🎯 Goal</span>`:''}
         <span class="badge ${STATUS[t.status]?.cls||'st-todo'}">${STATUS[t.status]?.l||'Todo'}</span>
         <span class="badge ${PRI[t.priority]?.cls||'pri-med'}">${t.priority||'medium'}</span>
+        ${roleBadge(t.role||'owner')}
         ${hasProg?`<span style="font-size:11px;color:${P.hex};font-weight:600;">${t.current||0}/${t.target}</span>`:''}
         ${t.assignee?`<span style="font-size:11px;color:var(--muted);">👤 ${t.assignee}</span>`:''}
       </div>
@@ -577,6 +719,7 @@ function openAdd(pillar='growth',sprint='current',isGoal=false){
   document.getElementById('t-current').value='';
   document.getElementById('t-assignee').value='';
   document.getElementById('t-isgoal').value=isGoal?'true':'false';
+  document.getElementById('t-role').value='owner';
   document.getElementById('del-btn').style.display='none';
   document.getElementById('tm').classList.remove('hidden');
   document.getElementById('t-title').focus();
@@ -595,6 +738,7 @@ function openEdit(id){
   document.getElementById('t-current').value=t.current||'';
   document.getElementById('t-assignee').value=t.assignee||'';
   document.getElementById('t-isgoal').value=t.isGoal?'true':'false';
+  document.getElementById('t-role').value=t.role||'owner';
   document.getElementById('del-btn').style.display='block';
   document.getElementById('tm').classList.remove('hidden');
   document.getElementById('t-title').focus();
@@ -612,7 +756,8 @@ function saveTask(){
     target:parseInt(document.getElementById('t-target').value)||null,
     current:parseInt(document.getElementById('t-current').value)||0,
     assignee:document.getElementById('t-assignee').value,
-    isGoal:document.getElementById('t-isgoal').value==='true'
+    isGoal:document.getElementById('t-isgoal').value==='true',
+    role:document.getElementById('t-role').value||'owner'
   };
   if(editId){const i=S.tasks.findIndex(t=>t.id===editId);S.tasks[i]={...S.tasks[i],...d};}
   else S.tasks.push({id:uid(),...d,createdAt:new Date().toISOString(),completedAt:null});
@@ -661,7 +806,7 @@ function seed(){
   const mk=(title,pillar,sprint,status,pri,isGoal,target,current,notes,assignee)=>({
     id:uid(),title,notes:notes||'',pillar,sprint,status,priority:pri,
     target:target||null,current:current||0,assignee:assignee||'',isGoal:!!isGoal,
-    createdAt:now,completedAt:status==='done'?now:null
+    role:'owner',createdAt:now,completedAt:status==='done'?now:null
   });
   S.tasks=[
     // ── SPRINT GOALS ──────────────────────────────────────────────
@@ -844,6 +989,151 @@ function seed(){
     mk('Apply moonshots gathering and competition','growth','backlog','todo','medium',false,null,null,''),
   ];
   save();
+}
+
+// ── GOALS VIEW ────────────────────────────────────────────────────
+function renderGoals(){
+  const pillarF=document.getElementById('gl-pillar')?.value||'all';
+  const statusF=document.getElementById('gl-status')?.value||'all';
+  let goals=S.tasks.filter(t=>t.isGoal);
+  document.getElementById('gl-sub').textContent=goals.length+' goals across all sprints';
+  if(pillarF!=='all')goals=goals.filter(t=>t.pillar===pillarF);
+  if(statusF!=='all')goals=goals.filter(t=>t.status===statusF);
+  // Sort by pillar then status
+  goals.sort((a,b)=>{
+    const pk=Object.keys(PILLARS);
+    return(pk.indexOf(a.pillar)-pk.indexOf(b.pillar))||a.title.localeCompare(b.title);
+  });
+  document.getElementById('goals-list').innerHTML=goals.length?goals.map(t=>goalHTML(t)).join(''):'<div class="empty">No goals match this filter.</div>';
+}
+
+// ── STATS VIEW ────────────────────────────────────────────────────
+function renderStats(){
+  const ct=curTasks();
+  const done=ct.filter(t=>t.status==='done').length;
+  const inprog=ct.filter(t=>t.status==='in-progress').length;
+  const blocked=ct.filter(t=>t.status==='blocked').length;
+  document.getElementById('st-sub').textContent='Sprint: '+S.sprint.name;
+  document.getElementById('st-cards').innerHTML=`
+    <div class="sc2"><div class="sn2">${ct.length}</div><div class="sl2">Total Tasks</div></div>
+    <div class="sc2"><div class="sn2" style="color:var(--done)">${done}</div><div class="sl2">Done This Sprint</div></div>
+    <div class="sc2"><div class="sn2" style="color:var(--prog)">${inprog}</div><div class="sl2">In Progress</div></div>
+    <div class="sc2"><div class="sn2" style="color:var(--block)">${blocked}</div><div class="sl2">Blocked</div></div>`;
+  // Pillar breakdown
+  document.getElementById('st-pillars').innerHTML=Object.entries(PILLARS).map(([k,P])=>{
+    const pt=ct.filter(t=>t.pillar===k);
+    const pd=pt.filter(t=>t.status==='done').length;
+    const pct=pt.length?Math.round(pd/pt.length*100):0;
+    return`<div class="pillar-pb">
+      <div class="pillar-pb-label" style="color:${P.hex};">${P.e} ${P.l.split(' ')[0]}</div>
+      <div class="pillar-pb-bar"><div class="pillar-pb-fill" style="width:${pct}%;background:${P.hex};"></div></div>
+      <div class="pillar-pb-count">${pd}/${pt.length}</div>
+    </div>`;
+  }).join('');
+  // Goals rate
+  const allGoals=ct.filter(t=>t.isGoal);
+  const doneGoals=allGoals.filter(t=>t.status==='done').length;
+  const goalPct=allGoals.length?Math.round(doneGoals/allGoals.length*100):0;
+  document.getElementById('st-goals-rate').innerHTML=`
+    <div style="font-size:28px;font-weight:700;color:var(--accent);">${goalPct}%</div>
+    <div style="font-size:12px;color:var(--muted);margin-top:2px;">${doneGoals} of ${allGoals.length} goals done</div>
+    <div style="height:8px;background:var(--border);border-radius:4px;margin-top:10px;overflow:hidden;">
+      <div style="height:100%;border-radius:4px;background:var(--accent);width:${goalPct}%;transition:width .3s;"></div>
+    </div>`;
+  // Top performers
+  const assigneeCounts={};
+  ct.filter(t=>t.status==='done'&&t.assignee).forEach(t=>{
+    t.assignee.split(/[,;&\/]/).map(s=>s.trim()).filter(Boolean).forEach(a=>{
+      assigneeCounts[a]=(assigneeCounts[a]||0)+1;
+    });
+  });
+  const sorted=Object.entries(assigneeCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  document.getElementById('st-top').innerHTML=sorted.length
+    ?sorted.map(([name,cnt],i)=>`<div class="top-perf-row"><span>${['🥇','🥈','🥉','4️⃣','5️⃣'][i]||'•'} ${name}</span><strong>${cnt} done</strong></div>`).join('')
+    :'<div style="font-size:12px;color:var(--muted);">No completed tasks with assignees yet.</div>';
+  // Completion trend
+  const completed=S.tasks.filter(t=>t.status==='done'&&t.completedAt).sort((a,b)=>new Date(b.completedAt)-new Date(a.completedAt)).slice(0,20);
+  document.getElementById('st-trend').innerHTML=completed.length
+    ?completed.map(t=>{
+      const P=PILLARS[t.pillar];
+      return`<div class="trend-item"><span class="trend-date">${fd(t.completedAt)}</span><span style="color:${P?.hex||'var(--text)'}">${P?.e||''}</span><span>${t.title}</span></div>`;
+    }).join('')
+    :'<div class="empty">No completed tasks yet.</div>';
+}
+
+// ── AI VIEW ───────────────────────────────────────────────────────
+function renderAI(){
+  const keyInput=document.getElementById('ai-key');
+  if(keyInput&&S.claudeKey)keyInput.value=S.claudeKey;
+}
+function saveAIKey(){
+  const val=document.getElementById('ai-key').value.trim();
+  S.claudeKey=val;
+  save();
+  const st=document.getElementById('ai-status');
+  st.style.display='block';
+  st.textContent=val?'Key saved.':'Key cleared.';
+  setTimeout(()=>{st.style.display='none';},2000);
+}
+async function callClaude(prompt){
+  if(!S.claudeKey){alert('Please enter your Claude API key in the AI view.');return null;}
+  const res=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'Content-Type':'application/json',
+      'x-api-key':S.claudeKey,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({
+      model:'claude-haiku-4-5-20251001',
+      max_tokens:1024,
+      messages:[{role:'user',content:prompt}]
+    })
+  });
+  if(!res.ok){const e=await res.text();throw new Error(e);}
+  const data=await res.json();
+  return data.content?.[0]?.text||'';
+}
+function aiContext(){
+  const ct=curTasks();
+  const goals=ct.filter(t=>t.isGoal);
+  const tasks=ct.filter(t=>!t.isGoal&&t.status!=='done');
+  const sprint=S.sprint;
+  return`Sprint: ${sprint.name} (${sprint.start} to ${sprint.end})\n\nSPRINT GOALS (${goals.filter(t=>t.status!=='done').length} open):\n${goals.filter(t=>t.status!=='done').map(g=>`- [${g.status}] ${g.title} (${PILLARS[g.pillar]?.e} ${PILLARS[g.pillar]?.l})`).join('\n')}\n\nACTIVE TASKS (${tasks.length}):\n${tasks.slice(0,30).map(t=>`- [${t.status}|${t.priority}] ${t.title} (${PILLARS[t.pillar]?.e})`).join('\n')}`;
+}
+async function aiPlanDay(){
+  const out=document.getElementById('ai-output');
+  const st=document.getElementById('ai-status');
+  out.style.display='block';out.className='ai-panel';out.textContent='Thinking…';
+  st.style.display='block';st.textContent='Calling Claude…';
+  try{
+    const res=await callClaude(`You are a productivity coach. Here is my sprint board context:\n\n${aiContext()}\n\nGiven this context, create a focused, prioritized plan for MY DAY today (${new Date().toLocaleDateString()}). List the top 5-7 tasks I should work on today, explain why each is important, and give me a quick morning/afternoon split. Be concise and actionable.`);
+    out.textContent=res||'No response.';
+  }catch(e){out.textContent='Error: '+e.message;}
+  st.style.display='none';
+}
+async function aiPlanWeek(){
+  const out=document.getElementById('ai-output');
+  const st=document.getElementById('ai-status');
+  out.style.display='block';out.className='ai-panel';out.textContent='Thinking…';
+  st.style.display='block';st.textContent='Calling Claude…';
+  try{
+    const res=await callClaude(`You are a productivity coach. Here is my sprint board context:\n\n${aiContext()}\n\nCreate a weekly focus plan. What are the 3-5 most important things I should focus on this week to move the sprint forward? Give day-by-day suggestions (Mon-Fri). Be strategic and concise.`);
+    out.textContent=res||'No response.';
+  }catch(e){out.textContent='Error: '+e.message;}
+  st.style.display='none';
+}
+async function aiSuggestTasks(){
+  const out=document.getElementById('ai-output');
+  const st=document.getElementById('ai-status');
+  out.style.display='block';out.className='ai-panel';out.textContent='Thinking…';
+  st.style.display='block';st.textContent='Calling Claude…';
+  try{
+    const res=await callClaude(`You are a startup advisor. Here is my sprint board context:\n\n${aiContext()}\n\nBased on the current goals and gaps you see, suggest 3-5 specific new tasks that would help achieve the sprint goals faster. For each task include: title, which pillar it belongs to, priority, and a 1-sentence rationale. Format as a numbered list.`);
+    out.textContent=res||'No response.';
+  }catch(e){out.textContent='Error: '+e.message;}
+  st.style.display='none';
 }
 
 // ── MOBILE ────────────────────────────────────────────────────────

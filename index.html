@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-title" content="Task OS">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon.svg">
-<title>Task OS — Panos</title>
+<title>Task OS</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
@@ -150,6 +150,36 @@ select.fc option{background:var(--surface2);}
 @keyframes fi{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 .fi{animation:fi .18s ease;}
 @media(max-width:900px){.bgrid{grid-template-columns:1fr 1fr;}.stats{grid-template-columns:repeat(3,1fr);}.t3g{grid-template-columns:1fr;}.eg{height:auto;grid-template-columns:1fr;}.g2{grid-template-columns:1fr;}}
+/* ── DRAG & DROP ────────────────────────────────────────────── */
+.tc[draggable="true"]{cursor:grab;}
+.tc[draggable="true"]:active{cursor:grabbing;}
+.tc.dragging{opacity:.35;border-style:dashed;transform:scale(.98);}
+.bc.drag-over{border-color:var(--accent);background:rgba(88,166,255,.07);box-shadow:0 0 0 2px rgba(88,166,255,.2);}
+.bc.drag-over .tc{pointer-events:none;}
+/* ── AI PANEL ───────────────────────────────────────────────── */
+.ai-panel{background:linear-gradient(135deg,rgba(88,166,255,.07),rgba(204,93,232,.07));border:1px solid rgba(88,166,255,.22);border-radius:10px;padding:14px;margin-bottom:18px;}
+.ai-sug{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:7px;}
+.ai-sug-title{font-size:13px;font-weight:500;line-height:1.4;}
+.ai-sug-reason{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.4;}
+.ai-score{display:inline-flex;align-items:center;justify-content:center;width:28px;height:28px;border-radius:50%;background:rgba(88,166,255,.15);color:var(--accent);font-size:13px;font-weight:700;flex-shrink:0;}
+.ai-loading{color:var(--muted);font-size:12px;text-align:center;padding:20px;display:flex;align-items:center;justify-content:center;gap:8px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;animation:spin 1s linear infinite;}
+/* ── GOAL PROGRESS ──────────────────────────────────────────── */
+.gp{margin-top:8px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;}
+.gpf{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--cg));transition:width .4s ease;}
+.gps{font-size:11px;color:var(--muted);margin-top:4px;display:flex;align-items:center;justify-content:space-between;}
+/* ── NOTES ──────────────────────────────────────────────────── */
+.note-card{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:14px;margin-bottom:10px;}
+.note-raw{font-size:12px;color:var(--muted);white-space:pre-wrap;line-height:1.6;margin-top:6px;max-height:100px;overflow:hidden;}
+.note-processed{font-size:13px;line-height:1.6;white-space:pre-wrap;margin-top:8px;padding:10px 12px;background:var(--surface2);border-radius:6px;max-height:140px;overflow-y:auto;}
+.ntask{font-size:12px;background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.18);border-radius:6px;padding:7px 10px;margin-bottom:5px;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.ntask-title{flex:1;font-weight:500;}
+/* ── SETTINGS BTN ───────────────────────────────────────────── */
+.sidebar-footer{margin-top:auto;padding:10px 6px 4px;border-top:1px solid var(--border);}
+/* ── TOAST ──────────────────────────────────────────────────── */
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:13px;z-index:2000;opacity:0;transition:opacity .2s;pointer-events:none;}
+#toast.show{opacity:1;}
 /* ── MOBILE ─────────────────────────────────────────────────── */
 .ham-btn{display:none;position:fixed;top:11px;left:11px;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:8px;width:38px;height:38px;cursor:pointer;align-items:center;justify-content:center;flex-direction:column;gap:5px;padding:0;}
 .ham-btn span{display:block;width:18px;height:2px;background:var(--text);border-radius:2px;transition:all .2s;}
@@ -199,6 +229,13 @@ select.fc option{background:var(--surface2);}
   <div class="ns">Planning</div>
   <div class="ni" onclick="nav('goals')">🏆 Goals</div>
   <div class="ni" onclick="nav('review')">📅 Weekly Review</div>
+  <div class="ns">AI Features</div>
+  <div class="ni" onclick="nav('aicoach')">🤖 AI Coach</div>
+  <div class="ni" onclick="nav('notes')">📝 Smart Notes</div>
+  <div class="sidebar-footer">
+    <div class="ni" onclick="openSettings()" style="margin:0;">⚙️ Settings</div>
+    <div class="ni" onclick="exportData()" style="margin:0;">📤 Export</div>
+  </div>
 </nav>
 
 <main class="main">
@@ -326,15 +363,62 @@ select.fc option{background:var(--surface2);}
   <div id="past-reviews"></div>
 </div>
 
+<!-- AI COACH -->
+<div id="v-aicoach" class="view">
+  <div class="ph">
+    <div><h1>🤖 AI Coach</h1><p class="sub">Your personal productivity AI. Get focus suggestions, prioritize your backlog, and stay aligned with goals.</p></div>
+    <button class="btn bg sm" onclick="openSettings()">⚙️ API Key</button>
+  </div>
+  <div class="g2" style="margin-bottom:20px;">
+    <div>
+      <div class="rb" style="margin-bottom:10px;">
+        <h2 style="margin:0;">🎯 Today's Focus</h2>
+        <button class="btn bp sm" onclick="aiSuggestFocus()">✨ Suggest</button>
+      </div>
+      <div id="ai-focus-panel"><div class="empty" style="font-size:12px;">Click Suggest to get AI-powered task recommendations based on your goals and energy.</div></div>
+    </div>
+    <div>
+      <div class="rb" style="margin-bottom:10px;">
+        <h2 style="margin:0;">📦 Backlog Intelligence</h2>
+        <button class="btn bg sm" onclick="aiPrioritizeBacklog()">🤖 Auto-Prioritize</button>
+      </div>
+      <div id="ai-backlog-panel"><div class="empty" style="font-size:12px;">Let AI analyze your backlog and surface the tasks most aligned with your top goals.</div></div>
+    </div>
+  </div>
+  <hr>
+  <div class="rb" style="margin-bottom:14px;">
+    <h2 style="margin:0;">🏆 Goal Progress</h2>
+  </div>
+  <div id="ai-goals-panel"></div>
+</div>
+
+<!-- SMART NOTES -->
+<div id="v-notes" class="view">
+  <div class="ph">
+    <div><h1>📝 Smart Notes</h1><p class="sub">Dump raw notes. AI turns them into clean content + actionable tasks linked to your goals.</p></div>
+    <button class="btn bg sm" onclick="openSettings()">⚙️ API Key</button>
+  </div>
+  <div class="capbox">
+    <textarea class="fc" id="note-input" style="min-height:130px;font-size:13px;line-height:1.6;" placeholder="Paste raw notes, meeting takeaways, brain dump, voice transcript...&#10;&#10;Example:&#10;talked to john about potential partnership, need to follow up next week&#10;gym crush it, body fat is too high, need to fix diet&#10;givelink nonprofit outreach is stalling, fix the email sequence"></textarea>
+    <div class="row" style="margin-top:10px;flex-wrap:wrap;gap:8px;">
+      <button class="btn bp" onclick="aiProcessNotes()">✨ AI Process Notes</button>
+      <button class="btn bg" onclick="saveRawNote()">💾 Save Raw</button>
+      <span style="font-size:11px;color:var(--muted);margin-left:auto;align-self:center;">Requires Claude API key</span>
+    </div>
+  </div>
+  <div id="notes-list"></div>
+</div>
+
 </main>
 
+<div id="toast"></div>
 <button class="fab" onclick="openAdd()">+</button>
 
 <nav class="bnav">
   <button class="bni active" data-v="dashboard" onclick="nav('dashboard')"><span class="bni-ic">🏠</span>Home</button>
   <button class="bni" data-v="capture" onclick="nav('capture')"><span class="bni-ic">⚡</span>Capture</button>
   <button class="bni" data-v="buckets" onclick="nav('buckets')"><span class="bni-ic">📦</span>Buckets</button>
-  <button class="bni" data-v="all" onclick="nav('all')"><span class="bni-ic">✅</span>Tasks</button>
+  <button class="bni" data-v="aicoach" onclick="nav('aicoach')"><span class="bni-ic">🤖</span>AI</button>
   <button class="bni" data-v="goals" onclick="nav('goals')"><span class="bni-ic">🏆</span>Goals</button>
 </nav>
 
@@ -432,6 +516,52 @@ select.fc option{background:var(--surface2);}
   </div>
 </div>
 
+<!-- SETTINGS MODAL -->
+<div class="mo hidden" id="settm">
+  <div class="md" style="width:460px;">
+    <div class="mh"><h3>⚙️ Settings</h3><button class="mc" onclick="closeM('settm')">×</button></div>
+    <div class="fg">
+      <label>Your Name</label>
+      <input class="fc" id="user-name-inp" placeholder="Panos">
+    </div>
+    <div class="fg">
+      <label>Claude API Key <span style="color:var(--muted);font-size:11px;">(for AI features)</span></label>
+      <input class="fc" id="claude-key-inp" type="password" placeholder="sk-ant-..." style="font-family:monospace;letter-spacing:.5px;">
+      <p style="font-size:11px;color:var(--muted);margin-top:5px;line-height:1.5;">Your key is stored only in your browser's localStorage. It is sent directly to Anthropic's API — never to any other server. Get a key at <span style="color:var(--accent);">console.anthropic.com</span></p>
+    </div>
+    <div class="fg">
+      <label>Import Data (JSON backup)</label>
+      <div style="display:flex;gap:8px;">
+        <input class="fc" id="import-inp" type="file" accept=".json" style="font-size:12px;">
+        <button class="btn bg sm" onclick="importData()">Import</button>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('settm')">Cancel</button>
+      <button class="btn bp" onclick="saveSettings()">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI NOTE RESULT MODAL -->
+<div class="mo hidden" id="ainm">
+  <div class="md" style="width:580px;">
+    <div class="mh"><h3 id="ainm-title">✨ AI Processed Notes</h3><button class="mc" onclick="closeM('ainm')">×</button></div>
+    <div class="fg">
+      <label>Summary</label>
+      <div id="ai-note-summary" style="background:var(--surface2);border-radius:6px;padding:12px;font-size:13px;line-height:1.6;min-height:60px;white-space:pre-wrap;max-height:180px;overflow-y:auto;"></div>
+    </div>
+    <div class="fg">
+      <label>Extracted Tasks <span id="ainm-task-count" style="color:var(--muted);font-size:11px;font-weight:400;"></span></label>
+      <div id="ai-note-tasks"></div>
+    </div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('ainm')">Close</button>
+      <button class="btn bp" id="add-all-btn" onclick="addAllAiTasks()">+ Add All Tasks</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── DATA ──────────────────────────────────────────────────────
 const CATS={givelink:{l:'Givelink',e:'🟣'},finance:{l:'Finance',e:'💰'},automation:{l:'Automation',e:'🤖'},health:{l:'Health',e:'🏋️'},relationships:{l:'Relationships',e:'🤝'},learning:{l:'Learning',e:'📚'},brand:{l:'Brand',e:'🌐'},other:{l:'Other',e:'📌'}};
@@ -439,12 +569,12 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false};
-let editT=null,editG=null,fCat='all';
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],seededGoalsV3:false,claudeKey:'',userName:'Panos'};
+let editT=null,editG=null,fCat='all',draggedTaskId=null,pendingAiTasks=[];
 
 // ── PERSIST ───────────────────────────────────────────────────
-function save(){localStorage.setItem('taskos',JSON.stringify(S));}
-function load(){const d=localStorage.getItem('taskos');if(d)S={...S,...JSON.parse(d)};}
+function save(){try{localStorage.setItem('taskos',JSON.stringify(S));}catch(e){if(e.name==='QuotaExceededError'||e.code===22){alert('Storage full! Please export a backup and remove old data (Settings → Export).');}else{console.error('Save failed:',e);}}}
+function load(){try{const d=localStorage.getItem('taskos');if(d)S={...S,...JSON.parse(d)};}catch(e){console.error('Load failed:',e);}}
 
 // ── UTILS ─────────────────────────────────────────────────────
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
@@ -467,13 +597,13 @@ function nav(v){
   document.getElementById('s-ov')?.classList.remove('open');
   document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
-function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview})[v]?.();}
+function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,aicoach:renderAicoach,notes:renderNotes})[v]?.();}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
 
 // ── DASHBOARD ─────────────────────────────────────────────────
 function renderDash(){
   const h=new Date().getHours();
-  document.getElementById('greeting').textContent=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', Panos 👋';
+  document.getElementById('greeting').textContent=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', '+(S.userName||'Panos')+' 👋';
   document.getElementById('ddate').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
   const a=active(),now=new Date();
   const ic=a.filter(t=>t.bucket==='inbox').length;
@@ -532,7 +662,7 @@ function inboxHTML(t){
   return`<div class="tc fi" id="itc-${t.id}">
     <div class="ck ${t.status==='done'?'on':''}" onclick="toggleDone('${t.id}')"></div>
     <div class="tb">
-      <div class="tt">${t.title}</div>
+      <div class="tt">${esc(t.title)}</div>
       <div class="tm">
         ${catB(t.category)}
         <span style="font-size:11px;color:var(--muted);">Move to:</span>
@@ -553,13 +683,15 @@ function renderBuckets(){
   document.getElementById('bgrid').innerHTML=['this-week','this-month','backlog','someday'].map(bid=>{
     const b=BKTS[bid],tasks=a.filter(t=>t.bucket===bid);
     const pct=b.max?Math.min(100,tasks.length/b.max*100):0;
-    return`<div class="bc">
+    const extras=bid==='backlog'?`<button class="btn bg sm" style="width:100%;margin-bottom:6px;border-color:rgba(88,166,255,.3);color:var(--accent);" onclick="aiPrioritizeBacklogInline()">🤖 AI Prioritize</button>`:'';
+    return`<div class="bc" id="bc-${bid}" ondragover="onDragOver(event,'${bid}')" ondrop="onDrop(event,'${bid}')" ondragleave="onDragLeave(event)">
       <div class="bh">
         <div class="bt" style="color:${BCOLORS[bid]}">${b.e} ${b.l}</div>
         <span class="bcnt">${tasks.length}${b.max?'/'+b.max:''}</span>
       </div>
       ${b.max?`<div class="pb"><div class="pf" style="width:${pct}%;background:${BCOLORS[bid]}"></div></div>`:''}
-      ${tasks.length?tasks.map(t=>tcHTML(t,true)).join(''):'<div class="empty" style="padding:16px 0;">Empty</div>'}
+      ${extras}
+      ${tasks.length?tasks.map(t=>tcHTML(t,true,true)).join(''):'<div class="empty" style="padding:16px 0;" id="drop-empty-${bid}">Drop tasks here</div>'}
       <button class="btn bg sm" style="width:100%;margin-top:7px;" onclick="openAdd('${bid}')">+ Add</button>
     </div>`;
   }).join('');
@@ -615,7 +747,25 @@ function renderGoals(){
   fillGoalDrop();
 }
 
-function goalHTML(g){const c=CATS[g.category]||CATS.other;return`<div class="gc ${g.isTop3?'top':''}" onclick="openEditGoal('${g.id}')">${g.isTop3?'<span style="float:right;">⭐</span>':''}<div style="font-weight:600;margin-bottom:5px;">${g.title}</div>${g.description?`<div style="font-size:12px;color:var(--muted);margin-bottom:7px;">${g.description}</div>`:''}<span class="badge c${g.category[0]}">${c.e} ${c.l}</span></div>`;}
+function goalHTML(g){
+  const c=CATS[g.category]||CATS.other;
+  const linked=S.tasks.filter(t=>t.goalId===g.id);
+  const done=linked.filter(t=>t.status==='done').length;
+  const total=linked.length;
+  const pct=total>0?Math.round(done/total*100):0;
+  return`<div class="gc ${g.isTop3?'top':''}" onclick="openEditGoal('${g.id}')">
+    ${g.isTop3?'<span style="float:right;font-size:16px;">⭐</span>':''}
+    <div style="font-weight:600;margin-bottom:5px;">${esc(g.title)}</div>
+    ${g.description?`<div style="font-size:12px;color:var(--muted);margin-bottom:7px;line-height:1.4;">${esc(g.description)}</div>`:''}
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <span class="badge c${g.category[0]}">${c.e} ${c.l}</span>
+      <button class="btn bg sm" style="font-size:10px;padding:2px 8px;" onclick="event.stopPropagation();aiGoalSuggest('${g.id}')">🤖 Suggest Tasks</button>
+    </div>
+    ${total>0?`<div class="gp"><div class="gpf" style="width:${pct}%;"></div></div>
+    <div class="gps"><span>${done}/${total} tasks done</span><span style="font-weight:600;color:${pct>=100?'var(--bb)':pct>=50?'var(--accent)':'var(--muted)'};">${pct}%</span></div>`
+    :`<div style="font-size:11px;color:var(--muted);margin-top:6px;">No tasks linked yet — click 🤖 to get suggestions</div>`}
+  </div>`;
+}
 
 // ── REVIEW ────────────────────────────────────────────────────
 function renderReview(){
@@ -638,11 +788,12 @@ function saveReview(){
 }
 
 // ── TASK CARD HTML ────────────────────────────────────────────
-function tcHTML(t,showT3btn=false){
-  return`<div class="tc fi ${t.status==='done'?'done':''} ${t.isT3&&t.status!=='done'?'top3':''}" onclick="openEdit('${t.id}')">
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function tcHTML(t,showT3btn=false,draggable=false){
+  return`<div class="tc fi ${t.status==='done'?'done':''} ${t.isT3&&t.status!=='done'?'top3':''}" ${draggable?`draggable="true" ondragstart="onDragStart('${t.id}',event)" ondragend="onDragEnd(event)"`:''}  onclick="openEdit('${t.id}')">
     <div class="ck ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${t.status==='done'?'<span style="color:#fff;font-size:10px;">✓</span>':''}</div>
     <div class="tb">
-      <div class="tt">${t.title}</div>
+      <div class="tt">${esc(t.title)}</div>
       <div class="tm">
         ${catB(t.category)}${eB(t)}
         ${t.timeBlock?`<span class="tag">⏱ ${ft(t.timeBlock)}</span>`:''}
@@ -782,6 +933,360 @@ document.addEventListener('keydown',e=>{
   if(e.key==='c')nav('capture');
   if(e.key==='Escape')document.querySelectorAll('.mo:not(.hidden)').forEach(m=>{m.classList.add('hidden');editT=null;editG=null;});
 });
+
+// ── DRAG & DROP ───────────────────────────────────────────────
+function onDragStart(id,e){
+  draggedTaskId=id;
+  e.dataTransfer.effectAllowed='move';
+  setTimeout(()=>{const el=document.querySelector(`.tc[ondragstart*="${id}"]`);if(el)el.classList.add('dragging');},0);
+}
+function onDragEnd(e){
+  e.target.classList.remove('dragging');
+  draggedTaskId=null;
+  document.querySelectorAll('.bc.drag-over').forEach(b=>b.classList.remove('drag-over'));
+}
+function onDragOver(e,bucketId){
+  e.preventDefault();
+  e.dataTransfer.dropEffect='move';
+  document.getElementById('bc-'+bucketId)?.classList.add('drag-over');
+}
+function onDragLeave(e){
+  if(!e.currentTarget.contains(e.relatedTarget))e.currentTarget.classList.remove('drag-over');
+}
+function onDrop(e,bucketId){
+  e.preventDefault();
+  e.currentTarget.classList.remove('drag-over');
+  if(draggedTaskId){
+    const t=S.tasks.find(x=>x.id===draggedTaskId);
+    if(t&&t.bucket!==bucketId){
+      mvB(draggedTaskId,bucketId);
+      toast(`Moved to ${BKTS[bucketId]?.l||bucketId}`);
+    }
+    draggedTaskId=null;
+  }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+function toast(msg,ms=2200){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms);
+}
+
+// ── SETTINGS ──────────────────────────────────────────────────
+function openSettings(){
+  document.getElementById('claude-key-inp').value=S.claudeKey||'';
+  document.getElementById('user-name-inp').value=S.userName||'Panos';
+  document.getElementById('settm').classList.remove('hidden');
+}
+function saveSettings(){
+  S.claudeKey=document.getElementById('claude-key-inp').value.trim();
+  S.userName=document.getElementById('user-name-inp').value.trim()||'Panos';
+  save();closeM('settm');renderDash();
+  toast('Settings saved');
+}
+
+// ── EXPORT / IMPORT ────────────────────────────────────────────
+function exportData(){
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='taskos-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();URL.revokeObjectURL(a.href);
+  toast('Backup exported');
+}
+function importData(){
+  const file=document.getElementById('import-inp').files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.tasks)throw new Error('Invalid backup file');
+      S={...S,...data};save();closeM('settm');refresh();
+      toast('Data imported — '+data.tasks.length+' tasks loaded');
+    }catch(err){alert('Import failed: '+err.message);}
+  };
+  reader.readAsText(file);
+}
+
+// ── AI CORE ───────────────────────────────────────────────────
+async function callClaude(systemPrompt,userPrompt,maxTokens=1500){
+  const key=S.claudeKey;
+  if(!key){
+    if(confirm('Add your Claude API key in Settings to use AI features. Open Settings?'))openSettings();
+    return null;
+  }
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'x-api-key':key,
+        'anthropic-version':'2023-06-01',
+        'content-type':'application/json',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-haiku-4-5-20251001',
+        max_tokens:maxTokens,
+        system:systemPrompt,
+        messages:[{role:'user',content:userPrompt}]
+      })
+    });
+    if(!res.ok){const err=await res.json();alert('AI Error: '+(err.error?.message||res.status));return null;}
+    const data=await res.json();
+    return data.content?.[0]?.text||null;
+  }catch(e){alert('AI request failed: '+e.message);return null;}
+}
+
+function aiLoadingHTML(msg='Analyzing...'){return`<div class="ai-loading"><span class="spin">⏳</span> ${msg}</div>`;}
+
+// ── AI: PRIORITIZE BACKLOG ─────────────────────────────────────
+async function aiPrioritizeBacklog(){
+  const panel=document.getElementById('ai-backlog-panel');
+  if(panel)panel.innerHTML=aiLoadingHTML('Analyzing backlog...');
+  await _aiPrioritizeBacklogCore(panel);
+}
+async function aiPrioritizeBacklogInline(){
+  nav('aicoach');
+  const panel=document.getElementById('ai-backlog-panel');
+  if(panel)panel.innerHTML=aiLoadingHTML('Analyzing backlog...');
+  await _aiPrioritizeBacklogCore(panel);
+}
+async function _aiPrioritizeBacklogCore(panel){
+  const backlog=S.tasks.filter(t=>t.bucket==='backlog'&&t.status!=='done');
+  if(!backlog.length){if(panel)panel.innerHTML='<div class="empty">Backlog is empty!</div>';return;}
+  const goals=S.goals.filter(g=>g.isTop3).map(g=>g.title).join('; ')||'Not set';
+  const taskList=backlog.map((t,i)=>`${i+1}. [ID:${t.id}] ${t.title} (${t.category})`).join('\n');
+  const system='You are a productivity coach. Prioritize tasks by alignment with user goals. Return ONLY valid JSON with no markdown, no code blocks.';
+  const prompt=`Top goals: ${goals}\n\nBacklog tasks:\n${taskList}\n\nReturn exactly this JSON structure:\n{"insight":"one sentence overview","prioritized":[{"id":"task-id","score":1-10,"reason":"one sentence why"}]}\n\nSort by score descending. Include ALL tasks.`;
+  const result=await callClaude(system,prompt,2000);
+  if(!result){if(panel)panel.innerHTML='<div class="empty">AI unavailable</div>';return;}
+  try{
+    const json=JSON.parse(result.replace(/```json\n?|\n?```/g,'').trim());
+    // Re-sort backlog tasks in S by AI score
+    const order={};
+    json.prioritized.forEach((item,idx)=>{order[item.id]=idx;});
+    const backlogIds=new Set(backlog.map(t=>t.id));
+    const sorted=[...S.tasks.filter(t=>!backlogIds.has(t.id)),...S.tasks.filter(t=>backlogIds.has(t.id)).sort((a,b)=>(order[a.id]??999)-(order[b.id]??999))];
+    S.tasks=sorted;
+    // Boost importance for top-scored tasks
+    json.prioritized.slice(0,5).forEach(item=>{
+      if(item.score>=8){const t=S.tasks.find(x=>x.id===item.id);if(t)t.importance='high';}
+    });
+    save();
+    if(panel)panel.innerHTML=`
+      ${json.insight?`<div style="font-size:12px;color:var(--muted);margin-bottom:12px;padding:8px 10px;background:rgba(88,166,255,.07);border-radius:6px;">💡 ${esc(json.insight)}</div>`:''}
+      ${json.prioritized.slice(0,6).map(item=>{
+        const t=backlog.find(x=>x.id===item.id);
+        if(!t)return'';
+        return`<div class="ai-sug">
+          <div style="display:flex;gap:10px;align-items:flex-start;">
+            <span class="ai-score">${item.score}</span>
+            <div style="flex:1;">
+              <div class="ai-sug-title">${esc(t.title)}</div>
+              <div class="ai-sug-reason">${esc(item.reason)}</div>
+              <div style="display:flex;gap:5px;margin-top:7px;">
+                <button class="btn bp sm" onclick="mvB('${t.id}','this-week');renderAicoach();toast('Moved to This Week')">→ This Week</button>
+                <button class="btn bg sm" onclick="mvB('${t.id}','this-month');renderAicoach();toast('Moved to This Month')">→ This Month</button>
+              </div>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+      <div style="font-size:11px;color:var(--muted);margin-top:8px;">Backlog re-sorted by AI priority. ${json.prioritized.length} tasks analyzed.</div>`;
+    toast('Backlog prioritized by AI');
+  }catch(e){
+    if(panel)panel.innerHTML=`<div style="font-size:12px;color:var(--muted);padding:8px;white-space:pre-wrap;overflow:auto;max-height:200px;">${esc(result)}</div>`;
+  }
+}
+
+// ── AI: SUGGEST TODAY'S FOCUS ─────────────────────────────────
+async function aiSuggestFocus(){
+  const panel=document.getElementById('ai-focus-panel');
+  panel.innerHTML=aiLoadingHTML('Finding your best tasks...');
+  const activeTasks=S.tasks.filter(t=>t.status!=='done'&&t.bucket!=='inbox').slice(0,40);
+  const goals=S.goals.filter(g=>g.isTop3).map(g=>g.title).join('; ')||'Not set';
+  const h=new Date().getHours();
+  const timeOfDay=h<12?'morning':h<17?'afternoon':'evening';
+  const taskList=activeTasks.map(t=>`[${t.bucket}][${t.energy}energy] ${t.title} (${t.category})`).join('\n');
+  const system='You are a focused productivity coach. Suggest 3 tasks to focus on right now. Return ONLY valid JSON.';
+  const prompt=`Time: ${timeOfDay}\nTop goals: ${goals}\n\nActive tasks:\n${taskList}\n\nReturn JSON: {"message":"one motivating sentence","suggestions":[{"title":"...","reason":"why now","taskId":"id from list or empty if task not in list"}]}`;
+  const result=await callClaude(system,prompt);
+  if(!result){panel.innerHTML='<div class="empty">AI unavailable</div>';return;}
+  try{
+    const json=JSON.parse(result.replace(/```json\n?|\n?```/g,'').trim());
+    panel.innerHTML=`
+      ${json.message?`<div style="font-size:12px;color:var(--accent);margin-bottom:12px;padding:8px 10px;background:rgba(88,166,255,.07);border-radius:6px;">✨ ${esc(json.message)}</div>`:''}
+      ${json.suggestions.map(s=>`<div class="ai-sug">
+        <div class="ai-sug-title">${esc(s.title)}</div>
+        <div class="ai-sug-reason">${esc(s.reason)}</div>
+        ${s.taskId?`<button class="btn bp sm" style="margin-top:6px;" onclick="openEdit('${esc(s.taskId)}')">Open Task →</button>`:''}
+      </div>`).join('')}`;
+  }catch(e){
+    panel.innerHTML=`<div style="font-size:12px;color:var(--muted);white-space:pre-wrap;overflow:auto;max-height:180px;">${esc(result)}</div>`;
+  }
+}
+
+// ── AI: GOAL TASK SUGGESTIONS ─────────────────────────────────
+async function aiGoalSuggest(goalId){
+  const g=S.goals.find(x=>x.id===goalId);if(!g)return;
+  const linked=S.tasks.filter(t=>t.goalId===goalId&&t.status!=='done').map(t=>t.title);
+  const system='You are a goal achievement coach. Suggest specific actionable tasks. Return ONLY valid JSON.';
+  const prompt=`Goal: ${g.title}\nWhy: ${g.description||'Not specified'}\nCategory: ${g.category}\nExisting tasks:\n${linked.join('\n')||'None yet'}\n\nSuggest 4-5 new concrete tasks. Return JSON: {"tasks":[{"title":"...","bucket":"this-week|this-month|backlog","notes":"context for why"}]}`;
+  const summaryEl=document.getElementById('ai-note-summary');
+  const tasksEl=document.getElementById('ai-note-tasks');
+  document.getElementById('ainm-title').textContent='🤖 AI Suggested Tasks';
+  document.getElementById('ainm-task-count').textContent='';
+  if(summaryEl)summaryEl.textContent='Loading suggestions for: '+g.title;
+  if(tasksEl)tasksEl.innerHTML=aiLoadingHTML('Thinking...');
+  document.getElementById('ainm').classList.remove('hidden');
+  const result=await callClaude(system,prompt);
+  if(!result){if(tasksEl)tasksEl.innerHTML='<div class="empty">AI unavailable</div>';return;}
+  try{
+    const json=JSON.parse(result.replace(/```json\n?|\n?```/g,'').trim());
+    pendingAiTasks=(json.tasks||[]).map(t=>({...t,category:g.category,goalId:goalId}));
+    if(summaryEl)summaryEl.textContent=`Suggested tasks to achieve: "${g.title}"`;
+    document.getElementById('ainm-task-count').textContent=`(${pendingAiTasks.length})`;
+    if(tasksEl)tasksEl.innerHTML=pendingAiTasks.length
+      ?pendingAiTasks.map((t,i)=>`<div class="ntask">
+          <span class="ntask-title">${esc(t.title)}</span>
+          <div style="display:flex;gap:5px;align-items:center;flex-shrink:0;">
+            <span class="badge co" style="font-size:10px;">${t.bucket}</span>
+            <button class="btn bp sm" onclick="addSingleAiTask(${i},this)">+ Add</button>
+          </div>
+        </div>`).join('')
+      :'<div class="empty">No suggestions</div>';
+  }catch(e){
+    if(tasksEl)tasksEl.innerHTML=`<div style="font-size:12px;color:var(--muted);white-space:pre-wrap;overflow:auto;max-height:200px;">${esc(result)}</div>`;
+  }
+}
+
+// ── AI: PROCESS NOTES ─────────────────────────────────────────
+async function aiProcessNotes(){
+  const raw=document.getElementById('note-input').value.trim();
+  if(!raw){alert('Enter some notes first.');return;}
+  const btn=document.querySelector('[onclick="aiProcessNotes()"]');
+  if(btn){btn.textContent='⏳ Processing...';btn.disabled=true;}
+  const goalList=S.goals.slice(0,20).map(g=>`${g.id}|${g.title}`).join('\n');
+  const system='You are a productivity assistant. Process raw notes into clean content and extract tasks. Return ONLY valid JSON with no markdown code blocks.';
+  const prompt=`Raw notes:\n${raw}\n\nAvailable goals (id|title):\n${goalList||'none'}\n\nReturn JSON:\n{"summary":"cleaned-up well-written summary of the notes","tasks":[{"title":"actionable task","category":"givelink|finance|automation|health|relationships|learning|brand|other","bucket":"this-week|this-month|backlog","goalId":"goal-id or empty string","notes":"brief context"}]}`;
+  const result=await callClaude(system,prompt,2000);
+  if(btn){btn.textContent='✨ AI Process Notes';btn.disabled=false;}
+  if(!result)return;
+  try{
+    const json=JSON.parse(result.replace(/```json\n?|\n?```/g,'').trim());
+    pendingAiTasks=json.tasks||[];
+    // Save note
+    if(!S.notes)S.notes=[];
+    S.notes.unshift({id:uid(),rawText:raw,processedText:json.summary||raw,tasks:pendingAiTasks,createdAt:new Date().toISOString(),processedAt:new Date().toISOString()});
+    save();
+    document.getElementById('note-input').value='';
+    // Show result modal
+    document.getElementById('ainm-title').textContent='✨ AI Processed Notes';
+    document.getElementById('ainm-task-count').textContent=pendingAiTasks.length?`(${pendingAiTasks.length} tasks)`:'';
+    document.getElementById('ai-note-summary').textContent=json.summary||raw;
+    document.getElementById('ai-note-tasks').innerHTML=pendingAiTasks.length
+      ?pendingAiTasks.map((t,i)=>`<div class="ntask">
+          <span class="ntask-title">${esc(t.title)}</span>
+          <div style="display:flex;gap:5px;align-items:center;flex-shrink:0;">
+            <span class="badge co" style="font-size:10px;">${t.category}</span>
+            <button class="btn bp sm" onclick="addSingleAiTask(${i},this)">+ Add</button>
+          </div>
+        </div>`).join('')
+      :'<div class="empty">No tasks extracted</div>';
+    document.getElementById('ainm').classList.remove('hidden');
+    renderNotes();
+  }catch(e){
+    alert('Could not parse AI response. Try again or check console.');
+    console.error('AI parse error:',e,'\nRaw:',result);
+  }
+}
+
+function addSingleAiTask(idx,btn){
+  const t=pendingAiTasks[idx];if(!t)return;
+  S.tasks.push({id:uid(),title:t.title,notes:t.notes||'',bucket:t.bucket||'inbox',category:t.category||'other',urgency:'low',importance:'high',energy:'high',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:t.goalId||null,createdAt:new Date().toISOString(),completedAt:null});
+  save();
+  if(btn){btn.textContent='✓';btn.disabled=true;btn.classList.remove('bp');btn.classList.add('bg');}
+  toast('Task added');
+}
+
+function addAllAiTasks(){
+  let added=0;
+  pendingAiTasks.forEach((t,i)=>{
+    const alreadyDone=document.querySelectorAll('#ai-note-tasks .ntask button')[i]?.disabled;
+    if(!alreadyDone){
+      S.tasks.push({id:uid(),title:t.title,notes:t.notes||'',bucket:t.bucket||'inbox',category:t.category||'other',urgency:'low',importance:'high',energy:'high',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:t.goalId||null,createdAt:new Date().toISOString(),completedAt:null});
+      added++;
+    }
+  });
+  save();closeM('ainm');refresh();
+  toast(`${added} task${added!==1?'s':''} added`);
+}
+
+function saveRawNote(){
+  const raw=document.getElementById('note-input').value.trim();if(!raw)return;
+  if(!S.notes)S.notes=[];
+  S.notes.unshift({id:uid(),rawText:raw,processedText:null,tasks:[],createdAt:new Date().toISOString(),processedAt:null});
+  save();document.getElementById('note-input').value='';
+  renderNotes();toast('Note saved');
+}
+
+function renderNotes(){
+  const notes=S.notes||[];
+  const listEl=document.getElementById('notes-list');if(!listEl)return;
+  listEl.innerHTML=notes.length?notes.map(n=>`
+    <div class="note-card">
+      <div class="rb" style="margin-bottom:8px;">
+        <span style="font-size:12px;color:var(--muted);">📅 ${new Date(n.createdAt).toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}</span>
+        <div style="display:flex;gap:5px;">
+          ${!n.processedAt?`<button class="btn bp sm" onclick="reprocessNote('${n.id}')">✨ AI Process</button>`:'<span style="font-size:10px;color:var(--bb);padding:2px 6px;">✓ AI Processed</span>'}
+          <button class="btn bd sm" onclick="delNote('${n.id}')">🗑</button>
+        </div>
+      </div>
+      ${n.processedText?`<div class="note-processed">${esc(n.processedText)}</div>`:`<div class="note-raw">${esc(n.rawText)}</div>`}
+      ${n.tasks?.length?`<div style="margin-top:8px;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">📌 ${n.tasks.length} task${n.tasks.length!==1?'s':''} extracted</div>${n.tasks.slice(0,3).map(t=>`<div class="ntask"><span class="ntask-title">${esc(t.title)}</span><span class="badge co" style="font-size:10px;">${t.category}</span></div>`).join('')}${n.tasks.length>3?`<div style="font-size:11px;color:var(--muted);margin-top:4px;">+${n.tasks.length-3} more</div>`:''}</div>`:''}
+    </div>`).join(''):'<div class="empty">No notes yet. Capture raw thoughts above and let AI turn them into actionable tasks!</div>';
+}
+
+async function reprocessNote(id){
+  const n=(S.notes||[]).find(x=>x.id===id);if(!n)return;
+  document.getElementById('note-input').value=n.rawText;
+  S.notes=(S.notes||[]).filter(x=>x.id!==id);
+  save();renderNotes();
+  await aiProcessNotes();
+}
+
+function delNote(id){
+  if(!confirm('Delete note?'))return;
+  S.notes=(S.notes||[]).filter(n=>n.id!==id);
+  save();renderNotes();
+}
+
+// ── AI COACH VIEW ─────────────────────────────────────────────
+function renderAicoach(){
+  const panelEl=document.getElementById('ai-goals-panel');if(!panelEl)return;
+  const top3=S.goals.filter(g=>g.isTop3);
+  const rest=S.goals.filter(g=>!g.isTop3);
+  const allGoals=[...top3,...rest];
+  panelEl.innerHTML=allGoals.length?`<div class="g2">${allGoals.map(g=>{
+    const c=CATS[g.category]||CATS.other;
+    const linked=S.tasks.filter(t=>t.goalId===g.id);
+    const done=linked.filter(t=>t.status==='done').length;
+    const total=linked.length;
+    const pct=total>0?Math.round(done/total*100):0;
+    return`<div class="gc ${g.isTop3?'top':''}">
+      ${g.isTop3?'<span style="float:right;font-size:14px;">⭐</span>':''}
+      <div style="font-weight:600;font-size:13px;margin-bottom:4px;">${esc(g.title)}</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <span class="badge c${g.category[0]}">${c.e} ${c.l}</span>
+        <button class="btn bg sm" style="font-size:10px;padding:2px 8px;" onclick="aiGoalSuggest('${g.id}')">🤖 Suggest</button>
+      </div>
+      <div class="gp"><div class="gpf" style="width:${pct}%;"></div></div>
+      <div class="gps"><span>${done}/${total} tasks done</span><span style="font-weight:600;color:${pct>=100?'var(--bb)':pct>=50?'var(--accent)':'var(--muted)'};">${pct}%</span></div>
+    </div>`;
+  }).join('')}</div>`:'<div class="empty">No goals yet. Add goals first.</div>';
+}
 
 // ── SEED DATA ─────────────────────────────────────────────────
 function seed(){

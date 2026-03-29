@@ -324,6 +324,17 @@ select.fc option{background:var(--surface2);}
   .stat-hero .sh:nth-child(n+4){display:none;}
   #save-dot{top:max(14px,env(safe-area-inset-top,14px));right:14px;}
 }
+/* ── DAILY JOURNAL ─────────────────────────────────────────── */
+.journal-priority{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.journal-priority-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#000;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.journal-check{background:none;border:none;cursor:pointer;font-size:20px;padding:0 2px;flex-shrink:0;line-height:1;transition:transform .15s;}
+.journal-check:hover{transform:scale(1.15);}
+.j-hist-entry{padding:10px 12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;cursor:pointer;transition:border-color .15s;}
+.j-hist-entry:hover{border-color:var(--accent);}
+.j-hist-body{display:none;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.j-hist-body.open{display:block;}
+.j-streak{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(255,107,107,.15),rgba(255,169,77,.1));border:1px solid rgba(255,107,107,.3);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600;color:#ff9944;}
+@media(max-width:640px){.journal-split{grid-template-columns:1fr!important;}}
 </style>
 </head>
 <body>
@@ -391,6 +402,7 @@ select.fc option{background:var(--surface2);}
   <div class="ni" onclick="nav('trash')">🗑 Trash <span id="trash-badge"></span></div>
   <div class="ns">Planning</div>
   <div class="ni" onclick="nav('goals')">🏆 Goals</div>
+  <div class="ni" onclick="nav('journal')">📔 Daily Journal</div>
   <div class="ni" onclick="nav('reflect')">🪞 Reflections</div>
   <div class="ns">Knowledge & AI</div>
   <div class="ni" onclick="nav('wisdom')">📚 Wisdom Base</div>
@@ -669,6 +681,9 @@ select.fc option{background:var(--surface2);}
   </div>
 </div>
 
+<!-- JOURNAL -->
+<div id="v-journal" class="view"><!-- renderJournal() fills this --></div>
+
 <!-- REFLECTIONS (replaces Weekly Review, adds all cadences) -->
 <div id="v-reflect" class="view">
   <div class="ph"><div><h1>🪞 Reflections</h1><p class="sub">Structured reflection at every cadence. AI generates insights from your data.</p></div></div>
@@ -794,7 +809,7 @@ select.fc option{background:var(--surface2);}
   <button class="bni active" data-v="dashboard" onclick="nav('dashboard')"><span class="bni-ic">🏠</span>Home</button>
   <button class="bni" data-v="capture" onclick="nav('capture')"><span class="bni-ic">⚡</span>Capture</button>
   <button class="bni" data-v="buckets" onclick="nav('buckets')"><span class="bni-ic">📦</span>Buckets</button>
-  <button class="bni" data-v="reflect" onclick="nav('reflect')"><span class="bni-ic">🪞</span>Reflect</button>
+  <button class="bni" data-v="journal" onclick="nav('journal')"><span class="bni-ic">📔</span>Journal</button>
   <button class="bni" data-v="aicoach" onclick="nav('aicoach')"><span class="bni-ic">🤖</span>AI</button>
 </nav>
 
@@ -1015,7 +1030,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],reflections:{},wisdom:{books:[],principles:[]},profiles:[],seededGoalsV3:false,claudeKey:'',userName:'Panos',userEmoji:'🧑'};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],reflections:{},wisdom:{books:[],principles:[]},profiles:[],seededGoalsV3:false,claudeKey:'',userName:'Panos',userEmoji:'🧑',journal:{}};
 let editT=null,editG=null,editBook=null,editPrin=null,fCat='all',wTab='all',rTab='daily',draggedTaskId=null,pendingAiTasks=[];
 let _searchTimer=null;
 
@@ -1044,7 +1059,7 @@ function nav(v){
   document.getElementById('s-ov')?.classList.remove('open');
   document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
-function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,aicoach:renderAicoach,notes:renderNotes,wisdom:renderWisdom,reflect:renderReflect,trash:renderTrash,stats:renderStats})[v]?.();}
+function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,aicoach:renderAicoach,notes:renderNotes,wisdom:renderWisdom,reflect:renderReflect,trash:renderTrash,stats:renderStats,journal:renderJournal})[v]?.();}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
 
 // ── DASHBOARD ─────────────────────────────────────────────────
@@ -2921,6 +2936,196 @@ function _renderDayOfWeek(completed){
 }
 
 // ── INIT ──────────────────────────────────────────────────────
+// ── DAILY JOURNAL ─────────────────────────────────────────────
+function _todayKey(){return new Date().toISOString().slice(0,10);}
+
+function _getJournalEntry(dateKey){
+  if(!S.journal)S.journal={};
+  if(!S.journal[dateKey])S.journal[dateKey]={date:dateKey,priorities:[{text:'',done:false},{text:'',done:false},{text:'',done:false}],morningNote:'',eveningNote:''};
+  return S.journal[dateKey];
+}
+
+function renderJournal(){
+  const key=_todayKey();
+  const entry=_getJournalEntry(key);
+  const streak=_journalStreak();
+  const el=document.getElementById('v-journal');
+  if(!el)return;
+  const today=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  const doneCount=entry.priorities.filter(p=>p.done&&p.text).length;
+  const totalCount=entry.priorities.filter(p=>p.text).length;
+  el.innerHTML=`
+<div class="ph">
+  <div>
+    <h1>📔 Daily Journal</h1>
+    <p class="sub" style="display:flex;align-items:center;gap:8px;">${today}
+      ${streak>0?`<span class="j-streak">🔥 ${streak}-day streak</span>`:''}
+      ${totalCount?`<span style="font-size:11px;color:var(--muted);">${doneCount}/${totalCount} commitments done</span>`:''}
+    </p>
+  </div>
+  <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+    <button class="btn bg" onclick="suggestJournalPriorities()" id="jsugg-btn">✨ AI Suggest</button>
+    <button class="btn bp" onclick="saveJournal()">💾 Save</button>
+  </div>
+</div>
+<div class="rb" style="margin-bottom:16px;">
+  <h3 style="margin:0 0 6px;font-size:15px;font-weight:700;">🎯 My 3 Commitments Today</h3>
+  <p style="font-size:12px;color:var(--muted);margin:0 0 14px;">What do I commit to completing today? One clear, specific action each.</p>
+  ${[0,1,2].map(i=>`
+  <div class="journal-priority" id="jp-row-${i}">
+    <div class="journal-priority-num">${i+1}</div>
+    <input class="fc" id="jp-${i}" placeholder="Commitment ${i+1}..." value="${esc(entry.priorities[i]?.text||'')}" oninput="journalAutoSave()" style="flex:1;">
+    <button class="journal-check ${entry.priorities[i]?.done?'done':''}" onclick="toggleJournalPriority(${i})" title="${entry.priorities[i]?.done?'Mark undone':'Mark done'}">${entry.priorities[i]?.done?'✅':'⬜'}</button>
+  </div>`).join('')}
+  <div id="jsugg-area"></div>
+</div>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;" class="journal-split">
+  <div class="rb">
+    <h3 style="margin:0 0 8px;font-size:14px;font-weight:700;">🌅 Morning Note</h3>
+    <p style="font-size:11px;color:var(--muted);margin:0 0 8px;">Intentions, feelings, brain dump...</p>
+    <textarea class="fc" id="j-morning" placeholder="How are you feeling? What's on your mind? What do you want from today?" style="min-height:140px;" oninput="journalAutoSave()">${esc(entry.morningNote||'')}</textarea>
+  </div>
+  <div class="rb">
+    <h3 style="margin:0 0 8px;font-size:14px;font-weight:700;">🌙 Evening Capture</h3>
+    <p style="font-size:11px;color:var(--muted);margin:0 0 8px;">What happened? Wins, lessons, gratitude.</p>
+    <textarea class="fc" id="j-evening" placeholder="What actually happened today? Wins, struggles, lessons, gratitude..." style="min-height:140px;" oninput="journalAutoSave()">${esc(entry.eveningNote||'')}</textarea>
+  </div>
+</div>
+<div id="j-ai-insight"></div>
+<div class="rb">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <h3 style="margin:0;font-size:14px;font-weight:700;">📚 Recent Entries</h3>
+    <span style="font-size:11px;color:var(--muted);">Last 7 days</span>
+  </div>
+  <div id="j-history"></div>
+</div>`;
+  _renderJournalHistory();
+}
+
+function _journalStreak(){
+  if(!S.journal)return 0;
+  let streak=0;const d=new Date();
+  for(let i=0;i<365;i++){
+    const key=d.toISOString().slice(0,10);
+    const e=S.journal[key];
+    const hasContent=e&&(e.priorities?.some(p=>p.text)||e.morningNote||e.eveningNote);
+    if(hasContent)streak++;
+    else if(i>0)break;
+    d.setDate(d.getDate()-1);
+  }
+  return streak;
+}
+
+let _jAutoSaveTimer=null;
+function journalAutoSave(){
+  clearTimeout(_jAutoSaveTimer);
+  _jAutoSaveTimer=setTimeout(()=>saveJournal(true),800);
+}
+
+function saveJournal(silent=false){
+  const key=_todayKey();
+  const entry=_getJournalEntry(key);
+  entry.priorities=[0,1,2].map(i=>({
+    text:(document.getElementById('jp-'+i)?.value||'').trim(),
+    done:entry.priorities[i]?.done||false
+  }));
+  entry.morningNote=document.getElementById('j-morning')?.value||'';
+  entry.eveningNote=document.getElementById('j-evening')?.value||'';
+  entry.savedAt=new Date().toISOString();
+  save();
+  if(!silent)toast('Journal saved');
+  _renderJournalHistory();
+}
+
+function toggleJournalPriority(idx){
+  const key=_todayKey();
+  const entry=_getJournalEntry(key);
+  entry.priorities=[0,1,2].map(i=>({
+    text:(document.getElementById('jp-'+i)?.value||entry.priorities[i]?.text||'').trim(),
+    done:entry.priorities[i]?.done||false
+  }));
+  entry.priorities[idx].done=!entry.priorities[idx].done;
+  save();
+  const btn=document.querySelector('#jp-row-'+idx+' .journal-check');
+  if(btn){btn.textContent=entry.priorities[idx].done?'✅':'⬜';btn.classList.toggle('done',entry.priorities[idx].done);}
+  const sub=document.querySelector('.ph .sub');
+  if(sub){
+    const dc=entry.priorities.filter(p=>p.done&&p.text).length;
+    const tc=entry.priorities.filter(p=>p.text).length;
+    const sp=sub.querySelector('span:last-child');
+    if(sp&&tc)sp.textContent=dc+'/'+tc+' commitments done';
+  }
+  _renderJournalHistory();
+}
+
+async function suggestJournalPriorities(){
+  if(!S.claudeKey){toast('Add API key in Settings first');return;}
+  const btn=document.getElementById('jsugg-btn');
+  const area=document.getElementById('jsugg-area');
+  if(btn)btn.textContent='⏳ Thinking...';
+  if(area)area.innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px 0;">Analysing your tasks and goals...</div>';
+  const activeTasks=S.tasks.filter(t=>t.status!=='done'&&t.bucket!=='trash').slice(0,15)
+    .map(t=>`- [${t.bucket}] ${t.title}${t.dueDate?' (due '+fd(t.dueDate)+')':''}`).join('\n');
+  const goals=(S.goals||[]).filter(g=>!g.done).slice(0,5).map(g=>`- ${g.title}`).join('\n');
+  const wisdom=getWisdomContext(3);
+  const sys=`You are a personal productivity coach. Suggest the 3 most important, specific commitments for today based on the user's tasks and goals. Each should be a single clear action. Return JSON only: {"priorities":["commitment 1","commitment 2","commitment 3"],"reasoning":"1-2 sentence explanation of why these matter most today"}`;
+  const user=`Active tasks:\n${activeTasks||'none'}\n\nActive goals:\n${goals||'none'}\n\n${wisdom}\n\nToday: ${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}`;
+  try{
+    const raw=await callClaude(sys,user,600);
+    const parsed=JSON.parse(raw.replace(/```json\n?|\n?```/g,'').trim());
+    if(btn)btn.textContent='✨ AI Suggest';
+    if(area)area.innerHTML=`<div class="rb" style="margin-top:12px;border-color:rgba(88,166,255,.3);">
+      <div style="font-size:11px;color:var(--accent);font-weight:600;margin-bottom:10px;">✨ AI SUGGESTIONS — click Use to apply</div>
+      ${(parsed.priorities||[]).map((p,i)=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <span style="font-size:12px;color:var(--muted);width:16px;">${i+1}.</span>
+        <span style="font-size:13px;flex:1;">${esc(p)}</span>
+        <button class="btn" style="padding:3px 10px;font-size:11px;" onclick="applyJournalSuggestion(${i},${JSON.stringify(p)})">Use</button>
+      </div>`).join('')}
+      ${parsed.reasoning?`<div style="font-size:11px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">💡 ${esc(parsed.reasoning)}</div>`:''}
+    </div>`;
+  }catch(e){
+    if(btn)btn.textContent='✨ AI Suggest';
+    if(area)area.innerHTML='<div style="color:var(--red);font-size:12px;padding:8px 0;">Could not get suggestions. Check your API key in Settings.</div>';
+  }
+}
+
+function applyJournalSuggestion(idx,text){
+  const inp=document.getElementById('jp-'+idx);
+  if(inp){inp.value=text;journalAutoSave();}
+  toast('Applied to commitment '+(idx+1));
+}
+
+function _renderJournalHistory(){
+  const el=document.getElementById('j-history');
+  if(!el)return;
+  const today=_todayKey();
+  const entries=Object.values(S.journal||{})
+    .filter(e=>e.date!==today&&(e.priorities?.some(p=>p.text)||e.morningNote||e.eveningNote))
+    .sort((a,b)=>b.date.localeCompare(a.date)).slice(0,7);
+  if(!entries.length){el.innerHTML='<div class="empty" style="padding:12px 0;">No past entries yet — start writing!</div>';return;}
+  el.innerHTML=entries.map(e=>{
+    const d=new Date(e.date+'T12:00:00');
+    const label=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    const done=e.priorities?.filter(p=>p.done).length||0;
+    const total=e.priorities?.filter(p=>p.text).length||0;
+    const pct=total?Math.round(done/total*100):0;
+    const dotColor=pct===100?'#69db7c':pct>0?'#ffa94d':'var(--muted)';
+    return`<div class="j-hist-entry" onclick="this.querySelector('.j-hist-body').classList.toggle('open')">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="width:8px;height:8px;border-radius:50%;background:${dotColor};flex-shrink:0;display:inline-block;"></span>
+        <span style="font-size:13px;font-weight:600;color:var(--text);">${label}</span>
+        ${total?`<span style="font-size:11px;color:var(--muted);">${done}/${total} done</span>`:''}
+        <span style="margin-left:auto;font-size:12px;color:var(--muted);">▾</span>
+      </div>
+      <div class="j-hist-body">
+        ${(e.priorities||[]).filter(p=>p.text).map(p=>`<div style="display:flex;align-items:flex-start;gap:6px;margin:6px 0;font-size:13px;"><span style="flex-shrink:0;">${p.done?'✅':'⬜'}</span><span style="${p.done?'text-decoration:line-through;color:var(--muted)':''}">${esc(p.text)}</span></div>`).join('')}
+        ${e.morningNote?`<div style="margin-top:10px;font-size:12px;color:var(--muted);"><strong style="color:var(--text);">🌅 Morning:</strong> ${esc(e.morningNote.slice(0,150))}${e.morningNote.length>150?'…':''}</div>`:''}
+        ${e.eveningNote?`<div style="margin-top:4px;font-size:12px;color:var(--muted);"><strong style="color:var(--text);">🌙 Evening:</strong> ${esc(e.eveningNote.slice(0,150))}${e.eveningNote.length>150?'…':''}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
 function appInit(){
   load();seed();seedGoals();
   updTrashBadge();

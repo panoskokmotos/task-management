@@ -209,16 +209,124 @@ select.fc option{background:var(--surface2);}
   .bni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px;cursor:pointer;color:var(--muted);font-size:9px;gap:2px;border:none;background:transparent;transition:color .12s;}
   .bni.active{color:var(--accent);}
   .bni-ic{font-size:18px;line-height:1.2;}
+  .ham-btn{top:max(11px,env(safe-area-inset-top,11px));}
+  .fab{bottom:max(74px,calc(env(safe-area-inset-bottom,0px) + 74px));}
+  .ck{width:22px;height:22px;}
+  .btn{min-height:36px;}
+  .refl-tabs{overflow-x:auto;flex-wrap:nowrap;padding-bottom:4px;-webkit-overflow-scrolling:touch;}
 }
+/* ── AUTH SCREEN ─────────────────────────────────────────────── */
+#auth-screen{position:fixed;inset:0;background:var(--bg);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;}
+#auth-screen.hidden{display:none;}
+.auth-wrap{width:440px;max-width:100%;}
+.auth-logo{font-size:34px;font-weight:800;margin-bottom:6px;letter-spacing:-.5px;}
+.auth-logo span{color:var(--accent);}
+.auth-tagline{color:var(--muted);font-size:14px;margin-bottom:32px;line-height:1.5;}
+.profile-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:10px;margin-bottom:20px;}
+.profile-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 10px;text-align:center;cursor:pointer;transition:all .15s;}
+.profile-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 4px 18px rgba(88,166,255,.15);}
+.profile-emoji{font-size:36px;margin-bottom:8px;line-height:1;}
+.profile-nm{font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.profile-lock{font-size:10px;color:var(--muted);margin-top:3px;}
+.profile-new{border-style:dashed;color:var(--muted);}
+.profile-new:hover{color:var(--accent);border-color:var(--accent);}
+.auth-pin{display:flex;gap:8px;margin-bottom:6px;}
+.auth-pin input{text-align:center;letter-spacing:6px;font-size:18px;font-weight:700;}
+.emoji-grid{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.emoji-opt{font-size:24px;padding:6px;border-radius:8px;cursor:pointer;border:2px solid transparent;transition:all .12s;}
+.emoji-opt:hover,.emoji-opt.sel{border-color:var(--accent);background:var(--surface2);}
+/* ── IN-PROGRESS STATE ───────────────────────────────────────── */
+.tc.in-progress{border-left:3px solid var(--bm);}
+.status-cycle{cursor:pointer;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:600;border:1px solid var(--border);background:transparent;color:var(--muted);transition:all .12s;white-space:nowrap;}
+.status-cycle:hover{border-color:var(--accent);}
+.sc-todo{color:var(--muted);}
+.sc-prog{color:var(--bm);border-color:rgba(255,169,77,.3);}
+.sc-done{color:var(--bb);border-color:rgba(105,219,124,.3);}
+/* ── WISDOM BASE ─────────────────────────────────────────────── */
+.book-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .12s;}
+.book-card:hover{border-color:var(--accent);}
+.book-insights{margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+.insight-line{font-size:12px;color:var(--muted);padding:3px 0;line-height:1.5;display:flex;gap:6px;}
+.insight-line::before{content:'•';color:var(--accent);flex-shrink:0;}
+.principle-chip{background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:12px;display:inline-flex;align-items:center;gap:6px;margin:3px;cursor:pointer;transition:all .12s;}
+.principle-chip:hover{border-color:var(--accent);background:rgba(88,166,255,.08);}
+.wisdom-cat{display:flex;gap:7px;margin-bottom:14px;flex-wrap:wrap;}
+.wc-btn{padding:3px 12px;border-radius:16px;font-size:11px;cursor:pointer;border:1px solid var(--border);color:var(--muted);background:transparent;transition:all .12s;}
+.wc-btn:hover,.wc-btn.active{background:var(--surface2);color:var(--text);border-color:var(--accent);}
+/* ── REFLECTION SYSTEM ───────────────────────────────────────── */
+.refl-tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;}
+.refl-tab{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);color:var(--muted);background:transparent;transition:all .15s;white-space:nowrap;}
+.refl-tab.active{background:var(--accent);color:#000;border-color:var(--accent);}
+.refl-cadence-view{display:none;}.refl-cadence-view.active{display:block;}
+.refl-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:14px;}
+.refl-qnum{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--accent);color:#000;border-radius:50%;font-size:11px;font-weight:700;margin-right:7px;flex-shrink:0;}
+.refl-insight{background:linear-gradient(135deg,rgba(88,166,255,.06),rgba(204,93,232,.06));border:1px solid rgba(88,166,255,.2);border-radius:8px;padding:12px;font-size:12px;line-height:1.7;margin-top:10px;white-space:pre-wrap;}
+.cadence-meta{display:flex;align-items:center;gap:8px;margin-bottom:16px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;}
+.cadence-due{font-size:11px;padding:2px 8px;border-radius:10px;}
+.due-ok{background:rgba(105,219,124,.15);color:var(--bb);}
+.due-soon{background:rgba(255,169,77,.15);color:var(--bm);}
+.due-over{background:rgba(255,107,107,.15);color:var(--bw);}
+/* ── TRASH ───────────────────────────────────────────────────── */
+.trash-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 13px;margin-bottom:6px;display:flex;align-items:center;gap:10px;opacity:.6;}
+/* ── IMPROVED SIDEBAR FOOTER ─────────────────────────────────── */
+.user-chip{display:flex;align-items:center;gap:8px;padding:9px 12px;border-radius:8px;cursor:pointer;margin:1px 6px;transition:background .12s;}
+.user-chip:hover{background:var(--surface2);}
+.user-avatar{width:26px;height:26px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+/* ── RECURRING BADGE ─────────────────────────────────────────── */
+.rec-badge{font-size:10px;color:var(--accent);background:rgba(88,166,255,.12);padding:1px 6px;border-radius:8px;}
+/* ── STATS IMPROVED ──────────────────────────────────────────── */
+.sc{cursor:default;transition:transform .12s;}
+.sc:hover{transform:translateY(-1px);}
+/* ── OVERDUE HIGHLIGHT ───────────────────────────────────────── */
+.tc.overdue .tt::after{content:' ⚠️';font-size:11px;}
+/* ── CROSS APP LINK ──────────────────────────────────────────── */
+.app-link{padding:8px 16px;font-size:12px;color:var(--muted);border:1px solid var(--border);border-radius:6px;margin:2px 6px;display:flex;align-items:center;gap:6px;cursor:pointer;transition:all .12s;text-decoration:none;}
+.app-link:hover{border-color:var(--accent);color:var(--accent);}
 </style>
 </head>
 <body>
+
+<!-- ══ AUTH SCREEN ══════════════════════════════════════════════ -->
+<div id="auth-screen" class="hidden">
+  <div class="auth-wrap">
+    <div class="auth-logo">Task <span>OS</span></div>
+    <p class="auth-tagline">Your AI-powered productivity system.<br>Who's using the app?</p>
+    <div id="auth-profiles" class="profile-grid"></div>
+    <div id="auth-pin-wrap" style="display:none;">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:10px;" id="auth-pin-label"></p>
+      <div class="auth-pin fg">
+        <label>Enter PIN</label>
+        <input class="fc auth-pin" id="auth-pin-inp" type="password" maxlength="6" placeholder="••••••" onkeydown="if(event.key==='Enter')authVerifyPin()">
+      </div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="btn bg" onclick="authShowProfiles()">← Back</button>
+        <button class="btn bp" style="flex:1;" onclick="authVerifyPin()">Unlock →</button>
+      </div>
+    </div>
+    <div id="auth-create-wrap" style="display:none;">
+      <div class="fg"><label>Your name</label><input class="fc" id="auth-name-inp" placeholder="e.g. Panos" maxlength="24"></div>
+      <div class="fg">
+        <label>Choose an emoji</label>
+        <div class="emoji-grid" id="auth-emoji-grid"></div>
+      </div>
+      <div class="fg"><label>PIN <span style="color:var(--muted);font-weight:400;">(optional)</span></label><input class="fc" id="auth-newpin-inp" type="password" maxlength="6" placeholder="Leave blank to skip"></div>
+      <button class="btn bp" style="width:100%;margin-top:4px;" onclick="authCreate()">Create Profile →</button>
+      <button class="btn bg" style="width:100%;margin-top:8px;" onclick="authShowProfiles()">← Back</button>
+    </div>
+  </div>
+</div>
 
 <button class="ham-btn" onclick="toggleSB()" aria-label="Menu"><span></span><span></span><span></span></button>
 <div class="s-ov" id="s-ov" onclick="toggleSB()"></div>
 
 <nav class="sidebar">
-  <div class="logo">Task <span>OS</span></div>
+  <div class="logo" style="display:flex;align-items:center;justify-content:space-between;">
+    <span>Task <span style="color:var(--accent);">OS</span></span>
+  </div>
+  <div class="user-chip" onclick="openSettings()" id="sidebar-user">
+    <div class="user-avatar" id="sidebar-avatar">?</div>
+    <div style="flex:1;min-width:0;"><div style="font-size:12px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" id="sidebar-name">Profile</div><div style="font-size:10px;color:var(--muted);">⚙️ Settings</div></div>
+  </div>
   <div class="ns">Main</div>
   <div class="ni active" onclick="nav('dashboard')">🏠 Dashboard</div>
   <div class="ni" onclick="nav('capture')">⚡ Capture <span id="ib"></span></div>
@@ -226,15 +334,17 @@ select.fc option{background:var(--surface2);}
   <div class="ni" onclick="nav('buckets')">📦 Buckets</div>
   <div class="ni" onclick="nav('eisenhower')">🎯 Eisenhower</div>
   <div class="ni" onclick="nav('all')">✅ All Tasks</div>
+  <div class="ni" onclick="nav('trash')">🗑 Trash <span id="trash-badge"></span></div>
   <div class="ns">Planning</div>
   <div class="ni" onclick="nav('goals')">🏆 Goals</div>
-  <div class="ni" onclick="nav('review')">📅 Weekly Review</div>
-  <div class="ns">AI Features</div>
+  <div class="ni" onclick="nav('reflect')">🪞 Reflections</div>
+  <div class="ns">Knowledge & AI</div>
+  <div class="ni" onclick="nav('wisdom')">📚 Wisdom Base</div>
   <div class="ni" onclick="nav('aicoach')">🤖 AI Coach</div>
   <div class="ni" onclick="nav('notes')">📝 Smart Notes</div>
   <div class="sidebar-footer">
-    <div class="ni" onclick="openSettings()" style="margin:0;">⚙️ Settings</div>
-    <div class="ni" onclick="exportData()" style="margin:0;">📤 Export</div>
+    <a class="app-link" href="givelink.html">🟣 Sprint Board (Givelink) →</a>
+    <div class="ni" onclick="exportData()" style="margin:0;font-size:12px;">📤 Export Backup</div>
   </div>
 </nav>
 
@@ -313,7 +423,7 @@ select.fc option{background:var(--surface2);}
   <div class="ph">
     <div><h1>✅ All Tasks</h1><p class="sub" id="atc"></p></div>
     <div class="row">
-      <input class="sb" id="srch" placeholder="🔍 Search..." oninput="renderAll()">
+      <input class="sb" id="srch" placeholder="🔍 Search..." oninput="onSearchInput()">
       <button class="btn bp" onclick="openAdd()">+ Add Task</button>
     </div>
   </div>
@@ -409,6 +519,160 @@ select.fc option{background:var(--surface2);}
   <div id="notes-list"></div>
 </div>
 
+<!-- WISDOM BASE -->
+<div id="v-wisdom" class="view">
+  <div class="ph">
+    <div><h1>📚 Wisdom Base</h1><p class="sub">Books, principles & lessons that guide your decisions. AI uses this context to suggest better tasks.</p></div>
+    <div class="row"><button class="btn bg sm" onclick="openAddBook()">+ Add Book</button><button class="btn bp sm" onclick="openAddPrinciple()">+ Principle</button></div>
+  </div>
+  <div class="wisdom-cat">
+    <button class="wc-btn active" onclick="setWisdomTab('all',this)">All</button>
+    <button class="wc-btn" onclick="setWisdomTab('books',this)">📖 Books</button>
+    <button class="wc-btn" onclick="setWisdomTab('principles',this)">💎 Principles</button>
+    <button class="wc-btn" onclick="setWisdomTab('lessons',this)">🧠 Lessons</button>
+  </div>
+  <div id="wisdom-books-section">
+    <h2>📖 Books & Key Insights</h2>
+    <div id="wisdom-books-list"></div>
+  </div>
+  <div id="wisdom-principles-section" style="margin-top:20px;">
+    <div class="rb" style="margin-bottom:10px;"><h2 style="margin:0;">💎 Personal Principles</h2><button class="btn bg sm" onclick="openAddPrinciple()">+ Add</button></div>
+    <div id="wisdom-principles-list"></div>
+  </div>
+  <div id="wisdom-lessons-section" style="margin-top:20px;">
+    <div class="rb" style="margin-bottom:10px;"><h2 style="margin:0;">🧠 Key Lessons</h2><button class="btn bg sm" onclick="openAddLesson()">+ Add</button></div>
+    <div id="wisdom-lessons-list"></div>
+  </div>
+  <hr>
+  <div class="rb" style="margin-bottom:10px;">
+    <h2 style="margin:0;">📎 Import from Notion / Paste</h2>
+    <button class="btn bg sm" onclick="openSettings()">⚙️ API Key</button>
+  </div>
+  <div class="capbox">
+    <textarea class="fc" id="wisdom-import-inp" style="min-height:100px;" placeholder="Paste exported Notion content, book highlights, or any text...&#10;AI will extract key insights, principles and lessons automatically."></textarea>
+    <div class="row" style="margin-top:9px;gap:8px;">
+      <button class="btn bp" onclick="aiImportWisdom()">✨ AI Extract Wisdom</button>
+      <span style="font-size:11px;color:var(--muted);align-self:center;">Notion → Export as Text → paste here</span>
+    </div>
+  </div>
+</div>
+
+<!-- REFLECTIONS (replaces Weekly Review, adds all cadences) -->
+<div id="v-reflect" class="view">
+  <div class="ph"><div><h1>🪞 Reflections</h1><p class="sub">Structured reflection at every cadence. AI generates insights from your data.</p></div></div>
+  <div class="refl-tabs">
+    <button class="refl-tab active" onclick="setReflTab('daily',this)">🌅 Daily</button>
+    <button class="refl-tab" onclick="setReflTab('biweekly',this)">📆 Biweekly</button>
+    <button class="refl-tab" onclick="setReflTab('monthly',this)">📊 Monthly</button>
+    <button class="refl-tab" onclick="setReflTab('quarterly',this)">🎯 Quarterly</button>
+    <button class="refl-tab" onclick="setReflTab('annual',this)">🏅 Annual</button>
+    <button class="refl-tab" onclick="setReflTab('history',this)">📚 History</button>
+  </div>
+
+  <!-- DAILY -->
+  <div class="refl-cadence-view active" id="rv-daily">
+    <div class="cadence-meta" id="cadence-daily-meta"></div>
+    <div class="refl-card"><h3><span class="refl-qnum">1</span>Top 3 tasks for today</h3>
+      <textarea class="fc" id="rd-top3" style="margin-top:8px;min-height:70px;" placeholder="1. ...\n2. ...\n3. ..."></textarea></div>
+    <div class="refl-card"><h3><span class="refl-qnum">2</span>Energy & mood check</h3>
+      <div class="row" style="margin-top:8px;gap:8px;flex-wrap:wrap;">
+        <select class="fc" id="rd-energy" style="width:auto;"><option value="">⚡ Energy level</option><option value="5">🔥🔥🔥 High</option><option value="3">⚡⚡ Medium</option><option value="1">💧 Low</option></select>
+        <select class="fc" id="rd-mood" style="width:auto;"><option value="">😊 Mood</option><option value="great">😄 Great</option><option value="good">🙂 Good</option><option value="meh">😐 Meh</option><option value="tough">😔 Tough</option></select>
+      </div></div>
+    <div class="refl-card"><h3><span class="refl-qnum">3</span>Completed yesterday / Evening capture</h3>
+      <textarea class="fc" id="rd-done" style="margin-top:8px;min-height:70px;" placeholder="What did you actually complete?"></textarea></div>
+    <div class="refl-card"><h3><span class="refl-qnum">4</span>One thing I'm grateful for</h3>
+      <input class="fc" id="rd-gratitude" style="margin-top:8px;" placeholder="Today I'm grateful for..."></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+      <button class="btn bp" onclick="saveReflection('daily')">💾 Save Daily Check-in</button>
+      <button class="btn bg" onclick="aiReflectionInsight('daily')">🤖 AI Insight</button>
+    </div>
+    <div id="rd-ai-insight"></div>
+  </div>
+
+  <!-- BIWEEKLY -->
+  <div class="refl-cadence-view" id="rv-biweekly">
+    <div class="cadence-meta" id="cadence-biweekly-meta"></div>
+    <div class="refl-card"><h3><span class="refl-qnum">1</span>Goals on track this fortnight?</h3><textarea class="fc" id="rbw-goals" style="margin-top:8px;min-height:80px;" placeholder="Review each active goal — on track / off track?"></textarea></div>
+    <div class="refl-card"><h3><span class="refl-qnum">2</span>Habits — what's sticking / slipping?</h3><textarea class="fc" id="rbw-habits" style="margin-top:8px;min-height:70px;" placeholder="Health routine, deep work, relationships..."></textarea></div>
+    <div class="refl-card"><h3><span class="refl-qnum">3</span>Who should I follow up with?</h3><textarea class="fc" id="rbw-followup" style="margin-top:8px;min-height:70px;" placeholder="Mentors, friends, partners, leads..."></textarea></div>
+    <div class="refl-card"><h3><span class="refl-qnum">4</span>What needs to change for the next 2 weeks?</h3><textarea class="fc" id="rbw-change" style="margin-top:8px;min-height:70px;" placeholder="System change, priority shift, stop doing..."></textarea></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+      <button class="btn bp" onclick="saveReflection('biweekly')">💾 Save Biweekly</button>
+      <button class="btn bg" onclick="aiReflectionInsight('biweekly')">🤖 AI Insight</button>
+    </div>
+    <div id="rbw-ai-insight"></div>
+  </div>
+
+  <!-- MONTHLY -->
+  <div class="refl-cadence-view" id="rv-monthly">
+    <div class="cadence-meta" id="cadence-monthly-meta"></div>
+    <div class="refl-card"><h3><span class="refl-qnum">1</span>Goal progress this month</h3><div id="rm-goal-progress" style="margin-top:8px;"></div></div>
+    <div class="refl-card"><h3><span class="refl-qnum">2</span>Wins this month</h3><textarea class="fc" id="rm-wins" style="margin-top:8px;min-height:80px;" placeholder="Biggest achievements, milestones, breakthroughs..."></textarea></div>
+    <div class="refl-card"><h3><span class="refl-qnum">3</span>What to keep · stop · start</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px;"><textarea class="fc" id="rm-keep" placeholder="Keep..." style="min-height:70px;font-size:12px;"></textarea><textarea class="fc" id="rm-stop" placeholder="Stop..." style="min-height:70px;font-size:12px;"></textarea><textarea class="fc" id="rm-start" placeholder="Start..." style="min-height:70px;font-size:12px;"></textarea></div></div>
+    <div class="refl-card"><h3><span class="refl-qnum">4</span>Next month's #1 priority</h3><input class="fc" id="rm-focus" style="margin-top:8px;" placeholder="If I could only achieve one thing next month..."></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+      <button class="btn bp" onclick="saveReflection('monthly')">💾 Save Monthly</button>
+      <button class="btn bg" onclick="aiReflectionInsight('monthly')">🤖 AI Insight</button>
+    </div>
+    <div id="rm-ai-insight"></div>
+  </div>
+
+  <!-- QUARTERLY -->
+  <div class="refl-cadence-view" id="rv-quarterly">
+    <div class="cadence-meta" id="cadence-quarterly-meta"></div>
+    <div class="refl-card"><h3><span class="refl-qnum">1</span>OKR review — are your goals still right?</h3><textarea class="fc" id="rq-okr" style="margin-top:8px;min-height:80px;" placeholder="For each top goal: still relevant? Progress? Adjust target?"></textarea></div>
+    <div class="refl-card"><h3><span class="refl-qnum">2</span>Life wheel — rate each area 1–10</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+        <div class="fg" style="margin:0;"><label>Health & Body</label><input class="fc" id="rq-health" type="number" min="1" max="10" placeholder="1–10"></div>
+        <div class="fg" style="margin:0;"><label>Finance</label><input class="fc" id="rq-finance" type="number" min="1" max="10" placeholder="1–10"></div>
+        <div class="fg" style="margin:0;"><label>Relationships</label><input class="fc" id="rq-relationships" type="number" min="1" max="10" placeholder="1–10"></div>
+        <div class="fg" style="margin:0;"><label>Career / Business</label><input class="fc" id="rq-career" type="number" min="1" max="10" placeholder="1–10"></div>
+        <div class="fg" style="margin:0;"><label>Learning & Growth</label><input class="fc" id="rq-learning" type="number" min="1" max="10" placeholder="1–10"></div>
+        <div class="fg" style="margin:0;"><label>Fun & Recreation</label><input class="fc" id="rq-fun" type="number" min="1" max="10" placeholder="1–10"></div>
+      </div></div>
+    <div class="refl-card"><h3><span class="refl-qnum">3</span>Big decisions or pivots needed</h3><textarea class="fc" id="rq-pivots" style="margin-top:8px;min-height:70px;" placeholder="What strategic decisions do you need to make this quarter?"></textarea></div>
+    <div class="refl-card"><h3><span class="refl-qnum">4</span>Top 3 priorities for next quarter</h3><textarea class="fc" id="rq-next" style="margin-top:8px;min-height:70px;" placeholder="1. ...\n2. ...\n3. ..."></textarea></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+      <button class="btn bp" onclick="saveReflection('quarterly')">💾 Save Quarterly</button>
+      <button class="btn bg" onclick="aiReflectionInsight('quarterly')">🤖 AI Insight</button>
+    </div>
+    <div id="rq-ai-insight"></div>
+  </div>
+
+  <!-- ANNUAL -->
+  <div class="refl-cadence-view" id="rv-annual">
+    <div class="cadence-meta" id="cadence-annual-meta"></div>
+    <div class="refl-card"><h3><span class="refl-qnum">1</span>Peak experiences this year</h3><textarea class="fc" id="ra-peaks" style="margin-top:8px;min-height:80px;" placeholder="Top 3–5 experiences, achievements, moments this year..."></textarea></div>
+    <div class="refl-card"><h3><span class="refl-qnum">2</span>Best decisions · Worst decisions</h3>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;"><textarea class="fc" id="ra-best" placeholder="Best decisions..." style="min-height:80px;font-size:12px;"></textarea><textarea class="fc" id="ra-worst" placeholder="Worst decisions..." style="min-height:80px;font-size:12px;"></textarea></div></div>
+    <div class="refl-card"><h3><span class="refl-qnum">3</span>Who made the biggest difference?</h3><textarea class="fc" id="ra-people" style="margin-top:8px;min-height:70px;" placeholder="People who impacted you most this year..."></textarea></div>
+    <div class="refl-card"><h3><span class="refl-qnum">4</span>Vision for next year — in one paragraph</h3><textarea class="fc" id="ra-vision" style="margin-top:8px;min-height:100px;" placeholder="Describe your ideal next year in vivid detail..."></textarea></div>
+    <div class="refl-card"><h3><span class="refl-qnum">5</span>Top 3 goals for next year</h3><textarea class="fc" id="ra-goals" style="margin-top:8px;min-height:70px;" placeholder="1. ...\n2. ...\n3. ..."></textarea></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
+      <button class="btn bp" onclick="saveReflection('annual')">💾 Save Annual Review</button>
+      <button class="btn bg" onclick="aiReflectionInsight('annual')">🤖 AI Insight</button>
+    </div>
+    <div id="ra-ai-insight"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="refl-cadence-view" id="rv-history">
+    <div class="rb" style="margin-bottom:14px;"><h2 style="margin:0;">📚 Reflection History</h2></div>
+    <div id="refl-history-list"></div>
+  </div>
+</div>
+
+<!-- TRASH -->
+<div id="v-trash" class="view">
+  <div class="ph">
+    <div><h1>🗑 Trash</h1><p class="sub">Deleted tasks stay here for 7 days. Restore or permanently delete.</p></div>
+    <button class="btn bd sm" onclick="emptyTrash()">Empty Trash</button>
+  </div>
+  <div id="trash-list"></div>
+</div>
+
 </main>
 
 <div id="toast"></div>
@@ -418,8 +682,8 @@ select.fc option{background:var(--surface2);}
   <button class="bni active" data-v="dashboard" onclick="nav('dashboard')"><span class="bni-ic">🏠</span>Home</button>
   <button class="bni" data-v="capture" onclick="nav('capture')"><span class="bni-ic">⚡</span>Capture</button>
   <button class="bni" data-v="buckets" onclick="nav('buckets')"><span class="bni-ic">📦</span>Buckets</button>
+  <button class="bni" data-v="reflect" onclick="nav('reflect')"><span class="bni-ic">🪞</span>Reflect</button>
   <button class="bni" data-v="aicoach" onclick="nav('aicoach')"><span class="bni-ic">🤖</span>AI</button>
-  <button class="bni" data-v="goals" onclick="nav('goals')"><span class="bni-ic">🏆</span>Goals</button>
 </nav>
 
 <!-- TASK MODAL -->
@@ -471,6 +735,23 @@ select.fc option{background:var(--surface2);}
     <div class="fr">
       <div class="fg"><label>Due Date</label><input class="fc" id="t-due" type="date"></div>
       <div class="fg"><label>Linked Goal</label><select class="fc" id="t-goal"><option value="">— None —</option></select></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Status</label>
+        <select class="fc" id="t-status">
+          <option value="todo">⬜ Todo</option>
+          <option value="in-progress">▶️ In Progress</option>
+          <option value="done">✅ Done</option>
+        </select>
+      </div>
+      <div class="fg"><label>Recurring</label>
+        <select class="fc" id="t-recur">
+          <option value="none">— None —</option>
+          <option value="daily">🔁 Daily</option>
+          <option value="weekly">🔁 Weekly</option>
+          <option value="monthly">🔁 Monthly</option>
+        </select>
+      </div>
     </div>
     <div class="mf">
       <button class="btn bd sm" id="del-btn" style="margin-right:auto;display:none;" onclick="delCurTask()">🗑 Delete</button>
@@ -536,7 +817,15 @@ select.fc option{background:var(--surface2);}
         <button class="btn bg sm" onclick="importData()">Import</button>
       </div>
     </div>
+    <div class="fg">
+      <label>Export Data</label>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn bg sm" onclick="exportData()">📤 JSON Backup</button>
+        <button class="btn bg sm" onclick="exportCSV()">📊 CSV (spreadsheet)</button>
+      </div>
+    </div>
     <div class="mf">
+      <button class="btn bd sm" style="margin-right:auto;" onclick="authLogout()">🚪 Sign Out</button>
       <button class="btn bg" onclick="closeM('settm')">Cancel</button>
       <button class="btn bp" onclick="saveSettings()">Save Settings</button>
     </div>
@@ -562,6 +851,51 @@ select.fc option{background:var(--surface2);}
   </div>
 </div>
 
+<!-- BOOK MODAL -->
+<div class="mo hidden" id="bookm">
+  <div class="md" style="width:520px;">
+    <div class="mh"><h3 id="bookm-title">Add Book</h3><button class="mc" onclick="closeM('bookm')">×</button></div>
+    <div class="fr">
+      <div class="fg"><label>Book Title *</label><input class="fc" id="b-title" placeholder="e.g. The 4-Hour Workweek"></div>
+      <div class="fg"><label>Author</label><input class="fc" id="b-author" placeholder="e.g. Tim Ferriss"></div>
+    </div>
+    <div class="fg"><label>Category</label>
+      <select class="fc" id="b-cat">
+        <option value="productivity">⚡ Productivity</option><option value="business">💼 Business</option>
+        <option value="health">🏋️ Health & Body</option><option value="mindset">🧠 Mindset</option>
+        <option value="finance">💰 Finance</option><option value="relationships">🤝 Relationships</option>
+        <option value="philosophy">🏛️ Philosophy</option><option value="other">📌 Other</option>
+      </select>
+    </div>
+    <div class="fg"><label>Key Insights (one per line)</label><textarea class="fc" id="b-insights" style="min-height:120px;" placeholder="• Focus on the vital few, not the trivial many&#10;• Use selective ignorance — read less, learn more&#10;• Batch low-value tasks into defined times"></textarea></div>
+    <div class="fg"><label>My Rating</label>
+      <select class="fc" id="b-rating"><option value="5">⭐⭐⭐⭐⭐ Must Read</option><option value="4">⭐⭐⭐⭐ Great</option><option value="3">⭐⭐⭐ Good</option><option value="2">⭐⭐ Average</option><option value="1">⭐ Not for me</option></select>
+    </div>
+    <div class="mf">
+      <button class="btn bd sm" id="del-book-btn" style="margin-right:auto;display:none;" onclick="delCurBook()">🗑 Delete</button>
+      <button class="btn bg" onclick="closeM('bookm')">Cancel</button>
+      <button class="btn bp" onclick="saveBook()">Save Book</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINCIPLE MODAL -->
+<div class="mo hidden" id="prinm">
+  <div class="md" style="width:460px;">
+    <div class="mh"><h3 id="prinm-title">Add Principle</h3><button class="mc" onclick="closeM('prinm')">×</button></div>
+    <div class="fg"><label>Principle *</label><input class="fc" id="p-text" placeholder="e.g. Do the hardest thing first every day"></div>
+    <div class="fg"><label>Why it matters</label><textarea class="fc" id="p-why" placeholder="Brief explanation or origin..." style="min-height:70px;"></textarea></div>
+    <div class="fg"><label>Type</label>
+      <select class="fc" id="p-type"><option value="principle">💎 Principle</option><option value="lesson">🧠 Lesson</option><option value="quote">💬 Quote</option><option value="rule">📐 Rule</option></select>
+    </div>
+    <div class="mf">
+      <button class="btn bd sm" id="del-prin-btn" style="margin-right:auto;display:none;" onclick="delCurPrinciple()">🗑 Delete</button>
+      <button class="btn bg" onclick="closeM('prinm')">Cancel</button>
+      <button class="btn bp" onclick="savePrinciple()">Save</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── DATA ──────────────────────────────────────────────────────
 const CATS={givelink:{l:'Givelink',e:'🟣'},finance:{l:'Finance',e:'💰'},automation:{l:'Automation',e:'🤖'},health:{l:'Health',e:'🏋️'},relationships:{l:'Relationships',e:'🤝'},learning:{l:'Learning',e:'📚'},brand:{l:'Brand',e:'🌐'},other:{l:'Other',e:'📌'}};
@@ -569,8 +903,9 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],seededGoalsV3:false,claudeKey:'',userName:'Panos'};
-let editT=null,editG=null,fCat='all',draggedTaskId=null,pendingAiTasks=[];
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],reflections:{},wisdom:{books:[],principles:[]},profiles:[],seededGoalsV3:false,claudeKey:'',userName:'Panos',userEmoji:'🧑'};
+let editT=null,editG=null,editBook=null,editPrin=null,fCat='all',wTab='all',rTab='daily',draggedTaskId=null,pendingAiTasks=[];
+let _searchTimer=null;
 
 // ── PERSIST ───────────────────────────────────────────────────
 function save(){try{localStorage.setItem('taskos',JSON.stringify(S));}catch(e){if(e.name==='QuotaExceededError'||e.code===22){alert('Storage full! Please export a backup and remove old data (Settings → Export).');}else{console.error('Save failed:',e);}}}
@@ -581,7 +916,7 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 function ei(t){if(t.urgency==='high'&&t.importance==='high')return'q1';if(t.urgency==='low'&&t.importance==='high')return'q2';if(t.urgency==='high'&&t.importance==='low')return'q3';return'q4';}
 function fd(d){if(!d)return'';return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'});}
 function ft(m){if(!m)return'';if(m<60)return m+'m';const h=Math.floor(m/60),r=m%60;return r?h+'h '+r+'m':h+'h';}
-function active(){return S.tasks.filter(t=>t.status!=='done');}
+function active(){return S.tasks.filter(t=>t.status!=='done'&&t.bucket!=='trash');}
 function catB(c){const x=CATS[c]||CATS.other;return`<span class="badge c${c[0]}">${x.e} ${x.l}</span>`;}
 function eB(t){const q=ei(t);return`<span class="badge ${q}">${EQ[q].a}</span>`;}
 
@@ -597,7 +932,7 @@ function nav(v){
   document.getElementById('s-ov')?.classList.remove('open');
   document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
-function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,aicoach:renderAicoach,notes:renderNotes})[v]?.();}
+function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,aicoach:renderAicoach,notes:renderNotes,wisdom:renderWisdom,reflect:renderReflect,trash:renderTrash})[v]?.();}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
 
 // ── DASHBOARD ─────────────────────────────────────────────────
@@ -715,11 +1050,14 @@ function renderEisenhower(){
 }
 
 // ── ALL TASKS ─────────────────────────────────────────────────
-function setF(cat,el){fCat=cat;document.querySelectorAll('.fp').forEach(p=>p.classList.remove('active'));el.classList.add('active');renderAll();}
+function setF(cat,el){fCat=cat;sessionStorage.setItem('taskos_fcat',cat);document.querySelectorAll('.fp').forEach(p=>p.classList.remove('active'));el.classList.add('active');renderAll();}
+function onSearchInput(){clearTimeout(_searchTimer);_searchTimer=setTimeout(renderAll,150);}
 
 function renderAll(){
+  const saved=sessionStorage.getItem('taskos_fcat');
+  if(saved&&saved!==fCat){fCat=saved;document.querySelectorAll('.fp').forEach(p=>{p.classList.toggle('active',p.textContent.toLowerCase().includes(fCat)||fCat==='all'&&p.textContent==='All');});}
   const q=document.getElementById('srch')?.value?.toLowerCase()||'';
-  let tasks=[...S.tasks];
+  let tasks=S.tasks.filter(t=>t.bucket!=='trash');
   if(fCat!=='all')tasks=tasks.filter(t=>t.category===fCat);
   if(q)tasks=tasks.filter(t=>t.title.toLowerCase().includes(q)||(t.notes||'').toLowerCase().includes(q));
   const bo={inbox:0,'this-week':1,'this-month':2,backlog:3,someday:4};
@@ -790,26 +1128,51 @@ function saveReview(){
 // ── TASK CARD HTML ────────────────────────────────────────────
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function tcHTML(t,showT3btn=false,draggable=false){
-  return`<div class="tc fi ${t.status==='done'?'done':''} ${t.isT3&&t.status!=='done'?'top3':''}" ${draggable?`draggable="true" ondragstart="onDragStart('${t.id}',event)" ondragend="onDragEnd(event)"`:''}  onclick="openEdit('${t.id}')">
-    <div class="ck ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${t.status==='done'?'<span style="color:#fff;font-size:10px;">✓</span>':''}</div>
+  const isOverdue=t.dueDate&&t.status!=='done'&&new Date(t.dueDate)<new Date();
+  const statusLabel={todo:'Todo',  'in-progress':'In Progress',done:'Done'}[t.status]||'Todo';
+  const statusClass={'todo':'sc-todo','in-progress':'sc-prog','done':'sc-done'}[t.status]||'sc-todo';
+  return`<div class="tc fi ${t.status==='done'?'done':''} ${t.status==='in-progress'?'in-progress':''} ${t.isT3&&t.status!=='done'?'top3':''} ${isOverdue?'overdue':''}" ${draggable?`draggable="true" ondragstart="onDragStart('${t.id}',event)" ondragend="onDragEnd(event)"`:''}  onclick="openEdit('${t.id}')">
+    <div class="ck ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${t.status==='done'?'<span style="color:#fff;font-size:10px;">✓</span>':t.status==='in-progress'?'<span style="color:var(--bm);font-size:10px;">▶</span>':''}</div>
     <div class="tb">
       <div class="tt">${esc(t.title)}</div>
       <div class="tm">
         ${catB(t.category)}${eB(t)}
+        <button class="status-cycle ${statusClass}" onclick="event.stopPropagation();cycleStatus('${t.id}')">${statusLabel}</button>
         ${t.timeBlock?`<span class="tag">⏱ ${ft(t.timeBlock)}</span>`:''}
-        ${t.dueDate?`<span class="tag">📅 ${fd(t.dueDate)}</span>`:''}
+        ${t.dueDate?`<span class="tag ${isOverdue?'':''}">📅 ${fd(t.dueDate)}</span>`:''}
         ${t.energy==='high'?'<span style="font-size:11px;">🔥</span>':'<span style="font-size:11px;">💧</span>'}
-        ${t.isT3&&t.status!=='done'?'<span style="font-size:11px;">⭐ Top 3</span>':''}
+        ${t.recurrence&&t.recurrence!=='none'?`<span class="rec-badge">🔁 ${t.recurrence}</span>`:''}
+        ${t.isT3&&t.status!=='done'?'<span style="font-size:11px;">⭐</span>':''}
       </div>
     </div>
     ${showT3btn&&t.bucket==='this-week'&&!t.isT3&&t.status!=='done'?`<button class="btn bg sm" onclick="event.stopPropagation();addT3('${t.id}')" title="Add to Top 3">⭐</button>`:''}
   </div>`;
 }
+function cycleStatus(id){
+  const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  const cycle={todo:'in-progress','in-progress':'done',done:'todo'};
+  t.status=cycle[t.status]||'todo';
+  if(t.status==='done'){
+    t.completedAt=new Date().toISOString();
+    t.isT3=false;t.t3s=null;
+    if(t.recurrence&&t.recurrence!=='none')spawnRecurring(t);
+  }else{t.completedAt=null;}
+  save();refresh();
+}
+function spawnRecurring(t){
+  const next={...t,id:uid(),status:'todo',completedAt:null,isT3:false,t3s:null,createdAt:new Date().toISOString()};
+  if(t.dueDate){
+    const d=new Date(t.dueDate);
+    if(t.recurrence==='daily')d.setDate(d.getDate()+1);
+    else if(t.recurrence==='weekly')d.setDate(d.getDate()+7);
+    else if(t.recurrence==='monthly')d.setMonth(d.getMonth()+1);
+    next.dueDate=d.toISOString().slice(0,10);
+  }
+  S.tasks.push(next);
+}
 
 // ── TASK CRUD ─────────────────────────────────────────────────
-function openAdd(bucket='inbox'){
-  editT=null;
-  document.getElementById('tm-title').textContent='Add Task';
+function _setTaskModalDefaults(bucket){
   ['t-title','t-notes'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('t-cat').value='givelink';
   document.getElementById('t-bucket').value=bucket;
@@ -818,12 +1181,18 @@ function openAdd(bucket='inbox'){
   document.getElementById('t-eng').value='high';
   document.getElementById('t-time').value='';
   document.getElementById('t-due').value='';
+  document.getElementById('t-status').value='todo';
+  document.getElementById('t-recur').value='none';
+}
+function openAdd(bucket='inbox'){
+  editT=null;
+  document.getElementById('tm-title').textContent='Add Task';
+  _setTaskModalDefaults(bucket);
   document.getElementById('del-btn').style.display='none';
   fillGoalDrop();
   document.getElementById('tm').classList.remove('hidden');
   document.getElementById('t-title').focus();
 }
-
 function openEdit(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
   editT=id;
@@ -831,37 +1200,48 @@ function openEdit(id){
   document.getElementById('t-title').value=t.title;
   document.getElementById('t-notes').value=t.notes||'';
   document.getElementById('t-cat').value=t.category;
-  document.getElementById('t-bucket').value=t.bucket;
+  document.getElementById('t-bucket').value=t.bucket==='trash'?'inbox':t.bucket;
   document.getElementById('t-urg').value=t.urgency;
   document.getElementById('t-imp').value=t.importance;
   document.getElementById('t-eng').value=t.energy;
   document.getElementById('t-time').value=t.timeBlock||'';
   document.getElementById('t-due').value=t.dueDate||'';
+  document.getElementById('t-status').value=t.status||'todo';
+  document.getElementById('t-recur').value=t.recurrence||'none';
   document.getElementById('del-btn').style.display='block';
   fillGoalDrop(t.goalId);
   document.getElementById('tm').classList.remove('hidden');
   document.getElementById('t-title').focus();
 }
-
 function saveTask(){
   const title=document.getElementById('t-title').value.trim();
   if(!title){alert('Enter a task title.');return;}
-  const d={title,notes:document.getElementById('t-notes').value,category:document.getElementById('t-cat').value,bucket:document.getElementById('t-bucket').value,urgency:document.getElementById('t-urg').value,importance:document.getElementById('t-imp').value,energy:document.getElementById('t-eng').value,timeBlock:parseInt(document.getElementById('t-time').value)||null,dueDate:document.getElementById('t-due').value,goalId:document.getElementById('t-goal').value||null};
+  const status=document.getElementById('t-status').value;
+  const d={title,notes:document.getElementById('t-notes').value,category:document.getElementById('t-cat').value,bucket:document.getElementById('t-bucket').value,urgency:document.getElementById('t-urg').value,importance:document.getElementById('t-imp').value,energy:document.getElementById('t-eng').value,timeBlock:parseInt(document.getElementById('t-time').value)||null,dueDate:document.getElementById('t-due').value,goalId:document.getElementById('t-goal').value||null,status,recurrence:document.getElementById('t-recur').value||'none',completedAt:status==='done'?new Date().toISOString():null};
   if(editT){const i=S.tasks.findIndex(t=>t.id===editT);S.tasks[i]={...S.tasks[i],...d};}
-  else S.tasks.push({id:uid(),...d,status:'todo',isT3:false,t3s:null,createdAt:new Date().toISOString(),completedAt:null});
+  else S.tasks.push({id:uid(),...d,isT3:false,t3s:null,createdAt:new Date().toISOString()});
   save();closeM('tm');refresh();
 }
 
-function delTask(id){if(!confirm('Delete?'))return;S.tasks=S.tasks.filter(t=>t.id!==id);save();refresh();}
-function delCurTask(){if(editT){delTask(editT);closeM('tm');}}
-
-function toggleDone(id){
+function delTask(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
-  t.status=t.status==='done'?'todo':'done';
-  t.completedAt=t.status==='done'?new Date().toISOString():null;
-  if(t.status==='done'){t.isT3=false;t.t3s=null;}
-  save();refresh();
+  t.trashedAt=new Date().toISOString();t.bucket='trash';
+  save();refresh();updTrashBadge();
+  toast('Moved to Trash — <span style="cursor:pointer;text-decoration:underline;" onclick="restoreTask(\''+id+'\')">Undo</span>',3500);
 }
+function delCurTask(){if(editT){delTask(editT);closeM('tm');}}
+function restoreTask(id){
+  const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  t.bucket=t._prevBucket||'inbox';delete t.trashedAt;delete t._prevBucket;
+  save();refresh();updTrashBadge();toast('Task restored');
+}
+function updTrashBadge(){
+  const n=S.tasks.filter(t=>t.bucket==='trash').length;
+  const b=document.getElementById('trash-badge');
+  if(b)b.innerHTML=n?`<span class="ibadge">${n}</span>`:'';
+}
+
+function toggleDone(id){cycleStatus(id);}
 
 function mvB(id,b){const t=S.tasks.find(x=>x.id===id);if(!t)return;t.bucket=b;save();refresh();}
 
@@ -1767,9 +2147,413 @@ function toggleSB(){
   document.getElementById('s-ov').classList.toggle('open');
 }
 
+// ── AUTH ──────────────────────────────────────────────────────
+const EMOJIS=['🧑','👨','👩','🧔','👦','👧','🦁','🐯','🦊','🐼','🦋','🌟','🚀','⚡','🔥','💎','🎯','🧠','💪','🏆'];
+function authInit(){
+  const screen=document.getElementById('auth-screen');
+  // If profile set in session, skip auth
+  if(sessionStorage.getItem('taskos_session')){authDone();return;}
+  // If has profile in S, show auth to verify/select
+  screen.classList.remove('hidden');
+  _buildEmojiGrid();
+  authShowProfiles();
+}
+function _buildEmojiGrid(){
+  const g=document.getElementById('auth-emoji-grid');
+  let sel=EMOJIS[0];
+  g.innerHTML=EMOJIS.map(e=>`<span class="emoji-opt ${e===sel?'sel':''}" onclick="authPickEmoji(this,'${e}')">${e}</span>`).join('');
+}
+function authPickEmoji(el,e){
+  document.querySelectorAll('.emoji-opt').forEach(x=>x.classList.remove('sel'));
+  el.classList.add('sel');
+}
+function authShowProfiles(){
+  const profs=S.profiles||[];
+  const grid=document.getElementById('auth-profiles');
+  grid.innerHTML=profs.map(p=>`<div class="profile-card" onclick="authSelect('${p.id}')">
+    <div class="profile-emoji">${p.emoji||'🧑'}</div>
+    <div class="profile-nm">${esc(p.name)}</div>
+    ${p.pin?'<div class="profile-lock">🔒 PIN</div>':''}
+  </div>`).join('')+`<div class="profile-card profile-new" onclick="authShowCreate()">
+    <div class="profile-emoji">➕</div>
+    <div class="profile-nm">New Profile</div>
+  </div>`;
+  document.getElementById('auth-pin-wrap').style.display='none';
+  document.getElementById('auth-create-wrap').style.display='none';
+  grid.style.display='grid';
+}
+function authSelect(id){
+  const p=(S.profiles||[]).find(x=>x.id===id);if(!p)return;
+  if(p.pin){
+    document.getElementById('auth-pin-label').textContent='Welcome back, '+p.name+'! Enter your PIN.';
+    document.getElementById('auth-pin-inp').value='';
+    document.getElementById('auth-pin-inp').dataset.pid=id;
+    document.getElementById('auth-profiles').style.display='none';
+    document.getElementById('auth-pin-wrap').style.display='block';
+    document.getElementById('auth-pin-inp').focus();
+  }else{authLogin(id);}
+}
+function authVerifyPin(){
+  const inp=document.getElementById('auth-pin-inp');
+  const id=inp.dataset.pid;
+  const p=(S.profiles||[]).find(x=>x.id===id);if(!p)return;
+  if(_hashPin(inp.value)===p.pin){authLogin(id);}
+  else{inp.style.borderColor='var(--bw)';setTimeout(()=>inp.style.borderColor='',800);}
+}
+function _hashPin(pin){let h=0;for(let i=0;i<pin.length;i++){h=((h<<5)-h)+pin.charCodeAt(i);h|=0;}return String(h);}
+function authShowCreate(){
+  document.getElementById('auth-profiles').style.display='none';
+  document.getElementById('auth-pin-wrap').style.display='none';
+  document.getElementById('auth-create-wrap').style.display='block';
+  document.getElementById('auth-name-inp').focus();
+}
+function authCreate(){
+  const name=document.getElementById('auth-name-inp').value.trim();
+  if(!name){alert('Enter your name.');return;}
+  const selEmoji=document.querySelector('.emoji-opt.sel')?.textContent||'🧑';
+  const pinRaw=document.getElementById('auth-newpin-inp').value;
+  const p={id:uid(),name,emoji:selEmoji,pin:pinRaw?_hashPin(pinRaw):null,createdAt:new Date().toISOString()};
+  if(!S.profiles)S.profiles=[];
+  S.profiles.push(p);
+  S.userName=name;S.userEmoji=selEmoji;
+  save();authLogin(p.id);
+}
+function authLogin(id){
+  const p=(S.profiles||[]).find(x=>x.id===id);
+  if(p){S.userName=p.name;S.userEmoji=p.emoji||'🧑';save();}
+  sessionStorage.setItem('taskos_session',id);
+  document.getElementById('auth-screen').classList.add('hidden');
+  authDone();
+}
+function authDone(){
+  updSidebarUser();updIBadge();updTrashBadge();renderDash();
+}
+function updSidebarUser(){
+  const av=document.getElementById('sidebar-avatar');
+  const nm=document.getElementById('sidebar-name');
+  if(av)av.textContent=S.userEmoji||'🧑';
+  if(nm)nm.textContent=S.userName||'Profile';
+}
+function authLogout(){
+  sessionStorage.removeItem('taskos_session');
+  location.reload();
+}
+
+// ── WISDOM BASE ───────────────────────────────────────────────
+function renderWisdom(){
+  if(!S.wisdom)S.wisdom={books:[],principles:[]};
+  const books=S.wisdom.books||[];
+  const principles=S.wisdom.principles||[];
+  const tabShow={all:true,books:wTab==='books'||wTab==='all',principles:wTab==='principles'||wTab==='all',lessons:wTab==='lessons'||wTab==='all'};
+  // Books
+  const booksEl=document.getElementById('wisdom-books-list');
+  if(booksEl){
+    booksEl.innerHTML=books.length?books.map(b=>{
+      const catColor={productivity:'var(--accent)',business:'var(--bm)',health:'var(--bb)',mindset:'var(--cg)',finance:'var(--cf)',relationships:'var(--cb)',philosophy:'var(--bi)',other:'var(--muted)'}[b.category]||'var(--muted)';
+      const stars='⭐'.repeat(parseInt(b.rating)||0);
+      const insights=(b.insights||'').split('\n').filter(l=>l.trim());
+      return`<div class="book-card" onclick="openEditBook('${b.id}')">
+        <div style="display:flex;gap:12px;">
+          <div style="width:4px;border-radius:2px;background:${catColor};flex-shrink:0;align-self:stretch;"></div>
+          <div style="flex:1;">
+            <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+              <div><div style="font-weight:600;font-size:14px;margin-bottom:2px;">${esc(b.title)}</div>
+              <div style="font-size:12px;color:var(--muted);">by ${esc(b.author||'Unknown')} ${stars?'· '+stars:''}</div></div>
+              <span class="badge co" style="font-size:10px;flex-shrink:0;">${b.category||'other'}</span>
+            </div>
+            ${insights.length?`<div class="book-insights">${insights.slice(0,3).map(l=>`<div class="insight-line">${esc(l.replace(/^[•\-\*]\s*/,''))}</div>`).join('')}${insights.length>3?`<div style="font-size:11px;color:var(--muted);margin-top:4px;">+${insights.length-3} more insights</div>`:''}</div>`:''}
+          </div>
+        </div>
+      </div>`;}).join(''):'<div class="empty">No books yet. Add key books from your shelf → AI will use their insights when suggesting tasks.</div>';
+  }
+  // Principles
+  const prinsEl=document.getElementById('wisdom-principles-list');
+  if(prinsEl){
+    const prins=principles.filter(p=>p.type!=='lesson');
+    prinsEl.innerHTML=prins.length?`<div style="display:flex;flex-wrap:wrap;gap:4px;">${prins.map(p=>`<span class="principle-chip" onclick="openEditPrinciple('${p.id}')"><span style="font-size:14px;">${{principle:'💎',lesson:'🧠',quote:'💬',rule:'📐'}[p.type]||'💎'}</span> ${esc(p.text)}</span>`).join('')}</div>`:'<div class="empty">No principles yet. Add your personal rules — AI references them when coaching.</div>';
+  }
+  // Lessons
+  const lessEl=document.getElementById('wisdom-lessons-list');
+  if(lessEl){
+    const lessons=principles.filter(p=>p.type==='lesson');
+    lessEl.innerHTML=lessons.length?lessons.map(p=>`<div class="principle-chip" style="display:flex;gap:6px;margin-bottom:4px;width:100%;" onclick="openEditPrinciple('${p.id}')"><span>🧠</span><span style="flex:1;">${esc(p.text)}</span></div>`).join(''):'<div class="empty">No lessons yet.</div>';
+  }
+}
+function setWisdomTab(tab,el){
+  wTab=tab;
+  document.querySelectorAll('.wc-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');
+  const bs=document.getElementById('wisdom-books-section');
+  const ps=document.getElementById('wisdom-principles-section');
+  const ls=document.getElementById('wisdom-lessons-section');
+  if(bs)bs.style.display=(tab==='all'||tab==='books')?'':'none';
+  if(ps)ps.style.display=(tab==='all'||tab==='principles')?'':'none';
+  if(ls)ls.style.display=(tab==='all'||tab==='lessons')?'':'none';
+  renderWisdom();
+}
+function openAddBook(){editBook=null;_clearBookModal();document.getElementById('del-book-btn').style.display='none';document.getElementById('bookm-title').textContent='Add Book';document.getElementById('bookm').classList.remove('hidden');}
+function openEditBook(id){
+  if(!S.wisdom)return;
+  const b=(S.wisdom.books||[]).find(x=>x.id===id);if(!b)return;
+  editBook=id;
+  document.getElementById('bookm-title').textContent='Edit Book';
+  document.getElementById('b-title').value=b.title||'';
+  document.getElementById('b-author').value=b.author||'';
+  document.getElementById('b-cat').value=b.category||'productivity';
+  document.getElementById('b-insights').value=b.insights||'';
+  document.getElementById('b-rating').value=b.rating||'5';
+  document.getElementById('del-book-btn').style.display='block';
+  document.getElementById('bookm').classList.remove('hidden');
+}
+function _clearBookModal(){['b-title','b-author','b-insights'].forEach(i=>document.getElementById(i).value='');document.getElementById('b-cat').value='productivity';document.getElementById('b-rating').value='5';}
+function saveBook(){
+  const title=document.getElementById('b-title').value.trim();
+  if(!title){alert('Enter a book title.');return;}
+  if(!S.wisdom)S.wisdom={books:[],principles:[]};
+  const d={title,author:document.getElementById('b-author').value,category:document.getElementById('b-cat').value,insights:document.getElementById('b-insights').value,rating:document.getElementById('b-rating').value};
+  if(editBook){const i=S.wisdom.books.findIndex(b=>b.id===editBook);S.wisdom.books[i]={...S.wisdom.books[i],...d};}
+  else S.wisdom.books.push({id:uid(),...d,addedAt:new Date().toISOString()});
+  save();closeM('bookm');renderWisdom();toast('Book saved');
+}
+function delCurBook(){if(!editBook||!confirm('Delete book?'))return;S.wisdom.books=S.wisdom.books.filter(b=>b.id!==editBook);save();closeM('bookm');renderWisdom();}
+function openAddPrinciple(){editPrin=null;document.getElementById('p-text').value='';document.getElementById('p-why').value='';document.getElementById('p-type').value='principle';document.getElementById('del-prin-btn').style.display='none';document.getElementById('prinm-title').textContent='Add Principle';document.getElementById('prinm').classList.remove('hidden');}
+function openAddLesson(){openAddPrinciple();document.getElementById('p-type').value='lesson';document.getElementById('prinm-title').textContent='Add Lesson';}
+function openEditPrinciple(id){
+  if(!S.wisdom)return;
+  const p=(S.wisdom.principles||[]).find(x=>x.id===id);if(!p)return;
+  editPrin=id;
+  document.getElementById('prinm-title').textContent='Edit';
+  document.getElementById('p-text').value=p.text||'';
+  document.getElementById('p-why').value=p.why||'';
+  document.getElementById('p-type').value=p.type||'principle';
+  document.getElementById('del-prin-btn').style.display='block';
+  document.getElementById('prinm').classList.remove('hidden');
+}
+function savePrinciple(){
+  const text=document.getElementById('p-text').value.trim();
+  if(!text){alert('Enter a principle.');return;}
+  if(!S.wisdom)S.wisdom={books:[],principles:[]};
+  const d={text,why:document.getElementById('p-why').value,type:document.getElementById('p-type').value};
+  if(editPrin){const i=S.wisdom.principles.findIndex(p=>p.id===editPrin);S.wisdom.principles[i]={...S.wisdom.principles[i],...d};}
+  else S.wisdom.principles.push({id:uid(),...d,addedAt:new Date().toISOString()});
+  save();closeM('prinm');renderWisdom();toast('Saved');
+}
+function delCurPrinciple(){if(!editPrin||!confirm('Delete?'))return;S.wisdom.principles=S.wisdom.principles.filter(p=>p.id!==editPrin);save();closeM('prinm');renderWisdom();}
+
+// ── AI: WISDOM IMPORT ─────────────────────────────────────────
+async function aiImportWisdom(){
+  const raw=document.getElementById('wisdom-import-inp').value.trim();
+  if(!raw){alert('Paste some content first.');return;}
+  const btn=document.querySelector('[onclick="aiImportWisdom()"]');
+  if(btn){btn.textContent='⏳ Extracting...';btn.disabled=true;}
+  const system='You are a wisdom extraction assistant. Extract books, principles and lessons from text. Return ONLY valid JSON.';
+  const prompt=`Extract wisdom from this text:\n\n${raw}\n\nReturn JSON: {"books":[{"title":"...","author":"...","insights":"bullet1\\nbullet2","category":"productivity|business|health|mindset|finance|relationships|philosophy|other","rating":"5"}],"principles":[{"text":"one-sentence principle","why":"why it matters","type":"principle|lesson|quote|rule"}]}`;
+  const result=await callClaude(system,prompt,2000);
+  if(btn){btn.textContent='✨ AI Extract Wisdom';btn.disabled=false;}
+  if(!result)return;
+  try{
+    const json=JSON.parse(result.replace(/```json\n?|\n?```/g,'').trim());
+    if(!S.wisdom)S.wisdom={books:[],principles:[]};
+    let added=0;
+    (json.books||[]).forEach(b=>{S.wisdom.books.push({id:uid(),...b,addedAt:new Date().toISOString()});added++;});
+    (json.principles||[]).forEach(p=>{S.wisdom.principles.push({id:uid(),...p,addedAt:new Date().toISOString()});added++;});
+    save();document.getElementById('wisdom-import-inp').value='';
+    renderWisdom();toast(`Added ${added} wisdom entries from AI`);
+  }catch(e){alert('Could not parse AI response.');}
+}
+
+// ── WISDOM CONTEXT HELPER ──────────────────────────────────────
+function getWisdomContext(maxItems=5){
+  if(!S.wisdom)return'';
+  const prins=(S.wisdom.principles||[]).slice(0,maxItems).map(p=>p.text).join('; ');
+  const books=(S.wisdom.books||[]).slice(0,3).map(b=>{
+    const insights=(b.insights||'').split('\n').filter(l=>l.trim()).slice(0,2).join('; ');
+    return`"${b.title}" (${b.author}): ${insights}`;
+  }).join('\n');
+  return[prins?`User principles: ${prins}`:'',books?`Key book learnings:\n${books}`:''].filter(Boolean).join('\n\n');
+}
+
+// ── REFLECTION SYSTEM ─────────────────────────────────────────
+const CADENCE_DAYS={daily:1,biweekly:14,monthly:30,quarterly:90,annual:365};
+function renderReflect(){
+  ['daily','biweekly','monthly','quarterly','annual'].forEach(c=>_renderCadenceMeta(c));
+  _setActiveReflTab(rTab);
+  if(rTab==='monthly'){_renderMonthlyGoalProgress();}
+  if(rTab==='history'){renderReflHistory();}
+}
+function _renderCadenceMeta(c){
+  const el=document.getElementById('cadence-'+c+'-meta');if(!el)return;
+  const refls=(S.reflections||{})[c]||[];
+  const last=refls.length?new Date(refls[refls.length-1].createdAt):null;
+  const daysSince=last?Math.floor((Date.now()-last.getTime())/(1000*60*60*24)):999;
+  const due=CADENCE_DAYS[c];
+  const dueClass=daysSince<=due?'due-ok':daysSince<=due*1.5?'due-soon':'due-over';
+  const dueLabel=daysSince<=due?`✓ Done ${daysSince===0?'today':daysSince+'d ago'}`:daysSince>=999?'Never done':`Overdue by ${daysSince-due}d`;
+  el.innerHTML=`<span style="font-size:13px;font-weight:600;flex:1;">${{daily:'Daily Check-in',biweekly:'Biweekly Review',monthly:'Monthly Review',quarterly:'Quarterly Review',annual:'Annual Review'}[c]}</span><span class="cadence-due ${dueClass}">${dueLabel}</span><span style="font-size:11px;color:var(--muted);">Every ${due===1?'day':due+'d'}</span>`;
+}
+function _renderMonthlyGoalProgress(){
+  const el=document.getElementById('rm-goal-progress');if(!el)return;
+  const goals=S.goals.slice(0,6);
+  el.innerHTML=goals.map(g=>{
+    const linked=S.tasks.filter(t=>t.goalId===g.id);
+    const done=linked.filter(t=>t.status==='done').length;
+    const total=linked.length;
+    const pct=total>0?Math.round(done/total*100):0;
+    return`<div style="margin-bottom:8px;"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>${esc(g.title.slice(0,45))}</span><span style="color:var(--muted);">${done}/${total} (${pct}%)</span></div><div class="gp"><div class="gpf" style="width:${pct}%;"></div></div></div>`;
+  }).join('')||'<div class="empty">No goals yet.</div>';
+}
+function setReflTab(tab,el){
+  rTab=tab;
+  document.querySelectorAll('.refl-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  _setActiveReflTab(tab);
+  if(tab==='monthly')_renderMonthlyGoalProgress();
+  if(tab==='history')renderReflHistory();
+}
+function _setActiveReflTab(tab){
+  document.querySelectorAll('.refl-cadence-view').forEach(v=>v.classList.remove('active'));
+  const el=document.getElementById('rv-'+tab);if(el)el.classList.add('active');
+}
+function saveReflection(cadence){
+  const data={createdAt:new Date().toISOString(),cadence};
+  const fieldMap={
+    daily:{top3:'rd-top3',energy:'rd-energy',mood:'rd-mood',done:'rd-done',gratitude:'rd-gratitude'},
+    biweekly:{goals:'rbw-goals',habits:'rbw-habits',followup:'rbw-followup',change:'rbw-change'},
+    monthly:{wins:'rm-wins',keep:'rm-keep',stop:'rm-stop',start:'rm-start',focus:'rm-focus'},
+    quarterly:{okr:'rq-okr',pivots:'rq-pivots',next:'rq-next',health:'rq-health',finance:'rq-finance',relationships:'rq-relationships',career:'rq-career',learning:'rq-learning',fun:'rq-fun'},
+    annual:{peaks:'ra-peaks',best:'ra-best',worst:'ra-worst',people:'ra-people',vision:'ra-vision',goals:'ra-goals'}
+  };
+  const fields=fieldMap[cadence]||{};
+  Object.entries(fields).forEach(([k,id])=>{const el=document.getElementById(id);if(el)data[k]=el.value;});
+  if(!S.reflections)S.reflections={};
+  if(!S.reflections[cadence])S.reflections[cadence]=[];
+  S.reflections[cadence].push(data);
+  save();
+  // Clear fields
+  Object.values(fields).forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  toast(`${cadence.charAt(0).toUpperCase()+cadence.slice(1)} reflection saved ✓`);
+  _renderCadenceMeta(cadence);
+}
+function renderReflHistory(){
+  const el=document.getElementById('refl-history-list');if(!el)return;
+  const all=[];
+  Object.entries(S.reflections||{}).forEach(([c,arr])=>arr.forEach(r=>all.push({...r,cadence:c})));
+  all.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));
+  const icons={daily:'🌅',biweekly:'📆',monthly:'📊',quarterly:'🎯',annual:'🏅'};
+  el.innerHTML=all.slice(0,20).map(r=>`<div class="refl-card" style="cursor:default;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+      <span style="font-size:18px;">${icons[r.cadence]||'📅'}</span>
+      <span style="font-weight:600;font-size:13px;">${r.cadence.charAt(0).toUpperCase()+r.cadence.slice(1)} Reflection</span>
+      <span style="font-size:11px;color:var(--muted);margin-left:auto;">${new Date(r.createdAt).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</span>
+    </div>
+    ${r.top3?`<div style="font-size:12px;color:var(--muted);"><strong>Top 3:</strong> ${esc(r.top3.slice(0,100))}</div>`:''}
+    ${r.wins?`<div style="font-size:12px;color:var(--muted);">🏆 ${esc(r.wins.slice(0,100))}</div>`:''}
+    ${r.vision?`<div style="font-size:12px;color:var(--muted);">🔮 ${esc(r.vision.slice(0,100))}</div>`:''}
+    ${r.aiInsight?`<div class="refl-insight" style="font-size:11px;margin-top:6px;">${esc(r.aiInsight.slice(0,300))}</div>`:''}
+  </div>`).join('')||'<div class="empty">No reflections saved yet. Start with a Daily Check-in!</div>';
+}
+async function aiReflectionInsight(cadence){
+  const insightEl=document.getElementById('r'+cadence[0]+'-ai-insight')||document.getElementById('r'+{biweekly:'bw',monthly:'m',quarterly:'q',annual:'a',daily:'d'}[cadence]+'-ai-insight');
+  const target=document.getElementById({'daily':'rd-ai-insight','biweekly':'rbw-ai-insight','monthly':'rm-ai-insight','quarterly':'rq-ai-insight','annual':'ra-ai-insight'}[cadence]);
+  if(!target)return;
+  target.innerHTML=`<div class="refl-insight">${aiLoadingHTML('Generating insight...')}</div>`;
+  const goals=S.goals.filter(g=>g.isTop3).map(g=>g.title).join(', ')||'Not set';
+  const wisdom=getWisdomContext(3);
+  const recent=(S.reflections||{})[cadence]?.slice(-3)||[];
+  const pastSummary=recent.map(r=>JSON.stringify(r)).join('\n');
+  const taskStats=`Active: ${active().length} | Done this week: ${S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>new Date(Date.now()-7*86400000)).length}`;
+  const system='You are a personal development coach. Provide a concise, insightful coaching response. Be specific, not generic. Reference actual data. Return plain text, no markdown.';
+  const prompt=`Cadence: ${cadence} reflection\nTop goals: ${goals}\nTask stats: ${taskStats}\n${wisdom}\nPast reflections: ${pastSummary||'none'}\n\nGive a 2-3 paragraph insightful coaching response that: 1) acknowledges patterns you see, 2) highlights what's working, 3) gives 1-2 specific next actions.`;
+  const result=await callClaude(system,prompt,600);
+  if(!result){target.innerHTML='';return;}
+  target.innerHTML=`<div class="refl-insight">✨ ${esc(result)}</div>`;
+  // Save insight to latest reflection
+  if(S.reflections?.[cadence]?.length){S.reflections[cadence][S.reflections[cadence].length-1].aiInsight=result;save();}
+}
+
+// ── TRASH ─────────────────────────────────────────────────────
+function renderTrash(){
+  const trashed=S.tasks.filter(t=>t.bucket==='trash');
+  const el=document.getElementById('trash-list');if(!el)return;
+  // Auto-purge items older than 7 days
+  const cutoff=Date.now()-7*24*60*60*1000;
+  S.tasks=S.tasks.filter(t=>!(t.bucket==='trash'&&t.trashedAt&&new Date(t.trashedAt).getTime()<cutoff));
+  save();updTrashBadge();
+  const fresh=S.tasks.filter(t=>t.bucket==='trash');
+  el.innerHTML=fresh.length?fresh.map(t=>{
+    const exp=t.trashedAt?Math.max(0,7-Math.floor((Date.now()-new Date(t.trashedAt))/86400000)):7;
+    return`<div class="trash-item">
+      <div style="flex:1;"><div style="font-size:13px;font-weight:500;">${esc(t.title)}</div><div style="font-size:11px;color:var(--muted);">${catB(t.category)}</div></div>
+      <span class="trash-exp">🗑 ${exp}d left</span>
+      <button class="btn bg sm" onclick="restoreTask('${t.id}')">↩ Restore</button>
+      <button class="btn bd sm" onclick="permDelete('${t.id}')">× Delete</button>
+    </div>`;
+  }).join(''):'<div class="empty">Trash is empty.</div>';
+}
+function permDelete(id){
+  if(!confirm('Permanently delete? Cannot be undone.'))return;
+  S.tasks=S.tasks.filter(t=>t.id!==id);save();renderTrash();updTrashBadge();
+}
+function emptyTrash(){
+  if(!confirm('Permanently delete all trashed tasks?'))return;
+  S.tasks=S.tasks.filter(t=>t.bucket!=='trash');save();renderTrash();updTrashBadge();toast('Trash emptied');
+}
+
+// ── CSV EXPORT ────────────────────────────────────────────────
+function exportCSV(){
+  const rows=[['ID','Title','Notes','Category','Bucket','Status','Urgency','Importance','Energy','TimeBlock','DueDate','GoalId','CreatedAt','CompletedAt','Recurring']];
+  S.tasks.filter(t=>t.bucket!=='trash').forEach(t=>rows.push([t.id,t.title,t.notes||'',t.category,t.bucket,t.status,t.urgency,t.importance,t.energy,t.timeBlock||'',t.dueDate||'',t.goalId||'',t.createdAt||'',t.completedAt||'',t.recurrence||'none']));
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='taskos-tasks-'+new Date().toISOString().slice(0,10)+'.csv';a.click();URL.revokeObjectURL(a.href);
+  toast('CSV exported');
+}
+
+// ── SETTINGS (updated) ─────────────────────────────────────────
+function saveSettings(){
+  S.claudeKey=document.getElementById('claude-key-inp').value.trim();
+  const newName=document.getElementById('user-name-inp').value.trim()||'Panos';
+  S.userName=newName;S.userEmoji=document.querySelector('.auth-wrap .emoji-opt.sel')?.textContent||S.userEmoji||'🧑';
+  // Update profile name if exists
+  const pid=sessionStorage.getItem('taskos_session');
+  if(pid){const p=(S.profiles||[]).find(x=>x.id===pid);if(p){p.name=newName;p.emoji=S.userEmoji;}}
+  save();closeM('settm');updSidebarUser();renderDash();toast('Settings saved');
+}
+
+// ── AI: WISDOM-AWARE FOCUS (override) ─────────────────────────
+async function aiSuggestFocus(){
+  const panel=document.getElementById('ai-focus-panel');
+  panel.innerHTML=aiLoadingHTML('Finding your best tasks...');
+  const activeTasks=S.tasks.filter(t=>t.status!=='done'&&t.bucket!=='inbox'&&t.bucket!=='trash').slice(0,40);
+  const goals=S.goals.filter(g=>g.isTop3).map(g=>g.title).join('; ')||'Not set';
+  const h=new Date().getHours();
+  const timeOfDay=h<12?'morning':h<17?'afternoon':'evening';
+  const taskList=activeTasks.map(t=>`[${t.bucket}][${t.energy}energy][${t.status}] ${t.title} (${t.category}) ID:${t.id}`).join('\n');
+  const wisdom=getWisdomContext(4);
+  const system='You are a focused productivity coach who knows the user well. Suggest 3 tasks to focus on right now. Be specific. Reference their wisdom/principles when relevant. Return ONLY valid JSON.';
+  const prompt=`Time: ${timeOfDay}\nTop goals: ${goals}\n${wisdom}\n\nActive tasks:\n${taskList}\n\nReturn JSON: {"message":"one motivating sentence that references their goals or principles","suggestions":[{"title":"...","reason":"why now, referencing their wisdom if relevant","taskId":"exact ID from list"}]}`;
+  const result=await callClaude(system,prompt);
+  if(!result){panel.innerHTML='<div class="empty">AI unavailable</div>';return;}
+  try{
+    const json=JSON.parse(result.replace(/```json\n?|\n?```/g,'').trim());
+    panel.innerHTML=`
+      ${json.message?`<div style="font-size:12px;color:var(--accent);margin-bottom:12px;padding:8px 10px;background:rgba(88,166,255,.07);border-radius:6px;">✨ ${esc(json.message)}</div>`:''}
+      ${(json.suggestions||[]).map(s=>`<div class="ai-sug">
+        <div class="ai-sug-title">${esc(s.title)}</div>
+        <div class="ai-sug-reason">${esc(s.reason)}</div>
+        ${s.taskId?`<button class="btn bp sm" style="margin-top:6px;" onclick="openEdit('${esc(s.taskId)}')">Open Task →</button>`:''}
+      </div>`).join('')}`;
+  }catch(e){panel.innerHTML=`<div style="font-size:12px;color:var(--muted);white-space:pre-wrap;overflow:auto;max-height:180px;">${esc(result)}</div>`;}
+}
+
 // ── INIT ──────────────────────────────────────────────────────
-load();seed();seedGoals();renderDash();
-if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+function appInit(){
+  load();seed();seedGoals();
+  updTrashBadge();
+  authInit();
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+}
+appInit();
 </script>
 </body>
 </html>

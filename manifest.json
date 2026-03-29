@@ -1,18 +1,44 @@
 {
   "name": "Task OS",
   "short_name": "Task OS",
-  "description": "Personal task management system",
+  "description": "Personal task management — goals, sprints, reflections, AI coaching",
   "start_url": "./index.html",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
   "background_color": "#0d1117",
   "theme_color": "#58a6ff",
   "orientation": "portrait-primary",
+  "categories": ["productivity", "utilities"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "icon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Add Task",
+      "short_name": "Add Task",
+      "description": "Quickly add a new task",
+      "url": "./index.html#quick-add",
+      "icons": [{ "src": "icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "AI Coach",
+      "short_name": "AI Coach",
+      "description": "Open AI coaching assistant",
+      "url": "./index.html#coach",
+      "icons": [{ "src": "icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "Daily Reflection",
+      "short_name": "Reflect",
+      "description": "Open today's reflection",
+      "url": "./index.html#reflect",
+      "icons": [{ "src": "icon.svg", "sizes": "any" }]
     }
   ]
 }

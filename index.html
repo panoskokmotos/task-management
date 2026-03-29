@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Task OS">
 <link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon.svg">
 <title>Task OS</title>
 <style>
@@ -335,6 +336,8 @@ select.fc option{background:var(--surface2);}
 .j-hist-body.open{display:block;}
 .j-streak{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(255,107,107,.15),rgba(255,169,77,.1));border:1px solid rgba(255,107,107,.3);border-radius:20px;padding:3px 10px;font-size:12px;font-weight:600;color:#ff9944;}
 @media(max-width:640px){.journal-split{grid-template-columns:1fr!important;}}
+.j-carryover{display:flex;align-items:flex-start;gap:10px;background:rgba(255,169,77,.1);border:1px solid rgba(255,169,77,.35);border-radius:10px;padding:12px 14px;margin-bottom:14px;flex-wrap:wrap;}
+.j-evening-prompt{border-color:rgba(255,169,77,.5)!important;box-shadow:0 0 0 1px rgba(255,169,77,.15)!important;}
 </style>
 </head>
 <body>
@@ -2938,11 +2941,16 @@ function _renderDayOfWeek(completed){
 // ── INIT ──────────────────────────────────────────────────────
 // ── DAILY JOURNAL ─────────────────────────────────────────────
 function _todayKey(){return new Date().toISOString().slice(0,10);}
+function _yesterdayKey(){const d=new Date();d.setDate(d.getDate()-1);return d.toISOString().slice(0,10);}
 
 function _getJournalEntry(dateKey){
   if(!S.journal)S.journal={};
-  if(!S.journal[dateKey])S.journal[dateKey]={date:dateKey,priorities:[{text:'',done:false},{text:'',done:false},{text:'',done:false}],morningNote:'',eveningNote:''};
-  return S.journal[dateKey];
+  if(!S.journal[dateKey])S.journal[dateKey]={date:dateKey,priorities:[{text:'',done:false,taskId:null},{text:'',done:false,taskId:null},{text:'',done:false,taskId:null}],morningNote:'',eveningNote:'',intentionWord:''};
+  const e=S.journal[dateKey];
+  if(!e.intentionWord)e.intentionWord='';
+  e.priorities=(e.priorities||[]).map(p=>({text:p.text||'',done:p.done||false,taskId:p.taskId||null}));
+  while(e.priorities.length<3)e.priorities.push({text:'',done:false,taskId:null});
+  return e;
 }
 
 function renderJournal(){
@@ -2954,29 +2962,79 @@ function renderJournal(){
   const today=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
   const doneCount=entry.priorities.filter(p=>p.done&&p.text).length;
   const totalCount=entry.priorities.filter(p=>p.text).length;
+
+  // Carry-over: unfinished commitments from yesterday
+  const yEntry=S.journal?.[_yesterdayKey()];
+  const undone=(yEntry?.priorities||[]).filter(p=>p.text&&!p.done);
+  const carryoverDismissed=sessionStorage.getItem('j_co_'+key);
+
+  // Evening prompt after 5pm if evening capture is empty
+  const hr=new Date().getHours();
+  const showEveningPrompt=hr>=17&&!entry.eveningNote;
+
+  // Energy from today's daily reflection
+  const todayRefl=(S.reflections?.daily||[]).find(r=>r.savedAt?.startsWith(key));
+  const energyLabel={5:'🔥 High',3:'⚡ Medium',1:'💧 Low'}[todayRefl?.energy]||null;
+
+  // Active tasks for linking
+  const activeTasks=S.tasks.filter(t=>t.status!=='done'&&t.bucket!=='trash').slice(0,40);
+
   el.innerHTML=`
+${undone.length&&!carryoverDismissed?`<div class="j-carryover" id="j-carryover">
+  <div style="flex:1;min-width:0;">
+    <strong style="font-size:13px;">↩️ Unfinished from yesterday:</strong>
+    <div style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;">
+      ${undone.map(p=>`<span style="background:var(--surface2);border-radius:6px;padding:2px 8px;font-size:12px;">${esc(p.text)}</span>`).join('')}
+    </div>
+  </div>
+  <div style="display:flex;gap:6px;flex-shrink:0;margin-top:4px;">
+    <button class="btn bg" style="font-size:12px;padding:4px 12px;" onclick="rolloverCommitments(${JSON.stringify(undone.map(p=>p.text))})">Roll over</button>
+    <button class="btn" style="font-size:12px;padding:4px 12px;" onclick="dismissCarryover()">Dismiss</button>
+  </div>
+</div>`:''}
 <div class="ph">
   <div>
     <h1>📔 Daily Journal</h1>
-    <p class="sub" style="display:flex;align-items:center;gap:8px;">${today}
+    <p class="sub" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">${today}
       ${streak>0?`<span class="j-streak">🔥 ${streak}-day streak</span>`:''}
-      ${totalCount?`<span style="font-size:11px;color:var(--muted);">${doneCount}/${totalCount} commitments done</span>`:''}
+      ${energyLabel?`<span style="font-size:11px;color:var(--muted);">Energy: ${energyLabel}</span>`:''}
+      ${totalCount?`<span style="font-size:11px;color:var(--muted);">${doneCount}/${totalCount} done</span>`:''}
     </p>
   </div>
   <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
     <button class="btn bg" onclick="suggestJournalPriorities()" id="jsugg-btn">✨ AI Suggest</button>
+    <button class="btn" style="font-size:12px;" onclick="weekJournalSummary()">📊 Week</button>
     <button class="btn bp" onclick="saveJournal()">💾 Save</button>
   </div>
+</div>
+<div class="rb" style="margin-bottom:14px;text-align:center;">
+  <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">Today's Intention Word</div>
+  <input id="j-intention" class="fc" placeholder="Focus · Create · Rest · Push · Connect" value="${esc(entry.intentionWord||'')}" oninput="journalAutoSave()" style="text-align:center;font-size:20px;font-weight:700;letter-spacing:3px;max-width:320px;margin:0 auto;display:block;text-transform:uppercase;">
 </div>
 <div class="rb" style="margin-bottom:16px;">
   <h3 style="margin:0 0 6px;font-size:15px;font-weight:700;">🎯 My 3 Commitments Today</h3>
   <p style="font-size:12px;color:var(--muted);margin:0 0 14px;">What do I commit to completing today? One clear, specific action each.</p>
-  ${[0,1,2].map(i=>`
-  <div class="journal-priority" id="jp-row-${i}">
-    <div class="journal-priority-num">${i+1}</div>
-    <input class="fc" id="jp-${i}" placeholder="Commitment ${i+1}..." value="${esc(entry.priorities[i]?.text||'')}" oninput="journalAutoSave()" style="flex:1;">
-    <button class="journal-check ${entry.priorities[i]?.done?'done':''}" onclick="toggleJournalPriority(${i})" title="${entry.priorities[i]?.done?'Mark undone':'Mark done'}">${entry.priorities[i]?.done?'✅':'⬜'}</button>
-  </div>`).join('')}
+  ${[0,1,2].map(i=>{
+    const p=entry.priorities[i];
+    const linked=p.taskId?activeTasks.find(t=>t.id===p.taskId):null;
+    return`<div class="journal-priority" id="jp-row-${i}" style="align-items:flex-start;">
+    <div class="journal-priority-num" style="margin-top:9px;">${i+1}</div>
+    <div style="flex:1;display:flex;flex-direction:column;gap:5px;">
+      <input class="fc" id="jp-${i}" placeholder="Commitment ${i+1}..." value="${esc(p.text||'')}" oninput="journalAutoSave()">
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        ${linked
+          ?`<span style="font-size:11px;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.3);border-radius:4px;padding:2px 7px;color:var(--accent);">🔗 ${esc(linked.title.slice(0,35))}${linked.title.length>35?'…':''}</span><button onclick="unlinkJournalTask(${i})" style="font-size:10px;background:none;border:none;color:var(--muted);cursor:pointer;padding:0 2px;">✕</button>`
+          :`<button onclick="toggleTaskPicker(${i})" style="font-size:11px;background:none;border:1px dashed var(--border);border-radius:4px;color:var(--muted);cursor:pointer;padding:2px 8px;">+ Link task</button>`}
+        <div id="jp-picker-${i}" style="display:none;">
+          <select class="fc" style="font-size:11px;padding:2px 4px;" onchange="linkJournalTask(${i},this.value)">
+            <option value="">— select task —</option>
+            ${activeTasks.map(t=>`<option value="${t.id}"${p.taskId===t.id?' selected':''}>${esc(t.title.slice(0,55))}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+    </div>
+    <button class="journal-check ${p.done?'done':''}" onclick="toggleJournalPriority(${i})" style="margin-top:8px;" title="${p.done?'Mark undone':'Mark done'}">${p.done?'✅':'⬜'}</button>
+  </div>`;}).join('')}
   <div id="jsugg-area"></div>
 </div>
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;" class="journal-split">
@@ -2985,8 +3043,8 @@ function renderJournal(){
     <p style="font-size:11px;color:var(--muted);margin:0 0 8px;">Intentions, feelings, brain dump...</p>
     <textarea class="fc" id="j-morning" placeholder="How are you feeling? What's on your mind? What do you want from today?" style="min-height:140px;" oninput="journalAutoSave()">${esc(entry.morningNote||'')}</textarea>
   </div>
-  <div class="rb">
-    <h3 style="margin:0 0 8px;font-size:14px;font-weight:700;">🌙 Evening Capture</h3>
+  <div class="rb${showEveningPrompt?' j-evening-prompt':''}">
+    <h3 style="margin:0 0 8px;font-size:14px;font-weight:700;">🌙 Evening Capture${showEveningPrompt?' <span style="font-size:11px;color:#ffa94d;font-weight:400;">← fill me in!</span>':''}</h3>
     <p style="font-size:11px;color:var(--muted);margin:0 0 8px;">What happened? Wins, lessons, gratitude.</p>
     <textarea class="fc" id="j-evening" placeholder="What actually happened today? Wins, struggles, lessons, gratitude..." style="min-height:140px;" oninput="journalAutoSave()">${esc(entry.eveningNote||'')}</textarea>
   </div>
@@ -3000,6 +3058,64 @@ function renderJournal(){
   <div id="j-history"></div>
 </div>`;
   _renderJournalHistory();
+}
+
+function rolloverCommitments(texts){
+  const key=_todayKey();
+  const entry=_getJournalEntry(key);
+  let filled=0;
+  for(let i=0;i<3&&filled<texts.length;i++){
+    if(!entry.priorities[i].text){entry.priorities[i].text=texts[filled];entry.priorities[i].done=false;filled++;}
+  }
+  save();sessionStorage.setItem('j_co_'+key,'1');
+  renderJournal();toast(filled+' commitment'+(filled!==1?'s':'')+' rolled over');
+}
+
+function dismissCarryover(){
+  sessionStorage.setItem('j_co_'+_todayKey(),'1');
+  document.getElementById('j-carryover')?.remove();
+}
+
+function toggleTaskPicker(idx){
+  const el=document.getElementById('jp-picker-'+idx);
+  if(el)el.style.display=el.style.display==='none'?'block':'none';
+}
+
+function linkJournalTask(idx,taskId){
+  if(!taskId)return;
+  const key=_todayKey();const entry=_getJournalEntry(key);
+  entry.priorities=[0,1,2].map(i=>({text:(document.getElementById('jp-'+i)?.value||entry.priorities[i]?.text||'').trim(),done:entry.priorities[i]?.done||false,taskId:entry.priorities[i]?.taskId||null}));
+  entry.priorities[idx].taskId=taskId;
+  if(!entry.priorities[idx].text){const t=S.tasks.find(x=>x.id===taskId);if(t)entry.priorities[idx].text=t.title;}
+  save();renderJournal();toast('Task linked to commitment '+(idx+1));
+}
+
+function unlinkJournalTask(idx){
+  const key=_todayKey();const entry=_getJournalEntry(key);
+  entry.priorities=[0,1,2].map(i=>({text:(document.getElementById('jp-'+i)?.value||entry.priorities[i]?.text||'').trim(),done:entry.priorities[i]?.done||false,taskId:entry.priorities[i]?.taskId||null}));
+  entry.priorities[idx].taskId=null;save();renderJournal();
+}
+
+async function weekJournalSummary(){
+  if(!S.claudeKey){toast('Add API key in Settings first');return;}
+  const insightEl=document.getElementById('j-ai-insight');
+  if(insightEl)insightEl.innerHTML='<div class="rb" style="margin-bottom:16px;border-color:rgba(88,166,255,.3);"><div style="color:var(--muted);font-size:13px;">⏳ Summarising your week...</div></div>';
+  const now=new Date();const entries=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(now);d.setDate(d.getDate()-i);
+    const k=d.toISOString().slice(0,10);const e=S.journal?.[k];
+    if(e&&(e.priorities?.some(p=>p.text)||e.morningNote||e.eveningNote)){
+      const label=d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+      const dn=e.priorities?.filter(p=>p.done&&p.text).length||0;
+      const tot=e.priorities?.filter(p=>p.text).length||0;
+      entries.push(`${label}${e.intentionWord?' ['+e.intentionWord+']':''} — ${dn}/${tot} done\n${(e.priorities||[]).filter(p=>p.text).map(p=>(p.done?'✓':'○')+' '+p.text).join('\n')}${e.morningNote?'\n🌅 '+e.morningNote.slice(0,200):''}${e.eveningNote?'\n🌙 '+e.eveningNote.slice(0,200):''}`);
+    }
+  }
+  if(!entries.length){if(insightEl)insightEl.innerHTML='<div class="rb" style="margin-bottom:16px;"><div style="color:var(--muted);font-size:13px;">No journal entries in the last 7 days yet.</div></div>';return;}
+  try{
+    const result=await callClaude(`You are a thoughtful personal coach. Summarise this week's journal in 3-4 paragraphs: 1) Key themes & patterns, 2) What went well and what the commitment completion rate shows, 3) What's being avoided or struggled with, 4) One concrete recommendation for next week. Be warm, direct, and specific.`,`Week journal (last 7 days):\n\n${entries.join('\n\n')}`,800);
+    if(insightEl)insightEl.innerHTML=`<div class="rb" style="margin-bottom:16px;border-color:rgba(88,166,255,.3);"><div style="font-size:11px;color:var(--accent);font-weight:600;margin-bottom:10px;">📊 WEEKLY AI SUMMARY</div><div style="font-size:13px;line-height:1.7;white-space:pre-wrap;">${esc(result)}</div></div>`;
+  }catch(e){if(insightEl)insightEl.innerHTML='<div class="rb" style="margin-bottom:16px;"><div style="color:var(--red);font-size:13px;">Failed to generate summary. Check your API key in Settings.</div></div>';}
 }
 
 function _journalStreak(){
@@ -3027,8 +3143,10 @@ function saveJournal(silent=false){
   const entry=_getJournalEntry(key);
   entry.priorities=[0,1,2].map(i=>({
     text:(document.getElementById('jp-'+i)?.value||'').trim(),
-    done:entry.priorities[i]?.done||false
+    done:entry.priorities[i]?.done||false,
+    taskId:entry.priorities[i]?.taskId||null
   }));
+  entry.intentionWord=(document.getElementById('j-intention')?.value||'').trim();
   entry.morningNote=document.getElementById('j-morning')?.value||'';
   entry.eveningNote=document.getElementById('j-evening')?.value||'';
   entry.savedAt=new Date().toISOString();
@@ -3042,19 +3160,22 @@ function toggleJournalPriority(idx){
   const entry=_getJournalEntry(key);
   entry.priorities=[0,1,2].map(i=>({
     text:(document.getElementById('jp-'+i)?.value||entry.priorities[i]?.text||'').trim(),
-    done:entry.priorities[i]?.done||false
+    done:entry.priorities[i]?.done||false,
+    taskId:entry.priorities[i]?.taskId||null
   }));
   entry.priorities[idx].done=!entry.priorities[idx].done;
+  // mark linked task done
+  if(entry.priorities[idx].done&&entry.priorities[idx].taskId){
+    const task=S.tasks.find(t=>t.id===entry.priorities[idx].taskId);
+    if(task&&task.status!=='done'){
+      task.status='done';task.completedAt=new Date().toISOString();task.isT3=false;
+      if(task.recurrence&&task.recurrence!=='none')spawnRecurring(task);
+      toast('✅ Task "'+task.title.slice(0,30)+'" marked done');
+    }
+  }
   save();
   const btn=document.querySelector('#jp-row-'+idx+' .journal-check');
   if(btn){btn.textContent=entry.priorities[idx].done?'✅':'⬜';btn.classList.toggle('done',entry.priorities[idx].done);}
-  const sub=document.querySelector('.ph .sub');
-  if(sub){
-    const dc=entry.priorities.filter(p=>p.done&&p.text).length;
-    const tc=entry.priorities.filter(p=>p.text).length;
-    const sp=sub.querySelector('span:last-child');
-    if(sp&&tc)sp.textContent=dc+'/'+tc+' commitments done';
-  }
   _renderJournalHistory();
 }
 
@@ -3068,8 +3189,10 @@ async function suggestJournalPriorities(){
     .map(t=>`- [${t.bucket}] ${t.title}${t.dueDate?' (due '+fd(t.dueDate)+')':''}`).join('\n');
   const goals=(S.goals||[]).filter(g=>!g.done).slice(0,5).map(g=>`- ${g.title}`).join('\n');
   const wisdom=getWisdomContext(3);
-  const sys=`You are a personal productivity coach. Suggest the 3 most important, specific commitments for today based on the user's tasks and goals. Each should be a single clear action. Return JSON only: {"priorities":["commitment 1","commitment 2","commitment 3"],"reasoning":"1-2 sentence explanation of why these matter most today"}`;
-  const user=`Active tasks:\n${activeTasks||'none'}\n\nActive goals:\n${goals||'none'}\n\n${wisdom}\n\nToday: ${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}`;
+  const todayRefl=(S.reflections?.daily||[]).find(r=>r.savedAt?.startsWith(_todayKey()));
+  const energyCtx=todayRefl?.energy?`User's energy today: ${({5:'High — push hard on deep/challenging tasks',3:'Medium — balanced work',1:'Low — keep it light and manageable'})[todayRefl.energy]}. Match task complexity and count to energy level.`:'';
+  const sys=`You are a personal productivity coach. Suggest the 3 most important, specific commitments for today based on the user's tasks, goals, and energy. Each should be a single clear action. Return JSON only: {"priorities":["commitment 1","commitment 2","commitment 3"],"reasoning":"1-2 sentence explanation of why these matter most today"}`;
+  const user=`Active tasks:\n${activeTasks||'none'}\n\nActive goals:\n${goals||'none'}\n\n${wisdom}${energyCtx?'\n\n'+energyCtx:''}\n\nToday: ${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}`;
   try{
     const raw=await callClaude(sys,user,600);
     const parsed=JSON.parse(raw.replace(/```json\n?|\n?```/g,'').trim());

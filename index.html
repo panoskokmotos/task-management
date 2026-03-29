@@ -426,6 +426,7 @@ select.fc option{background:var(--surface2);}
     <button class="btn bp" onclick="openAdd()">+ Add Task</button>
   </div>
   <div class="stats" id="stats"></div>
+  <div id="dash-journal" style="display:flex;align-items:center;margin-bottom:14px;padding:8px 14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);cursor:pointer;" onclick="nav('journal')"></div>
   <div class="rb" style="margin-bottom:10px;">
     <h2 style="margin:0">🎯 Today's Top 3</h2>
     <button class="btn bg sm" onclick="nav('buckets')">Pick from This Week →</button>
@@ -954,6 +955,25 @@ select.fc option{background:var(--surface2);}
         <button class="btn bg sm" onclick="exportCSV()">📊 CSV (spreadsheet)</button>
       </div>
     </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:12px 0;">
+    <div class="fg">
+      <label>🔔 Daily Notifications</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;">
+        <div><label style="font-size:11px;color:var(--muted);">Reminder time</label><input class="fc" id="notif-time" type="time" value="09:00" style="margin-top:4px;"></div>
+        <div style="display:flex;flex-direction:column;justify-content:flex-end;"><button class="btn bg sm" onclick="requestNotifPermission()">🔔 Enable Browser Alerts</button></div>
+      </div>
+      <label style="font-size:11px;color:var(--muted);">Slack Incoming Webhook URL</label>
+      <div style="display:flex;gap:6px;margin-top:4px;">
+        <input class="fc" id="notif-slack" placeholder="https://hooks.slack.com/services/..." style="font-family:monospace;font-size:11px;">
+        <button class="btn bg sm" onclick="testSlackNotif()" style="white-space:nowrap;flex-shrink:0;">Test</button>
+      </div>
+      <label style="font-size:11px;color:var(--muted);margin-top:10px;display:block;">Email Webhook URL <span style="color:var(--muted);font-weight:400;">(Make.com or Zapier)</span></label>
+      <div style="display:flex;gap:6px;margin-top:4px;">
+        <input class="fc" id="notif-email" placeholder="https://hook.make.com/..." style="font-family:monospace;font-size:11px;">
+        <button class="btn bg sm" onclick="testEmailNotif()" style="white-space:nowrap;flex-shrink:0;">Test</button>
+      </div>
+      <p style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;">Slack: create an <strong style="color:var(--text);">Incoming Webhook</strong> in your Slack workspace settings. Email: create a free <strong style="color:var(--text);">Make.com</strong> scenario — Custom Webhook → Email module — and paste the URL above.</p>
+    </div>
     <div class="mf">
       <button class="btn bd sm" style="margin-right:auto;" onclick="authLogout()">🚪 Sign Out</button>
       <button class="btn bg" onclick="closeM('settm')">Cancel</button>
@@ -1033,7 +1053,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],reflections:{},wisdom:{books:[],principles:[]},profiles:[],seededGoalsV3:false,claudeKey:'',userName:'Panos',userEmoji:'🧑',journal:{}};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],reflections:{},wisdom:{books:[],principles:[]},profiles:[],seededGoalsV3:false,claudeKey:'',userName:'Panos',userEmoji:'🧑',journal:{},notif:{time:'09:00',slack:'',emailWebhook:'',lastSentDate:null,browserEnabled:false}};
 let editT=null,editG=null,editBook=null,editPrin=null,fCat='all',wTab='all',rTab='daily',draggedTaskId=null,pendingAiTasks=[];
 let _searchTimer=null;
 
@@ -1082,6 +1102,14 @@ function renderDash(){
     <div class="sc"><div class="sn" style="color:var(--bm)">${mc}</div><div class="sl">This Month</div></div>
     <div class="sc"><div class="sn" style="color:var(--bb)">${bc}</div><div class="sl">Backlog</div></div>
     <div class="sc"><div class="sn" style="color:var(--accent)">${dc}</div><div class="sl">Done Today</div></div>`;
+  // Journal status widget
+  const jEntry=S.journal?.[_todayKey()];
+  const jDone=(jEntry?.priorities||[]).filter(p=>p.done&&p.text).length;
+  const jTotal=(jEntry?.priorities||[]).filter(p=>p.text).length;
+  const jStreak=_journalStreak();
+  const jIntention=jEntry?.intentionWord||'';
+  const jStatus=!jTotal?`<span style="color:var(--muted);">No commitments set</span> <span style="color:var(--accent);cursor:pointer;font-size:12px;" onclick="nav('journal')">→ Open Journal</span>`:`<span style="color:${jDone===jTotal?'#69db7c':'#ffa94d'}">${jDone}/${jTotal} commitments done</span>${jIntention?` · <em style="color:var(--accent);">${esc(jIntention)}</em>`:''}`;
+  document.getElementById('dash-journal').innerHTML=`<span style="font-size:13px;">📔 Today: ${jStatus}</span>${jStreak>0?`<span class="j-streak" style="margin-left:8px;">🔥 ${jStreak}</span>`:''}`;
   renderTop3();
   const wt=a.filter(t=>t.bucket==='this-week').slice(0,6);
   document.getElementById('dash-week').innerHTML=wt.length?wt.map(t=>tcHTML(t,true)).join(''):'<div class="empty">No tasks this week. <span style="color:var(--accent);cursor:pointer;" onclick="nav(\'buckets\')">Add some →</span></div>';
@@ -1487,13 +1515,11 @@ function toast(msg,ms=2200){
 function openSettings(){
   document.getElementById('claude-key-inp').value=S.claudeKey||'';
   document.getElementById('user-name-inp').value=S.userName||'Panos';
+  const n=S.notif||{};
+  document.getElementById('notif-time').value=n.time||'09:00';
+  document.getElementById('notif-slack').value=n.slack||'';
+  document.getElementById('notif-email').value=n.emailWebhook||'';
   document.getElementById('settm').classList.remove('hidden');
-}
-function saveSettings(){
-  S.claudeKey=document.getElementById('claude-key-inp').value.trim();
-  S.userName=document.getElementById('user-name-inp').value.trim()||'Panos';
-  save();closeM('settm');renderDash();
-  toast('Settings saved');
 }
 
 // ── EXPORT / IMPORT ────────────────────────────────────────────
@@ -2639,14 +2665,17 @@ function exportCSV(){
   toast('CSV exported');
 }
 
-// ── SETTINGS (updated) ─────────────────────────────────────────
+// ── SETTINGS ─────────────────────────────────────────────────
 function saveSettings(){
   S.claudeKey=document.getElementById('claude-key-inp').value.trim();
   const newName=document.getElementById('user-name-inp').value.trim()||'Panos';
   S.userName=newName;S.userEmoji=document.querySelector('.auth-wrap .emoji-opt.sel')?.textContent||S.userEmoji||'🧑';
-  // Update profile name if exists
   const pid=sessionStorage.getItem('taskos_session');
   if(pid){const p=(S.profiles||[]).find(x=>x.id===pid);if(p){p.name=newName;p.emoji=S.userEmoji;}}
+  if(!S.notif)S.notif={};
+  S.notif.time=document.getElementById('notif-time').value||'09:00';
+  S.notif.slack=document.getElementById('notif-slack').value.trim();
+  S.notif.emailWebhook=document.getElementById('notif-email').value.trim();
   save();closeM('settm');updSidebarUser();renderDash();toast('Settings saved');
 }
 
@@ -3009,7 +3038,11 @@ ${undone.length&&!carryoverDismissed?`<div class="j-carryover" id="j-carryover">
 </div>
 <div class="rb" style="margin-bottom:14px;text-align:center;">
   <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">Today's Intention Word</div>
-  <input id="j-intention" class="fc" placeholder="Focus · Create · Rest · Push · Connect" value="${esc(entry.intentionWord||'')}" oninput="journalAutoSave()" style="text-align:center;font-size:20px;font-weight:700;letter-spacing:3px;max-width:320px;margin:0 auto;display:block;text-transform:uppercase;">
+  <input id="j-intention" class="fc" placeholder="FOCUS" value="${esc(entry.intentionWord||'')}" oninput="journalAutoSave()" style="text-align:center;font-size:20px;font-weight:700;letter-spacing:3px;max-width:280px;margin:0 auto;display:block;text-transform:uppercase;">
+  <button onclick="showIntentionSuggestions()" style="background:none;border:none;color:var(--muted);font-size:11px;cursor:pointer;margin-top:6px;">suggest words ▾</button>
+  <div id="j-intention-chips" style="display:none;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:8px;">
+    ${(INTENTION_WORDS||['Focus','Create','Push','Rest','Connect','Build','Learn','Ship','Lead','Reflect','Execute','Grow']).map(w=>`<span onclick="applyIntentionWord('${w}')" style="background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:3px 12px;font-size:12px;cursor:pointer;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--border)'">${w}</span>`).join('')}
+  </div>
 </div>
 <div class="rb" style="margin-bottom:16px;">
   <h3 style="margin:0 0 6px;font-size:15px;font-weight:700;">🎯 My 3 Commitments Today</h3>
@@ -3249,11 +3282,81 @@ function _renderJournalHistory(){
   }).join('');
 }
 
+// ── NOTIFICATIONS ─────────────────────────────────────────────
+function _startNotifScheduler(){
+  setInterval(()=>{
+    const n=S.notif||{};
+    if(!n.time)return;
+    const now=new Date();
+    const [hh,mm]=(n.time||'09:00').split(':').map(Number);
+    const todayKey=_todayKey();
+    if(now.getHours()===hh&&now.getMinutes()===mm&&n.lastSentDate!==todayKey){
+      n.lastSentDate=todayKey;save();
+      _fireNotification();
+    }
+  },60000);
+}
+
+async function _fireNotification(){
+  const n=S.notif||{};
+  const entry=S.journal?.[_todayKey()];
+  const overdue=S.tasks.filter(t=>t.status!=='done'&&t.bucket!=='trash'&&t.dueDate&&new Date(t.dueDate)<new Date()).length;
+  const doneToday=S.tasks.filter(t=>t.completedAt?.startsWith(_todayKey())).length;
+  const journaled=entry?.priorities?.some(p=>p.text);
+  const msg=`📔 Task OS — Daily Check-in · ${new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'})}\n${journaled?'✅ Commitments set for today':'⚡ Set your 3 commitments for today'}${doneToday?' · '+doneToday+' task'+(doneToday!==1?'s':'')+' completed today':''}${overdue?' · ⚠️ '+overdue+' overdue task'+(overdue!==1?'s':''):''}`;
+  if(n.browserEnabled&&'Notification' in window&&Notification.permission==='granted'){
+    new Notification('📔 Task OS — Daily Check-in',{body:msg.split('\n')[1]||'',icon:'./icon.svg',tag:'taskos-daily'});
+  }
+  if(n.slack)_sendWebhookNoRead(n.slack,{text:msg});
+  if(n.emailWebhook)_sendWebhookNoRead(n.emailWebhook,{subject:'📔 Task OS — Daily Journal Reminder',body:msg,date:new Date().toISOString()});
+}
+
+function _sendWebhookNoRead(url,data){
+  fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data),mode:'no-cors'}).catch(()=>{});
+}
+
+function requestNotifPermission(){
+  if(!('Notification' in window)){toast('Browser notifications not supported in this browser');return;}
+  Notification.requestPermission().then(p=>{
+    if(p==='granted'){if(!S.notif)S.notif={};S.notif.browserEnabled=true;save();toast('✓ Browser notifications enabled');}
+    else toast('Permission denied — enable notifications in your browser settings');
+  });
+}
+
+async function testSlackNotif(){
+  const url=document.getElementById('notif-slack')?.value.trim();
+  if(!url){toast('Enter a Slack webhook URL first');return;}
+  _sendWebhookNoRead(url,{text:'🧪 Test from Task OS — Slack notifications are working! 🎉'});
+  toast('Test sent → check your Slack channel');
+}
+
+async function testEmailNotif(){
+  const url=document.getElementById('notif-email')?.value.trim();
+  if(!url){toast('Enter a Make/Zapier webhook URL first');return;}
+  _sendWebhookNoRead(url,{subject:'🧪 Task OS — Test Notification',body:'Email webhook is working! You will receive daily journal reminders here.',date:new Date().toISOString()});
+  toast('Test webhook fired → check your Make/Zapier scenario');
+}
+
+// ── INTENTION WORD SUGGESTIONS ────────────────────────────────
+const INTENTION_WORDS=['Focus','Create','Push','Rest','Connect','Build','Learn','Ship','Lead','Reflect','Execute','Grow'];
+function showIntentionSuggestions(){
+  const el=document.getElementById('j-intention-chips');
+  if(!el)return;
+  el.style.display=el.style.display==='none'?'flex':'none';
+}
+function applyIntentionWord(w){
+  const inp=document.getElementById('j-intention');
+  if(inp){inp.value=w;journalAutoSave();}
+  const el=document.getElementById('j-intention-chips');
+  if(el)el.style.display='none';
+}
+
 function appInit(){
   load();seed();seedGoals();
   updTrashBadge();
   authInit();
   checkPWAStatus();
+  _startNotifScheduler();
   if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 }
 appInit();

@@ -102,7 +102,7 @@ hr{border:none;border-top:1px solid var(--border);margin:16px 0;}
 .pcard-stats{font-size:22px;font-weight:700;margin-bottom:6px;}
 .pcard-sub{font-size:11px;color:var(--muted);}
 /* STAT CARDS */
-.stats2{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
+.stats2{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px;}
 .sc2{background:var(--sf);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;}
 .sn2{font-size:24px;font-weight:700;}.sl2{font-size:11px;color:var(--muted);margin-top:2px;}
 /* BUTTONS */
@@ -166,6 +166,7 @@ select.fc option{background:var(--s2);}
 @keyframes fi{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
 .fi{animation:fi .15s ease;}
 @media(max-width:1100px){.pcards{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:900px){.stats2{grid-template-columns:repeat(3,1fr);}}
 @media(max-width:800px){.pcards{grid-template-columns:1fr 1fr;}.stats2{grid-template-columns:1fr 1fr;}}
 /* ENERGY BADGES */
 .eng-deep{background:rgba(139,92,246,.15);color:#a78bfa;}
@@ -600,7 +601,7 @@ function renderView(v){
   else if(v==='stats')renderStats();
   else if(v==='ai')renderAI();
 }
-function refresh(){renderView(curView);updateSidebar();}
+function refresh(){renderView(curView);updateSidebar();if(curView==='overview'){renderBlockerBanner();renderStaleSection();}}
 
 // ── SPRINT BAR ───────────────────────────────────────────────────
 function renderSprintBar(){
@@ -623,6 +624,47 @@ function updateSidebar(){
     document.getElementById('cnt-'+p).textContent=c||'';
   });
   document.getElementById('cnt-backlog').textContent=blTasks().length||'';
+  // Stale count badge on Stats nav
+  const staleCount=getStaleTasksCount();
+  const staleCnt=document.getElementById('cnt-stale');
+  if(staleCnt)staleCnt.textContent=staleCount||'';
+  renderTaskOSSidebarPanel();
+  renderEveningCheckinBtn();
+}
+function getStaleTasksCount(){
+  const now=Date.now();
+  const fiveDays=5*24*60*60*1000;
+  return curTasks().filter(t=>{
+    if(t.status==='done')return false;
+    if(t.priority==='high'&&t.status==='todo'&&(now-new Date(t.createdAt).getTime())>fiveDays)return true;
+    return false;
+  }).length;
+}
+function renderTaskOSSidebarPanel(){
+  const panel=document.getElementById('taskos-sidebar-panel');
+  if(!panel)return;
+  const raw=localStorage.getItem('taskos');
+  if(!raw){panel.innerHTML='';return;}
+  let data;
+  try{data=JSON.parse(raw);}catch{panel.innerHTML='';return;}
+  const goals=(data.goals||[]).filter(g=>g.isTop3).slice(0,3);
+  const commits=data.dailyCommitments||[];
+  let html=`<div class="taskos-panel"><div class="taskos-panel-title">── Task OS ──</div>`;
+  if(goals.length){
+    html+=`<div style="font-size:10px;color:var(--muted);margin-bottom:4px;font-weight:600;">Top Goals</div>`;
+    goals.forEach(g=>{
+      const done=g.status==='done'||g.isCompleted;
+      html+=`<div class="taskos-item"><span>${done?'✅':'⬜'}</span><span style="${done?'text-decoration:line-through;opacity:.6':''}">${(g.title||g.text||'').slice(0,32)}</span></div>`;
+    });
+  }
+  if(commits.length){
+    html+=`<div style="font-size:10px;color:var(--muted);margin:6px 0 4px;font-weight:600;">Today's Commits</div>`;
+    commits.slice(0,3).forEach(c=>{
+      html+=`<div class="taskos-item">• ${(c.title||c).slice(0,32)}</div>`;
+    });
+  }
+  html+=`</div>`;
+  panel.innerHTML=html;
 }
 
 // ── OVERVIEW ─────────────────────────────────────────────────────
@@ -632,12 +674,15 @@ function renderOverview(){
   const inprog=ct.filter(t=>t.status==='in-progress').length;
   const blocked=ct.filter(t=>t.status==='blocked').length;
   const todo=ct.filter(t=>t.status==='todo').length;
+  const streak=S.streak||0;
   document.getElementById('ov-sub').textContent=`${ct.length} sprint tasks · ${blTasks().length} in backlog`;
+  const streakGold=streak>=5?' streak-gold':'';
   document.getElementById('ov-stats').innerHTML=`
     <div class="sc2"><div class="sn2" style="color:var(--done)">${done}</div><div class="sl2">Done</div></div>
     <div class="sc2"><div class="sn2" style="color:var(--prog)">${inprog}</div><div class="sl2">In Progress</div></div>
     <div class="sc2"><div class="sn2" style="color:#fbbf24">${todo}</div><div class="sl2">Todo</div></div>
-    <div class="sc2"><div class="sn2" style="color:var(--block)">${blocked}</div><div class="sl2">Blocked</div></div>`;
+    <div class="sc2"><div class="sn2" style="color:var(--block)">${blocked}</div><div class="sl2">Blocked</div></div>
+    <div class="sc2${streakGold}"><div class="sn2" style="color:#fbbf24">🔥 ${streak}</div><div class="sl2">Day Streak</div></div>`;
   document.getElementById('ov-pillars').innerHTML=Object.entries(PILLARS).map(([k,p])=>{
     const tasks=ct.filter(t=>t.pillar===k);
     const d=tasks.filter(t=>t.status==='done').length;
@@ -652,6 +697,10 @@ function renderOverview(){
       <div class="pcard-sub">${pct}% complete</div>
     </div>`;
   }).join('');
+  renderBurnDown();
+  renderStakesCard();
+  renderBlockerBanner();
+  renderStaleSection();
   const goals=ct.filter(t=>t.isGoal);
   document.getElementById('ov-goals').innerHTML=goals.length?goals.map(t=>goalHTML(t)).join(''):'<div class="empty">No sprint goals yet. Add one!</div>';
 }
@@ -689,6 +738,13 @@ function renderPillar(p){
         <button class="ftab" onclick="setPFilter('role','collaborator','${p}',this)">🤝 Collab</button>
         <button class="ftab" onclick="setPFilter('role','shared','${p}',this)">🔗 Shared</button>
       </div>
+      <div class="ftabs" id="pf-energy-${p}" style="margin-bottom:0;">
+        <button class="ftab active" onclick="setPEnergyFilter('all','${p}',this)">All</button>
+        <button class="ftab" onclick="setPEnergyFilter('deep','${p}',this)">🧠 Deep</button>
+        <button class="ftab" onclick="setPEnergyFilter('quick','${p}',this)">⚡ Quick</button>
+        <button class="ftab" onclick="setPEnergyFilter('comms','${p}',this)">📞 Comms</button>
+        <button class="ftab" onclick="setPEnergyFilter('admin','${p}',this)">🔄 Admin</button>
+      </div>
     </div>
     <div id="plist-${p}">${subtasks.length?subtasks.map(t=>taskHTML(t)).join(''):'<div class="empty">No tasks yet for this pillar.</div>'}</div>
   `;
@@ -704,9 +760,11 @@ function setPFilter(type,val,pillar,el){
 }
 function applyPFilter(pillar){
   const f=pillarFilters[pillar]||{status:'all',role:'all'};
+  const ef=pillarEnergyFilters[pillar]||'all';
   let tasks=curTasks().filter(t=>t.pillar===pillar&&!t.isGoal);
   if(f.status!=='all')tasks=tasks.filter(t=>t.status===f.status);
   if(f.role!=='all')tasks=tasks.filter(t=>(t.role||'owner')===f.role);
+  if(ef!=='all')tasks=tasks.filter(t=>(t.energy||'deep')===ef);
   document.getElementById('plist-'+pillar).innerHTML=tasks.length?tasks.map(t=>taskHTML(t)).join(''):'<div class="empty">No tasks matching this filter.</div>';
 }
 
@@ -788,26 +846,38 @@ function roleBadge(role){
   return`<span class="badge role-owner">🙋 Owner</span>`;
 }
 
+// ── ENERGY BADGE ─────────────────────────────────────────────────
+function energyBadge(energy){
+  const map={deep:['🧠','eng-deep','Deep'],quick:['⚡','eng-quick','Quick'],comms:['📞','eng-comms','Comms'],admin:['🔄','eng-admin','Admin']};
+  const e=map[energy];
+  if(!e)return'';
+  return`<span class="badge ${e[1]}">${e[0]} ${e[2]}</span>`;
+}
+
 // ── TASK HTML ─────────────────────────────────────────────────────
 function taskHTML(t){
   const P=PILLARS[t.pillar];
   const hasProg=t.target&&t.target>0;
   const pct=hasProg?Math.min(100,Math.round((t.current||0)/t.target*100)):0;
   const goalClass=t.isGoal?' is-goal':'';
+  const na=t.nextAction?`<div class="next-action-line">→ ${t.nextAction.slice(0,45)}${t.nextAction.length>45?'…':''}</div>`:'';
   return`<div class="tc2 fi ${t.status==='done'?'done-t':''}${goalClass}" onclick="openEdit('${t.id}')">
     <div class="ck2 ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${t.status==='done'?'<span style="color:#fff;font-size:9px;">✓</span>':''}</div>
     <div class="tb2">
       <div class="tt2">${t.title}</div>
+      ${na}
       <div class="tm2">
         ${t.isGoal?`<span class="badge" style="background:rgba(59,130,246,.15);color:var(--accent);">🎯 Goal</span>`:''}
         <span class="badge ${STATUS[t.status]?.cls||'st-todo'}">${STATUS[t.status]?.l||'Todo'}</span>
         <span class="badge ${PRI[t.priority]?.cls||'pri-med'}">${t.priority||'medium'}</span>
+        ${t.energy?energyBadge(t.energy):''}
         ${roleBadge(t.role||'owner')}
         ${hasProg?`<span style="font-size:11px;color:${P.hex};font-weight:600;">${t.current||0}/${t.target}</span>`:''}
         ${t.assignee?`<span style="font-size:11px;color:var(--muted);">👤 ${t.assignee}</span>`:''}
       </div>
       ${hasProg?`<div style="height:3px;background:var(--border);border-radius:2px;margin-top:5px;"><div style="height:100%;border-radius:2px;background:${P.hex};width:${pct}%;transition:width .3s;"></div></div>`:''}
     </div>
+    <button class="btn bg sm" style="flex-shrink:0;padding:3px 7px;font-size:14px;" title="Focus Timer" onclick="event.stopPropagation();startFocus('${t.id}')">▶</button>
   </div>`;
 }
 
@@ -817,6 +887,7 @@ function openAdd(pillar='growth',sprint='current',isGoal=false){
   document.getElementById('tm-title').textContent='Add Task';
   document.getElementById('t-title').value='';
   document.getElementById('t-notes').value='';
+  document.getElementById('t-nextaction').value='';
   document.getElementById('t-pillar').value=pillar||'growth';
   document.getElementById('t-sprint').value=sprint;
   document.getElementById('t-status').value='todo';
@@ -826,6 +897,7 @@ function openAdd(pillar='growth',sprint='current',isGoal=false){
   document.getElementById('t-assignee').value='';
   document.getElementById('t-isgoal').value=isGoal?'true':'false';
   document.getElementById('t-role').value='owner';
+  document.getElementById('t-energy').value='deep';
   document.getElementById('del-btn').style.display='none';
   document.getElementById('tm').classList.remove('hidden');
   document.getElementById('t-title').focus();
@@ -836,6 +908,7 @@ function openEdit(id){
   document.getElementById('tm-title').textContent='Edit Task';
   document.getElementById('t-title').value=t.title;
   document.getElementById('t-notes').value=t.notes||'';
+  document.getElementById('t-nextaction').value=t.nextAction||'';
   document.getElementById('t-pillar').value=t.pillar;
   document.getElementById('t-sprint').value=t.sprint;
   document.getElementById('t-status').value=t.status;
@@ -845,6 +918,7 @@ function openEdit(id){
   document.getElementById('t-assignee').value=t.assignee||'';
   document.getElementById('t-isgoal').value=t.isGoal?'true':'false';
   document.getElementById('t-role').value=t.role||'owner';
+  document.getElementById('t-energy').value=t.energy||'deep';
   document.getElementById('del-btn').style.display='block';
   document.getElementById('tm').classList.remove('hidden');
   document.getElementById('t-title').focus();
@@ -852,24 +926,66 @@ function openEdit(id){
 function saveTask(){
   const title=document.getElementById('t-title').value.trim();
   if(!title){alert('Enter a task title.');return;}
+  const newStatus=document.getElementById('t-status').value;
   const d={
     title,
     notes:document.getElementById('t-notes').value,
+    nextAction:document.getElementById('t-nextaction').value,
     pillar:document.getElementById('t-pillar').value,
     sprint:document.getElementById('t-sprint').value,
-    status:document.getElementById('t-status').value,
+    status:newStatus,
     priority:document.getElementById('t-pri').value,
     target:parseInt(document.getElementById('t-target').value)||null,
     current:parseInt(document.getElementById('t-current').value)||0,
     assignee:document.getElementById('t-assignee').value,
     isGoal:document.getElementById('t-isgoal').value==='true',
-    role:document.getElementById('t-role').value||'owner'
+    role:document.getElementById('t-role').value||'owner',
+    energy:document.getElementById('t-energy').value||'deep'
   };
-  if(editId){const i=S.tasks.findIndex(t=>t.id===editId);S.tasks[i]={...S.tasks[i],...d};}
-  else S.tasks.push({id:uid(),...d,createdAt:new Date().toISOString(),completedAt:null});
+  if(editId){
+    const i=S.tasks.findIndex(t=>t.id===editId);
+    const old=S.tasks[i];
+    if(newStatus==='done'&&old.status!=='done')d.completedAt=new Date().toISOString();
+    else if(newStatus!=='done')d.completedAt=null;
+    S.tasks[i]={...old,...d};
+  } else {
+    S.tasks.push({id:uid(),...d,createdAt:new Date().toISOString(),completedAt:newStatus==='done'?new Date().toISOString():null});
+  }
   save();closeM('tm');refresh();
 }
-function delCur(){if(!editId||!confirm('Delete?'))return;S.tasks=S.tasks.filter(t=>t.id!==editId);save();closeM('tm');refresh();}
+function delCur(){
+  if(!editId)return;
+  const t=S.tasks.find(x=>x.id===editId);
+  if(!t)return;
+  showDeleteReasonPrompt(t);
+}
+function showDeleteReasonPrompt(t){
+  const reasons=['Done elsewhere','Not relevant','Delegated','Scope change'];
+  const existing=document.getElementById('del-reason-modal');
+  if(existing)existing.remove();
+  const mo=document.createElement('div');
+  mo.id='del-reason-modal';
+  mo.className='mo';
+  mo.innerHTML=`<div class="md" style="width:360px;">
+    <div class="mh"><h3>Why deleting?</h3><button class="mc" onclick="document.getElementById('del-reason-modal').remove()">×</button></div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Task: "${t.title.slice(0,60)}${t.title.length>60?'...':''}"</p>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      ${reasons.map(r=>`<button class="btn bg" style="justify-content:flex-start;" onclick="confirmDel('${t.id}','${r}')">${r}</button>`).join('')}
+    </div>
+    <div class="mf"><button class="btn bg" onclick="document.getElementById('del-reason-modal').remove()">Cancel</button></div>
+  </div>`;
+  document.body.appendChild(mo);
+}
+function confirmDel(taskId,reason){
+  const t=S.tasks.find(x=>x.id===taskId);
+  if(t){
+    if(!S.decisionLog)S.decisionLog=[];
+    S.decisionLog.push({taskId,title:t.title,reason,date:new Date().toISOString()});
+    S.tasks=S.tasks.filter(x=>x.id!==taskId);
+  }
+  const mo=document.getElementById('del-reason-modal');if(mo)mo.remove();
+  save();closeM('tm');refresh();
+}
 function toggleDone(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
   t.status=t.status==='done'?'todo':'done';
@@ -879,6 +995,10 @@ function toggleDone(id){
 }
 function moveSprint(id,sprint){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  if(sprint==='backlog'&&t.sprint==='current'){
+    if(!S.decisionLog)S.decisionLog=[];
+    S.decisionLog.push({taskId:id,title:t.title,reason:'Moved to backlog',date:new Date().toISOString()});
+  }
   t.sprint=sprint;save();refresh();
 }
 
@@ -912,7 +1032,9 @@ function seed(){
   const mk=(title,pillar,sprint,status,pri,isGoal,target,current,notes,assignee)=>({
     id:uid(),title,notes:notes||'',pillar,sprint,status,priority:pri,
     target:target||null,current:current||0,assignee:assignee||'',isGoal:!!isGoal,
-    role:'owner',createdAt:now,completedAt:status==='done'?now:null
+    role:'owner',createdAt:now,completedAt:status==='done'?now:null,
+    energy: isGoal||pri==='high'?'deep': pri==='low'?'quick':'deep',
+    nextAction:''
   });
   S.tasks=[
     // ── SPRINT GOALS ──────────────────────────────────────────────
@@ -1165,12 +1287,57 @@ function renderStats(){
       return`<div class="trend-item"><span class="trend-date">${fd(t.completedAt)}</span><span style="color:${P?.hex||'var(--text)'}">${P?.e||''}</span><span>${t.title}</span></div>`;
     }).join('')
     :'<div class="empty">No completed tasks yet.</div>';
+  renderWinsTimeline();
+}
+function renderWinsTimeline(){
+  const tl=document.getElementById('wins-timeline');
+  if(!tl)return;
+  const wins=(S.sprintWins||[]).slice(-3).reverse();
+  if(!wins.length){tl.innerHTML='<div style="font-size:12px;color:var(--muted);margin-top:10px;">No sprint wins logged yet.</div>';return;}
+  tl.innerHTML=wins.map(w=>`<div class="win-sprint">
+    <div class="win-sprint-name">🏆 ${w.sprintName} <span style="font-size:10px;color:var(--muted);font-weight:400;">${fd(w.date)}</span></div>
+    ${w.wins.filter(Boolean).map((wt,i)=>`<div class="win-entry"><span style="color:var(--accent);">${i+1}.</span><span>${wt}</span></div>`).join('')}
+  </div>`).join('');
+}
+function saveSprintWins(){
+  const w1=document.getElementById('sw-win1')?.value.trim();
+  const w2=document.getElementById('sw-win2')?.value.trim();
+  const w3=document.getElementById('sw-win3')?.value.trim();
+  if(!w1&&!w2&&!w3){alert('Enter at least one win!');return;}
+  if(!S.sprintWins)S.sprintWins=[];
+  S.sprintWins.push({sprintName:S.sprint.name,wins:[w1,w2,w3].filter(Boolean),date:new Date().toISOString()});
+  save();renderWinsTimeline();
+  document.getElementById('sw-win1').value='';
+  document.getElementById('sw-win2').value='';
+  document.getElementById('sw-win3').value='';
 }
 
 // ── AI VIEW ───────────────────────────────────────────────────────
 function renderAI(){
   const keyInput=document.getElementById('ai-key');
   if(keyInput&&S.claudeKey)keyInput.value=S.claudeKey;
+  renderDecisionLog();
+}
+function renderDecisionLog(){
+  const sec=document.getElementById('decision-log-section');
+  if(!sec)return;
+  const log=(S.decisionLog||[]).slice(-15).reverse();
+  sec.innerHTML=`<div class="dec-collapsible" onclick="toggleDecLog(this)">📋 Decision Log <span style="font-size:12px;font-weight:400;color:var(--muted);">(${log.length} entries)</span><span id="dec-arrow">▶</span></div>
+  <div class="dec-body" id="dec-body-inner" style="display:none;">
+    ${log.length?log.map(e=>`<div class="dec-item">
+      <span style="color:var(--muted);width:80px;flex-shrink:0;">${fd(e.date)}</span>
+      <span style="flex:1;">${e.title.slice(0,50)}${e.title.length>50?'…':''}</span>
+      <span class="badge st-todo" style="flex-shrink:0;">${e.reason}</span>
+    </div>`).join(''):'<div class="dec-item" style="color:var(--muted);">No decisions logged yet.</div>'}
+  </div>`;
+}
+function toggleDecLog(el){
+  const body=document.getElementById('dec-body-inner');
+  const arrow=document.getElementById('dec-arrow');
+  if(!body)return;
+  const open=body.style.display==='block';
+  body.style.display=open?'none':'block';
+  if(arrow)arrow.textContent=open?'▶':'▼';
 }
 function saveAIKey(){
   const val=document.getElementById('ai-key').value.trim();
@@ -1242,6 +1409,405 @@ async function aiSuggestTasks(){
   st.style.display='none';
 }
 
+// ── BURN-DOWN CHART (Feature 2) ───────────────────────────────────
+function renderBurnDown(){
+  const area=document.getElementById('burndown-area');
+  if(!area)return;
+  const ct=curTasks();
+  if(!ct.length){area.innerHTML='';return;}
+  const start=new Date(S.sprint.start);
+  const end=new Date(S.sprint.end);
+  const totalDays=Math.max(1,Math.ceil((end-start)/(86400000)));
+  const totalTasks=ct.length;
+  // Build array of days
+  const days=[];
+  for(let i=0;i<=totalDays;i++){
+    const d=new Date(start.getTime()+i*86400000);
+    days.push(d);
+  }
+  // Ideal line: from totalTasks down to 0
+  const idealPts=days.map((_,i)=>totalTasks-Math.round(totalTasks*(i/totalDays)));
+  // Actual: for each day, count tasks not done or completed after that day's end
+  const actualPts=days.map(d=>{
+    const dayEnd=new Date(d);dayEnd.setHours(23,59,59,999);
+    return ct.filter(t=>t.status!=='done'||new Date(t.completedAt)>dayEnd).length;
+  });
+  const today=new Date();
+  const todayIdx=Math.min(totalDays,Math.max(0,Math.ceil((today-start)/86400000)));
+  // SVG dimensions
+  const W=600,H=120,PL=40,PR=10,PT=10,PB=30;
+  const gW=W-PL-PR,gH=H-PT-PB;
+  const xScale=i=>PL+gW*(i/totalDays);
+  const yScale=v=>PT+gH*(1-v/Math.max(1,totalTasks));
+  // Build polyline points
+  const idealLine=idealPts.map((v,i)=>`${xScale(i)},${yScale(v)}`).join(' ');
+  const actualLine=actualPts.slice(0,todayIdx+1).map((v,i)=>`${xScale(i)},${yScale(v)}`).join(' ');
+  const todayX=xScale(todayIdx);
+  // X axis labels
+  let xLabels='';
+  [0,Math.floor(totalDays/2),totalDays].forEach(i=>{
+    const d=days[i];
+    const lbl=d?(d.toLocaleDateString('en-US',{month:'short',day:'numeric'})):'';
+    xLabels+=`<text x="${xScale(i)}" y="${H-4}" fill="#4e6180" font-size="9" text-anchor="middle">${lbl}</text>`;
+  });
+  // Y axis labels
+  let yLabels='';
+  [0,Math.round(totalTasks/2),totalTasks].forEach(v=>{
+    yLabels+=`<text x="${PL-4}" y="${yScale(v)+3}" fill="#4e6180" font-size="9" text-anchor="end">${v}</text>`;
+  });
+  area.innerHTML=`<div class="burndown-wrap">
+    <div class="burndown-title">Burn-Down
+      <div class="bd-legend">
+        <span class="bd-legend-item"><svg width="20" height="8"><line x1="0" y1="4" x2="20" y2="4" stroke="#4e6180" stroke-width="1.5" stroke-dasharray="4,2"/></svg> Ideal</span>
+        <span class="bd-legend-item"><svg width="20" height="8"><line x1="0" y1="4" x2="20" y2="4" stroke="var(--accent)" stroke-width="2"/></svg> Actual</span>
+      </div>
+    </div>
+    <svg width="100%" viewBox="0 0 ${W} ${H}" style="height:140px;">
+      <line x1="${PL}" y1="${PT}" x2="${PL}" y2="${H-PB}" stroke="#1c2d47" stroke-width="1"/>
+      <line x1="${PL}" y1="${H-PB}" x2="${W-PR}" y2="${H-PB}" stroke="#1c2d47" stroke-width="1"/>
+      ${yLabels}${xLabels}
+      <polyline points="${idealLine}" fill="none" stroke="#4e6180" stroke-width="1.5" stroke-dasharray="5,3"/>
+      ${actualLine?`<polyline points="${actualLine}" fill="none" stroke="var(--accent)" stroke-width="2"/>`:''}
+      <line x1="${todayX}" y1="${PT}" x2="${todayX}" y2="${H-PB}" stroke="#3b82f6" stroke-width="1" stroke-dasharray="3,3" opacity=".6"/>
+      <text x="${todayX+3}" y="${PT+10}" fill="#3b82f6" font-size="8">Today</text>
+    </svg>
+  </div>`;
+}
+
+// ── BLOCKER BANNER (Feature 3) ────────────────────────────────────
+function renderBlockerBanner(){
+  const area=document.getElementById('blocker-banner-area');
+  if(!area)return;
+  if(sessionStorage.getItem('gl_blockers_dismissed')){area.innerHTML='';return;}
+  const now=Date.now();
+  const fiveDays=5*24*60*60*1000;
+  const ct=curTasks();
+  const blockers=ct.filter(t=>{
+    if(t.status==='blocked')return true;
+    if(t.status==='in-progress'&&(now-new Date(t.createdAt).getTime())>fiveDays)return true;
+    return false;
+  });
+  if(!blockers.length){area.innerHTML='';return;}
+  const items=blockers.map(t=>{
+    const isBlocked=t.status==='blocked';
+    const P=PILLARS[t.pillar];
+    return`<div class="blocker-item">
+      <span>${isBlocked?'🔴':'🟡'}</span>
+      <span style="flex:1;">${t.title.slice(0,60)}${t.title.length>60?'…':''}</span>
+      <span class="badge" style="background:rgba(255,255,255,.05);color:${P?.hex||'var(--text)'};">${P?.e||''} ${P?.l||''}</span>
+      <button class="btn bg sm" onclick="event.stopPropagation();openEdit('${t.id}')">🔓 Unblock</button>
+      <button class="btn bg sm" onclick="event.stopPropagation();aiUnblock('${t.id}')">Ask AI</button>
+    </div>`;
+  }).join('');
+  area.innerHTML=`<div class="blocker-banner">
+    <div class="blocker-banner-title">⚠️ ${blockers.length} Blocked / Stuck Task${blockers.length>1?'s':''}
+      <button class="btn bg sm" style="margin-left:8px;float:right;" onclick="sessionStorage.setItem('gl_blockers_dismissed','1');renderBlockerBanner();">Dismiss</button>
+    </div>
+    ${items}
+  </div>`;
+}
+async function aiUnblock(taskId){
+  const t=S.tasks.find(x=>x.id===taskId);
+  if(!t)return;
+  if(!S.claudeKey){nav('ai');alert('Please enter your Claude API key in the AI view first.');return;}
+  const P=PILLARS[t.pillar];
+  const out=document.getElementById('ai-output');
+  const st=document.getElementById('ai-status');
+  nav('ai');
+  out.style.display='block';out.className='ai-panel';out.textContent='Thinking…';
+  st.style.display='block';st.textContent='Calling Claude…';
+  try{
+    const prompt=`You are a productivity coach. This task is blocked or stuck:\n\nTitle: "${t.title}"\nPillar: ${P?.l||t.pillar}\nStatus: ${t.status}\nNotes: ${t.notes||'none'}\nPriority: ${t.priority}\n\nSuggest 3-5 specific, actionable strategies to unblock this task. Be concise and practical.`;
+    const res=await callClaude(prompt);
+    out.textContent=res||'No response.';
+  }catch(e){out.textContent='Error: '+e.message;}
+  st.style.display='none';
+}
+
+// ── STALE TASKS SECTION (Feature 11) ─────────────────────────────
+function renderStaleSection(){
+  const area=document.getElementById('stale-area');
+  if(!area)return;
+  const now=Date.now();
+  const fiveDays=5*24*60*60*1000;
+  const staleTasks=curTasks().filter(t=>{
+    if(t.status==='done')return false;
+    return t.priority==='high'&&t.status==='todo'&&(now-new Date(t.createdAt).getTime())>fiveDays;
+  });
+  const staleEl=document.getElementById('cnt-stale');
+  if(staleEl)staleEl.textContent=staleTasks.length||'';
+  if(!staleTasks.length){area.innerHTML='';return;}
+  area.innerHTML=`<div class="stale-section">
+    <div class="stale-title" onclick="toggleStale(this)">⚠️ Needs Attention (${staleTasks.length}) <span>▶</span></div>
+    <div id="stale-list" style="display:none;margin-top:10px;">
+      ${staleTasks.map(t=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid rgba(251,191,36,.15);font-size:12px;">
+        <span style="flex:1;">${t.title.slice(0,55)}${t.title.length>55?'…':''}</span>
+        <span style="color:var(--muted);font-size:10px;">${PILLARS[t.pillar]?.e||''}</span>
+        <button class="btn bg sm" onclick="openEdit('${t.id}')">Review →</button>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+function toggleStale(el){
+  const list=document.getElementById('stale-list');
+  if(!list)return;
+  const open=list.style.display==='block';
+  list.style.display=open?'none':'block';
+  const arr=el.querySelector('span');
+  if(arr)arr.textContent=open?'▶':'▼';
+}
+
+// ── STAKES CARD (Feature 13) ──────────────────────────────────────
+function renderStakesCard(){
+  const area=document.getElementById('stakes-area');
+  if(!area)return;
+  const raw=localStorage.getItem('taskos');
+  if(!raw){area.innerHTML='';return;}
+  let data;
+  try{data=JSON.parse(raw);}catch{area.innerHTML='';return;}
+  const goals=(data.goals||[]).filter(g=>g.isTop3&&g.stake);
+  if(!goals.length){area.innerHTML='';return;}
+  const today=new Date();today.setHours(0,0,0,0);
+  const items=goals.map(g=>{
+    let daysUntil=null;
+    let overdue=false;
+    if(g.deadline){
+      const dl=new Date(g.deadline);dl.setHours(0,0,0,0);
+      daysUntil=Math.ceil((dl-today)/86400000);
+      overdue=daysUntil<0&&(g.status!=='done'&&!g.isCompleted);
+    }
+    const done=g.status==='done'||g.isCompleted;
+    return`<div class="stakes-item ${overdue?'stakes-overdue':''}">
+      <span>${done?'✅':'🎯'}</span>
+      <div style="flex:1;">
+        <div style="font-weight:600;">${(g.title||g.text||'').slice(0,50)}</div>
+        <div style="color:var(--muted);font-size:10px;margin-top:1px;">Stakes: ${(g.stake||'').slice(0,60)}</div>
+        ${daysUntil!==null?`<div style="font-size:10px;margin-top:1px;${overdue?'color:#ef4444;font-weight:700;':'color:var(--muted);'}">
+          ${overdue?'OVERDUE by '+Math.abs(daysUntil)+' days':'Deadline in '+daysUntil+' day'+(daysUntil!==1?'s':'')}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  area.innerHTML=`<div class="stakes-card"><div style="font-size:13px;font-weight:600;margin-bottom:8px;">🎯 Stakes (from Task OS)</div>${items}</div>`;
+}
+
+// ── EVENING CHECK-IN BUTTON (Feature 1) ──────────────────────────
+function renderEveningCheckinBtn(){
+  const btn=document.getElementById('evening-checkin-btn');
+  if(!btn)return;
+  const hour=new Date().getHours();
+  const today=new Date().toISOString().slice(0,10);
+  if(hour>=18&&(S.lastMorningDate===today)&&(S.lastEveningDate!==today)){
+    btn.style.display='inline-block';
+    btn.innerHTML=`<button class="btn bg sm" onclick="openEveningModal()" style="border-color:rgba(251,191,36,.4);color:#fbbf24;">📝 Evening Check-in</button>`;
+  } else {
+    btn.style.display='none';
+    btn.innerHTML='';
+  }
+}
+
+// ── MORNING MODAL (Feature 1) ─────────────────────────────────────
+function checkMorningModal(){
+  const today=new Date().toISOString().slice(0,10);
+  const hour=new Date().getHours();
+  if(hour>=5&&S.lastMorningDate!==today){
+    openMorningModal();
+  }
+}
+function openMorningModal(){
+  const today=new Date().toISOString().slice(0,10);
+  const ct=curTasks().filter(t=>t.status!=='done');
+  ct.sort((a,b)=>{const po={high:0,medium:1,low:2};return(po[a.priority]||1)-(po[b.priority]||1);});
+  const opts=ct.map(t=>`<option value="${t.id}">[${t.priority}] ${t.title.slice(0,55)}</option>`).join('');
+  const pct=Math.round(doneCount()/Math.max(1,curTasks().length)*100);
+  const existing=document.getElementById('morning-modal');
+  if(existing)existing.remove();
+  const mo=document.createElement('div');
+  mo.id='morning-modal';
+  mo.className='mo';
+  const hour=new Date().getHours();
+  const deepNote=hour<12?'<div style="font-size:12px;color:#a78bfa;margin-top:6px;">🧠 It\'s morning — start with Deep Work tasks</div>':'';
+  mo.innerHTML=`<div class="morning-md">
+    <div class="mh"><h3>🌅 Morning Activation</h3><button class="mc" onclick="document.getElementById('morning-modal').remove()">×</button></div>
+    <div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:16px;">
+      <div style="font-size:13px;font-weight:700;color:var(--accent);">${S.sprint.name}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px;">${daysLeft()} days left · ${pct}% complete</div>
+      ${deepNote}
+    </div>
+    <h3 style="margin-bottom:10px;">Your Top 3 Commitments for Today</h3>
+    <div class="fg"><label>Commitment 1</label><select class="fc" id="mc-t1">${opts}</select></div>
+    <div class="fg"><label>Commitment 2</label><select class="fc" id="mc-t2">${opts}</select></div>
+    <div class="fg"><label>Commitment 3</label><select class="fc" id="mc-t3">${opts}</select></div>
+    <div class="fg"><label>Focus Theme for Today</label><input class="fc" id="mc-intention" placeholder="What's your focus theme for today?"></div>
+    <div class="mf">
+      <button class="btn bg" onclick="document.getElementById('morning-modal').remove()">Skip</button>
+      <button class="btn bp" onclick="saveMorning()">Start Sprint Day →</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);
+}
+function saveMorning(){
+  const today=new Date().toISOString().slice(0,10);
+  const getT=id=>{const v=document.getElementById(id)?.value;if(!v)return null;const t=S.tasks.find(x=>x.id===v);return t?{taskId:v,title:t.title}:null;};
+  const commits=[getT('mc-t1'),getT('mc-t2'),getT('mc-t3')].filter(Boolean);
+  S.lastMorningDate=today;
+  S.dailyCommitments=commits;
+  S.dailyIntention=document.getElementById('mc-intention')?.value||'';
+  if(!S.morningLog)S.morningLog=[];
+  S.morningLog.push({date:today,commitments:commits,intention:S.dailyIntention});
+  save();
+  const mo=document.getElementById('morning-modal');if(mo)mo.remove();
+  renderEveningCheckinBtn();
+}
+function openEveningModal(){
+  const today=new Date().toISOString().slice(0,10);
+  const commits=S.dailyCommitments||[];
+  const existing=document.getElementById('evening-modal');
+  if(existing)existing.remove();
+  const mo=document.createElement('div');
+  mo.id='evening-modal';
+  mo.className='mo';
+  const commitRows=commits.length?commits.map(c=>{
+    const t=S.tasks.find(x=>x.id===c.taskId);
+    const done=t&&t.status==='done';
+    return`<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;">
+      <span style="font-size:16px;">${done?'✅':'⬜'}</span>
+      <span style="${done?'text-decoration:line-through;opacity:.6':''}">${c.title}</span>
+    </div>`;
+  }).join(''):'<div style="font-size:12px;color:var(--muted);">No commitments recorded for today.</div>';
+  mo.innerHTML=`<div class="morning-md" style="width:480px;">
+    <div class="mh"><h3>🌙 Evening Check-in</h3><button class="mc" onclick="document.getElementById('evening-modal').remove()">×</button></div>
+    <h3 style="margin-bottom:10px;">Today's Commitments</h3>
+    <div style="margin-bottom:16px;">${commitRows}</div>
+    <div class="fg"><label>What got blocked today?</label><textarea class="fc" id="ev-blocked" placeholder="Any blockers or challenges you faced..."></textarea></div>
+    <div class="mf">
+      <button class="btn bg" onclick="document.getElementById('evening-modal').remove()">Cancel</button>
+      <button class="btn bp" onclick="saveEvening()">Save Evening Review</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);
+}
+function saveEvening(){
+  const today=new Date().toISOString().slice(0,10);
+  const blocked=document.getElementById('ev-blocked')?.value||'';
+  S.lastEveningDate=today;
+  if(!S.eveningLog)S.eveningLog=[];
+  // Check if all commitments done
+  const commits=S.dailyCommitments||[];
+  const allDone=commits.length>0&&commits.every(c=>{
+    const t=S.tasks.find(x=>x.id===c.taskId);
+    return t&&t.status==='done';
+  });
+  S.eveningLog.push({date:today,blocked,allCommitsDone:allDone});
+  // Update streak
+  calculateStreak(allDone,today);
+  save();
+  const mo=document.getElementById('evening-modal');if(mo)mo.remove();
+  renderEveningCheckinBtn();
+  renderOverview();
+}
+function calculateStreak(allDone,today){
+  if(allDone){
+    S.streak=(S.streak||0)+1;
+    if(S.streak>(S.longestStreak||0))S.longestStreak=S.streak;
+  } else {
+    S.streak=0;
+  }
+}
+
+// ── FOCUS TIMER (Feature 5) ───────────────────────────────────────
+let _focusTimer=null,_focusTaskId=null,_focusSeconds=1500,_focusPaused=true;
+function startFocus(taskId){
+  _focusTaskId=taskId;
+  _focusSeconds=1500;
+  _focusPaused=true;
+  const t=S.tasks.find(x=>x.id===taskId);
+  const P=t?PILLARS[t.pillar]:null;
+  const existing=document.getElementById('focus-modal');
+  if(existing)existing.remove();
+  if(_focusTimer)clearInterval(_focusTimer);
+  const mo=document.createElement('div');
+  mo.id='focus-modal';
+  mo.className='mo';
+  mo.innerHTML=`<div class="focus-md" id="focus-md-inner">
+    <div class="focus-task-title">${t?t.title.slice(0,60):'Focus'}</div>
+    <div class="focus-task-pillar">${P?P.e+' '+P.l:''}</div>
+    <div class="focus-time" id="focus-display">25:00</div>
+    <div id="focus-timesup" style="display:none;font-size:18px;margin-bottom:12px;">⏰ Time's up!</div>
+    <div class="row" style="justify-content:center;gap:8px;" id="focus-controls">
+      <button class="btn bp" onclick="toggleFocusPause()" id="focus-playbtn">▶ Start</button>
+      <button class="btn bg" onclick="resetFocus()">↩ Reset</button>
+      <button class="btn bg" onclick="document.getElementById('focus-modal').remove();if(_focusTimer)clearInterval(_focusTimer);">✕ Close</button>
+    </div>
+    <div class="row" style="justify-content:center;gap:8px;margin-top:8px;display:none;" id="focus-done-btns">
+      <button class="btn bp" onclick="focusMarkDone()">✓ Mark Done</button>
+      <button class="btn bg" onclick="focusAddFive()">➕ 5 more min</button>
+      <button class="btn bg" onclick="document.getElementById('focus-modal').remove();if(_focusTimer)clearInterval(_focusTimer);">Close</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mo);
+}
+function fmtTime(s){const m=Math.floor(s/60),sec=s%60;return String(m).padStart(2,'0')+':'+String(sec).padStart(2,'0');}
+function toggleFocusPause(){
+  _focusPaused=!_focusPaused;
+  const btn=document.getElementById('focus-playbtn');
+  if(btn)btn.textContent=_focusPaused?'▶ Resume':'⏸ Pause';
+  if(!_focusPaused){
+    _focusTimer=setInterval(tickFocus,1000);
+  } else {
+    clearInterval(_focusTimer);
+  }
+}
+function resetFocus(){
+  clearInterval(_focusTimer);
+  _focusPaused=true;
+  _focusSeconds=1500;
+  const disp=document.getElementById('focus-display');if(disp)disp.textContent='25:00';
+  const btn=document.getElementById('focus-playbtn');if(btn)btn.textContent='▶ Start';
+  const timesup=document.getElementById('focus-timesup');if(timesup)timesup.style.display='none';
+  const ctrl=document.getElementById('focus-controls');if(ctrl)ctrl.style.display='flex';
+  const done=document.getElementById('focus-done-btns');if(done)done.style.display='none';
+  const md=document.getElementById('focus-md-inner');if(md)md.classList.remove('done-flash');
+}
+function tickFocus(){
+  if(_focusPaused)return;
+  _focusSeconds--;
+  const disp=document.getElementById('focus-display');
+  if(disp)disp.textContent=fmtTime(_focusSeconds);
+  if(_focusSeconds<=0){
+    clearInterval(_focusTimer);
+    _focusPaused=true;
+    const md=document.getElementById('focus-md-inner');if(md)md.classList.add('done-flash');
+    const timesup=document.getElementById('focus-timesup');if(timesup)timesup.style.display='block';
+    const ctrl=document.getElementById('focus-controls');if(ctrl)ctrl.style.display='none';
+    const done=document.getElementById('focus-done-btns');if(done)done.style.display='flex';
+  }
+}
+function focusMarkDone(){
+  if(_focusTaskId)toggleDone(_focusTaskId);
+  const mo=document.getElementById('focus-modal');if(mo)mo.remove();
+}
+function focusAddFive(){
+  _focusSeconds=300;
+  _focusPaused=false;
+  const disp=document.getElementById('focus-display');if(disp)disp.textContent='05:00';
+  const timesup=document.getElementById('focus-timesup');if(timesup)timesup.style.display='none';
+  const ctrl=document.getElementById('focus-controls');if(ctrl)ctrl.style.display='flex';
+  const done=document.getElementById('focus-done-btns');if(done)done.style.display='none';
+  const btn=document.getElementById('focus-playbtn');if(btn)btn.textContent='⏸ Pause';
+  const md=document.getElementById('focus-md-inner');if(md)md.classList.remove('done-flash');
+  _focusTimer=setInterval(tickFocus,1000);
+}
+
+// ── PILLAR ENERGY FILTER (Feature 4) ─────────────────────────────
+// Energy filter is added to pillar views by extending renderPillar
+const pillarEnergyFilters={};
+function setPEnergyFilter(energy,pillar,el){
+  el.closest('.ftabs').querySelectorAll('.ftab').forEach(x=>x.classList.remove('active'));
+  el.classList.add('active');
+  pillarEnergyFilters[pillar]=energy;
+  applyPFilter(pillar);
+}
+
 // ── MOBILE ────────────────────────────────────────────────────────
 function toggleSB(){
   document.querySelector('.sb').classList.toggle('open');
@@ -1252,6 +1818,7 @@ function toggleSB(){
 load();seed();
 renderSprintBar();updateSidebar();
 renderOverview();
+checkMorningModal();
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 </script>
 </body>

@@ -438,6 +438,48 @@ select.fc option{background:var(--surface2);}
 /* ── NAV NOTIFICATION DOTS ───────────────────────────────────── */
 .nav-dot{width:8px;height:8px;background:var(--bw);border-radius:50%;display:inline-block;margin-left:4px;vertical-align:middle;}
 .nav-dot.hidden{display:none;}
+/* ── IDENTITY VIEW ───────────────────────────────────────────── */
+.identity-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:20px;margin-bottom:14px;transition:border-color .12s;}
+.identity-card:hover{border-color:var(--accent);}
+.identity-statement{font-size:18px;font-weight:700;color:var(--accent);font-style:italic;margin-bottom:8px;line-height:1.4;}
+.deep-why-toggle{font-size:12px;color:var(--accent);cursor:pointer;background:none;border:none;padding:0;margin-top:6px;}
+.deep-why-body{font-size:12px;color:var(--muted);line-height:1.6;margin-top:6px;padding:10px;background:var(--surface2);border-radius:6px;display:none;white-space:pre-wrap;}
+.deep-why-body.open{display:block;}
+/* ── IMPACT VIEW ─────────────────────────────────────────────── */
+.impact-stat{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;}
+.impact-stat-n{font-size:28px;font-weight:800;line-height:1;margin-bottom:4px;}
+.impact-stat-l{font-size:11px;color:var(--muted);}
+.milestone-badge{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,rgba(255,215,0,.15),rgba(255,169,77,.1));border:1px solid rgba(255,215,0,.4);border-radius:20px;padding:5px 14px;font-size:12px;font-weight:600;color:#ffd700;margin:3px;}
+/* ── ENERGY LOG VIEW ─────────────────────────────────────────── */
+.emoji-scale-row{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.emoji-scale-label{font-size:13px;min-width:120px;}
+.emoji-btn{font-size:22px;padding:4px 8px;border-radius:8px;border:2px solid transparent;cursor:pointer;background:none;transition:all .12s;line-height:1;}
+.emoji-btn:hover,.emoji-btn.sel{border-color:var(--accent);background:rgba(88,166,255,.1);}
+.energy-dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+.e-red{background:#ff6b6b;}.e-orange{background:#ffa94d;}.e-green{background:#69db7c;}
+/* ── RELATIONSHIPS VIEW ──────────────────────────────────────── */
+.person-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;margin-bottom:10px;transition:border-color .12s;}
+.person-card:hover{border-color:var(--accent);}
+.person-card.overdue{border-left:3px solid var(--bw);}
+.rel-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500;}
+.rel-mentor{background:rgba(204,93,232,.15);color:var(--cg);}
+.rel-close-friend{background:rgba(105,219,124,.15);color:var(--bb);}
+.rel-family{background:rgba(247,131,172,.15);color:var(--cb);}
+.rel-collaborator{background:rgba(88,166,255,.15);color:var(--accent);}
+.rel-network{background:rgba(134,142,150,.15);color:var(--muted);}
+/* ── LEARNING LIBRARY VIEW ───────────────────────────────────── */
+.learn-card{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:13px;margin-bottom:8px;}
+.learn-type-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500;background:var(--surface2);border:1px solid var(--border);}
+.learn-status-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:500;}
+.ls-to-read{background:rgba(134,142,150,.15);color:var(--muted);}
+.ls-reading{background:rgba(255,169,77,.15);color:var(--bm);}
+.ls-done{background:rgba(105,219,124,.15);color:var(--bb);}
+/* ── FUTURE SELF VIEW ────────────────────────────────────────── */
+.letter-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:12px;}
+.letter-preview{font-size:13px;color:var(--muted);line-height:1.6;margin-top:8px;font-style:italic;}
+.letter-full{white-space:pre-wrap;font-size:13px;line-height:1.8;margin-top:10px;padding:14px;background:var(--surface2);border-radius:8px;display:none;}
+.letter-full.open{display:block;}
+.unread-nudge{background:linear-gradient(135deg,rgba(88,166,255,.08),rgba(204,93,232,.08));border:1px solid rgba(88,166,255,.2);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;}
 </style>
 </head>
 <body>
@@ -506,11 +548,18 @@ select.fc option{background:var(--surface2);}
   <div class="ni" onclick="nav('trash')">🗑 Trash <span id="trash-badge"></span></div>
   <div class="ns">Planning</div>
   <div class="ni" onclick="nav('goals')">🏆 Goals</div>
+  <div class="ni" onclick="nav('identity')">🌟 Identity</div>
+  <div class="ni" onclick="nav('impact')">🌍 Impact</div>
+  <div class="ni" onclick="nav('futureself')">✉️ Future Self</div>
   <div class="ni" onclick="nav('reflect')">🪞 Reflections</div>
+  <div class="ns">Life Stack</div>
+  <div class="ni" onclick="nav('energy')">⚡ Energy</div>
+  <div class="ni" onclick="nav('relationships')">🤝 Relationships</div>
   <div class="ns">Knowledge & AI</div>
   <div class="ni" onclick="nav('wisdom')">📚 Wisdom Base</div>
   <div class="ni" onclick="nav('aicoach')">🤖 AI Coach</div>
   <div class="ni" onclick="nav('notes')">📝 Smart Notes</div>
+  <div class="ni" onclick="nav('learning')">📖 Learning</div>
   <div class="sidebar-footer">
     <a class="app-switch-btn" href="givelink.html">🟣 Switch to Sprint Board</a>
     <div class="ni" onclick="exportData()" style="margin:0;font-size:12px;">📤 Export Backup</div>
@@ -537,6 +586,10 @@ select.fc option{background:var(--surface2);}
   <div id="goal-alignment-widget"></div>
   <div id="givelink-widget"></div>
   <div id="recent-wins-widget"></div>
+  <div id="impact-dash-widget"></div>
+  <div id="energy-dash-widget"></div>
+  <div id="relationships-dash-widget"></div>
+  <div id="futureself-dash-widget"></div>
   <div id="dash-stale-hp-section"></div>
   <hr>
   <div class="energy-filter-row" id="energy-filter-row">
@@ -660,7 +713,14 @@ select.fc option{background:var(--surface2);}
       <div class="fg"><label>What to improve?</label><textarea class="fc" id="ri" placeholder="What would you do differently..."></textarea></div>
       <div class="fg"><label>Next week's focus (one sentence)</label><input class="fc" id="rf" placeholder="This week I will focus on..."></div>
       <button class="btn bp" onclick="saveReview()">💾 Save Review</button>
+      <button class="btn bg" style="margin-left:8px;" onclick="generateNarrativeSummary()">✨ Generate Narrative Summary</button>
     </div>
+  </div>
+  <div class="rs">
+    <h3><span class="sn2">5</span>Values Alignment Check</h3>
+    <div style="margin-top:12px;" id="review-values-check"></div>
+    <div class="fg" style="margin-top:12px;"><label>Where did I compromise my values, and why?</label><textarea class="fc" id="rv-compromise" placeholder="Be honest with yourself..."></textarea></div>
+    <div class="fg"><label>What would I do differently (regarding values)?</label><input class="fc" id="rv-diff" placeholder="Specific action aligned to values..."></div>
   </div>
   <hr>
   <h2>📚 Past Reviews</h2>
@@ -937,6 +997,108 @@ select.fc option{background:var(--surface2);}
   <div id="trash-list"></div>
 </div>
 
+<!-- IDENTITY -->
+<div id="v-identity" class="view">
+  <div class="ph"><div><h1>🌟 Identity Goals</h1><p class="sub">Who are you becoming? Your goals shaped by identity and deep purpose.</p></div></div>
+  <div id="identity-core-values" style="margin-bottom:20px;"></div>
+  <div id="identity-goals-list"></div>
+</div>
+
+<!-- IMPACT -->
+<div id="v-impact" class="view">
+  <div class="ph"><div><h1>🌍 Impact Tracker</h1><p class="sub">Transcendence metrics — measure your effect on the world.</p></div></div>
+  <div class="g4" style="margin-bottom:20px;" id="impact-stats"></div>
+  <div class="g2">
+    <div>
+      <h2>📊 Log Impact</h2>
+      <div class="card">
+        <div class="fg"><label>Date</label><input class="fc" id="imp-date" type="date"></div>
+        <div class="fg"><label>Metric</label>
+          <select class="fc" id="imp-metric">
+            <option value="donors_facilitated">🤝 Donors Facilitated</option>
+            <option value="dollars_moved">💰 Dollars Moved ($)</option>
+            <option value="nonprofits_served">🏛 Nonprofits Served</option>
+            <option value="communities_helped">🌐 Communities Helped</option>
+            <option value="people_impacted">👥 People Impacted (est.)</option>
+          </select>
+        </div>
+        <div class="fg"><label>Value</label><input class="fc" id="imp-value" type="number" placeholder="e.g. 5"></div>
+        <div class="fg"><label>Notes</label><input class="fc" id="imp-notes" placeholder="Context..."></div>
+        <button class="btn bp" onclick="logImpact()">+ Log Entry</button>
+      </div>
+      <div style="margin-top:18px;" id="impact-milestones"></div>
+    </div>
+    <div>
+      <h2>📋 Recent Entries</h2>
+      <div id="impact-log-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ENERGY LOG -->
+<div id="v-energy" class="view">
+  <div class="ph"><div><h1>⚡ Energy Log</h1><p class="sub">Track sleep, energy, and mood daily. Understand your patterns.</p></div></div>
+  <div id="energy-today-card" style="margin-bottom:20px;"></div>
+  <h2>📅 Last 30 Days</h2>
+  <div class="card" style="margin-bottom:20px;">
+    <div id="energy-chart"></div>
+  </div>
+  <div class="g2">
+    <div class="card" id="energy-insights"><h3>💡 Insights</h3></div>
+  </div>
+</div>
+
+<!-- RELATIONSHIPS -->
+<div id="v-relationships" class="view">
+  <div class="ph">
+    <div><h1>🤝 Relationships</h1><p class="sub">Stay in touch with the people who matter most.</p></div>
+    <button class="btn bp" onclick="openAddPerson()">+ Add Person</button>
+  </div>
+  <div id="rel-health-score" style="margin-bottom:14px;"></div>
+  <div id="relationships-list"></div>
+</div>
+
+<!-- LEARNING LIBRARY -->
+<div id="v-learning" class="view">
+  <div class="ph"><div><h1>📖 Learning Library</h1><p class="sub">All learning resources across your goals in one place.</p></div><button class="btn bp" onclick="openAddStandaloneLearn()">+ Add Item</button></div>
+  <div class="g3" style="margin-bottom:14px;" id="learning-stats"></div>
+  <div class="fb" id="learning-filter-bar">
+    <button class="fp active" onclick="setLearnFilter('all',this)">All</button>
+    <button class="fp" onclick="setLearnFilter('book',this)">📖 Books</button>
+    <button class="fp" onclick="setLearnFilter('course',this)">🎓 Courses</button>
+    <button class="fp" onclick="setLearnFilter('article',this)">📄 Articles</button>
+    <button class="fp" onclick="setLearnFilter('video',this)">🎬 Videos</button>
+    <button class="fp" onclick="setLearnFilter('podcast',this)">🎙 Podcasts</button>
+    <button class="fp" onclick="setLearnFilter('to-read',this)">📌 To Read</button>
+    <button class="fp" onclick="setLearnFilter('reading',this)">▶ Reading</button>
+    <button class="fp" onclick="setLearnFilter('done',this)">✅ Done</button>
+  </div>
+  <div id="learning-list"></div>
+</div>
+
+<!-- FUTURE SELF -->
+<div id="v-futureself" class="view">
+  <div class="ph"><div><h1>✉️ Future Self</h1><p class="sub">Letters from your future self. Read them often to stay on track.</p></div></div>
+  <div id="futureself-nudge"></div>
+  <div class="card" style="margin-bottom:20px;">
+    <h3 style="margin-bottom:14px;">✍️ Write a Letter</h3>
+    <div class="fg"><label>I am writing from</label>
+      <select class="fc" id="fl-years" style="width:auto;">
+        <option value="1">1 year from now</option>
+        <option value="3">3 years from now</option>
+        <option value="5">5 years from now</option>
+        <option value="10">10 years from now</option>
+      </select>
+    </div>
+    <div class="fg"><label>Your letter</label>
+      <textarea class="fc" id="fl-text" style="min-height:180px;" placeholder="Dear [name], It's [future year]. Here's what we achieved, who we became, and what we want you to know right now...&#10;&#10;We built something that mattered. We became someone worth becoming. Here's what I want you to focus on now..."></textarea>
+    </div>
+    <button class="btn bp" onclick="saveFutureLetter()">💾 Save Letter</button>
+  </div>
+  <h2>📬 Your Letters</h2>
+  <div id="future-letters-list"></div>
+</div>
+
 </main>
 
 <div id="toast"></div>
@@ -1051,7 +1213,24 @@ select.fc option{background:var(--surface2);}
     </div>
     <div class="fg"><label>Due Date <span style="color:var(--muted);font-weight:400;">(optional)</span></label><input class="fc" id="g-due" type="date"></div>
     <div class="fg"><label>Commitment Stake <span style="color:var(--muted);font-weight:400;">(optional)</span></label><input class="fc" id="g-stake" placeholder="If I don't achieve this by the deadline, I will..."></div>
+    <div class="fg"><label>🌟 Who am I becoming? <span style="color:var(--muted);font-weight:400;">(Identity)</span></label><input class="fc" id="g-identity" placeholder="e.g. A world-class networker who connects resources to impact"></div>
+    <div class="fg"><label>🔍 The Deep Why (3 levels down)</label><textarea class="fc" id="g-deep-why" placeholder="Why does this goal matter → why does THAT matter → why does THAT matter?"></textarea></div>
     <hr style="border:none;border-top:1px solid var(--border);margin:10px 0;">
+    <div class="fg">
+      <label style="display:flex;align-items:center;justify-content:space-between;">
+        <span>📚 Learning Resources</span>
+        <span style="font-size:11px;color:var(--muted);">Books, courses, articles</span>
+      </label>
+      <div id="g-learn-list" style="margin-bottom:8px;"></div>
+      <div class="st-add-row" style="flex-wrap:wrap;gap:4px;">
+        <input class="fc" id="g-learn-inp" placeholder="Title..." style="flex:2;min-width:120px;" onkeydown="if(event.key==='Enter'){event.preventDefault();addGoalLearnItem();}">
+        <select class="fc" id="g-learn-type" style="width:auto;font-size:12px;padding:5px 8px;">
+          <option value="book">📖 Book</option><option value="course">🎓 Course</option>
+          <option value="article">📄 Article</option><option value="video">🎬 Video</option><option value="podcast">🎙 Podcast</option>
+        </select>
+        <button class="btn bg sm" onclick="addGoalLearnItem()">+ Add</button>
+      </div>
+    </div>
     <div class="fg">
       <label style="display:flex;align-items:center;justify-content:space-between;">
         <span>Subtasks / Milestones</span>
@@ -1246,6 +1425,77 @@ select.fc option{background:var(--surface2);}
   </div>
 </div>
 
+<!-- PERSON MODAL -->
+<div class="mo hidden" id="person-modal">
+  <div class="md" style="width:480px;">
+    <div class="mh"><h3 id="person-modal-title">Add Person</h3><button class="mc" onclick="closeM('person-modal')">×</button></div>
+    <div class="fr">
+      <div class="fg"><label>Name *</label><input class="fc" id="pm-name" placeholder="e.g. John Smith"></div>
+      <div class="fg"><label>Emoji</label><input class="fc" id="pm-emoji" placeholder="😊" maxlength="2" style="font-size:22px;text-align:center;"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Relationship Type</label>
+        <select class="fc" id="pm-rel">
+          <option value="mentor">🧠 Mentor</option>
+          <option value="close-friend">💚 Close Friend</option>
+          <option value="family">❤️ Family</option>
+          <option value="collaborator">🤝 Collaborator</option>
+          <option value="network">🌐 Network</option>
+        </select>
+      </div>
+      <div class="fg"><label>Importance (1-3 ⭐)</label>
+        <select class="fc" id="pm-importance">
+          <option value="3">⭐⭐⭐ High</option>
+          <option value="2">⭐⭐ Medium</option>
+          <option value="1">⭐ Low</option>
+        </select>
+      </div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Cadence (every X days)</label><input class="fc" id="pm-cadence" type="number" placeholder="e.g. 30" min="1"></div>
+      <div class="fg"><label>Last Contact</label><input class="fc" id="pm-last-contact" type="date"></div>
+    </div>
+    <div class="fg"><label>Notes</label><textarea class="fc" id="pm-notes" placeholder="Context, how you met, things to remember..."></textarea></div>
+    <div class="mf">
+      <button class="btn bd sm" id="del-person-btn" style="margin-right:auto;display:none;" onclick="delCurPerson()">🗑 Delete</button>
+      <button class="btn bg" onclick="closeM('person-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveP()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- STANDALONE LEARNING MODAL -->
+<div class="mo hidden" id="learn-modal">
+  <div class="md" style="width:440px;">
+    <div class="mh"><h3 id="learn-modal-title">Add Learning Item</h3><button class="mc" onclick="closeM('learn-modal')">×</button></div>
+    <div class="fg"><label>Title *</label><input class="fc" id="lm-title" placeholder="e.g. Atomic Habits"></div>
+    <div class="fr">
+      <div class="fg"><label>Type</label>
+        <select class="fc" id="lm-type">
+          <option value="book">📖 Book</option>
+          <option value="course">🎓 Course</option>
+          <option value="article">📄 Article</option>
+          <option value="video">🎬 Video</option>
+          <option value="podcast">🎙 Podcast</option>
+        </select>
+      </div>
+      <div class="fg"><label>Status</label>
+        <select class="fc" id="lm-status">
+          <option value="to-read">📌 To Read</option>
+          <option value="reading">▶ Reading</option>
+          <option value="done">✅ Done</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label>Notes</label><textarea class="fc" id="lm-notes" placeholder="Key takeaways, why you want to read this..."></textarea></div>
+    <div class="mf">
+      <button class="btn bd sm" id="del-learn-btn" style="margin-right:auto;display:none;" onclick="delCurLearnItem()">🗑 Delete</button>
+      <button class="btn bg" onclick="closeM('learn-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveLearnItem()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- FOCUS MODAL -->
 <div class="mo hidden" id="focus-modal">
   <div class="md" style="width:400px;text-align:center;">
@@ -1278,7 +1528,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],reflections:{},wisdom:{books:[],principles:[]},profiles:[],seededGoalsV3:false,claudeKey:'',userName:'Panos',userEmoji:'🧑',lastMorningDate:'',lastEveningDate:'',dailyCommitments:[],dailyIntention:'',morningLog:[],eveningLog:[],streak:0,longestStreak:0,decisionLog:[]};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],reflections:{},wisdom:{books:[],principles:[]},profiles:[],seededGoalsV3:false,claudeKey:'',userName:'Panos',userEmoji:'🧑',lastMorningDate:'',lastEveningDate:'',dailyCommitments:[],dailyIntention:'',morningLog:[],eveningLog:[],streak:0,longestStreak:0,decisionLog:[],impactLog:[],energyLog:[],people:[],learningLibrary:[],futureLetters:[]};
 let editT=null,editG=null,editBook=null,editPrin=null,fCat='all',wTab='all',rTab='daily',draggedTaskId=null,pendingAiTasks=[];
 let _searchTimer=null;
 
@@ -1307,7 +1557,7 @@ function nav(v){
   document.getElementById('s-ov')?.classList.remove('open');
   document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
-function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,aicoach:renderAicoach,notes:renderNotes,wisdom:renderWisdom,reflect:renderReflect,trash:renderTrash,stats:renderStats,journal:renderJournal,archive:renderArchive})[v]?.();}
+function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,aicoach:renderAicoach,notes:renderNotes,wisdom:renderWisdom,reflect:renderReflect,trash:renderTrash,stats:renderStats,journal:renderJournal,archive:renderArchive,identity:renderIdentity,impact:renderImpact,energy:renderEnergy,relationships:renderRelationships,learning:renderLearning,futureself:renderFutureSelf})[v]?.();}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
 
 // ── ENERGY FILTER STATE ───────────────────────────────────────
@@ -1771,8 +2021,11 @@ function goalHTML(g){
         <button class="btn bg sm" style="font-size:10px;padding:2px 7px;" onclick="event.stopPropagation();aiGoalSuggest('${g.id}')">🤖</button>
       </div>
     </div>
+    ${g.identity?`<div style="font-size:12px;color:var(--accent);font-style:italic;margin-bottom:5px;line-height:1.4;">Becoming: ${esc(g.identity)}</div>`:''}
     ${g.description?`<div style="font-size:12px;color:var(--muted);margin-bottom:7px;line-height:1.4;">${esc(g.description)}</div>`:''}
     ${g.stake?`<div style="font-size:11px;color:var(--cf);margin-bottom:6px;line-height:1.4;">🎯 Stake: ${esc(g.stake)}</div>`:''}
+    ${g.deepWhy?`<div onclick="event.stopPropagation();this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'Why ▴':'Why ▾';" style="font-size:11px;color:var(--accent);cursor:pointer;margin-bottom:3px;">Why ▾</div><div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:6px;padding:7px 10px;background:var(--surface2);border-radius:6px;display:none;white-space:pre-wrap;">${esc(g.deepWhy)}</div>`:''}
+    ${(g.learningItems||[]).length?`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">${(g.learningItems||[]).map(li=>`<span class="learn-type-badge learn-status-badge ls-${li.status||'to-read'}" title="${esc(li.title)}">${{book:'📖',course:'🎓',article:'📄',video:'🎬',podcast:'🎙'}[li.type]||'📚'} ${esc(li.title.slice(0,20))}${li.status==='done'?' ✅':li.status==='reading'?' ▶':''}</span>`).join('')}</div>`:''}
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
       <span class="badge c${g.category[0]}">${c.e} ${c.l}</span>
       ${g.dueDate?`<span style="font-size:11px;color:var(--muted);">📅 ${fd(g.dueDate)}</span>`:''}
@@ -1798,15 +2051,60 @@ function renderReview(){
   const backlog=active().filter(t=>t.bucket==='backlog').slice(0,8);
   const wc=active().filter(t=>t.bucket==='this-week').length;
   document.getElementById('r-backlog').innerHTML=`<p style="font-size:12px;color:var(--muted);margin-bottom:10px;">This Week: ${wc}/10</p>`+(backlog.length?backlog.map(t=>`<div class="tc"><div class="tb"><div class="tt">${t.title}</div><div class="tm">${catB(t.category)}${eB(t)}</div></div><button class="btn bg sm" onclick="mvB('${t.id}','this-week')">→ This Week</button></div>`).join(''):'<div class="empty">Backlog empty.</div>');
+  // Values alignment step 5
+  const vcEl=document.getElementById('review-values-check');
+  if(vcEl){
+    vcEl.innerHTML=S.values.length?S.values.map((v,i)=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="flex:1;font-size:13px;">💎 ${esc(v)}</span>
+      <div style="display:flex;gap:4px;">${[1,2,3,4,5].map(n=>`<button class="emoji-btn" id="vr-${i}-${n}" onclick="setValueRating(${i},${n})" title="${n}/5">${n<=2?'⭐':'☆'}</button>`).join('')}</div>
+    </div>`).join(''):'<div style="font-size:12px;color:var(--muted);">No values set. Add values in Goals view.</div>';
+  }
   const rev=[...S.reviews].reverse().slice(0,5);
-  document.getElementById('past-reviews').innerHTML=rev.length?rev.map(r=>`<div class="card" style="margin-bottom:10px;"><div style="font-weight:600;margin-bottom:6px;">📅 Week of ${fd(r.weekOf)}</div>${r.focus?`<div style="font-size:12px;color:var(--muted);">Focus: ${r.focus}</div>`:''} ${r.wentWell?`<div style="font-size:12px;margin-top:5px;">✅ ${r.wentWell}</div>`:''}</div>`).join(''):'<div class="empty">No past reviews yet.</div>';
+  document.getElementById('past-reviews').innerHTML=rev.length?rev.map(r=>`<div class="card" style="margin-bottom:10px;cursor:default;">
+    <div style="font-weight:600;margin-bottom:6px;">📅 Week of ${fd(r.weekOf)}</div>
+    ${r.focus?`<div style="font-size:12px;color:var(--muted);">Focus: ${esc(r.focus)}</div>`:''}
+    ${r.wentWell?`<div style="font-size:12px;margin-top:5px;">✅ ${esc(r.wentWell)}</div>`:''}
+    ${r.valuesAlignment&&r.valuesAlignment.length?`<div style="margin-top:8px;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">💎 Values Alignment:</div>${r.valuesAlignment.map(va=>`<div style="font-size:12px;display:flex;align-items:center;gap:6px;margin-bottom:3px;"><span style="flex:1;">${esc(va.value)}</span><span style="color:var(--accent);">${'⭐'.repeat(va.rating||0)}</span></div>`).join('')}</div>`:''}
+    ${r.narrative?`<div style="margin-top:8px;"><button class="btn bg sm" onclick="this.nextElementSibling.classList.toggle('open');this.textContent=this.nextElementSibling.classList.contains('open')?'▴ Hide narrative':'📖 Read narrative';">📖 Read narrative</button><div class="letter-full" style="margin-top:8px;font-size:12px;">${esc(r.narrative)}</div></div>`:''}
+  </div>`).join(''):'<div class="empty">No past reviews yet.</div>';
+}
+// Value rating state for current review
+let _valueRatings={};
+function setValueRating(idx,n){
+  _valueRatings[idx]=n;
+  S.values.forEach((_,i)=>{
+    [1,2,3,4,5].forEach(k=>{const el=document.getElementById(`vr-${i}-${k}`);if(el)el.textContent=k<=(i===idx?n:(_valueRatings[i]||0))?'⭐':'☆';});
+  });
+  // Re-render just the row's stars
+  [1,2,3,4,5].forEach(k=>{const el=document.getElementById(`vr-${idx}-${k}`);if(el)el.textContent=k<=n?'⭐':'☆';});
 }
 
 function saveReview(){
   const wins=[document.getElementById('rwin1')?.value||'',document.getElementById('rwin2')?.value||'',document.getElementById('rwin3')?.value||''].filter(Boolean);
-  S.reviews.push({id:uid(),weekOf:new Date().toISOString(),wentWell:document.getElementById('rw').value,improve:document.getElementById('ri').value,focus:document.getElementById('rf').value,wins});
-  save();['rw','ri','rf','rwin1','rwin2','rwin3'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  const valuesAlignment=S.values.map((v,i)=>({value:v,rating:_valueRatings[i]||0}));
+  const reviewObj={id:uid(),weekOf:new Date().toISOString(),wentWell:document.getElementById('rw').value,improve:document.getElementById('ri').value,focus:document.getElementById('rf').value,wins,valuesAlignment,valuesCompromise:(document.getElementById('rv-compromise')||{}).value||'',valuesDiff:(document.getElementById('rv-diff')||{}).value||''};
+  S.reviews.push(reviewObj);
+  _valueRatings={};
+  save();['rw','ri','rf','rwin1','rwin2','rwin3','rv-compromise','rv-diff'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   renderReview();toast('✅ Weekly review saved!');
+}
+
+async function generateNarrativeSummary(){
+  const revs=S.reviews;if(!revs.length){alert('Save a review first.');return;}
+  const last=revs[revs.length-1];
+  const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
+  const doneTasks=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>wAgo).map(t=>t.title);
+  const goals=S.goals.filter(g=>g.isTop3).map(g=>g.title).join(', ');
+  const energyAvg=(()=>{const week=S.energyLog.filter(e=>new Date(e.date)>=wAgo);if(!week.length)return'N/A';return(week.reduce((s,e)=>s+(e.energy||3),0)/week.length).toFixed(1)+'/5';})();
+  const system='You are a personal development coach. Write a warm, insightful 3-paragraph narrative summary of someone\'s week. Be specific, inspiring, and human. Plain text only.';
+  const prompt=`Weekly data:\nTasks completed: ${doneTasks.slice(0,15).join('; ')||'None logged'}\nTop goals: ${goals||'None'}\nWent well: ${last.wentWell||'Not filled'}\nImprove: ${last.improve||'Not filled'}\nFocus next: ${last.focus||'Not filled'}\nWins: ${(last.wins||[]).join('; ')||'None'}\nEnergy avg: ${energyAvg}\nValues alignment: ${(last.valuesAlignment||[]).map(v=>v.value+': '+v.rating+'/5').join(', ')||'Not rated'}\n\nWrite 3 paragraphs: 1) What happened this week and what it means, 2) Patterns and what's working, 3) An inspiring close with specific next-step focus.`;
+  const btn=document.querySelector('[onclick="generateNarrativeSummary()"]');
+  if(btn){btn.textContent='⏳ Generating...';btn.disabled=true;}
+  const result=await callClaude(system,prompt,800);
+  if(btn){btn.textContent='✨ Generate Narrative Summary';btn.disabled=false;}
+  if(!result)return;
+  revs[revs.length-1].narrative=result;
+  save();renderReview();toast('Narrative generated!');
 }
 
 // ── TASK CARD HTML ────────────────────────────────────────────
@@ -1990,7 +2288,27 @@ function addT3(id){
 function rmT3(id){const t=S.tasks.find(x=>x.id===id);if(!t)return;t.isT3=false;t.t3s=null;save();refresh();}
 
 // ── GOALS CRUD ────────────────────────────────────────────────
-let _editGSubtasks=null;
+let _editGSubtasks=null,_editGLearnItems=null;
+function _renderModalLearnItems(){
+  const el=document.getElementById('g-learn-list');if(!el)return;
+  el.innerHTML=(_editGLearnItems||[]).map((li,i)=>`<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+    <span style="flex:1;font-size:12px;">${{book:'📖',course:'🎓',article:'📄',video:'🎬',podcast:'🎙'}[li.type]||'📚'} ${esc(li.title)}</span>
+    <select onchange="_editGLearnItems[${i}].status=this.value" style="font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:2px 4px;">
+      <option value="to-read" ${li.status==='to-read'?'selected':''}>To Read</option>
+      <option value="reading" ${li.status==='reading'?'selected':''}>Reading</option>
+      <option value="done" ${li.status==='done'?'selected':''}>Done</option>
+    </select>
+    <button onclick="_editGLearnItems.splice(${i},1);_renderModalLearnItems()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;padding:0 3px;">×</button>
+  </div>`).join('')||'<div style="font-size:12px;color:var(--muted);padding:2px 0;">No learning items yet.</div>';
+}
+function addGoalLearnItem(){
+  const inp=document.getElementById('g-learn-inp');if(!inp)return;
+  const title=inp.value.trim();if(!title)return;
+  const type=document.getElementById('g-learn-type')?.value||'book';
+  if(!_editGLearnItems)_editGLearnItems=[];
+  _editGLearnItems.push({id:uid(),title,type,status:'to-read'});
+  inp.value='';_renderModalLearnItems();
+}
 function _renderModalSubtasks(){
   const el=document.getElementById('g-subtasks-list');if(!el)return;
   el.innerHTML=(_editGSubtasks||[]).map((s,i)=>`<div class="subtask-item">
@@ -2000,19 +2318,19 @@ function _renderModalSubtasks(){
   </div>`).join('')||'<div style="font-size:12px;color:var(--muted);padding:4px 0;">No subtasks yet.</div>';
 }
 function openAddGoal(){
-  editG=null;_editGSubtasks=[];
+  editG=null;_editGSubtasks=[];_editGLearnItems=[];
   document.getElementById('gm-title').textContent='Add Goal';
-  ['g-title','g-desc','g-stake'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  ['g-title','g-desc','g-stake','g-identity','g-deep-why'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   document.getElementById('g-cat').value='givelink';
   document.getElementById('g-top').value='false';
   document.getElementById('g-due').value='';
   document.getElementById('del-goal-btn').style.display='none';
-  _renderModalSubtasks();
+  _renderModalSubtasks();_renderModalLearnItems();
   document.getElementById('gm').classList.remove('hidden');
 }
 function openEditGoal(id){
   const g=S.goals.find(x=>x.id===id);if(!g)return;
-  editG=id;_editGSubtasks=JSON.parse(JSON.stringify(g.subtasks||[]));
+  editG=id;_editGSubtasks=JSON.parse(JSON.stringify(g.subtasks||[]));_editGLearnItems=JSON.parse(JSON.stringify(g.learningItems||[]));
   document.getElementById('gm-title').textContent='Edit Goal';
   document.getElementById('g-title').value=g.title;
   document.getElementById('g-desc').value=g.description||'';
@@ -2020,18 +2338,22 @@ function openEditGoal(id){
   document.getElementById('g-top').value=g.isTop3?'true':'false';
   document.getElementById('g-due').value=g.dueDate||'';
   const stakeEl=document.getElementById('g-stake');if(stakeEl)stakeEl.value=g.stake||'';
+  const idEl=document.getElementById('g-identity');if(idEl)idEl.value=g.identity||'';
+  const dwEl=document.getElementById('g-deep-why');if(dwEl)dwEl.value=g.deepWhy||'';
   document.getElementById('del-goal-btn').style.display='block';
-  _renderModalSubtasks();
+  _renderModalSubtasks();_renderModalLearnItems();
   document.getElementById('gm').classList.remove('hidden');
 }
 function saveGoal(){
   const title=document.getElementById('g-title').value.trim();
   if(!title){alert('Enter a goal title.');return;}
   const stakeEl=document.getElementById('g-stake');
-  const d={title,description:document.getElementById('g-desc').value,category:document.getElementById('g-cat').value,isTop3:document.getElementById('g-top').value==='true',dueDate:document.getElementById('g-due').value||null,subtasks:_editGSubtasks||[],stake:stakeEl?stakeEl.value.trim():''};
+  const idEl=document.getElementById('g-identity');
+  const dwEl=document.getElementById('g-deep-why');
+  const d={title,description:document.getElementById('g-desc').value,category:document.getElementById('g-cat').value,isTop3:document.getElementById('g-top').value==='true',dueDate:document.getElementById('g-due').value||null,subtasks:_editGSubtasks||[],stake:stakeEl?stakeEl.value.trim():'',identity:idEl?idEl.value.trim():'',deepWhy:dwEl?dwEl.value.trim():'',learningItems:_editGLearnItems||[]};
   if(editG){const i=S.goals.findIndex(g=>g.id===editG);S.goals[i]={...S.goals[i],...d};}
   else{const maxOrder=S.goals.reduce((m,g)=>Math.max(m,g.sortOrder||0),0);S.goals.push({id:uid(),sortOrder:maxOrder+1,...d});}
-  _editGSubtasks=null;save();closeM('gm');renderGoals();
+  _editGSubtasks=null;_editGLearnItems=null;save();closeM('gm');renderGoals();
 }
 
 function delCurGoal(){if(!editG||!confirm('Delete goal?'))return;S.goals=S.goals.filter(g=>g.id!==editG);save();closeM('gm');renderGoals();}

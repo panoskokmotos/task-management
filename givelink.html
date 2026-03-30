@@ -160,6 +160,51 @@ select.fc option{background:var(--s2);}
 .trend-date{color:var(--muted);flex-shrink:0;width:80px;}
 /* SPRINT GOAL TAG */
 .goal-tag{font-size:9px;padding:1px 5px;border-radius:4px;background:rgba(59,130,246,.15);color:var(--accent);font-weight:700;letter-spacing:.3px;text-transform:uppercase;}
+/* IMPACT COUNTER */
+.impact-section{margin-bottom:20px;}
+.impact-cards{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:10px;}
+.impact-card{background:var(--sf);border:1px solid var(--border);border-radius:10px;padding:14px;text-align:center;position:relative;}
+.impact-num{font-size:28px;font-weight:700;color:var(--accent);line-height:1.1;}
+.impact-lbl{font-size:10px;color:var(--muted);margin-top:3px;margin-bottom:8px;}
+.impact-add-row{display:flex;gap:4px;justify-content:center;align-items:center;}
+.impact-inline-input{width:60px;background:var(--s2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-size:12px;padding:3px 6px;outline:none;}
+.impact-inline-input:focus{border-color:var(--accent);}
+.milestone-badge{display:inline-block;background:rgba(251,191,36,.15);color:#fbbf24;border:1px solid rgba(251,191,36,.3);border-radius:8px;font-size:11px;font-weight:700;padding:4px 10px;margin:4px 2px;}
+/* TRANSCENDENCE SCORE */
+.tscore-wrap{display:flex;align-items:center;gap:16px;background:var(--sf);border:1px solid var(--border);border-radius:12px;padding:16px 20px;margin-bottom:20px;}
+.tscore-ring{flex-shrink:0;}
+.tscore-ring svg circle{transition:stroke-dashoffset .6s ease;}
+.tscore-info{flex:1;}
+.tscore-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:2px;}
+.tscore-val{font-size:32px;font-weight:700;line-height:1;}
+.tscore-breakdown{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.6;}
+/* ENERGY DOT */
+.energy-dot{display:inline-flex;align-items:center;gap:5px;font-size:12px;cursor:default;}
+.energy-dot-circle{width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0;}
+/* RELATIONSHIPS CARD */
+.rel-card{background:rgba(251,191,36,.06);border:1px solid rgba(251,191,36,.3);border-radius:10px;padding:12px 16px;margin-bottom:14px;}
+.rel-card-title{font-size:13px;font-weight:700;color:#fbbf24;margin-bottom:6px;}
+/* FUTURE LETTER CARD */
+.letter-card{background:rgba(167,139,250,.06);border:1px solid rgba(167,139,250,.3);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:12px;}
+.letter-card-text{flex:1;font-size:13px;font-weight:600;}
+/* VALUES ALIGNMENT */
+.values-align-section{background:var(--sf);border:1px solid var(--border);border-radius:10px;padding:16px;margin-top:16px;}
+.value-row{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);}
+.value-row:last-of-type{border-bottom:none;}
+.value-label{font-size:12px;flex:1;min-width:0;}
+.star-btn{background:none;border:none;cursor:pointer;font-size:16px;padding:0 2px;line-height:1;opacity:.35;transition:opacity .1s;}
+.star-btn.on{opacity:1;}
+.star-btn:hover{opacity:.8;}
+.prev-check-entry{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-top:8px;}
+.prev-check-sprint{font-size:11px;font-weight:700;color:var(--accent);margin-bottom:4px;}
+.prev-check-row{font-size:11px;color:var(--text);display:flex;align-items:center;gap:6px;padding:2px 0;}
+/* GOAL EXTRA FIELDS */
+.goal-identity-line{font-size:11px;font-style:italic;color:var(--accent);margin-top:4px;}
+.goal-deephwy-toggle{font-size:11px;color:var(--muted);cursor:pointer;margin-top:3px;display:inline-flex;align-items:center;gap:3px;}
+.goal-deephwy-body{font-size:11px;color:var(--muted);margin-top:4px;line-height:1.5;padding:6px 8px;background:var(--s2);border-radius:6px;border:1px solid var(--border);}
+.goal-learning-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;background:rgba(74,222,128,.1);color:#4ade80;border-radius:6px;padding:2px 7px;margin-top:4px;}
+@media(max-width:1100px){.impact-cards{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:800px){.impact-cards{grid-template-columns:1fr 1fr;}.tscore-wrap{flex-direction:column;text-align:center;}}
 /* GRID */
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 ::-webkit-scrollbar{width:5px;}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
@@ -297,6 +342,7 @@ select.fc option{background:var(--s2);}
     <span class="sprint-bar-name" id="bar-name">Sprint 1</span>
     <span class="sprint-bar-dates" id="bar-dates"></span>
     <span class="sprint-bar-pct" id="bar-pct" style="display:flex;align-items:center;gap:6px;margin-left:auto;"></span>
+    <span id="energy-dot-area"></span>
     <span id="evening-checkin-btn" style="display:none;"></span>
   </div>
 
@@ -312,8 +358,12 @@ select.fc option{background:var(--s2);}
       </div>
     </div>
     <div id="blocker-banner-area"></div>
+    <div id="transcendence-area"></div>
     <div class="stats2" id="ov-stats"></div>
     <div class="pcards" id="ov-pillars"></div>
+    <div id="impact-area"></div>
+    <div id="future-letter-area"></div>
+    <div id="relationships-area"></div>
     <div id="burndown-area"></div>
     <div id="stakes-area"></div>
     <div id="stale-area"></div>
@@ -374,6 +424,7 @@ select.fc option{background:var(--s2);}
       <h2 style="margin-bottom:14px;">Completion Trend (recent)</h2>
       <div id="st-trend"></div>
     </div>
+    <div id="values-align-area"></div>
     <div class="wins-section card" style="margin-top:16px;">
       <h2 style="margin-bottom:12px;">🏆 Sprint Wins</h2>
       <div class="fr" style="margin-bottom:8px;">
@@ -490,7 +541,7 @@ select.fc option{background:var(--s2);}
     </div>
     <div class="fr">
       <div class="fg"><label>Assignee</label><input class="fc" id="t-assignee" placeholder="e.g. Panos, Fanos..."></div>
-      <div class="fg"><label>Sprint Goal?</label><select class="fc" id="t-isgoal"><option value="false">No — regular task</option><option value="true">Yes — sprint goal</option></select></div>
+      <div class="fg"><label>Sprint Goal?</label><select class="fc" id="t-isgoal" onchange="toggleGoalFields(this.value)"><option value="false">No — regular task</option><option value="true">Yes — sprint goal</option></select></div>
     </div>
     <div class="fr">
       <div class="fg"><label>My Role</label>
@@ -508,6 +559,12 @@ select.fc option{background:var(--s2);}
           <option value="admin">🔄 Admin</option>
         </select>
       </div>
+    </div>
+    <!-- Goal-only fields (shown/hidden via JS) -->
+    <div id="goal-extra-fields" style="display:none;">
+      <div class="fg"><label>Who am I becoming?</label><input class="fc" id="t-identity" placeholder="The person I'm growing into by achieving this..."></div>
+      <div class="fg"><label>The Deep Why</label><textarea class="fc" id="t-deep-why" placeholder="Why does this matter → why does THAT matter → why does THAT matter?"></textarea></div>
+      <div class="fg"><label>Key Learning Resource</label><input class="fc" id="t-learning" placeholder="Book / course / article to help achieve this goal"></div>
     </div>
     <div class="mf">
       <button class="btn bd sm" id="del-btn" style="margin-right:auto;display:none;" onclick="delCur()">🗑 Delete</button>
@@ -561,7 +618,9 @@ let S={
   streak:0,
   longestStreak:0,
   decisionLog:[],
-  sprintWins:[]
+  sprintWins:[],
+  impactMetrics:{donors:0,dollarsMovedK:0,nonprofits:0,communities:0,peopleReached:0},
+  sprintValuesChecks:[]
 };
 let editId=null;
 
@@ -614,6 +673,7 @@ function renderSprintBar(){
   const pct=sprintPct();
   const done=doneCount(),total=curTasks().length;
   document.getElementById('bar-pct').innerHTML=`<strong>${done}/${total}</strong> tasks done&nbsp;<span class="spb"><span class="spb-f" style="width:${total?Math.round(done/total*100):0}%"></span></span>`;
+  renderEnergyDot();
 }
 
 // ── SIDEBAR COUNTS ────────────────────────────────────────────────
@@ -701,6 +761,10 @@ function renderOverview(){
   renderStakesCard();
   renderBlockerBanner();
   renderStaleSection();
+  renderTranscendenceScore();
+  renderImpactCounter();
+  renderFutureLetterCard();
+  renderRelationshipsReminder();
   const goals=ct.filter(t=>t.isGoal);
   document.getElementById('ov-goals').innerHTML=goals.length?goals.map(t=>goalHTML(t)).join(''):'<div class="empty">No sprint goals yet. Add one!</div>';
 }
@@ -835,6 +899,9 @@ function goalHTML(t){
         <span class="prog-pct">${pct}%</span>
       </div>
     </div>`:''}
+    ${t.identity?`<div class="goal-identity-line">Becoming: ${t.identity}</div>`:''}
+    ${t.learningResource?`<div><span class="goal-learning-badge">📖 ${t.learningResource}</span></div>`:''}
+    ${t.deepWhy?`<div><span class="goal-deephwy-toggle" onclick="event.stopPropagation();toggleDeepWhy(this)">▾ Deep Why</span><div class="goal-deephwy-body" style="display:none;">${t.deepWhy.replace(/\n/g,'<br>')}</div></div>`:''}
     ${t.assignee?`<div style="font-size:11px;color:var(--muted);margin-top:6px;">👤 ${t.assignee}</div>`:''}
   </div>`;
 }
@@ -898,6 +965,10 @@ function openAdd(pillar='growth',sprint='current',isGoal=false){
   document.getElementById('t-isgoal').value=isGoal?'true':'false';
   document.getElementById('t-role').value='owner';
   document.getElementById('t-energy').value='deep';
+  document.getElementById('t-identity').value='';
+  document.getElementById('t-deep-why').value='';
+  document.getElementById('t-learning').value='';
+  toggleGoalFields(isGoal?'true':'false');
   document.getElementById('del-btn').style.display='none';
   document.getElementById('tm').classList.remove('hidden');
   document.getElementById('t-title').focus();
@@ -919,6 +990,10 @@ function openEdit(id){
   document.getElementById('t-isgoal').value=t.isGoal?'true':'false';
   document.getElementById('t-role').value=t.role||'owner';
   document.getElementById('t-energy').value=t.energy||'deep';
+  document.getElementById('t-identity').value=t.identity||'';
+  document.getElementById('t-deep-why').value=t.deepWhy||'';
+  document.getElementById('t-learning').value=t.learningResource||'';
+  toggleGoalFields(t.isGoal?'true':'false');
   document.getElementById('del-btn').style.display='block';
   document.getElementById('tm').classList.remove('hidden');
   document.getElementById('t-title').focus();
@@ -940,7 +1015,10 @@ function saveTask(){
     assignee:document.getElementById('t-assignee').value,
     isGoal:document.getElementById('t-isgoal').value==='true',
     role:document.getElementById('t-role').value||'owner',
-    energy:document.getElementById('t-energy').value||'deep'
+    energy:document.getElementById('t-energy').value||'deep',
+    identity:document.getElementById('t-identity').value.trim()||null,
+    deepWhy:document.getElementById('t-deep-why').value.trim()||null,
+    learningResource:document.getElementById('t-learning').value.trim()||null
   };
   if(editId){
     const i=S.tasks.findIndex(t=>t.id===editId);
@@ -1288,6 +1366,7 @@ function renderStats(){
     }).join('')
     :'<div class="empty">No completed tasks yet.</div>';
   renderWinsTimeline();
+  renderValuesAlignment();
 }
 function renderWinsTimeline(){
   const tl=document.getElementById('wins-timeline');
@@ -1796,6 +1875,288 @@ function focusAddFive(){
   const btn=document.getElementById('focus-playbtn');if(btn)btn.textContent='⏸ Pause';
   const md=document.getElementById('focus-md-inner');if(md)md.classList.remove('done-flash');
   _focusTimer=setInterval(tickFocus,1000);
+}
+
+// ── GOAL FIELDS TOGGLE ───────────────────────────────────────────
+function toggleGoalFields(val){
+  const el=document.getElementById('goal-extra-fields');
+  if(el)el.style.display=(val==='true')?'block':'none';
+}
+
+// ── DEEP WHY TOGGLE ───────────────────────────────────────────────
+function toggleDeepWhy(el){
+  const body=el.nextElementSibling;
+  if(!body)return;
+  const open=body.style.display==='block';
+  body.style.display=open?'none':'block';
+  el.textContent=(open?'▾':'▴')+' Deep Why';
+}
+
+// ── ENERGY DOT (Feature 3) ────────────────────────────────────────
+function renderEnergyDot(){
+  const area=document.getElementById('energy-dot-area');
+  if(!area)return;
+  const raw=localStorage.getItem('taskos');
+  const today=new Date().toISOString().slice(0,10);
+  let dotColor='#64748b';
+  let tooltipText='Energy not logged today';
+  let linkHTML=`<a href="index.html" style="font-size:11px;color:var(--muted);margin-left:4px;text-decoration:none;" title="Log energy in Task OS">Log energy →</a>`;
+  if(raw){
+    let data;
+    try{data=JSON.parse(raw);}catch{data=null;}
+    if(data&&data.energyLog){
+      const entries=Array.isArray(data.energyLog)?data.energyLog:[];
+      const todayEntry=entries.find(e=>e.date===today)||(entries.length>0&&entries[entries.length-1]?.date===today?entries[entries.length-1]:null);
+      if(todayEntry&&(todayEntry.energy||todayEntry.energyLevel)){
+        const eLevel=todayEntry.energy||todayEntry.energyLevel||0;
+        const sleep=todayEntry.sleep||0;
+        const mood=todayEntry.mood||0;
+        if(eLevel>=4)dotColor='#22c55e';
+        else if(eLevel===3)dotColor='#fbbf24';
+        else dotColor='#ef4444';
+        tooltipText=`Today: Sleep ${sleep}/5 · Energy ${eLevel}/5 · Mood ${mood}/5`;
+        linkHTML='';
+      }
+    }
+  }
+  area.innerHTML=`<span class="energy-dot" title="${tooltipText}"><span class="energy-dot-circle" style="background:${dotColor};"></span></span>${linkHTML}`;
+}
+
+// ── TRANSCENDENCE SCORE (Feature 8) ──────────────────────────────
+function calcTranscendenceScore(){
+  const ct=curTasks();
+  const total=ct.length||1;
+  const done=ct.filter(t=>t.status==='done').length;
+  const goals=ct.filter(t=>t.isGoal);
+  const goalDone=goals.filter(t=>t.status==='done').length;
+  const goalTotal=goals.length||1;
+  // Sprint completion % × 30
+  const sprintComp=Math.round((done/total)*100)*0.30;
+  // Goals completion % × 30
+  const goalComp=Math.round((goalDone/goalTotal)*100)*0.30;
+  // Impact score (logarithmic, people reached max 1000 → 100) × 20
+  const im=S.impactMetrics||{};
+  const impactRaw=im.peopleReached||0;
+  const impactScore=(impactRaw>0?Math.min(100,Math.log10(impactRaw+1)/3*100):0)*0.20;
+  // Streak score (streak/30 max 100) × 20
+  const streak=S.streak||0;
+  const streakScore=Math.min(100,Math.round((streak/30)*100))*0.20;
+  const total_score=Math.round(sprintComp+goalComp+impactScore+streakScore);
+  return{
+    score:total_score,
+    breakdown:{
+      sprint:Math.round(sprintComp),
+      goals:Math.round(goalComp),
+      impact:Math.round(impactScore),
+      streak:Math.round(streakScore)
+    }
+  };
+}
+function renderTranscendenceScore(){
+  const area=document.getElementById('transcendence-area');
+  if(!area)return;
+  const {score,breakdown}=calcTranscendenceScore();
+  let ringColor='#ef4444';
+  let label='Growing';
+  if(score>=85){ringColor='#fbbf24';label='Transcendent';}
+  else if(score>=70){ringColor='#22c55e';label='Thriving';}
+  else if(score>=40){ringColor='#f97316';label='Building';}
+  // SVG ring: r=28, circumference=2πr≈176
+  const r=28,cx=36,cy=36,circ=Math.round(2*Math.PI*r);
+  const offset=Math.round(circ*(1-score/100));
+  const tooltip=`Sprint: ${breakdown.sprint}pts · Goals: ${breakdown.goals}pts · Impact: ${breakdown.impact}pts · Streak: ${breakdown.streak}pts`;
+  area.innerHTML=`<div class="tscore-wrap" title="${tooltip}">
+    <div class="tscore-ring">
+      <svg width="72" height="72" viewBox="0 0 72 72">
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--border)" stroke-width="7"/>
+        <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${ringColor}" stroke-width="7"
+          stroke-dasharray="${circ}" stroke-dashoffset="${offset}"
+          stroke-linecap="round" transform="rotate(-90 ${cx} ${cy})"/>
+        <text x="${cx}" y="${cy+5}" text-anchor="middle" fill="${ringColor}" font-size="14" font-weight="700">${score}</text>
+      </svg>
+    </div>
+    <div class="tscore-info">
+      <div class="tscore-title">Transcendence Score</div>
+      <div class="tscore-val" style="color:${ringColor};">${score}<span style="font-size:14px;font-weight:400;color:var(--muted);"> / 100</span></div>
+      <div style="font-size:12px;font-weight:600;color:${ringColor};margin-top:2px;">${label}</div>
+      <div class="tscore-breakdown">Sprint ${breakdown.sprint}pts · Goals ${breakdown.goals}pts · Impact ${breakdown.impact}pts · Streak ${breakdown.streak}pts</div>
+    </div>
+  </div>`;
+}
+
+// ── IMPACT COUNTER (Feature 2) ────────────────────────────────────
+const IMPACT_MILESTONES={
+  donors:[1,10,50,100,500],
+  dollarsMovedK:[1,10,100],
+  nonprofits:[1,10,50,100],
+  communities:[1,10,50],
+  peopleReached:[1,10,100,500,1000]
+};
+function incrementImpact(metric,inputId){
+  const el=document.getElementById(inputId);
+  if(!el)return;
+  const val=parseFloat(el.value)||0;
+  if(val<=0){el.value='';return;}
+  const prev=S.impactMetrics[metric]||0;
+  S.impactMetrics[metric]=prev+val;
+  save();
+  el.value='';
+  // Milestone detection
+  const milestones=IMPACT_MILESTONES[metric]||[];
+  const newVal=S.impactMetrics[metric];
+  const hit=milestones.filter(m=>prev<m&&newVal>=m);
+  if(hit.length){
+    const metricLabel={donors:'Donors',dollarsMovedK:'$K Moved',nonprofits:'Nonprofits',communities:'Communities',peopleReached:'People Reached'};
+    showMilestoneBadge(`🏆 Milestone: ${metricLabel[metric]||metric} reached ${hit[hit.length-1]}!`);
+  }
+  renderImpactCounter();
+  renderTranscendenceScore();
+}
+function showMilestoneBadge(msg){
+  const existing=document.getElementById('milestone-toast');
+  if(existing)existing.remove();
+  const el=document.createElement('div');
+  el.id='milestone-toast';
+  el.style.cssText='position:fixed;top:22px;left:50%;transform:translateX(-50%);z-index:2000;background:rgba(251,191,36,.15);border:1px solid rgba(251,191,36,.5);color:#fbbf24;font-size:13px;font-weight:700;padding:10px 20px;border-radius:10px;';
+  el.textContent=msg;
+  document.body.appendChild(el);
+  setTimeout(()=>{if(el.parentNode)el.remove();},4000);
+}
+function renderImpactCounter(){
+  const area=document.getElementById('impact-area');
+  if(!area)return;
+  const im=S.impactMetrics||{donors:0,dollarsMovedK:0,nonprofits:0,communities:0,peopleReached:0};
+  // Also try to read from taskos
+  let taskosImpact={};
+  const raw=localStorage.getItem('taskos');
+  if(raw){try{const d=JSON.parse(raw);if(d.impactLog&&Array.isArray(d.impactLog)){d.impactLog.forEach(e=>{Object.keys(e).forEach(k=>{if(typeof e[k]==='number')taskosImpact[k]=(taskosImpact[k]||0)+e[k];});});}}catch{}}
+  const total=(k)=>(im[k]||0)+(taskosImpact[k]||0);
+  const metrics=[
+    {key:'donors',label:'Donors Facilitated',fmt:v=>v.toLocaleString()},
+    {key:'dollarsMovedK',label:'$K Moved',fmt:v=>'$'+v.toLocaleString()+'K'},
+    {key:'nonprofits',label:'Nonprofits Served',fmt:v=>v.toLocaleString()},
+    {key:'communities',label:'Communities Helped',fmt:v=>v.toLocaleString()},
+    {key:'peopleReached',label:'People Reached',fmt:v=>v.toLocaleString()}
+  ];
+  const cards=metrics.map(m=>`
+    <div class="impact-card">
+      <div class="impact-num">${m.fmt(total(m.key))}</div>
+      <div class="impact-lbl">${m.label}</div>
+      <div class="impact-add-row">
+        <input class="impact-inline-input" id="imp-inp-${m.key}" type="number" min="0" step="any" placeholder="+">
+        <button class="btn bp sm" onclick="incrementImpact('${m.key}','imp-inp-${m.key}')">Add</button>
+      </div>
+    </div>`).join('');
+  area.innerHTML=`<div class="impact-section">
+    <div class="sh" style="margin-bottom:8px;"><div class="sh-left"><span style="font-size:14px;font-weight:700;">🌍 Real-World Impact</span></div></div>
+    <div class="impact-cards">${cards}</div>
+  </div>`;
+}
+
+// ── RELATIONSHIPS REMINDER (Feature 4) ───────────────────────────
+function renderRelationshipsReminder(){
+  const area=document.getElementById('relationships-area');
+  if(!area)return;
+  const raw=localStorage.getItem('taskos');
+  if(!raw){area.innerHTML='';return;}
+  let data;
+  try{data=JSON.parse(raw);}catch{area.innerHTML='';return;}
+  const people=(data.people||[]);
+  if(!people.length){area.innerHTML='';return;}
+  const today=new Date();
+  const overdue=people.filter(p=>{
+    if(!p.nextContact&&!p.dueDate)return false;
+    const due=new Date(p.nextContact||p.dueDate);
+    return due<today&&(p.status!=='done');
+  });
+  if(!overdue.length){area.innerHTML='';return;}
+  const names=overdue.slice(0,5).map(p=>p.name||p.title||'Unknown').join(', ');
+  const extra=overdue.length>5?` +${overdue.length-5} more`:'';
+  area.innerHTML=`<div class="rel-card">
+    <div class="rel-card-title">👥 ${overdue.length} relationship${overdue.length>1?'s':''} need${overdue.length===1?'s':''} attention</div>
+    <div style="font-size:12px;color:var(--text);margin-bottom:6px;">${names}${extra}</div>
+    <a href="index.html" style="font-size:12px;color:#fbbf24;text-decoration:none;">Manage in Task OS →</a>
+  </div>`;
+}
+
+// ── FUTURE SELF LETTER (Feature 5) ───────────────────────────────
+function renderFutureLetterCard(){
+  const area=document.getElementById('future-letter-area');
+  if(!area)return;
+  if(sessionStorage.getItem('gl_future_letter_dismissed')){area.innerHTML='';return;}
+  const raw=localStorage.getItem('taskos');
+  if(!raw){area.innerHTML='';return;}
+  let data;
+  try{data=JSON.parse(raw);}catch{area.innerHTML='';return;}
+  const letters=(data.futureLetters||[]);
+  if(!letters.length){area.innerHTML='';return;}
+  const fourteenDaysAgo=Date.now()-14*24*60*60*1000;
+  const unread=letters.find(l=>!l.readAt||(new Date(l.readAt).getTime()<fourteenDaysAgo));
+  if(!unread){area.innerHTML='';return;}
+  area.innerHTML=`<div class="letter-card">
+    <span style="font-size:22px;">📬</span>
+    <div class="letter-card-text">You have a letter from your future self</div>
+    <a href="index.html" class="btn bp sm" style="text-decoration:none;flex-shrink:0;">Read in Task OS →</a>
+    <button class="btn bg sm" style="flex-shrink:0;" onclick="sessionStorage.setItem('gl_future_letter_dismissed','1');document.getElementById('future-letter-area').innerHTML='';">✕</button>
+  </div>`;
+}
+
+// ── VALUES ALIGNMENT (Feature 7) ─────────────────────────────────
+let _valuesRatings={};
+function renderValuesAlignment(){
+  const area=document.getElementById('values-align-area');
+  if(!area)return;
+  const raw=localStorage.getItem('taskos');
+  let values=[];
+  if(raw){try{const d=JSON.parse(raw);values=d.values||[];}catch{}}
+  // Fallback values if none found
+  if(!values.length)values=[{name:'Integrity'},{name:'Impact'},{name:'Growth'},{name:'Connection'},{name:'Excellence'}];
+  const vRows=values.map((v,i)=>{
+    const name=v.name||v.title||v;
+    const cur=_valuesRatings[name]||0;
+    const stars=[1,2,3,4,5].map(s=>`<button class="star-btn ${cur>=s?'on':''}" onclick="setValueRating('${name}',${s})" title="${s}/5">★</button>`).join('');
+    return`<div class="value-row" data-value="${name}">
+      <span class="value-label">How well did this sprint reflect: <strong>${name}</strong>?</span>
+      <div>${stars}</div>
+    </div>`;
+  }).join('');
+  const prevChecks=(S.sprintValuesChecks||[]).slice(-3).reverse();
+  const prevHTML=prevChecks.length?prevChecks.map(c=>`
+    <div class="prev-check-entry">
+      <div class="prev-check-sprint">${c.sprintName} <span style="font-size:10px;color:var(--muted);font-weight:400;">${fd(c.date)}</span></div>
+      ${c.ratings.map(r=>`<div class="prev-check-row"><span>${['☆','★','★★','★★★','★★★★','★★★★★'][r.rating]||'—'}</span><span>${r.value}</span></div>`).join('')}
+      ${c.divergence?`<div style="font-size:11px;color:var(--muted);margin-top:4px;font-style:italic;">"${c.divergence.slice(0,100)}"</div>`:''}
+    </div>`).join(''):'<div style="font-size:12px;color:var(--muted);">No previous checks yet.</div>';
+  area.innerHTML=`<div class="values-align-section">
+    <h2 style="margin-bottom:14px;">💎 Values Alignment</h2>
+    <div id="values-rows">${vRows}</div>
+    <div class="fg" style="margin-top:12px;"><label>Where did execution diverge from values this sprint?</label>
+      <textarea class="fc" id="values-divergence" placeholder="Where did action not match values?"></textarea>
+    </div>
+    <button class="btn bp" onclick="saveSprintValuesCheck()">💾 Save Sprint Values Check</button>
+    <div style="margin-top:14px;"><h3 style="margin-bottom:8px;font-size:13px;">Previous Checks</h3>${prevHTML}</div>
+  </div>`;
+}
+function setValueRating(name,rating){
+  _valuesRatings[name]=rating;
+  // Re-render just the star buttons for this row
+  const rows=document.querySelectorAll('[data-value]');
+  rows.forEach(row=>{
+    if(row.dataset.value===name){
+      const stars=row.querySelectorAll('.star-btn');
+      stars.forEach((s,i)=>s.classList.toggle('on',(i+1)<=rating));
+    }
+  });
+}
+function saveSprintValuesCheck(){
+  const divergence=document.getElementById('values-divergence')?.value.trim()||'';
+  const ratings=Object.entries(_valuesRatings).map(([value,rating])=>({value,rating}));
+  if(!ratings.length){alert('Please rate at least one value.');return;}
+  if(!S.sprintValuesChecks)S.sprintValuesChecks=[];
+  S.sprintValuesChecks.push({sprintName:S.sprint.name,date:new Date().toISOString(),ratings,divergence});
+  _valuesRatings={};
+  save();
+  renderValuesAlignment();
 }
 
 // ── PILLAR ENERGY FILTER (Feature 4) ─────────────────────────────

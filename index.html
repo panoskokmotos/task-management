@@ -1803,9 +1803,10 @@ function renderReview(){
 }
 
 function saveReview(){
-  S.reviews.push({id:uid(),weekOf:new Date().toISOString(),wentWell:document.getElementById('rw').value,improve:document.getElementById('ri').value,focus:document.getElementById('rf').value});
-  save();['rw','ri','rf'].forEach(i=>document.getElementById(i).value='');
-  renderReview();alert('✅ Weekly review saved!');
+  const wins=[document.getElementById('rwin1')?.value||'',document.getElementById('rwin2')?.value||'',document.getElementById('rwin3')?.value||''].filter(Boolean);
+  S.reviews.push({id:uid(),weekOf:new Date().toISOString(),wentWell:document.getElementById('rw').value,improve:document.getElementById('ri').value,focus:document.getElementById('rf').value,wins});
+  save();['rw','ri','rf','rwin1','rwin2','rwin3'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  renderReview();toast('✅ Weekly review saved!');
 }
 
 // ── TASK CARD HTML ────────────────────────────────────────────
@@ -2095,7 +2096,7 @@ function onDrop(e,bucketId){
 // ── TOAST ─────────────────────────────────────────────────────
 function toast(msg,ms=2200){
   const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('show');
+  t.innerHTML=msg;t.classList.add('show');
   clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms);
 }
 
@@ -3554,12 +3555,281 @@ function _renderDayOfWeek(completed){
   el.innerHTML=_barChart(counts,'var(--cg)');
 }
 
+// ── HELPER: today string ──────────────────────────────────────
+function todayStr(){return new Date().toISOString().slice(0,10);}
+
+// ── FEATURE 1: MORNING ACTIVATION ────────────────────────────
+function checkMorningModal(){
+  const h=new Date().getHours();
+  const today=todayStr();
+  if(h>=5&&S.lastMorningDate!==today){
+    openMorningModal();
+  }
+}
+function openMorningModal(){
+  const thisWeekTasks=S.tasks.filter(t=>t.bucket==='this-week'&&t.status!=='done').sort((a,b)=>{
+    const s1=(a.urgency==='high'?2:0)+(a.importance==='high'?2:0);
+    const s2=(b.urgency==='high'?2:0)+(b.importance==='high'?2:0);
+    return s2-s1;
+  }).slice(0,10);
+  const top3Goals=S.goals.filter(g=>g.isTop3).map(g=>g.title).join(' · ')||'No goals set';
+  const reviewData=(S.reviews||[]).slice(-1)[0];
+  const sprintDay=reviewData?Math.ceil((new Date()-new Date(reviewData.weekOf))/(86400000))+1:1;
+  document.getElementById('morning-sprint-info').textContent=`${top3Goals} | Sprint day ~${sprintDay}`;
+  // Build 3 task selects
+  const opts='<option value="">— Pick a task —</option>'+thisWeekTasks.map(t=>`<option value="${t.id}">${esc(t.title.slice(0,60))}</option>`).join('');
+  const preselected=thisWeekTasks.slice(0,3);
+  document.getElementById('morning-slots').innerHTML=[1,2,3].map((n,i)=>`
+    <div class="morning-slot">
+      <div class="morning-slot-num">${n}</div>
+      <select id="mc-slot-${n}">${opts}</select>
+    </div>`).join('');
+  // Pre-populate
+  preselected.forEach((t,i)=>{const sel=document.getElementById('mc-slot-'+(i+1));if(sel)sel.value=t.id;});
+  document.getElementById('morning-intention').value='';
+  document.getElementById('morning-modal').classList.remove('hidden');
+}
+function closeMorningModal(){document.getElementById('morning-modal').classList.add('hidden');}
+function saveMorningModal(){
+  const today=todayStr();
+  const commitments=[];
+  [1,2,3].forEach(n=>{
+    const sel=document.getElementById('mc-slot-'+n);
+    if(sel&&sel.value){
+      const t=S.tasks.find(x=>x.id===sel.value);
+      if(t)commitments.push({taskId:t.id,title:t.title});
+    }
+  });
+  const intention=document.getElementById('morning-intention').value.trim();
+  S.dailyCommitments=commitments;
+  S.dailyIntention=intention;
+  S.lastMorningDate=today;
+  if(!S.morningLog)S.morningLog=[];
+  S.morningLog.push({date:today,commitments,intention});
+  save();
+  closeMorningModal();
+  toast('Morning plan saved! Have a great day 🌅');
+  renderDash();
+}
+
+// ── FEATURE 1: EVENING CHECK-IN ───────────────────────────────
+function openEveningModal(){
+  const commitments=S.dailyCommitments||[];
+  const el=document.getElementById('evening-commitments');
+  if(el){
+    el.innerHTML=commitments.length?commitments.map((c,i)=>{
+      const t=S.tasks.find(x=>x.id===c.taskId);
+      const done=t&&t.status==='done';
+      return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+        <input type="checkbox" id="ev-c-${i}" ${done?'checked':''} style="width:16px;height:16px;cursor:pointer;">
+        <label for="ev-c-${i}" style="flex:1;font-size:13px;cursor:pointer;">${esc(c.title)}</label>
+        ${done?'<span style="font-size:11px;color:var(--bb);">✓ Done</span>':''}
+      </div>`;
+    }).join(''):'<div class="empty">No commitments recorded for today.</div>';
+  }
+  document.getElementById('evening-obstacles').value='';
+  document.getElementById('evening-modal').classList.remove('hidden');
+}
+function saveEveningModal(){
+  const today=todayStr();
+  const commitments=S.dailyCommitments||[];
+  const results=commitments.map((c,i)=>{
+    const cb=document.getElementById('ev-c-'+i);
+    return{taskId:c.taskId,title:c.title,done:cb?cb.checked:false};
+  });
+  const allDone=results.length>0&&results.every(r=>r.done);
+  const obstacles=document.getElementById('evening-obstacles').value.trim();
+  if(!S.eveningLog)S.eveningLog=[];
+  S.eveningLog.push({date:today,results,obstacles,allDone});
+  S.lastEveningDate=today;
+  // Feature 9: Update streak
+  if(allDone){
+    S.streak=(S.streak||0)+1;
+    if(S.streak>(S.longestStreak||0))S.longestStreak=S.streak;
+  }else{
+    S.streak=0;
+  }
+  save();
+  closeM('evening-modal');
+  toast(allDone?`🔥 All done! Streak: ${S.streak} days!`:'Check-in saved. Keep going!');
+  renderDash();
+}
+
+// ── FEATURE 5: FOCUS TIMER ─────────────────────────────────────
+let _focusState={running:false,paused:false,taskId:null,remaining:25*60,interval:null};
+function openFocusModal(taskId){
+  const t=S.tasks.find(x=>x.id===taskId);if(!t)return;
+  stopFocus();
+  _focusState.taskId=taskId;
+  const mins=t.estimatedMinutes||25;
+  _focusState.remaining=mins*60;
+  document.getElementById('focus-task-title').textContent=t.title;
+  document.getElementById('focus-minutes-inp').value=mins;
+  _updateFocusDisplay();
+  document.getElementById('focus-start-btn').style.display='';
+  document.getElementById('focus-pause-btn').style.display='none';
+  document.getElementById('focus-done-actions').style.display='none';
+  document.getElementById('focus-timer').classList.remove('ending','focus-flash');
+  document.getElementById('focus-modal').classList.remove('hidden');
+}
+function startFocusTimer(){
+  const minsInp=document.getElementById('focus-minutes-inp');
+  if(minsInp&&!_focusState.running&&!_focusState.paused){
+    _focusState.remaining=(parseInt(minsInp.value)||25)*60;
+    _updateFocusDisplay();
+  }
+  _focusState.running=true;_focusState.paused=false;
+  document.getElementById('focus-start-btn').style.display='none';
+  document.getElementById('focus-pause-btn').style.display='';
+  if(_focusState.interval)clearInterval(_focusState.interval);
+  _focusState.interval=setInterval(()=>{
+    _focusState.remaining--;
+    _updateFocusDisplay();
+    if(_focusState.remaining<=60)document.getElementById('focus-timer').classList.add('ending');
+    if(_focusState.remaining<=0){
+      clearInterval(_focusState.interval);_focusState.running=false;
+      document.getElementById('focus-timer').classList.add('focus-flash');
+      document.getElementById('focus-done-actions').style.display='';
+      document.getElementById('focus-pause-btn').style.display='none';
+    }
+  },1000);
+}
+function pauseFocusTimer(){
+  if(_focusState.running){
+    clearInterval(_focusState.interval);_focusState.running=false;_focusState.paused=true;
+    document.getElementById('focus-start-btn').textContent='▶ Resume';
+    document.getElementById('focus-start-btn').style.display='';
+    document.getElementById('focus-pause-btn').style.display='none';
+  }
+}
+function stopFocus(){
+  clearInterval(_focusState.interval);
+  _focusState={running:false,paused:false,taskId:null,remaining:25*60,interval:null};
+  document.getElementById('focus-modal').classList.add('hidden');
+}
+function focusDone(){
+  if(_focusState.taskId){
+    const t=S.tasks.find(x=>x.id===_focusState.taskId);
+    if(t&&t.status!=='done'){t.status='done';t.completedAt=new Date().toISOString();save();refresh();}
+  }
+  stopFocus();toast('Task marked done! Great work 🎉');
+}
+function focusMoreTime(){
+  _focusState.remaining=25*60;_focusState.paused=false;
+  document.getElementById('focus-done-actions').style.display='none';
+  document.getElementById('focus-timer').classList.remove('ending','focus-flash');
+  _updateFocusDisplay();
+  startFocusTimer();
+}
+function _updateFocusDisplay(){
+  const m=Math.floor(_focusState.remaining/60);
+  const s=_focusState.remaining%60;
+  document.getElementById('focus-timer').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+
+// ── FEATURE 7: DECISION LOG TOGGLE ───────────────────────────
+function toggleDecisionLog(el){
+  const list=document.getElementById('decision-log-list');if(!list)return;
+  const open=list.style.display==='none';
+  list.style.display=open?'':'none';
+  el.querySelector('span:last-child').textContent=open?'▲':'▼';
+  if(open){
+    const log=S.decisionLog||[];
+    list.innerHTML=log.length?log.slice(0,10).map(d=>`<div style="padding:7px 0;border-bottom:1px solid var(--border);font-size:12px;">
+      <div style="font-weight:500;">${esc(d.title.slice(0,60))}</div>
+      <div style="color:var(--muted);margin-top:2px;">${esc(d.reason)}${d.detail?' · '+esc(d.detail):''} · ${new Date(d.date).toLocaleDateString()}</div>
+    </div>`).join(''):'<div style="font-size:12px;color:var(--muted);padding:8px 0;">No decisions logged yet.</div>';
+  }
+}
+
+// ── FEATURE 9: STREAK CALCULATION ─────────────────────────────
+function calcCommitmentStreak(){
+  const log=S.morningLog||[];
+  if(!log.length)return;
+  // Recalculate streak from log + task completion data
+  let streak=0,longest=0;
+  const sortedLog=[...log].sort((a,b)=>a.date.localeCompare(b.date));
+  for(let i=0;i<sortedLog.length;i++){
+    const entry=sortedLog[i];
+    const allDone=entry.commitments&&entry.commitments.length>0&&
+      entry.commitments.every(c=>{const t=S.tasks.find(x=>x.id===c.taskId);return t&&t.status==='done';});
+    if(allDone){streak++;if(streak>longest)longest=streak;}
+    else{streak=0;}
+  }
+  // Also check evening log for explicit tracking
+  const evLog=S.eveningLog||[];
+  if(evLog.length){
+    let evStreak=0,evLongest=0;
+    const sortedEv=[...evLog].sort((a,b)=>a.date.localeCompare(b.date));
+    for(let i=0;i<sortedEv.length;i++){
+      if(sortedEv[i].allDone){evStreak++;if(evStreak>evLongest)evLongest=evStreak;}
+      else{evStreak=0;}
+    }
+    if(evLongest>longest)longest=evLongest;
+    // Use the evening streak as more reliable
+    streak=evStreak;
+  }
+  if(streak>0||(S.streak||0)===0)S.streak=streak;
+  if(longest>0||(S.longestStreak||0)===0)S.longestStreak=longest;
+}
+
+// ── FEATURE 13: NAV BADGES ────────────────────────────────────
+function updNavBadges(){
+  const sevenDaysAgo=new Date(Date.now()-7*86400000);
+  const staleHP=active().filter(t=>(t.urgency==='high'||t.importance==='high')&&t.createdAt&&new Date(t.createdAt)<sevenDaysAgo);
+  const atDot=document.getElementById('alltasks-dot');
+  if(atDot)atDot.classList.toggle('hidden',staleHP.length===0);
+  const twoDaysAgo=new Date(Date.now()-2*86400000);
+  const overdueWeek=active().filter(t=>t.bucket==='this-week'&&t.dueDate&&new Date(t.dueDate)<twoDaysAgo);
+  const bDot=document.getElementById('buckets-dot');
+  if(bDot)bDot.classList.toggle('hidden',overdueWeek.length===0);
+}
+
+// ── ARCHIVE / DEDUP ────────────────────────────────────────────
+function renderArchive(){
+  const q=(document.getElementById('archive-search')?.value||'').toLowerCase();
+  const archived=S.tasks.filter(t=>t.status==='done'&&t.bucket!=='trash');
+  const filtered=q?archived.filter(t=>t.title.toLowerCase().includes(q)):archived;
+  const el=document.getElementById('archive-list');if(!el)return;
+  el.innerHTML=filtered.length?filtered.map(t=>`<div class="arc-item">
+    <div style="flex:1;"><div style="font-size:13px;font-weight:500;">${esc(t.title)}</div>
+    <div style="font-size:11px;color:var(--muted);">${catB(t.category)} ${t.completedAt?'✓ '+fd(t.completedAt):''}</div></div>
+    <button class="btn bg sm" onclick="mvB('${t.id}','inbox');renderArchive();toast('Restored to Inbox')">↩ Restore</button>
+  </div>`).join(''):'<div class="empty">No archived tasks.</div>';
+}
+function clearArchive(){
+  if(!confirm('Remove all completed tasks from archive? (They stay in All Tasks)'))return;
+  toast('Archive cleared');renderArchive();
+}
+function deduplicateTasks(){
+  const seen=new Set();
+  let removed=0;
+  S.tasks=S.tasks.filter(t=>{
+    if(seen.has(t.title+'|'+t.bucket)){removed++;return false;}
+    seen.add(t.title+'|'+t.bucket);return true;
+  });
+  save();refresh();toast(`Removed ${removed} duplicate task${removed!==1?'s':''}`);
+}
+function renderJournal(){}
+
 // ── INIT ──────────────────────────────────────────────────────
 function appInit(){
   load();seed();seedGoals();
+  // Ensure new S fields exist
+  if(!S.lastMorningDate)S.lastMorningDate='';
+  if(!S.lastEveningDate)S.lastEveningDate='';
+  if(!S.dailyCommitments)S.dailyCommitments=[];
+  if(!S.dailyIntention)S.dailyIntention='';
+  if(!S.morningLog)S.morningLog=[];
+  if(!S.eveningLog)S.eveningLog=[];
+  if(S.streak===undefined)S.streak=0;
+  if(S.longestStreak===undefined)S.longestStreak=0;
+  if(!S.decisionLog)S.decisionLog=[];
+  calcCommitmentStreak();
   updTrashBadge();
   authInit();
   checkPWAStatus();
+  checkMorningModal();
   if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 }
 appInit();

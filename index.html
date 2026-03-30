@@ -1772,6 +1772,7 @@ function goalHTML(g){
       </div>
     </div>
     ${g.description?`<div style="font-size:12px;color:var(--muted);margin-bottom:7px;line-height:1.4;">${esc(g.description)}</div>`:''}
+    ${g.stake?`<div style="font-size:11px;color:var(--cf);margin-bottom:6px;line-height:1.4;">🎯 Stake: ${esc(g.stake)}</div>`:''}
     <div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;">
       <span class="badge c${g.category[0]}">${c.e} ${c.l}</span>
       ${g.dueDate?`<span style="font-size:11px;color:var(--muted);">📅 ${fd(g.dueDate)}</span>`:''}
@@ -1922,13 +1923,46 @@ function saveTask(){
   save();closeM('tm');refresh();
 }
 
+// Feature 7: Decision modal state
+let _pendingDeleteId=null,_selectedDecReason=null;
 function delTask(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  _pendingDeleteId=id;_selectedDecReason=null;
+  document.getElementById('decision-task-title').textContent='"'+t.title+'"';
+  document.getElementById('decision-custom').value='';
+  document.querySelectorAll('.dec-reason-btn').forEach(b=>b.classList.remove('selected'));
+  document.getElementById('decision-modal').classList.remove('hidden');
+}
+function delCurTask(){if(editT){delTask(editT);closeM('tm');}}
+function selectDecReason(btn,reason){
+  document.querySelectorAll('.dec-reason-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');_selectedDecReason=reason;
+}
+function skipDecision(){
+  const id=_pendingDeleteId;_pendingDeleteId=null;
+  document.getElementById('decision-modal').classList.add('hidden');
+  if(!id)return;
+  _doDeleteTask(id,'');
+}
+function confirmDecision(){
+  const id=_pendingDeleteId;if(!id)return;
+  const reason=_selectedDecReason||'';
+  const custom=document.getElementById('decision-custom').value.trim();
+  const finalReason=custom?reason+(reason?' — ':'')+custom:reason;
+  _pendingDeleteId=null;
+  document.getElementById('decision-modal').classList.add('hidden');
+  _doDeleteTask(id,finalReason);
+}
+function _doDeleteTask(id,reason){
+  const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  if(reason){
+    if(!S.decisionLog)S.decisionLog=[];
+    S.decisionLog.unshift({taskId:id,title:t.title,reason,date:new Date().toISOString()});
+  }
   t.trashedAt=new Date().toISOString();t.bucket='trash';
   save();refresh();updTrashBadge();
   toast('Moved to Trash — <span style="cursor:pointer;text-decoration:underline;" onclick="restoreTask(\''+id+'\')">Undo</span>',3500);
 }
-function delCurTask(){if(editT){delTask(editT);closeM('tm');}}
 function restoreTask(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
   t.bucket=t._prevBucket||'inbox';delete t.trashedAt;delete t._prevBucket;
@@ -1967,7 +2001,7 @@ function _renderModalSubtasks(){
 function openAddGoal(){
   editG=null;_editGSubtasks=[];
   document.getElementById('gm-title').textContent='Add Goal';
-  ['g-title','g-desc'].forEach(i=>document.getElementById(i).value='');
+  ['g-title','g-desc','g-stake'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
   document.getElementById('g-cat').value='givelink';
   document.getElementById('g-top').value='false';
   document.getElementById('g-due').value='';
@@ -1984,6 +2018,7 @@ function openEditGoal(id){
   document.getElementById('g-cat').value=g.category;
   document.getElementById('g-top').value=g.isTop3?'true':'false';
   document.getElementById('g-due').value=g.dueDate||'';
+  const stakeEl=document.getElementById('g-stake');if(stakeEl)stakeEl.value=g.stake||'';
   document.getElementById('del-goal-btn').style.display='block';
   _renderModalSubtasks();
   document.getElementById('gm').classList.remove('hidden');
@@ -1991,7 +2026,8 @@ function openEditGoal(id){
 function saveGoal(){
   const title=document.getElementById('g-title').value.trim();
   if(!title){alert('Enter a goal title.');return;}
-  const d={title,description:document.getElementById('g-desc').value,category:document.getElementById('g-cat').value,isTop3:document.getElementById('g-top').value==='true',dueDate:document.getElementById('g-due').value||null,subtasks:_editGSubtasks||[]};
+  const stakeEl=document.getElementById('g-stake');
+  const d={title,description:document.getElementById('g-desc').value,category:document.getElementById('g-cat').value,isTop3:document.getElementById('g-top').value==='true',dueDate:document.getElementById('g-due').value||null,subtasks:_editGSubtasks||[],stake:stakeEl?stakeEl.value.trim():''};
   if(editG){const i=S.goals.findIndex(g=>g.id===editG);S.goals[i]={...S.goals[i],...d};}
   else{const maxOrder=S.goals.reduce((m,g)=>Math.max(m,g.sortOrder||0),0);S.goals.push({id:uid(),sortOrder:maxOrder+1,...d});}
   _editGSubtasks=null;save();closeM('gm');renderGoals();

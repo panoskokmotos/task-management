@@ -1605,6 +1605,10 @@ function renderDash(){
   renderGoalAlignmentWidget();
   renderGivelinkWidget();
   renderRecentWins();
+  renderImpactDashWidget();
+  renderEnergyDashWidget();
+  renderRelationshipsDashWidget();
+  renderFutureSelfDashWidget();
   renderDashWeek();
   updIBadge();
   updNavBadges();
@@ -4147,6 +4151,11 @@ function appInit(){
   if(S.streak===undefined)S.streak=0;
   if(S.longestStreak===undefined)S.longestStreak=0;
   if(!S.decisionLog)S.decisionLog=[];
+  if(!S.impactLog)S.impactLog=[];
+  if(!S.energyLog)S.energyLog=[];
+  if(!S.people)S.people=[];
+  if(!S.learningLibrary)S.learningLibrary=[];
+  if(!S.futureLetters)S.futureLetters=[];
   calcCommitmentStreak();
   updTrashBadge();
   authInit();

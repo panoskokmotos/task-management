@@ -2562,7 +2562,7 @@ function openEditPrinciple(id){
 }
 function savePrinciple(){
   const text=document.getElementById('p-text').value.trim();
-  if(!text){alert('Enter a principle.');return;}
+  if(!text){toast('Enter a principle.');return;}
   if(!S.wisdom)S.wisdom={books:[],principles:[]};
   const d={text,why:document.getElementById('p-why').value,type:document.getElementById('p-type').value};
   if(editPrin){const i=S.wisdom.principles.findIndex(p=>p.id===editPrin);S.wisdom.principles[i]={...S.wisdom.principles[i],...d};}
@@ -2574,7 +2574,7 @@ function delCurPrinciple(){if(!editPrin||!confirm('Delete?'))return;S.wisdom.pri
 // ── AI: WISDOM IMPORT ─────────────────────────────────────────
 async function aiImportWisdom(){
   const raw=document.getElementById('wisdom-import-inp').value.trim();
-  if(!raw){alert('Paste some content first.');return;}
+  if(!raw){toast('Paste some content first.');return;}
   const btn=document.querySelector('[onclick="aiImportWisdom()"]');
   if(btn){btn.textContent='⏳ Extracting...';btn.disabled=true;}
   const system='You are a wisdom extraction assistant. Extract books, principles and lessons from text. Return ONLY valid JSON.';
@@ -2590,7 +2590,7 @@ async function aiImportWisdom(){
     (json.principles||[]).forEach(p=>{S.wisdom.principles.push({id:uid(),...p,addedAt:new Date().toISOString()});added++;});
     save();document.getElementById('wisdom-import-inp').value='';
     renderWisdom();toast(`Added ${added} wisdom entries from AI`);
-  }catch(e){alert('Could not parse AI response.');}
+  }catch(e){toast('Could not parse AI response — check console.',4000);console.error('AI wisdom parse error:',e);}
 }
 
 // ── WISDOM CONTEXT HELPER ──────────────────────────────────────
@@ -2822,7 +2822,7 @@ function pwaInstall(){
   if(_pwaPrompt){_pwaPrompt.prompt();_pwaPrompt.userChoice.then(()=>document.getElementById('pwa-banner')?.classList.remove('show'));}
   else{
     // iOS fallback — no prompt API
-    alert('To install on iPhone:\n1. Tap the Share button (□↑)\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add"');
+    toast('To install on iPhone: tap the Share button (□↑) → "Add to Home Screen" → Add',7000);
     pwaDismiss();
   }
 }

@@ -1650,7 +1650,7 @@ async function callClaude(systemPrompt,userPrompt,maxTokens=1500){
   }catch(e){toast('AI request failed: '+esc(e.message),4000);return null;}
 }
 
-function aiLoadingHTML(msg='Analyzing...'){return`<div class="ai-loading"><span class="spin">⏳</span> ${msg}</div>`;}
+function aiLoadingHTML(msg='Analyzing...'){return`<div class="ai-loading"><span class="spin">⏳</span> ${esc(msg)}</div>`;}
 
 // ── AI: PRIORITIZE BACKLOG ─────────────────────────────────────
 async function aiPrioritizeBacklog(){

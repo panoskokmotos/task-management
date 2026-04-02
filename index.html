@@ -1094,13 +1094,51 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],reflections:{},wisdom:{books:[],principles:[]},profiles:[],seededGoalsV3:false,claudeKey:'',userName:'Panos',userEmoji:'🧑',journal:{},notif:{time:'09:00',slack:'',emailWebhook:'',lastSentDate:null,browserEnabled:false}};
+const _BLANK_S=()=>({tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],reflections:{},wisdom:{books:[],principles:[]},seededGoalsV3:false,claudeKey:'',userName:'',userEmoji:'🧑',journal:{},notif:{time:'09:00',slack:'',emailWebhook:'',lastSentDate:null,browserEnabled:false}});
+let S=_BLANK_S();
 let editT=null,editG=null,editBook=null,editPrin=null,fCat='all',wTab='all',rTab='daily',draggedTaskId=null,pendingAiTasks=[];
 let _searchTimer=null;
 
 // ── PERSIST ───────────────────────────────────────────────────
-function save(){try{localStorage.setItem('taskos',JSON.stringify(S));}catch(e){if(e.name==='QuotaExceededError'||e.code===22){toast('Storage full! Export a backup and remove old data (Settings → Export).',5000);}else{console.error('Save failed:',e);}}}
-function load(){try{const d=localStorage.getItem('taskos');if(d)S={...S,...JSON.parse(d)};}catch(e){console.error('Load failed:',e);}}
+// Profile list lives in its own key; each profile's data in taskos_data_<id>
+let _profiles=[];
+function _profileDataKey(id){return'taskos_data_'+id;}
+function _saveProfiles(){try{localStorage.setItem('taskos_profiles',JSON.stringify(_profiles));}catch(e){console.error('Save profiles failed:',e);}}
+function _loadProfiles(){try{const d=localStorage.getItem('taskos_profiles');if(d)_profiles=JSON.parse(d);}catch(e){console.error('Load profiles failed:',e);}}
+function _loadProfileData(id){
+  try{
+    const d=localStorage.getItem(_profileDataKey(id));
+    S=d?{..._BLANK_S(),...JSON.parse(d)}:_BLANK_S();
+  }catch(e){console.error('Load profile data failed:',e);S=_BLANK_S();}
+  const p=_profiles.find(x=>x.id===id);
+  if(p){S.userName=p.name;S.userEmoji=p.emoji||'🧑';}
+}
+function save(){/* defined below after save-indicator setup */}
+function load(){
+  // ── One-time migration from single-store to per-profile storage ──
+  const old=localStorage.getItem('taskos');
+  if(old&&!localStorage.getItem('taskos_profiles')){
+    try{
+      const data=JSON.parse(old);
+      const profs=data.profiles||[];
+      if(profs.length){
+        _profiles=profs.map(({id,name,emoji,pin,createdAt})=>({id,name,emoji:emoji||'🧑',pin:pin||null,createdAt:createdAt||new Date().toISOString()}));
+        // All profiles shared the same data — give it to the first profile
+        const {profiles:_unused,...profileData}=data;
+        localStorage.setItem(_profileDataKey(profs[0].id),JSON.stringify(profileData));
+      }else{
+        const p={id:uid(),name:data.userName||'Me',emoji:data.userEmoji||'🧑',pin:null,createdAt:new Date().toISOString()};
+        _profiles=[p];
+        const {profiles:_unused,...profileData}=data;
+        localStorage.setItem(_profileDataKey(p.id),JSON.stringify(profileData));
+      }
+      _saveProfiles();
+      localStorage.removeItem('taskos');
+    }catch(e){console.error('Migration failed:',e);}
+    return;
+  }
+  _loadProfiles();
+}
 
 // ── UTILS ─────────────────────────────────────────────────────
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
@@ -1591,7 +1629,8 @@ function exportData(){
   const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download='taskos-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  const name=(S.userName||'profile').toLowerCase().replace(/\s+/g,'-');
+  a.download='taskos-'+name+'-'+new Date().toISOString().slice(0,10)+'.json';
   a.click();URL.revokeObjectURL(a.href);
   toast('Backup exported');
 }
@@ -2382,9 +2421,8 @@ function toggleSB(){
 const EMOJIS=['🧑','👨','👩','🧔','👦','👧','🦁','🐯','🦊','🐼','🦋','🌟','🚀','⚡','🔥','💎','🎯','🧠','💪','🏆'];
 function authInit(){
   const screen=document.getElementById('auth-screen');
-  // If profile set in session, skip auth
-  if(sessionStorage.getItem('taskos_session')){authDone();return;}
-  // If has profile in S, show auth to verify/select
+  const pid=sessionStorage.getItem('taskos_session');
+  if(pid&&_profiles.find(x=>x.id===pid)){_loadProfileData(pid);authDone();return;}
   screen.classList.remove('hidden');
   _buildEmojiGrid();
   authShowProfiles();
@@ -2399,9 +2437,8 @@ function authPickEmoji(el,e){
   el.classList.add('sel');
 }
 function authShowProfiles(){
-  const profs=S.profiles||[];
   const grid=document.getElementById('auth-profiles');
-  grid.innerHTML=profs.map(p=>`<div class="profile-card" onclick="authSelect('${p.id}')">
+  grid.innerHTML=_profiles.map(p=>`<div class="profile-card" onclick="authSelect('${p.id}')">
     <div class="profile-emoji">${p.emoji||'🧑'}</div>
     <div class="profile-nm">${esc(p.name)}</div>
     ${p.pin?'<div class="profile-lock">🔒 PIN</div>':''}
@@ -2414,7 +2451,7 @@ function authShowProfiles(){
   grid.style.display='grid';
 }
 function authSelect(id){
-  const p=(S.profiles||[]).find(x=>x.id===id);if(!p)return;
+  const p=_profiles.find(x=>x.id===id);if(!p)return;
   if(p.pin){
     document.getElementById('auth-pin-label').textContent='Welcome back, '+p.name+'! Enter your PIN.';
     document.getElementById('auth-pin-inp').value='';
@@ -2427,7 +2464,7 @@ function authSelect(id){
 function authVerifyPin(){
   const inp=document.getElementById('auth-pin-inp');
   const id=inp.dataset.pid;
-  const p=(S.profiles||[]).find(x=>x.id===id);if(!p)return;
+  const p=_profiles.find(x=>x.id===id);if(!p)return;
   if(_hashPin(inp.value)===p.pin){authLogin(id);}
   else{inp.style.borderColor='var(--bw)';setTimeout(()=>inp.style.borderColor='',800);}
 }
@@ -2444,14 +2481,12 @@ function authCreate(){
   const selEmoji=document.querySelector('.emoji-opt.sel')?.textContent||'🧑';
   const pinRaw=document.getElementById('auth-newpin-inp').value;
   const p={id:uid(),name,emoji:selEmoji,pin:pinRaw?_hashPin(pinRaw):null,createdAt:new Date().toISOString()};
-  if(!S.profiles)S.profiles=[];
-  S.profiles.push(p);
-  S.userName=name;S.userEmoji=selEmoji;
-  save();authLogin(p.id);
+  _profiles.push(p);
+  _saveProfiles();
+  authLogin(p.id);
 }
 function authLogin(id){
-  const p=(S.profiles||[]).find(x=>x.id===id);
-  if(p){S.userName=p.name;S.userEmoji=p.emoji||'🧑';save();}
+  _loadProfileData(id);
   sessionStorage.setItem('taskos_session',id);
   document.getElementById('auth-screen').classList.add('hidden');
   authDone();
@@ -2743,10 +2778,10 @@ function exportCSV(){
 // ── SETTINGS ─────────────────────────────────────────────────
 function saveSettings(){
   S.claudeKey=document.getElementById('claude-key-inp').value.trim();
-  const newName=document.getElementById('user-name-inp').value.trim()||'Panos';
+  const newName=document.getElementById('user-name-inp').value.trim()||S.userName||'Me';
   S.userName=newName;S.userEmoji=document.querySelector('.auth-wrap .emoji-opt.sel')?.textContent||S.userEmoji||'🧑';
   const pid=sessionStorage.getItem('taskos_session');
-  if(pid){const p=(S.profiles||[]).find(x=>x.id===pid);if(p){p.name=newName;p.emoji=S.userEmoji;}}
+  if(pid){const p=_profiles.find(x=>x.id===pid);if(p){p.name=newName;p.emoji=S.userEmoji;_saveProfiles();}}
   if(!S.notif)S.notif={};
   S.notif.time=document.getElementById('notif-time').value||'09:00';
   S.notif.slack=document.getElementById('notif-slack').value.trim();
@@ -2783,12 +2818,13 @@ async function aiSuggestFocus(){
 // ── AUTO-SAVE ─────────────────────────────────────────────────
 let _saveIndicatorTimer=null;
 let _lastSavedJson='';
-const _origSave=save;
-// Wrap save to also flash the indicator
+// Real save implementation — writes to the active profile's storage key
 function save(){
+  const pid=sessionStorage.getItem('taskos_session');
+  if(!pid)return;
   const json=JSON.stringify(S);
   _lastSavedJson=json;
-  try{localStorage.setItem('taskos',json);}
+  try{localStorage.setItem(_profileDataKey(pid),json);}
   catch(e){if(e.name==='QuotaExceededError'||e.code===22){toast('Storage full! Export a backup and remove old data (Settings → Export).',5000);}else{console.error('Save failed:',e);}}
   const dot=document.getElementById('save-dot');
   if(dot){

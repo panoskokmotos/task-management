@@ -173,6 +173,8 @@ select.fc option{background:var(--s2);}
   .bni.active{color:var(--accent);}
   .bni-ic{font-size:18px;line-height:1.2;}
 }
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--sf2);border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:13px;z-index:2000;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;}
+#toast.show{opacity:1;}
 </style>
 </head>
 <body>
@@ -247,6 +249,7 @@ select.fc option{background:var(--s2);}
 </div><!-- /main -->
 
 <button class="fab" onclick="openAdd()">+</button>
+<div id="toast"></div>
 
 <nav class="bnav">
   <button class="bni active" data-v="overview" onclick="nav('overview')"><span class="bni-ic">📊</span>Overview</button>
@@ -354,6 +357,8 @@ function save(){localStorage.setItem('givelink_sprint',JSON.stringify(S));}
 function load(){const d=localStorage.getItem('givelink_sprint');if(d){const p=JSON.parse(d);S={...S,...p};}}
 
 // ── UTILS ───────────────────────────────────────────────────────
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function toast(msg,ms=2200){const t=document.getElementById('toast');t.innerHTML=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms);}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
 function daysLeft(){const e=new Date(S.sprint.end);const n=new Date();const d=Math.ceil((e-n)/(1000*60*60*24));return Math.max(0,d);}
 function sprintPct(){const s=new Date(S.sprint.start),e=new Date(S.sprint.end),n=new Date();const total=e-s,elapsed=Math.min(n-s,total);return Math.round(Math.max(0,elapsed/total)*100);}
@@ -440,7 +445,7 @@ function renderOverview(){
 
 // ── PILLAR VIEW ───────────────────────────────────────────────────
 function renderPillar(p){
-  const P=PILLARS[p];
+  const P=PILLARS[p]||{hex:'var(--muted)',e:'',l:p};
   const tasks=curTasks().filter(t=>t.pillar===p);
   const goals=tasks.filter(t=>t.isGoal);
   const subtasks=tasks.filter(t=>!t.isGoal);
@@ -492,13 +497,13 @@ function renderBacklog(){
   tasks.forEach(t=>{(grouped[t.pillar]=grouped[t.pillar]||[]).push(t);});
   let html='';
   Object.entries(grouped).forEach(([p,ts])=>{
-    const P=PILLARS[p];
+    const P=PILLARS[p]||{hex:'var(--muted)',e:'',l:p};
     html+=`<div style="margin-bottom:16px;"><div style="font-size:11px;font-weight:700;color:${P.hex};margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px;">${P.e} ${P.l} (${ts.length})</div>`;
     html+=ts.map(t=>`
       <div class="tc2 fi" onclick="openEdit('${t.id}')">
         <div class="ck2 ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')"></div>
         <div class="tb2">
-          <div class="tt2">${t.title}</div>
+          <div class="tt2">${esc(t.title)}</div>
           <div class="tm2">
             <span class="badge ${STATUS[t.status]?.cls||'st-todo'}">${STATUS[t.status]?.l||'Todo'}</span>
             <span class="badge ${PRI[t.priority]?.cls||'pri-med'}">${PRI[t.priority]?.l||'Medium'}</span>
@@ -513,7 +518,7 @@ function renderBacklog(){
 
 // ── GOAL HTML ─────────────────────────────────────────────────────
 function goalHTML(t){
-  const P=PILLARS[t.pillar];
+  const P=PILLARS[t.pillar]||{hex:'var(--muted)',e:'',l:t.pillar||''};
   const isDone=t.status==='done';
   const hasProg=t.target&&t.target>0;
   const pct=hasProg?Math.min(100,Math.round((t.current||0)/t.target*100)):0;
@@ -526,8 +531,8 @@ function goalHTML(t){
           <span class="goal-tag">Goal</span>
           <span class="badge ${STATUS[t.status]?.cls||'st-todo'}" style="margin-left:auto;">${STATUS[t.status]?.l||'Todo'}</span>
         </div>
-        <div class="gc2-title">${t.title}</div>
-        ${t.notes?`<div style="font-size:11px;color:var(--muted);margin-top:4px;">${t.notes}</div>`:''}
+        <div class="gc2-title">${esc(t.title)}</div>
+        ${t.notes?`<div style="font-size:11px;color:var(--muted);margin-top:4px;">${esc(t.notes)}</div>`:''}
       </div>
     </div>
     ${hasProg?`<div class="gc2-prog">
@@ -539,24 +544,24 @@ function goalHTML(t){
         <span class="prog-pct">${pct}%</span>
       </div>
     </div>`:''}
-    ${t.assignee?`<div style="font-size:11px;color:var(--muted);margin-top:6px;">👤 ${t.assignee}</div>`:''}
+    ${t.assignee?`<div style="font-size:11px;color:var(--muted);margin-top:6px;">👤 ${esc(t.assignee)}</div>`:''}
   </div>`;
 }
 
 // ── TASK HTML ─────────────────────────────────────────────────────
 function taskHTML(t){
-  const P=PILLARS[t.pillar];
+  const P=PILLARS[t.pillar]||{hex:'var(--muted)',e:'',l:t.pillar||''};
   const hasProg=t.target&&t.target>0;
   const pct=hasProg?Math.min(100,Math.round((t.current||0)/t.target*100)):0;
   return`<div class="tc2 fi ${t.status==='done'?'done-t':''}" onclick="openEdit('${t.id}')">
     <div class="ck2 ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${t.status==='done'?'<span style="color:#fff;font-size:9px;">✓</span>':''}</div>
     <div class="tb2">
-      <div class="tt2">${t.title}</div>
+      <div class="tt2">${esc(t.title)}</div>
       <div class="tm2">
         <span class="badge ${STATUS[t.status]?.cls||'st-todo'}">${STATUS[t.status]?.l||'Todo'}</span>
         <span class="badge ${PRI[t.priority]?.cls||'pri-med'}">${t.priority||'medium'}</span>
         ${hasProg?`<span style="font-size:11px;color:${P.hex};font-weight:600;">${t.current||0}/${t.target}</span>`:''}
-        ${t.assignee?`<span style="font-size:11px;color:var(--muted);">👤 ${t.assignee}</span>`:''}
+        ${t.assignee?`<span style="font-size:11px;color:var(--muted);">👤 ${esc(t.assignee)}</span>`:''}
       </div>
       ${hasProg?`<div style="height:3px;background:var(--border);border-radius:2px;margin-top:5px;"><div style="height:100%;border-radius:2px;background:${P.hex};width:${pct}%;transition:width .3s;"></div></div>`:''}
     </div>
@@ -601,7 +606,7 @@ function openEdit(id){
 }
 function saveTask(){
   const title=document.getElementById('t-title').value.trim();
-  if(!title){alert('Enter a task title.');return;}
+  if(!title){toast('Enter a task title.');return;}
   const d={
     title,
     notes:document.getElementById('t-notes').value,

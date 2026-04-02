@@ -619,6 +619,7 @@ function saveTask(){
     assignee:document.getElementById('t-assignee').value,
     isGoal:document.getElementById('t-isgoal').value==='true'
   };
+  if(d.target&&d.current>d.target){toast('Current progress cannot exceed target.');return;}
   if(editId){const i=S.tasks.findIndex(t=>t.id===editId);S.tasks[i]={...S.tasks[i],...d};}
   else S.tasks.push({id:uid(),...d,createdAt:new Date().toISOString(),completedAt:null});
   save();closeM('tm');refresh();

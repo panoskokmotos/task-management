@@ -1421,7 +1421,7 @@ function spawnRecurring(t){
 // ── TASK CRUD ─────────────────────────────────────────────────
 function _setTaskModalDefaults(bucket){
   ['t-title','t-notes'].forEach(i=>document.getElementById(i).value='');
-  document.getElementById('t-cat').value='givelink';
+  document.getElementById('t-cat').value='other';
   document.getElementById('t-bucket').value=bucket;
   document.getElementById('t-urg').value='low';
   document.getElementById('t-imp').value='high';
@@ -1430,6 +1430,7 @@ function _setTaskModalDefaults(bucket){
   document.getElementById('t-due').value='';
   document.getElementById('t-status').value='todo';
   document.getElementById('t-recur').value='none';
+  document.getElementById('t-goal').value='';
 }
 function openAdd(bucket='inbox'){
   editT=null;
@@ -1472,7 +1473,7 @@ function saveTask(){
 
 function delTask(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
-  t.trashedAt=new Date().toISOString();t.bucket='trash';
+  t._prevBucket=t.bucket;t.trashedAt=new Date().toISOString();t.bucket='trash';
   save();refresh();updTrashBadge();
   toast('Moved to Trash — <span style="cursor:pointer;text-decoration:underline;" onclick="restoreTask(\''+id+'\')">Undo</span>',3500);
 }
@@ -1507,7 +1508,7 @@ function openAddGoal(){
   editG=null;
   document.getElementById('gm-title').textContent='Add Goal';
   ['g-title','g-desc'].forEach(i=>document.getElementById(i).value='');
-  document.getElementById('g-cat').value='givelink';
+  document.getElementById('g-cat').value='other';
   document.getElementById('g-top').value='false';
   document.getElementById('del-goal-btn').style.display='none';
   document.getElementById('gm').classList.remove('hidden');

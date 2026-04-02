@@ -1094,7 +1094,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-const _BLANK_S=()=>({tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],reflections:{},wisdom:{books:[],principles:[]},seededGoalsV3:false,claudeKey:'',userName:'',userEmoji:'🧑',journal:{},notif:{time:'09:00',slack:'',emailWebhook:'',lastSentDate:null,browserEnabled:false}});
+const _BLANK_S=()=>({tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],reflections:{},wisdom:{books:[],principles:[]},seededGoalsV3:true,seededV2:true,claudeKey:'',userName:'',userEmoji:'🧑',journal:{},notif:{time:'09:00',slack:'',emailWebhook:'',lastSentDate:null,browserEnabled:false}});
 let S=_BLANK_S();
 let editT=null,editG=null,editBook=null,editPrin=null,fCat='all',wTab='all',rTab='daily',draggedTaskId=null,pendingAiTasks=[];
 let _searchTimer=null;

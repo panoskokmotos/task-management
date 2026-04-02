@@ -175,6 +175,24 @@ select.fc option{background:var(--s2);}
 }
 #toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--sf);border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:13px;z-index:2000;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;}
 #toast.show{opacity:1;}
+/* ── PAST SPRINTS ───────────────────────────────────────── */
+.psp-card{background:var(--sf);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px;}
+.psp-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
+.psp-name{font-size:14px;font-weight:700;}
+.psp-dates{font-size:11px;color:var(--muted);margin-top:2px;}
+.psp-rate{font-size:22px;font-weight:800;line-height:1;}
+.psp-stats{font-size:12px;color:var(--muted);margin-bottom:10px;}
+.psp-goals{display:flex;flex-direction:column;gap:5px;border-top:1px solid var(--border);padding-top:10px;margin-top:4px;}
+.psp-goal{display:flex;align-items:center;gap:7px;font-size:12px;}
+.psp-goal-txt{flex:1;color:var(--text);}
+.psp-goal-pillar{font-size:14px;}
+/* ── NEW SPRINT MODAL ───────────────────────────────────── */
+.ns-summary{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:18px;}
+.ns-summary-title{font-size:13px;font-weight:700;margin-bottom:4px;}
+.ns-summary-sub{font-size:12px;color:var(--muted);margin-bottom:10px;}
+.ns-goal-row{display:flex;align-items:center;gap:7px;font-size:12px;padding:3px 0;}
+.ns-divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--muted);font-size:12px;font-weight:700;}
+.ns-divider::before,.ns-divider::after{content:'';flex:1;border-top:1px solid var(--border);}
 </style>
 </head>
 <body>
@@ -202,6 +220,7 @@ select.fc option{background:var(--s2);}
   <div class="ni" onclick="nav('ops')"><span class="pip" style="background:var(--op)"></span>Smooth Ops <span class="bcnt2" id="cnt-ops"></span></div>
   <div class="ns">More</div>
   <div class="ni" onclick="nav('backlog')">📋 Backlog <span class="bcnt2" id="cnt-backlog"></span></div>
+  <div class="ni" onclick="nav('past')">📚 Past Sprints <span class="bcnt2" id="cnt-past"></span></div>
   <div class="ni" onclick="openSprintSettings()">⚙️ Sprint Settings</div>
 </nav>
 
@@ -230,6 +249,9 @@ select.fc option{background:var(--s2);}
   <div id="v-product" class="view"></div>
   <div id="v-execution" class="view"></div>
   <div id="v-ops" class="view"></div>
+
+  <!-- PAST SPRINTS -->
+  <div id="v-past" class="view"></div>
 
   <!-- BACKLOG -->
   <div id="v-backlog" class="view">
@@ -324,7 +346,27 @@ select.fc option{background:var(--s2);}
       <div class="fg"><label>Start Date</label><input class="fc" id="s-start" type="date"></div>
       <div class="fg"><label>End Date</label><input class="fc" id="s-end" type="date"></div>
     </div>
-    <div class="mf"><button class="btn bg" onclick="closeM('sm')">Cancel</button><button class="btn bp" onclick="saveSprint()">Save Sprint</button></div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('sm')">Cancel</button>
+      <button class="btn bg" onclick="closeM('sm');openCloseSprint()" style="margin-right:auto;">🔄 Close Sprint →</button>
+      <button class="btn bp" onclick="saveSprint()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW SPRINT MODAL -->
+<div class="mo hidden" id="nsm">
+  <div class="md" style="width:480px;">
+    <div class="mh"><h3>🔄 Close Sprint & Start New</h3><button class="mc" onclick="closeM('nsm')">×</button></div>
+    <div class="ns-summary" id="ns-summary"></div>
+    <div class="ns-divider">New Sprint</div>
+    <div class="fg"><label>Sprint Name</label><input class="fc" id="ns-name" placeholder="Sprint 2 — ..."></div>
+    <div class="fr">
+      <div class="fg"><label>Start Date</label><input class="fc" id="ns-start" type="date"></div>
+      <div class="fg"><label>End Date</label><input class="fc" id="ns-end" type="date"></div>
+    </div>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:4px;">Incomplete tasks will move to Backlog. Done tasks are archived with this sprint.</p>
+    <div class="mf"><button class="btn bg" onclick="closeM('nsm')">Cancel</button><button class="btn bp" onclick="confirmNewSprint()">Start New Sprint →</button></div>
   </div>
 </div>
 
@@ -348,7 +390,8 @@ const PRI={high:{l:'High',cls:'pri-high'},medium:{l:'Medium',cls:'pri-med'},low:
 let S={
   sprint:{name:'Sprint 1 — US Growth Push',start:'2026-03-28',end:'2026-04-11'},
   tasks:[],
-  blFilter:'all'
+  blFilter:'all',
+  pastSprints:[]
 };
 let editId=null;
 
@@ -386,6 +429,7 @@ function renderView(v){
   if(v==='overview')renderOverview();
   else if(PILLARS[v])renderPillar(v);
   else if(v==='backlog')renderBacklog();
+  else if(v==='past')renderPastSprints();
 }
 function refresh(){renderView(curView);updateSidebar();}
 
@@ -410,6 +454,7 @@ function updateSidebar(){
     document.getElementById('cnt-'+p).textContent=c||'';
   });
   document.getElementById('cnt-backlog').textContent=blTasks().length||'';
+  document.getElementById('cnt-past').textContent=(S.pastSprints||[]).length||'';
 }
 
 // ── OVERVIEW ─────────────────────────────────────────────────────
@@ -654,6 +699,83 @@ function saveSprint(){
   S.sprint.start=start;
   S.sprint.end=end;
   save();closeM('sm');renderSprintBar();updateSidebar();
+}
+
+// ── CLOSE SPRINT / NEW SPRINT ─────────────────────────────────────
+function openCloseSprint(){
+  const ct=curTasks();
+  const done=ct.filter(t=>t.status==='done').length;
+  const goals=ct.filter(t=>t.isGoal);
+  const rate=ct.length?Math.round(done/ct.length*100):0;
+  const rateColor=rate>=70?'var(--done)':rate>=40?'#fbbf24':'var(--block)';
+  document.getElementById('ns-summary').innerHTML=`
+    <div class="ns-summary-title">${esc(S.sprint.name)}</div>
+    <div class="ns-summary-sub">${fd(S.sprint.start)} – ${fd(S.sprint.end)}</div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:${goals.length?'12px':'0'};">
+      <div><span style="font-size:22px;font-weight:800;color:${rateColor};">${rate}%</span><span style="font-size:11px;color:var(--muted);margin-left:5px;">complete</span></div>
+      <div style="font-size:12px;color:var(--muted);">${done} / ${ct.length} tasks done</div>
+    </div>
+    ${goals.length?`<div style="border-top:1px solid var(--border);padding-top:10px;">${goals.map(g=>`<div class="ns-goal-row"><span>${g.status==='done'?'✅':'⬜'}</span><span style="flex:1;">${esc(g.title)}</span><span>${PILLARS[g.pillar]?.e||''}</span></div>`).join('')}</div>`:''}`;
+  // Pre-fill new sprint defaults
+  const n=(S.pastSprints||[]).length+2;
+  document.getElementById('ns-name').value=`Sprint ${n}`;
+  const start=new Date();start.setDate(start.getDate()+1);
+  const end=new Date();end.setDate(end.getDate()+15);
+  document.getElementById('ns-start').value=start.toISOString().slice(0,10);
+  document.getElementById('ns-end').value=end.toISOString().slice(0,10);
+  document.getElementById('nsm').classList.remove('hidden');
+}
+function confirmNewSprint(){
+  const name=document.getElementById('ns-name').value.trim();
+  if(!name){toast('Enter a sprint name.');return;}
+  const start=document.getElementById('ns-start').value;
+  const end=document.getElementById('ns-end').value;
+  if(start&&end&&new Date(end)<=new Date(start)){toast('End date must be after start date.');return;}
+  // Archive current sprint
+  const ct=curTasks();
+  const done=ct.filter(t=>t.status==='done').length;
+  const archive={
+    id:uid(),name:S.sprint.name,start:S.sprint.start,end:S.sprint.end,
+    closedAt:new Date().toISOString(),
+    stats:{total:ct.length,done},
+    goals:ct.filter(t=>t.isGoal).map(t=>({id:t.id,title:t.title,pillar:t.pillar,status:t.status}))
+  };
+  if(!S.pastSprints)S.pastSprints=[];
+  S.pastSprints.unshift(archive);
+  // Move tasks: done → archived, incomplete → backlog
+  S.tasks.forEach(t=>{
+    if(t.sprint==='current'){
+      if(t.status==='done'){t.sprint='archived';t.archivedSprintId=archive.id;}
+      else{t.sprint='backlog';}
+    }
+  });
+  // Start new sprint
+  S.sprint={name,start,end};
+  save();closeM('nsm');nav('overview');
+  toast(`"${archive.name}" archived · New sprint started! 🚀`,3500);
+}
+// ── PAST SPRINTS ──────────────────────────────────────────────────
+function renderPastSprints(){
+  const el=document.getElementById('v-past');
+  const past=S.pastSprints||[];
+  if(!past.length){
+    el.innerHTML=`<div class="ph"><div><h1>📚 Past Sprints</h1><p class="sub">Your sprint history will appear here.</p></div></div><div class="empty" style="padding:44px 0;text-align:center;"><div style="font-size:42px;margin-bottom:12px;">🏁</div><div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;">No past sprints yet</div><p style="font-size:13px;color:var(--muted);">Close your current sprint to archive it and start a new one.</p><button class="btn bp" style="margin-top:14px;" onclick="openCloseSprint()">🔄 Close Current Sprint →</button></div>`;
+    return;
+  }
+  el.innerHTML=`<div class="ph"><div><h1>📚 Past Sprints</h1><p class="sub">${past.length} sprint${past.length!==1?'s':''} completed</p></div><button class="btn bp" onclick="openCloseSprint()">🔄 Close Sprint →</button></div>`+
+    past.map(s=>{
+      const rate=s.stats.total?Math.round(s.stats.done/s.stats.total*100):0;
+      const rateColor=rate>=70?'var(--done)':rate>=40?'#fbbf24':'var(--block)';
+      const goals=s.goals||[];
+      const doneGoals=goals.filter(g=>g.status==='done').length;
+      return`<div class="psp-card">
+        <div class="psp-header">
+          <div><div class="psp-name">${esc(s.name)}</div><div class="psp-dates">${fd(s.start)} – ${fd(s.end)} · archived ${fd(s.closedAt)}</div></div>
+          <div class="psp-rate" style="color:${rateColor};">${rate}%</div>
+        </div>
+        <div class="psp-stats">${s.stats.done}/${s.stats.total} tasks done${goals.length?` · ${doneGoals}/${goals.length} goals completed`:''}</div>
+        ${goals.length?`<div class="psp-goals">${goals.map(g=>`<div class="psp-goal"><span>${g.status==='done'?'✅':'⬜'}</span><span class="psp-goal-txt">${esc(g.title)}</span><span class="psp-goal-pillar">${PILLARS[g.pillar]?.e||''}</span></div>`).join('')}</div>`:''}</div>`;
+    }).join('');
 }
 
 // ── MODAL ─────────────────────────────────────────────────────────

@@ -1094,13 +1094,51 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],reflections:{},wisdom:{books:[],principles:[]},profiles:[],seededGoalsV3:false,claudeKey:'',userName:'Panos',userEmoji:'🧑',journal:{},notif:{time:'09:00',slack:'',emailWebhook:'',lastSentDate:null,browserEnabled:false}};
+const _BLANK_S=()=>({tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],reflections:{},wisdom:{books:[],principles:[]},seededGoalsV3:true,seededV2:true,claudeKey:'',userName:'',userEmoji:'🧑',journal:{},notif:{time:'09:00',slack:'',emailWebhook:'',lastSentDate:null,browserEnabled:false}});
+let S=_BLANK_S();
 let editT=null,editG=null,editBook=null,editPrin=null,fCat='all',wTab='all',rTab='daily',draggedTaskId=null,pendingAiTasks=[];
 let _searchTimer=null;
 
 // ── PERSIST ───────────────────────────────────────────────────
-function save(){try{localStorage.setItem('taskos',JSON.stringify(S));}catch(e){if(e.name==='QuotaExceededError'||e.code===22){alert('Storage full! Please export a backup and remove old data (Settings → Export).');}else{console.error('Save failed:',e);}}}
-function load(){try{const d=localStorage.getItem('taskos');if(d)S={...S,...JSON.parse(d)};}catch(e){console.error('Load failed:',e);}}
+// Profile list lives in its own key; each profile's data in taskos_data_<id>
+let _profiles=[];
+function _profileDataKey(id){return'taskos_data_'+id;}
+function _saveProfiles(){try{localStorage.setItem('taskos_profiles',JSON.stringify(_profiles));}catch(e){console.error('Save profiles failed:',e);}}
+function _loadProfiles(){try{const d=localStorage.getItem('taskos_profiles');if(d)_profiles=JSON.parse(d);}catch(e){console.error('Load profiles failed:',e);}}
+function _loadProfileData(id){
+  try{
+    const d=localStorage.getItem(_profileDataKey(id));
+    S=d?{..._BLANK_S(),...JSON.parse(d)}:_BLANK_S();
+  }catch(e){console.error('Load profile data failed:',e);S=_BLANK_S();}
+  const p=_profiles.find(x=>x.id===id);
+  if(p){S.userName=p.name;S.userEmoji=p.emoji||'🧑';}
+}
+function save(){/* defined below after save-indicator setup */}
+function load(){
+  // ── One-time migration from single-store to per-profile storage ──
+  const old=localStorage.getItem('taskos');
+  if(old&&!localStorage.getItem('taskos_profiles')){
+    try{
+      const data=JSON.parse(old);
+      const profs=data.profiles||[];
+      if(profs.length){
+        _profiles=profs.map(({id,name,emoji,pin,createdAt})=>({id,name,emoji:emoji||'🧑',pin:pin||null,createdAt:createdAt||new Date().toISOString()}));
+        // All profiles shared the same data — give it to the first profile
+        const {profiles:_unused,...profileData}=data;
+        localStorage.setItem(_profileDataKey(profs[0].id),JSON.stringify(profileData));
+      }else{
+        const p={id:uid(),name:data.userName||'Me',emoji:data.userEmoji||'🧑',pin:null,createdAt:new Date().toISOString()};
+        _profiles=[p];
+        const {profiles:_unused,...profileData}=data;
+        localStorage.setItem(_profileDataKey(p.id),JSON.stringify(profileData));
+      }
+      _saveProfiles();
+      localStorage.removeItem('taskos');
+    }catch(e){console.error('Migration failed:',e);}
+    return;
+  }
+  _loadProfiles();
+}
 
 // ── UTILS ─────────────────────────────────────────────────────
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
@@ -1174,7 +1212,7 @@ function renderTop3(){
     return`<div class="t3s s${s}">
       <div class="sl2">${labels[s-1]}</div>
       ${t?`<div onclick="openEdit('${t.id}')" style="cursor:pointer;">
-        <div style="font-size:13px;font-weight:500;line-height:1.4;margin-bottom:8px;">${t.title}</div>
+        <div style="font-size:13px;font-weight:500;line-height:1.4;margin-bottom:8px;">${esc(t.title)}</div>
         <div class="tm">${catB(t.category)}${eB(t)}</div>
         <div style="margin-top:9px;display:flex;gap:5px;">
           <button class="btn bg sm" onclick="event.stopPropagation();toggleDone('${t.id}')">✓ Done</button>
@@ -1252,7 +1290,7 @@ function renderEisenhower(){
       ${qs[q].length?qs[q].map(t=>`
         <div class="tc" onclick="openEdit('${t.id}')">
           <div class="ck ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')"></div>
-          <div class="tb"><div class="tt">${t.title}</div><div class="tm">${catB(t.category)}<span class="badge co">${BKTS[t.bucket]?.e} ${BKTS[t.bucket]?.l}</span></div></div>
+          <div class="tb"><div class="tt">${esc(t.title)}</div><div class="tm">${catB(t.category)}<span class="badge co">${BKTS[t.bucket]?.e} ${BKTS[t.bucket]?.l}</span></div></div>
         </div>`).join(''):'<div class="empty" style="padding:16px 0;font-size:12px;">Clear ✓</div>'}`;
   });
 }
@@ -1289,7 +1327,7 @@ function renderGoals(){
   const top=S.goals.filter(g=>g.isTop3),rest=S.goals.filter(g=>!g.isTop3);
   document.getElementById('g-top3').innerHTML=top.length?top.map(goalHTML).join(''):`<div class="es"><div class="es-ic">🎯</div><h3>No top priorities yet</h3><p>Mark up to 3 goals as your top priorities.<br>Everything else should serve these.</p></div>`;
   document.getElementById('g-all').innerHTML=rest.length?rest.map(goalHTML).join(''):`<div class="es"><div class="es-ic">🏆</div><h3>No goals yet</h3><p>What's the big picture you're working towards?<br>Add your first goal to get started.</p><button class="btn bp" onclick="openAddGoal()">+ Add Goal</button></div>`;
-  document.getElementById('vals').innerHTML=S.values.length?`<div style="display:flex;flex-wrap:wrap;gap:7px;">${S.values.map(v=>`<span class="badge co" style="font-size:12px;padding:5px 12px;">💎 ${v}</span>`).join('')}</div>`:'<p style="color:var(--muted);">No values set.</p>';
+  document.getElementById('vals').innerHTML=S.values.length?`<div style="display:flex;flex-wrap:wrap;gap:7px;">${S.values.map(v=>`<span class="badge co" style="font-size:12px;padding:5px 12px;">💎 ${esc(v)}</span>`).join('')}</div>`:'<p style="color:var(--muted);">No values set.</p>';
   fillGoalDrop();
 }
 
@@ -1317,20 +1355,20 @@ function goalHTML(g){
 function renderReview(){
   const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
   const done=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>wAgo);
-  document.getElementById('r-done').innerHTML=done.length?done.map(t=>`<div class="tc" style="opacity:.7;"><div class="ck on">✓</div><div class="tb"><div class="tt" style="text-decoration:line-through;">${t.title}</div><div class="tm">${catB(t.category)}</div></div></div>`).join(''):'<div class="empty">No completed tasks this week yet.</div>';
+  document.getElementById('r-done').innerHTML=done.length?done.map(t=>`<div class="tc" style="opacity:.7;"><div class="ck on">✓</div><div class="tb"><div class="tt" style="text-decoration:line-through;">${esc(t.title)}</div><div class="tm">${catB(t.category)}</div></div></div>`).join(''):'<div class="empty">No completed tasks this week yet.</div>';
   const inbox=active().filter(t=>t.bucket==='inbox');
   document.getElementById('r-inbox').innerHTML=inbox.length?inbox.map(t=>inboxHTML(t)).join(''):'<div class="empty" style="color:var(--q2);">✓ Inbox is clear!</div>';
   const backlog=active().filter(t=>t.bucket==='backlog').slice(0,8);
   const wc=active().filter(t=>t.bucket==='this-week').length;
-  document.getElementById('r-backlog').innerHTML=`<p style="font-size:12px;color:var(--muted);margin-bottom:10px;">This Week: ${wc}/10</p>`+(backlog.length?backlog.map(t=>`<div class="tc"><div class="tb"><div class="tt">${t.title}</div><div class="tm">${catB(t.category)}${eB(t)}</div></div><button class="btn bg sm" onclick="mvB('${t.id}','this-week')">→ This Week</button></div>`).join(''):'<div class="empty">Backlog empty.</div>');
+  document.getElementById('r-backlog').innerHTML=`<p style="font-size:12px;color:var(--muted);margin-bottom:10px;">This Week: ${wc}/10</p>`+(backlog.length?backlog.map(t=>`<div class="tc"><div class="tb"><div class="tt">${esc(t.title)}</div><div class="tm">${catB(t.category)}${eB(t)}</div></div><button class="btn bg sm" onclick="mvB('${t.id}','this-week')">→ This Week</button></div>`).join(''):'<div class="empty">Backlog empty.</div>');
   const rev=[...S.reviews].reverse().slice(0,5);
-  document.getElementById('past-reviews').innerHTML=rev.length?rev.map(r=>`<div class="card" style="margin-bottom:10px;"><div style="font-weight:600;margin-bottom:6px;">📅 Week of ${fd(r.weekOf)}</div>${r.focus?`<div style="font-size:12px;color:var(--muted);">Focus: ${r.focus}</div>`:''} ${r.wentWell?`<div style="font-size:12px;margin-top:5px;">✅ ${r.wentWell}</div>`:''}</div>`).join(''):'<div class="empty">No past reviews yet.</div>';
+  document.getElementById('past-reviews').innerHTML=rev.length?rev.map(r=>`<div class="card" style="margin-bottom:10px;"><div style="font-weight:600;margin-bottom:6px;">📅 Week of ${fd(r.weekOf)}</div>${r.focus?`<div style="font-size:12px;color:var(--muted);">Focus: ${esc(r.focus)}</div>`:''} ${r.wentWell?`<div style="font-size:12px;margin-top:5px;">✅ ${esc(r.wentWell)}</div>`:''}</div>`).join(''):'<div class="empty">No past reviews yet.</div>';
 }
 
 function saveReview(){
   S.reviews.push({id:uid(),weekOf:new Date().toISOString(),wentWell:document.getElementById('rw').value,improve:document.getElementById('ri').value,focus:document.getElementById('rf').value});
   save();['rw','ri','rf'].forEach(i=>document.getElementById(i).value='');
-  renderReview();alert('✅ Weekly review saved!');
+  renderReview();toast('✅ Weekly review saved!');
 }
 
 // ── TASK CARD HTML ────────────────────────────────────────────
@@ -1424,7 +1462,7 @@ function openEdit(id){
 }
 function saveTask(){
   const title=document.getElementById('t-title').value.trim();
-  if(!title){alert('Enter a task title.');return;}
+  if(!title){toast('Enter a task title.');return;}
   const status=document.getElementById('t-status').value;
   const d={title,notes:document.getElementById('t-notes').value,category:document.getElementById('t-cat').value,bucket:document.getElementById('t-bucket').value,urgency:document.getElementById('t-urg').value,importance:document.getElementById('t-imp').value,energy:document.getElementById('t-eng').value,timeBlock:parseInt(document.getElementById('t-time').value)||null,dueDate:document.getElementById('t-due').value,goalId:document.getElementById('t-goal').value||null,status,recurrence:document.getElementById('t-recur').value||'none',completedAt:status==='done'?new Date().toISOString():null};
   if(editT){const i=S.tasks.findIndex(t=>t.id===editT);S.tasks[i]={...S.tasks[i],...d};}
@@ -1458,7 +1496,7 @@ function addT3(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
   const used=S.tasks.filter(x=>x.isT3&&x.status!=='done').map(x=>x.t3s);
   const slot=[1,2,3].find(s=>!used.includes(s));
-  if(!slot){alert('Top 3 full! Remove one first.');return;}
+  if(!slot){toast('Top 3 full — remove one first.');return;}
   t.isT3=true;t.t3s=slot;save();refresh();
 }
 
@@ -1489,7 +1527,7 @@ function openEditGoal(id){
 
 function saveGoal(){
   const title=document.getElementById('g-title').value.trim();
-  if(!title){alert('Enter a goal title.');return;}
+  if(!title){toast('Enter a goal title.');return;}
   const d={title,description:document.getElementById('g-desc').value,category:document.getElementById('g-cat').value,isTop3:document.getElementById('g-top').value==='true'};
   if(editG){const i=S.goals.findIndex(g=>g.id===editG);S.goals[i]={...S.goals[i],...d};}
   else S.goals.push({id:uid(),...d});
@@ -1571,7 +1609,7 @@ function onDrop(e,bucketId){
 // ── TOAST ─────────────────────────────────────────────────────
 function toast(msg,ms=2200){
   const t=document.getElementById('toast');
-  t.textContent=msg;t.classList.add('show');
+  t.innerHTML=msg;t.classList.add('show');
   clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms);
 }
 
@@ -1591,7 +1629,8 @@ function exportData(){
   const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
   const a=document.createElement('a');
   a.href=URL.createObjectURL(blob);
-  a.download='taskos-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  const name=(S.userName||'profile').toLowerCase().replace(/\s+/g,'-');
+  a.download='taskos-'+name+'-'+new Date().toISOString().slice(0,10)+'.json';
   a.click();URL.revokeObjectURL(a.href);
   toast('Backup exported');
 }
@@ -1603,9 +1642,20 @@ function importData(){
     try{
       const data=JSON.parse(e.target.result);
       if(!data.tasks)throw new Error('Invalid backup file');
-      S={...S,...data};save();closeM('settm');refresh();
+      // Deep-merge: overlay imported data but keep existing nested defaults for any missing keys
+      S={...S,...data,
+        tasks:data.tasks??S.tasks,
+        goals:data.goals??S.goals,
+        reviews:data.reviews??S.reviews,
+        values:data.values??S.values,
+        wisdom:data.wisdom??S.wisdom,
+        journal:data.journal??S.journal,
+        reflections:data.reflections??S.reflections,
+        notif:data.notif??S.notif,
+      };
+      save();closeM('settm');refresh();
       toast('Data imported — '+data.tasks.length+' tasks loaded');
-    }catch(err){alert('Import failed: '+err.message);}
+    }catch(err){toast('Import failed: '+esc(err.message),4000);}
   };
   reader.readAsText(file);
 }
@@ -1633,13 +1683,13 @@ async function callClaude(systemPrompt,userPrompt,maxTokens=1500){
         messages:[{role:'user',content:userPrompt}]
       })
     });
-    if(!res.ok){const err=await res.json();alert('AI Error: '+(err.error?.message||res.status));return null;}
+    if(!res.ok){const err=await res.json();toast('AI Error: '+esc(err.error?.message||String(res.status)),4000);return null;}
     const data=await res.json();
     return data.content?.[0]?.text||null;
-  }catch(e){alert('AI request failed: '+e.message);return null;}
+  }catch(e){toast('AI request failed: '+esc(e.message),4000);return null;}
 }
 
-function aiLoadingHTML(msg='Analyzing...'){return`<div class="ai-loading"><span class="spin">⏳</span> ${msg}</div>`;}
+function aiLoadingHTML(msg='Analyzing...'){return`<div class="ai-loading"><span class="spin">⏳</span> ${esc(msg)}</div>`;}
 
 // ── AI: PRIORITIZE BACKLOG ─────────────────────────────────────
 async function aiPrioritizeBacklog(){
@@ -1765,7 +1815,7 @@ async function aiGoalSuggest(goalId){
 // ── AI: PROCESS NOTES ─────────────────────────────────────────
 async function aiProcessNotes(){
   const raw=document.getElementById('note-input').value.trim();
-  if(!raw){alert('Enter some notes first.');return;}
+  if(!raw){toast('Enter some notes first.');return;}
   const btn=document.querySelector('[onclick="aiProcessNotes()"]');
   if(btn){btn.textContent='⏳ Processing...';btn.disabled=true;}
   const goalList=S.goals.slice(0,20).map(g=>`${g.id}|${g.title}`).join('\n');
@@ -1798,7 +1848,7 @@ async function aiProcessNotes(){
     document.getElementById('ainm').classList.remove('hidden');
     renderNotes();
   }catch(e){
-    alert('Could not parse AI response. Try again or check console.');
+    toast('Could not parse AI response — check console.',4000);
     console.error('AI parse error:',e,'\nRaw:',result);
   }
 }
@@ -2371,9 +2421,8 @@ function toggleSB(){
 const EMOJIS=['🧑','👨','👩','🧔','👦','👧','🦁','🐯','🦊','🐼','🦋','🌟','🚀','⚡','🔥','💎','🎯','🧠','💪','🏆'];
 function authInit(){
   const screen=document.getElementById('auth-screen');
-  // If profile set in session, skip auth
-  if(sessionStorage.getItem('taskos_session')){authDone();return;}
-  // If has profile in S, show auth to verify/select
+  const pid=sessionStorage.getItem('taskos_session');
+  if(pid&&_profiles.find(x=>x.id===pid)){_loadProfileData(pid);authDone();return;}
   screen.classList.remove('hidden');
   _buildEmojiGrid();
   authShowProfiles();
@@ -2388,9 +2437,8 @@ function authPickEmoji(el,e){
   el.classList.add('sel');
 }
 function authShowProfiles(){
-  const profs=S.profiles||[];
   const grid=document.getElementById('auth-profiles');
-  grid.innerHTML=profs.map(p=>`<div class="profile-card" onclick="authSelect('${p.id}')">
+  grid.innerHTML=_profiles.map(p=>`<div class="profile-card" onclick="authSelect('${p.id}')">
     <div class="profile-emoji">${p.emoji||'🧑'}</div>
     <div class="profile-nm">${esc(p.name)}</div>
     ${p.pin?'<div class="profile-lock">🔒 PIN</div>':''}
@@ -2403,7 +2451,7 @@ function authShowProfiles(){
   grid.style.display='grid';
 }
 function authSelect(id){
-  const p=(S.profiles||[]).find(x=>x.id===id);if(!p)return;
+  const p=_profiles.find(x=>x.id===id);if(!p)return;
   if(p.pin){
     document.getElementById('auth-pin-label').textContent='Welcome back, '+p.name+'! Enter your PIN.';
     document.getElementById('auth-pin-inp').value='';
@@ -2416,7 +2464,7 @@ function authSelect(id){
 function authVerifyPin(){
   const inp=document.getElementById('auth-pin-inp');
   const id=inp.dataset.pid;
-  const p=(S.profiles||[]).find(x=>x.id===id);if(!p)return;
+  const p=_profiles.find(x=>x.id===id);if(!p)return;
   if(_hashPin(inp.value)===p.pin){authLogin(id);}
   else{inp.style.borderColor='var(--bw)';setTimeout(()=>inp.style.borderColor='',800);}
 }
@@ -2429,18 +2477,16 @@ function authShowCreate(){
 }
 function authCreate(){
   const name=document.getElementById('auth-name-inp').value.trim();
-  if(!name){alert('Enter your name.');return;}
+  if(!name){toast('Enter your name.');return;}
   const selEmoji=document.querySelector('.emoji-opt.sel')?.textContent||'🧑';
   const pinRaw=document.getElementById('auth-newpin-inp').value;
   const p={id:uid(),name,emoji:selEmoji,pin:pinRaw?_hashPin(pinRaw):null,createdAt:new Date().toISOString()};
-  if(!S.profiles)S.profiles=[];
-  S.profiles.push(p);
-  S.userName=name;S.userEmoji=selEmoji;
-  save();authLogin(p.id);
+  _profiles.push(p);
+  _saveProfiles();
+  authLogin(p.id);
 }
 function authLogin(id){
-  const p=(S.profiles||[]).find(x=>x.id===id);
-  if(p){S.userName=p.name;S.userEmoji=p.emoji||'🧑';save();}
+  _loadProfileData(id);
   sessionStorage.setItem('taskos_session',id);
   document.getElementById('auth-screen').classList.add('hidden');
   authDone();
@@ -2528,7 +2574,7 @@ function openEditBook(id){
 function _clearBookModal(){['b-title','b-author','b-insights'].forEach(i=>document.getElementById(i).value='');document.getElementById('b-cat').value='productivity';document.getElementById('b-rating').value='5';}
 function saveBook(){
   const title=document.getElementById('b-title').value.trim();
-  if(!title){alert('Enter a book title.');return;}
+  if(!title){toast('Enter a book title.');return;}
   if(!S.wisdom)S.wisdom={books:[],principles:[]};
   const d={title,author:document.getElementById('b-author').value,category:document.getElementById('b-cat').value,insights:document.getElementById('b-insights').value,rating:document.getElementById('b-rating').value};
   if(editBook){const i=S.wisdom.books.findIndex(b=>b.id===editBook);S.wisdom.books[i]={...S.wisdom.books[i],...d};}
@@ -2551,7 +2597,7 @@ function openEditPrinciple(id){
 }
 function savePrinciple(){
   const text=document.getElementById('p-text').value.trim();
-  if(!text){alert('Enter a principle.');return;}
+  if(!text){toast('Enter a principle.');return;}
   if(!S.wisdom)S.wisdom={books:[],principles:[]};
   const d={text,why:document.getElementById('p-why').value,type:document.getElementById('p-type').value};
   if(editPrin){const i=S.wisdom.principles.findIndex(p=>p.id===editPrin);S.wisdom.principles[i]={...S.wisdom.principles[i],...d};}
@@ -2563,7 +2609,7 @@ function delCurPrinciple(){if(!editPrin||!confirm('Delete?'))return;S.wisdom.pri
 // ── AI: WISDOM IMPORT ─────────────────────────────────────────
 async function aiImportWisdom(){
   const raw=document.getElementById('wisdom-import-inp').value.trim();
-  if(!raw){alert('Paste some content first.');return;}
+  if(!raw){toast('Paste some content first.');return;}
   const btn=document.querySelector('[onclick="aiImportWisdom()"]');
   if(btn){btn.textContent='⏳ Extracting...';btn.disabled=true;}
   const system='You are a wisdom extraction assistant. Extract books, principles and lessons from text. Return ONLY valid JSON.';
@@ -2579,7 +2625,7 @@ async function aiImportWisdom(){
     (json.principles||[]).forEach(p=>{S.wisdom.principles.push({id:uid(),...p,addedAt:new Date().toISOString()});added++;});
     save();document.getElementById('wisdom-import-inp').value='';
     renderWisdom();toast(`Added ${added} wisdom entries from AI`);
-  }catch(e){alert('Could not parse AI response.');}
+  }catch(e){toast('Could not parse AI response — check console.',4000);console.error('AI wisdom parse error:',e);}
 }
 
 // ── WISDOM CONTEXT HELPER ──────────────────────────────────────
@@ -2732,10 +2778,10 @@ function exportCSV(){
 // ── SETTINGS ─────────────────────────────────────────────────
 function saveSettings(){
   S.claudeKey=document.getElementById('claude-key-inp').value.trim();
-  const newName=document.getElementById('user-name-inp').value.trim()||'Panos';
+  const newName=document.getElementById('user-name-inp').value.trim()||S.userName||'Me';
   S.userName=newName;S.userEmoji=document.querySelector('.auth-wrap .emoji-opt.sel')?.textContent||S.userEmoji||'🧑';
   const pid=sessionStorage.getItem('taskos_session');
-  if(pid){const p=(S.profiles||[]).find(x=>x.id===pid);if(p){p.name=newName;p.emoji=S.userEmoji;}}
+  if(pid){const p=_profiles.find(x=>x.id===pid);if(p){p.name=newName;p.emoji=S.userEmoji;_saveProfiles();}}
   if(!S.notif)S.notif={};
   S.notif.time=document.getElementById('notif-time').value||'09:00';
   S.notif.slack=document.getElementById('notif-slack').value.trim();
@@ -2771,11 +2817,15 @@ async function aiSuggestFocus(){
 
 // ── AUTO-SAVE ─────────────────────────────────────────────────
 let _saveIndicatorTimer=null;
-const _origSave=save;
-// Wrap save to also flash the indicator
+let _lastSavedJson='';
+// Real save implementation — writes to the active profile's storage key
 function save(){
-  try{localStorage.setItem('taskos',JSON.stringify(S));}
-  catch(e){if(e.name==='QuotaExceededError'||e.code===22){alert('Storage full! Export a backup first (Settings → Export).');}else{console.error('Save failed:',e);}}
+  const pid=sessionStorage.getItem('taskos_session');
+  if(!pid)return;
+  const json=JSON.stringify(S);
+  _lastSavedJson=json;
+  try{localStorage.setItem(_profileDataKey(pid),json);}
+  catch(e){if(e.name==='QuotaExceededError'||e.code===22){toast('Storage full! Export a backup and remove old data (Settings → Export).',5000);}else{console.error('Save failed:',e);}}
   const dot=document.getElementById('save-dot');
   if(dot){
     dot.classList.add('show');
@@ -2783,8 +2833,8 @@ function save(){
     _saveIndicatorTimer=setTimeout(()=>dot.classList.remove('show'),1800);
   }
 }
-// Periodic backup save every 60s
-setInterval(()=>save(),60000);
+// Periodic backup save every 60s — only when data has changed since last save
+setInterval(()=>{if(JSON.stringify(S)!==_lastSavedJson)save();},60000);
 // Save on page close
 window.addEventListener('beforeunload',()=>save());
 // Save on visibility change (app backgrounded on mobile)
@@ -2808,7 +2858,7 @@ function pwaInstall(){
   if(_pwaPrompt){_pwaPrompt.prompt();_pwaPrompt.userChoice.then(()=>document.getElementById('pwa-banner')?.classList.remove('show'));}
   else{
     // iOS fallback — no prompt API
-    alert('To install on iPhone:\n1. Tap the Share button (□↑)\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add"');
+    toast('To install on iPhone: tap the Share button (□↑) → "Add to Home Screen" → Add',7000);
     pwaDismiss();
   }
 }
@@ -3267,7 +3317,7 @@ function toggleJournalPriority(idx){
     if(task&&task.status!=='done'){
       task.status='done';task.completedAt=new Date().toISOString();task.isT3=false;
       if(task.recurrence&&task.recurrence!=='none')spawnRecurring(task);
-      toast('✅ Task "'+task.title.slice(0,30)+'" marked done');
+      toast('✅ Task &ldquo;'+esc(task.title.slice(0,30))+'&rdquo; marked done');
     }
   }
   save();

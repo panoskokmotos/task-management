@@ -94,10 +94,16 @@ select.fc option{background:var(--surface2);}
 /* MODAL */
 .mo{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px);}
 .mo.hidden{display:none;}
-.md{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:540px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:22px;}
+.md{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:540px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:22px;display:flex;flex-direction:column;}
+.md-body{flex:1;}
 .mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
-.mc{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding:3px;border-radius:4px;transition:color .12s;}.mc:hover{color:var(--text);}
-.mf{display:flex;gap:7px;justify-content:flex-end;margin-top:18px;padding-top:14px;border-top:1px solid var(--border);}
+.mc{background:none;border:none;color:var(--muted);cursor:pointer;font-size:24px;padding:4px 8px;border-radius:6px;transition:background .12s,color .12s;line-height:1;}.mc:hover{color:var(--text);background:var(--surface2);}
+.mf{display:flex;gap:8px;justify-content:flex-end;margin-top:auto;padding:14px 22px;border-top:1px solid var(--border);position:sticky;bottom:0;background:var(--surface);border-radius:0 0 12px 12px;margin-left:-22px;margin-right:-22px;margin-bottom:-22px;}
+.mf .btn.bp{min-height:44px;font-size:15px;font-weight:700;padding:0 28px;letter-spacing:.2px;}
+.mf .btn.bg{min-height:44px;}
+.mf .btn.bd{min-height:44px;}
+.m-section{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;margin:16px 0 8px;padding-bottom:4px;border-bottom:1px solid var(--border);}
+.m-section:first-of-type{margin-top:0;}
 /* TOP3 */
 .t3g{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px;}
 .t3s{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;min-height:100px;}
@@ -201,7 +207,10 @@ select.fc option{background:var(--surface2);}
   .g2,.g3,.g4,.fr{grid-template-columns:1fr;}
   .fab{bottom:74px;}
   .mo{align-items:flex-end;}
-  .md{width:100%;max-width:100%;border-radius:16px 16px 0 0;margin:0;max-height:90vh;}
+  .md{width:100%;max-width:100%;border-radius:16px 16px 0 0;margin:0;max-height:92vh;}
+  .mf{border-radius:0;padding:12px 16px;padding-bottom:max(12px,env(safe-area-inset-bottom,12px));}
+  .mf .btn.bp{flex:1;font-size:16px;}
+  .mf .btn.bg{min-width:90px;}
   .ph{flex-direction:column;align-items:flex-start;gap:8px;}
   .ph .row{width:100%;flex-wrap:wrap;}
   .ph .row .sb{flex:1;min-width:0;}
@@ -256,16 +265,27 @@ select.fc option{background:var(--surface2);}
 .wc-btn:hover,.wc-btn.active{background:var(--surface2);color:var(--text);border-color:var(--accent);}
 /* ── REFLECTION SYSTEM ───────────────────────────────────────── */
 .refl-tabs{display:flex;gap:6px;margin-bottom:20px;flex-wrap:wrap;}
-.refl-tab{padding:5px 14px;border-radius:20px;font-size:12px;font-weight:500;cursor:pointer;border:1px solid var(--border);color:var(--muted);background:transparent;transition:all .15s;white-space:nowrap;}
+.refl-tab{padding:7px 16px;border-radius:20px;font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border);color:var(--muted);background:transparent;transition:all .15s;white-space:nowrap;position:relative;}
 .refl-tab.active{background:var(--accent);color:#000;border-color:var(--accent);}
+.refl-tab .rtdot{width:7px;height:7px;border-radius:50%;background:#69db7c;position:absolute;top:4px;right:4px;display:none;}
+.refl-tab .rtdot.show{display:block;}
 .refl-cadence-view{display:none;}.refl-cadence-view.active{display:block;}
-.refl-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:14px;}
-.refl-qnum{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--accent);color:#000;border-radius:50%;font-size:11px;font-weight:700;margin-right:7px;flex-shrink:0;}
-.refl-insight{background:linear-gradient(135deg,rgba(88,166,255,.06),rgba(204,93,232,.06));border:1px solid rgba(88,166,255,.2);border-radius:8px;padding:12px;font-size:12px;line-height:1.7;margin-top:10px;white-space:pre-wrap;}
-.cadence-meta{display:flex;align-items:center;gap:8px;margin-bottom:16px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;}
+.refl-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 18px 14px;margin-bottom:12px;}
+.refl-card h3{font-size:14px;font-weight:700;margin:0 0 2px;display:flex;align-items:center;gap:8px;}
+.refl-card .refl-hint{font-size:11px;color:var(--muted);margin:0 0 10px;padding-left:30px;}
+.refl-qnum{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;background:var(--accent);color:#000;border-radius:50%;font-size:11px;font-weight:700;flex-shrink:0;}
+.refl-insight{background:linear-gradient(135deg,rgba(88,166,255,.06),rgba(204,93,232,.06));border:1px solid rgba(88,166,255,.2);border-radius:8px;padding:14px;font-size:13px;line-height:1.7;margin-top:12px;white-space:pre-wrap;}
+.cadence-meta{display:flex;align-items:center;gap:8px;margin-bottom:16px;padding:11px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;}
 .cadence-due{font-size:11px;padding:2px 8px;border-radius:10px;}
 .due-ok{background:rgba(105,219,124,.15);color:var(--bb);}
 .due-soon{background:rgba(255,169,77,.15);color:var(--bm);}
+.refl-save-bar{display:flex;gap:8px;padding:12px 0;margin-top:4px;position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border);margin-left:-1px;margin-right:-1px;}
+.refl-save-bar .btn.bp{min-height:44px;font-size:15px;font-weight:700;flex:1;}
+.refl-save-bar .btn.bg{min-height:44px;}
+@media(max-width:640px){
+  .refl-save-bar{padding-bottom:max(12px,env(safe-area-inset-bottom,12px));margin:0 -14px;padding-left:14px;padding-right:14px;}
+  .rm-kss{grid-template-columns:1fr!important;}
+}
 .due-over{background:rgba(255,107,107,.15);color:var(--bw);}
 /* ── TRASH ───────────────────────────────────────────────────── */
 .trash-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 13px;margin-bottom:6px;display:flex;align-items:center;gap:10px;opacity:.6;}
@@ -879,107 +899,208 @@ select.fc option{background:var(--surface2);}
 
 <!-- REFLECTIONS (replaces Weekly Review, adds all cadences) -->
 <div id="v-reflect" class="view">
-  <div class="ph"><div><h1>🪞 Reflections</h1><p class="sub">Structured reflection at every cadence. AI generates insights from your data.</p></div></div>
-  <div class="refl-tabs">
-    <button class="refl-tab active" onclick="setReflTab('daily',this)">🌅 Daily</button>
-    <button class="refl-tab" onclick="setReflTab('biweekly',this)">📆 Biweekly</button>
-    <button class="refl-tab" onclick="setReflTab('monthly',this)">📊 Monthly</button>
-    <button class="refl-tab" onclick="setReflTab('quarterly',this)">🎯 Quarterly</button>
-    <button class="refl-tab" onclick="setReflTab('annual',this)">🏅 Annual</button>
-    <button class="refl-tab" onclick="setReflTab('history',this)">📚 History</button>
+  <div class="ph">
+    <div><h1>🪞 Reflections</h1><p class="sub">Structured reflection at every cadence. AI generates insights from your data.</p></div>
+  </div>
+  <div class="refl-tabs" id="refl-tabs">
+    <button class="refl-tab active" data-refl="daily" onclick="setReflTab('daily',this)">🌅 Daily<span class="rtdot" id="rtdot-daily"></span></button>
+    <button class="refl-tab" data-refl="biweekly" onclick="setReflTab('biweekly',this)">📆 Biweekly<span class="rtdot" id="rtdot-biweekly"></span></button>
+    <button class="refl-tab" data-refl="monthly" onclick="setReflTab('monthly',this)">📊 Monthly<span class="rtdot" id="rtdot-monthly"></span></button>
+    <button class="refl-tab" data-refl="quarterly" onclick="setReflTab('quarterly',this)">🎯 Quarterly<span class="rtdot" id="rtdot-quarterly"></span></button>
+    <button class="refl-tab" data-refl="annual" onclick="setReflTab('annual',this)">🏅 Annual<span class="rtdot" id="rtdot-annual"></span></button>
+    <button class="refl-tab" data-refl="history" onclick="setReflTab('history',this)">📚 History</button>
   </div>
 
   <!-- DAILY -->
   <div class="refl-cadence-view active" id="rv-daily">
     <div class="cadence-meta" id="cadence-daily-meta"></div>
-    <div class="refl-card"><h3><span class="refl-qnum">1</span>Top 3 tasks for today</h3>
-      <textarea class="fc" id="rd-top3" style="margin-top:8px;min-height:70px;" placeholder="1. ...\n2. ...\n3. ..."></textarea></div>
-    <div class="refl-card"><h3><span class="refl-qnum">2</span>Energy & mood check</h3>
-      <div class="row" style="margin-top:8px;gap:8px;flex-wrap:wrap;">
-        <select class="fc" id="rd-energy" style="width:auto;"><option value="">⚡ Energy level</option><option value="5">🔥🔥🔥 High</option><option value="3">⚡⚡ Medium</option><option value="1">💧 Low</option></select>
-        <select class="fc" id="rd-mood" style="width:auto;"><option value="">😊 Mood</option><option value="great">😄 Great</option><option value="good">🙂 Good</option><option value="meh">😐 Meh</option><option value="tough">😔 Tough</option></select>
-      </div></div>
-    <div class="refl-card"><h3><span class="refl-qnum">3</span>Completed yesterday / Evening capture</h3>
-      <textarea class="fc" id="rd-done" style="margin-top:8px;min-height:70px;" placeholder="What did you actually complete?"></textarea></div>
-    <div class="refl-card"><h3><span class="refl-qnum">4</span>One thing I'm grateful for</h3>
-      <input class="fc" id="rd-gratitude" style="margin-top:8px;" placeholder="Today I'm grateful for..."></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
-      <button class="btn bp" onclick="saveReflection('daily')">💾 Save Daily Check-in</button>
-      <button class="btn bg" onclick="aiReflectionInsight('daily')">🤖 AI Insight</button>
+    <div class="refl-card">
+      <h3><span class="refl-qnum">1</span>Energy & Mood</h3>
+      <p class="refl-hint">How are you showing up today?</p>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <select class="fc" id="rd-energy" style="flex:1;min-width:140px;"><option value="">⚡ Energy level</option><option value="5">🔥 High — let's go</option><option value="3">⚡ Medium — steady</option><option value="1">💧 Low — protect energy</option></select>
+        <select class="fc" id="rd-mood" style="flex:1;min-width:120px;"><option value="">😊 Mood</option><option value="great">😄 Great</option><option value="good">🙂 Good</option><option value="meh">😐 Meh</option><option value="tough">😔 Tough</option></select>
+      </div>
+    </div>
+    <div class="refl-card">
+      <h3><span class="refl-qnum">2</span>Top 3 tasks for today</h3>
+      <p class="refl-hint">What must get done today regardless of everything else?</p>
+      <textarea class="fc" id="rd-top3" style="min-height:80px;" placeholder="1. ...\n2. ...\n3. ..."></textarea>
+    </div>
+    <div class="refl-card">
+      <h3><span class="refl-qnum">3</span>Yesterday / Evening capture</h3>
+      <p class="refl-hint">What did you actually complete? Any wins, lessons, or unfinished business?</p>
+      <textarea class="fc" id="rd-done" style="min-height:70px;" placeholder="What did I actually complete? What happened?"></textarea>
+    </div>
+    <div class="refl-card">
+      <h3><span class="refl-qnum">4</span>Gratitude</h3>
+      <p class="refl-hint">One specific thing — small or big — you're grateful for right now.</p>
+      <input class="fc" id="rd-gratitude" placeholder="Today I'm grateful for..." style="font-size:14px;">
     </div>
     <div id="rd-ai-insight"></div>
+    <div class="refl-save-bar">
+      <button class="btn bg" onclick="aiReflectionInsight('daily')">🤖 AI Insight</button>
+      <button class="btn bp" onclick="saveReflection('daily')">💾 Save Daily Check-in</button>
+    </div>
   </div>
 
   <!-- BIWEEKLY -->
   <div class="refl-cadence-view" id="rv-biweekly">
     <div class="cadence-meta" id="cadence-biweekly-meta"></div>
-    <div class="refl-card"><h3><span class="refl-qnum">1</span>Goals on track this fortnight?</h3><textarea class="fc" id="rbw-goals" style="margin-top:8px;min-height:80px;" placeholder="Review each active goal — on track / off track?"></textarea></div>
-    <div class="refl-card"><h3><span class="refl-qnum">2</span>Habits — what's sticking / slipping?</h3><textarea class="fc" id="rbw-habits" style="margin-top:8px;min-height:70px;" placeholder="Health routine, deep work, relationships..."></textarea></div>
-    <div class="refl-card"><h3><span class="refl-qnum">3</span>Who should I follow up with?</h3><textarea class="fc" id="rbw-followup" style="margin-top:8px;min-height:70px;" placeholder="Mentors, friends, partners, leads..."></textarea></div>
-    <div class="refl-card"><h3><span class="refl-qnum">4</span>What needs to change for the next 2 weeks?</h3><textarea class="fc" id="rbw-change" style="margin-top:8px;min-height:70px;" placeholder="System change, priority shift, stop doing..."></textarea></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
-      <button class="btn bp" onclick="saveReflection('biweekly')">💾 Save Biweekly</button>
-      <button class="btn bg" onclick="aiReflectionInsight('biweekly')">🤖 AI Insight</button>
+    <div class="refl-card">
+      <h3><span class="refl-qnum">1</span>Goals on track?</h3>
+      <p class="refl-hint">Review each active goal — honest status: on track, at risk, or off track?</p>
+      <textarea class="fc" id="rbw-goals" style="min-height:80px;" placeholder="Goal 1: on track ✅\nGoal 2: at risk ⚠️ — need to..."></textarea>
+    </div>
+    <div class="refl-card">
+      <h3><span class="refl-qnum">2</span>Habits — sticking or slipping?</h3>
+      <p class="refl-hint">Which routines held? Which fell apart? No judgment — just honesty.</p>
+      <textarea class="fc" id="rbw-habits" style="min-height:70px;" placeholder="Morning routine: 8/14 days ✅\nWorkout: slipping — only 3 sessions..."></textarea>
+    </div>
+    <div class="refl-card">
+      <h3><span class="refl-qnum">3</span>Who to follow up with?</h3>
+      <p class="refl-hint">Relationships require proactive investment. Who have you been neglecting?</p>
+      <textarea class="fc" id="rbw-followup" style="min-height:70px;" placeholder="Mentors, friends, partners, leads..."></textarea>
+    </div>
+    <div class="refl-card">
+      <h3><span class="refl-qnum">4</span>What needs to change next 2 weeks?</h3>
+      <p class="refl-hint">One specific system change, priority shift, or thing to stop doing.</p>
+      <textarea class="fc" id="rbw-change" style="min-height:70px;" placeholder="Stop: ...\nStart: ...\nShift: ..."></textarea>
     </div>
     <div id="rbw-ai-insight"></div>
+    <div class="refl-save-bar">
+      <button class="btn bg" onclick="aiReflectionInsight('biweekly')">🤖 AI Insight</button>
+      <button class="btn bp" onclick="saveReflection('biweekly')">💾 Save Biweekly</button>
+    </div>
   </div>
 
   <!-- MONTHLY -->
   <div class="refl-cadence-view" id="rv-monthly">
     <div class="cadence-meta" id="cadence-monthly-meta"></div>
-    <div class="refl-card"><h3><span class="refl-qnum">1</span>Goal progress this month</h3><div id="rm-goal-progress" style="margin-top:8px;"></div></div>
-    <div class="refl-card"><h3><span class="refl-qnum">2</span>Wins this month</h3><textarea class="fc" id="rm-wins" style="margin-top:8px;min-height:80px;" placeholder="Biggest achievements, milestones, breakthroughs..."></textarea></div>
-    <div class="refl-card"><h3><span class="refl-qnum">3</span>What to keep · stop · start</h3>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:8px;"><textarea class="fc" id="rm-keep" placeholder="Keep..." style="min-height:70px;font-size:12px;"></textarea><textarea class="fc" id="rm-stop" placeholder="Stop..." style="min-height:70px;font-size:12px;"></textarea><textarea class="fc" id="rm-start" placeholder="Start..." style="min-height:70px;font-size:12px;"></textarea></div></div>
-    <div class="refl-card"><h3><span class="refl-qnum">4</span>Next month's #1 priority</h3><input class="fc" id="rm-focus" style="margin-top:8px;" placeholder="If I could only achieve one thing next month..."></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
-      <button class="btn bp" onclick="saveReflection('monthly')">💾 Save Monthly</button>
-      <button class="btn bg" onclick="aiReflectionInsight('monthly')">🤖 AI Insight</button>
+    <div class="refl-card">
+      <h3><span class="refl-qnum">1</span>Goal progress this month</h3>
+      <p class="refl-hint">Auto-pulled from your active goals.</p>
+      <div id="rm-goal-progress"></div>
+    </div>
+    <div class="refl-card">
+      <h3><span class="refl-qnum">2</span>Wins this month</h3>
+      <p class="refl-hint">List every win — even small ones. They add up and need celebrating.</p>
+      <textarea class="fc" id="rm-wins" style="min-height:80px;" placeholder="1. ...\n2. ...\n3. ..."></textarea>
+    </div>
+    <div class="refl-card">
+      <h3><span class="refl-qnum">3</span>Keep · Stop · Start</h3>
+      <p class="refl-hint">Be ruthless. What's working, what's draining you, what's missing?</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;" class="rm-kss">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#69db7c;margin-bottom:4px;">✅ KEEP</div>
+          <textarea class="fc" id="rm-keep" placeholder="What's working..." style="min-height:80px;font-size:12px;"></textarea>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#ff5a5a;margin-bottom:4px;">🚫 STOP</div>
+          <textarea class="fc" id="rm-stop" placeholder="What's draining you..." style="min-height:80px;font-size:12px;"></textarea>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:4px;">➕ START</div>
+          <textarea class="fc" id="rm-start" placeholder="What's missing..." style="min-height:80px;font-size:12px;"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="refl-card">
+      <h3><span class="refl-qnum">4</span>Next month's #1 priority</h3>
+      <p class="refl-hint">If you could only achieve one thing next month, what would it be?</p>
+      <input class="fc" id="rm-focus" placeholder="The one thing that would make next month a success..." style="font-size:14px;">
     </div>
     <div id="rm-ai-insight"></div>
+    <div class="refl-save-bar">
+      <button class="btn bg" onclick="aiReflectionInsight('monthly')">🤖 AI Insight</button>
+      <button class="btn bp" onclick="saveReflection('monthly')">💾 Save Monthly</button>
+    </div>
   </div>
 
   <!-- QUARTERLY -->
   <div class="refl-cadence-view" id="rv-quarterly">
     <div class="cadence-meta" id="cadence-quarterly-meta"></div>
-    <div class="refl-card"><h3><span class="refl-qnum">1</span>OKR review — are your goals still right?</h3><textarea class="fc" id="rq-okr" style="margin-top:8px;min-height:80px;" placeholder="For each top goal: still relevant? Progress? Adjust target?"></textarea></div>
-    <div class="refl-card"><h3><span class="refl-qnum">2</span>Life wheel — rate each area 1–10</h3>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
-        <div class="fg" style="margin:0;"><label>Health & Body</label><input class="fc" id="rq-health" type="number" min="1" max="10" placeholder="1–10"></div>
-        <div class="fg" style="margin:0;"><label>Finance</label><input class="fc" id="rq-finance" type="number" min="1" max="10" placeholder="1–10"></div>
-        <div class="fg" style="margin:0;"><label>Relationships</label><input class="fc" id="rq-relationships" type="number" min="1" max="10" placeholder="1–10"></div>
-        <div class="fg" style="margin:0;"><label>Career / Business</label><input class="fc" id="rq-career" type="number" min="1" max="10" placeholder="1–10"></div>
-        <div class="fg" style="margin:0;"><label>Learning & Growth</label><input class="fc" id="rq-learning" type="number" min="1" max="10" placeholder="1–10"></div>
-        <div class="fg" style="margin:0;"><label>Fun & Recreation</label><input class="fc" id="rq-fun" type="number" min="1" max="10" placeholder="1–10"></div>
-      </div></div>
-    <div class="refl-card"><h3><span class="refl-qnum">3</span>Big decisions or pivots needed</h3><textarea class="fc" id="rq-pivots" style="margin-top:8px;min-height:70px;" placeholder="What strategic decisions do you need to make this quarter?"></textarea></div>
-    <div class="refl-card"><h3><span class="refl-qnum">4</span>Top 3 priorities for next quarter</h3><textarea class="fc" id="rq-next" style="margin-top:8px;min-height:70px;" placeholder="1. ...\n2. ...\n3. ..."></textarea></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
-      <button class="btn bp" onclick="saveReflection('quarterly')">💾 Save Quarterly</button>
-      <button class="btn bg" onclick="aiReflectionInsight('quarterly')">🤖 AI Insight</button>
+    <div class="refl-card">
+      <h3><span class="refl-qnum">1</span>OKR Review</h3>
+      <p class="refl-hint">For each top goal: still relevant? What progress? Needs a pivot?</p>
+      <textarea class="fc" id="rq-okr" style="min-height:80px;" placeholder="Goal 1: 60% done, still on track ✅\nGoal 2: needs pivot — market shifted..."></textarea>
+    </div>
+    <div class="refl-card">
+      <h3><span class="refl-qnum">2</span>Life Wheel — rate each area 1–10</h3>
+      <p class="refl-hint">Be honest. What are you neglecting?</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div class="fg" style="margin:0;"><label>🏋️ Health & Body</label><input class="fc" id="rq-health" type="number" min="1" max="10" placeholder="1–10"></div>
+        <div class="fg" style="margin:0;"><label>💰 Finance</label><input class="fc" id="rq-finance" type="number" min="1" max="10" placeholder="1–10"></div>
+        <div class="fg" style="margin:0;"><label>🤝 Relationships</label><input class="fc" id="rq-relationships" type="number" min="1" max="10" placeholder="1–10"></div>
+        <div class="fg" style="margin:0;"><label>🚀 Career / Business</label><input class="fc" id="rq-career" type="number" min="1" max="10" placeholder="1–10"></div>
+        <div class="fg" style="margin:0;"><label>📚 Learning & Growth</label><input class="fc" id="rq-learning" type="number" min="1" max="10" placeholder="1–10"></div>
+        <div class="fg" style="margin:0;"><label>🎉 Fun & Recreation</label><input class="fc" id="rq-fun" type="number" min="1" max="10" placeholder="1–10"></div>
+      </div>
+    </div>
+    <div class="refl-card">
+      <h3><span class="refl-qnum">3</span>Big decisions or pivots needed</h3>
+      <p class="refl-hint">What strategic questions demand an answer this quarter?</p>
+      <textarea class="fc" id="rq-pivots" style="min-height:70px;" placeholder="Should I...? When should I...? Do I need to stop...?"></textarea>
+    </div>
+    <div class="refl-card">
+      <h3><span class="refl-qnum">4</span>Top 3 priorities next quarter</h3>
+      <p class="refl-hint">What three outcomes would make the next 90 days a clear success?</p>
+      <textarea class="fc" id="rq-next" style="min-height:70px;" placeholder="1. ...\n2. ...\n3. ..."></textarea>
     </div>
     <div id="rq-ai-insight"></div>
+    <div class="refl-save-bar">
+      <button class="btn bg" onclick="aiReflectionInsight('quarterly')">🤖 AI Insight</button>
+      <button class="btn bp" onclick="saveReflection('quarterly')">💾 Save Quarterly</button>
+    </div>
   </div>
 
   <!-- ANNUAL -->
   <div class="refl-cadence-view" id="rv-annual">
     <div class="cadence-meta" id="cadence-annual-meta"></div>
-    <div class="refl-card"><h3><span class="refl-qnum">1</span>Peak experiences this year</h3><textarea class="fc" id="ra-peaks" style="margin-top:8px;min-height:80px;" placeholder="Top 3–5 experiences, achievements, moments this year..."></textarea></div>
-    <div class="refl-card"><h3><span class="refl-qnum">2</span>Best decisions · Worst decisions</h3>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;"><textarea class="fc" id="ra-best" placeholder="Best decisions..." style="min-height:80px;font-size:12px;"></textarea><textarea class="fc" id="ra-worst" placeholder="Worst decisions..." style="min-height:80px;font-size:12px;"></textarea></div></div>
-    <div class="refl-card"><h3><span class="refl-qnum">3</span>Who made the biggest difference?</h3><textarea class="fc" id="ra-people" style="margin-top:8px;min-height:70px;" placeholder="People who impacted you most this year..."></textarea></div>
-    <div class="refl-card"><h3><span class="refl-qnum">4</span>Vision for next year — in one paragraph</h3><textarea class="fc" id="ra-vision" style="margin-top:8px;min-height:100px;" placeholder="Describe your ideal next year in vivid detail..."></textarea></div>
-    <div class="refl-card"><h3><span class="refl-qnum">5</span>Top 3 goals for next year</h3><textarea class="fc" id="ra-goals" style="margin-top:8px;min-height:70px;" placeholder="1. ...\n2. ...\n3. ..."></textarea></div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;">
-      <button class="btn bp" onclick="saveReflection('annual')">💾 Save Annual Review</button>
-      <button class="btn bg" onclick="aiReflectionInsight('annual')">🤖 AI Insight</button>
+    <div class="refl-card">
+      <h3><span class="refl-qnum">1</span>Peak experiences this year</h3>
+      <p class="refl-hint">Top 3–5 moments, achievements, or breakthroughs that defined this year.</p>
+      <textarea class="fc" id="ra-peaks" style="min-height:80px;" placeholder="1. ...\n2. ...\n3. ..."></textarea>
+    </div>
+    <div class="refl-card">
+      <h3><span class="refl-qnum">2</span>Best & Worst decisions</h3>
+      <p class="refl-hint">Honest audit. What would you do differently?</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#69db7c;margin-bottom:4px;">✅ BEST DECISIONS</div>
+          <textarea class="fc" id="ra-best" placeholder="What worked well..." style="min-height:80px;font-size:12px;"></textarea>
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;color:#ff5a5a;margin-bottom:4px;">❌ WORST DECISIONS</div>
+          <textarea class="fc" id="ra-worst" placeholder="What you'd change..." style="min-height:80px;font-size:12px;"></textarea>
+        </div>
+      </div>
+    </div>
+    <div class="refl-card">
+      <h3><span class="refl-qnum">3</span>Who made the biggest difference?</h3>
+      <p class="refl-hint">People who invested in you, challenged you, or showed up when it counted.</p>
+      <textarea class="fc" id="ra-people" style="min-height:70px;" placeholder="Name — why they mattered..."></textarea>
+    </div>
+    <div class="refl-card">
+      <h3><span class="refl-qnum">4</span>Vision for next year</h3>
+      <p class="refl-hint">Describe your ideal next year in vivid, present-tense detail. Make it real.</p>
+      <textarea class="fc" id="ra-vision" style="min-height:110px;" placeholder="It's December next year. I am..."></textarea>
+    </div>
+    <div class="refl-card">
+      <h3><span class="refl-qnum">5</span>Top 3 goals for next year</h3>
+      <p class="refl-hint">The three commitments that will make that vision real.</p>
+      <textarea class="fc" id="ra-goals" style="min-height:70px;" placeholder="1. ...\n2. ...\n3. ..."></textarea>
     </div>
     <div id="ra-ai-insight"></div>
+    <div class="refl-save-bar">
+      <button class="btn bg" onclick="aiReflectionInsight('annual')">🤖 AI Insight</button>
+      <button class="btn bp" onclick="saveReflection('annual')">💾 Save Annual Review</button>
+    </div>
   </div>
 
   <!-- HISTORY -->
   <div class="refl-cadence-view" id="rv-history">
-    <div class="rb" style="margin-bottom:14px;"><h2 style="margin:0;">📚 Reflection History</h2></div>
+    <div class="ph" style="margin-bottom:14px;"><div><h2 style="margin:0;">📚 Reflection History</h2><p class="sub" style="margin:0;">All your saved reflections across every cadence.</p></div></div>
     <div id="refl-history-list"></div>
   </div>
 </div>
@@ -1029,9 +1150,19 @@ select.fc option{background:var(--surface2);}
 <!-- TASK MODAL -->
 <div class="mo hidden" id="tm">
   <div class="md">
-    <div class="mh"><h3 id="tm-title">Add Task</h3><button class="mc" onclick="closeM('tm')">×</button></div>
-    <div class="fg"><label>Task Title *</label><input class="fc" id="t-title" placeholder="What needs to be done?"></div>
-    <div class="fg"><label>Notes</label><textarea class="fc" id="t-notes" placeholder="Context, links, details..."></textarea></div>
+    <div class="mh">
+      <h3 id="tm-title" style="font-size:17px;font-weight:800;">Add Task</h3>
+      <button class="mc" onclick="closeM('tm')" aria-label="Close">×</button>
+    </div>
+    <div class="fg" style="margin-bottom:10px;">
+      <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Task Title *</label>
+      <input class="fc" id="t-title" placeholder="What needs to be done?" style="font-size:16px;font-weight:600;padding:12px 14px;">
+    </div>
+    <div class="fg" style="margin-bottom:6px;">
+      <label style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;">Notes</label>
+      <textarea class="fc" id="t-notes" placeholder="Context, links, details..." style="min-height:64px;font-size:13px;"></textarea>
+    </div>
+    <div class="m-section">Classify</div>
     <div class="fr">
       <div class="fg"><label>Category</label>
         <select class="fc" id="t-cat">
@@ -1049,25 +1180,27 @@ select.fc option{background:var(--surface2);}
         </select>
       </div>
     </div>
+    <div class="m-section">Priority</div>
     <div class="fr">
       <div class="fg"><label>Urgency</label>
         <select class="fc" id="t-urg">
-          <option value="high">⚡ High — deadline approaching</option>
-          <option value="low">🧘 Low — no immediate deadline</option>
+          <option value="high">⚡ High</option>
+          <option value="low">🧘 Low</option>
         </select>
       </div>
       <div class="fg"><label>Importance</label>
         <select class="fc" id="t-imp">
-          <option value="high">⭐ High — moves the needle</option>
-          <option value="low">📉 Low — nice to have</option>
+          <option value="high">⭐ High</option>
+          <option value="low">📉 Low</option>
         </select>
       </div>
     </div>
+    <div class="m-section">Details</div>
     <div class="fr">
-      <div class="fg"><label>Energy Required</label>
+      <div class="fg"><label>Energy</label>
         <select class="fc" id="t-eng">
-          <option value="high">🔥 High — deep focus</option>
-          <option value="low">💧 Low — anytime</option>
+          <option value="high">🔥 High focus</option>
+          <option value="low">💧 Low / anytime</option>
         </select>
       </div>
       <div class="fg"><label>Time Block (min)</label><input class="fc" id="t-time" type="number" placeholder="e.g. 30" min="5" step="5"></div>
@@ -1094,7 +1227,7 @@ select.fc option{background:var(--surface2);}
       </div>
     </div>
     <div class="mf">
-      <button class="btn bd sm" id="del-btn" style="margin-right:auto;display:none;" onclick="delCurTask()">🗑 Delete</button>
+      <button class="btn bd" id="del-btn" style="margin-right:auto;display:none;" onclick="delCurTask()">🗑 Delete</button>
       <button class="btn bg" onclick="closeM('tm')">Cancel</button>
       <button class="btn bp" onclick="saveTask()">Save Task</button>
     </div>
@@ -1731,6 +1864,11 @@ function updIBadge(){const c=active().filter(t=>t.bucket==='inbox').length;const
 // ── KEYBOARD ──────────────────────────────────────────────────
 function toggleShortcutsHelp(){document.getElementById('shortcuts-modal').classList.toggle('hidden');}
 document.addEventListener('keydown',e=>{
+  // Cmd/Ctrl+Enter saves active modal
+  if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){
+    if(!document.getElementById('tm').classList.contains('hidden')){e.preventDefault();saveTask();return;}
+    if(!document.getElementById('gm').classList.contains('hidden')){e.preventDefault();saveGoal();return;}
+  }
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT')return;
   const k=e.key;
   if(k==='n'){e.preventDefault();openAdd();}
@@ -3061,7 +3199,17 @@ function getWisdomContext(maxItems=5){
 // ── REFLECTION SYSTEM ─────────────────────────────────────────
 const CADENCE_DAYS={daily:1,biweekly:14,monthly:30,quarterly:90,annual:365};
 function renderReflect(){
-  ['daily','biweekly','monthly','quarterly','annual'].forEach(c=>_renderCadenceMeta(c));
+  ['daily','biweekly','monthly','quarterly','annual'].forEach(c=>{
+    _renderCadenceMeta(c);
+    // Show green dot on tab if reflected within the cadence period
+    const dot=document.getElementById('rtdot-'+c);
+    if(dot){
+      const refls=(S.reflections||{})[c]||[];
+      const last=refls[refls.length-1];
+      const days=last?Math.floor((Date.now()-new Date(last.savedAt||last.createdAt))/86400000):999;
+      dot.classList.toggle('show',days<CADENCE_DAYS[c]);
+    }
+  });
   _setActiveReflTab(rTab);
   if(rTab==='monthly'){_renderMonthlyGoalProgress();}
   if(rTab==='history'){renderReflHistory();}

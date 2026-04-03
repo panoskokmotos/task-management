@@ -424,6 +424,63 @@ select.fc option{background:var(--surface2);}
   .ait-tabs{gap:4px;}
   .ait-tab{font-size:12px;padding:5px 12px;}
 }
+/* ── SEARCH OVERLAY ─────────────────────────────────────────── */
+#search-overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:1100;backdrop-filter:blur(4px);display:flex;flex-direction:column;padding:16px;padding-top:max(16px,env(safe-area-inset-top,16px));}
+#search-overlay.hidden{display:none;}
+#search-overlay .srch-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:10px 14px;display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+#search-overlay .srch-box input{flex:1;background:none;border:none;outline:none;font-size:16px;color:var(--text);}
+#search-overlay .srch-results{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.srch-hit{padding:10px 14px;border-radius:8px;margin-bottom:6px;background:var(--surface);border:1px solid var(--border);cursor:pointer;transition:border-color .12s;}
+.srch-hit:hover,.srch-hit:active{border-color:var(--accent);}
+.srch-hit-title{font-size:14px;font-weight:600;}
+.srch-hit-meta{font-size:11px;color:var(--muted);margin-top:3px;}
+/* ── AI CHAT ─────────────────────────────────────────────────── */
+.chat-wrap{display:flex;flex-direction:column;height:420px;border:1px solid var(--border);border-radius:12px;overflow:hidden;}
+.chat-history{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;-webkit-overflow-scrolling:touch;}
+.chat-msg{display:flex;gap:8px;align-items:flex-end;}
+.chat-msg.user{flex-direction:row-reverse;}
+.chat-bubble{max-width:82%;padding:10px 14px;border-radius:14px;font-size:13px;line-height:1.6;}
+.chat-bubble.ai{background:var(--surface2);border:1px solid var(--border);border-radius:14px 14px 14px 2px;}
+.chat-bubble.user{background:rgba(88,166,255,.18);border:1px solid rgba(88,166,255,.3);border-radius:14px 14px 2px 14px;}
+.chat-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.chat-footer{display:flex;gap:8px;padding:10px;border-top:1px solid var(--border);background:var(--surface2);}
+.chat-footer input{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:13px;color:var(--text);outline:none;}
+.chat-footer input:focus{border-color:var(--accent);}
+.chat-footer button{background:var(--accent);border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;color:#000;}
+/* ── BULK SELECT ─────────────────────────────────────────────── */
+.tc .sel-chk{display:none;width:18px;height:18px;border-radius:4px;border:2px solid var(--border);flex-shrink:0;cursor:pointer;background:var(--surface2);}
+.sel-mode .tc .sel-chk{display:flex;align-items:center;justify-content:center;}
+.sel-mode .tc.selected .sel-chk{background:var(--accent);border-color:var(--accent);}
+.sel-mode .tc.selected{background:rgba(88,166,255,.07);border-color:rgba(88,166,255,.4)!important;}
+.bulk-bar{position:fixed;left:0;right:0;bottom:calc(56px + env(safe-area-inset-bottom,0px));background:var(--surface);border-top:2px solid var(--accent);padding:10px 14px;display:none;gap:8px;align-items:center;z-index:500;flex-wrap:wrap;}
+.bulk-bar.visible{display:flex;}
+/* ── PULL TO REFRESH ─────────────────────────────────────────── */
+.ptr{position:fixed;top:0;left:0;right:0;height:48px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:12px;color:var(--muted);z-index:600;transform:translateY(-100%);transition:transform .25s;background:var(--surface2);}
+.ptr.ptr-show{transform:translateY(0);}
+.ptr.ptr-loading{color:var(--accent);}
+/* ── DAILY QUESTION ─────────────────────────────────────────── */
+.jq-card{background:linear-gradient(135deg,rgba(185,100,255,.07),rgba(88,166,255,.05));border:1px solid rgba(185,100,255,.25);border-radius:12px;padding:14px 16px;margin-bottom:14px;}
+.jq-label{font-size:10px;font-weight:700;color:#b964ff;letter-spacing:.8px;margin-bottom:6px;}
+.jq-text{font-size:14px;font-weight:600;line-height:1.5;margin-bottom:10px;}
+.jq-ans{width:100%;background:none;border:none;border-bottom:1px solid rgba(185,100,255,.3);color:var(--text);font-size:13px;padding:6px 0;outline:none;resize:none;}
+/* ── MOOD HEATMAP ────────────────────────────────────────────── */
+.mood-hm{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:8px;}
+.mood-cell{aspect-ratio:1;border-radius:3px;min-height:14px;}
+/* ── GOAL MILESTONES ─────────────────────────────────────────── */
+.ms-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.ms-row input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);flex-shrink:0;}
+.ms-row .ms-title{flex:1;background:none;border:none;border-bottom:1px solid var(--border);color:var(--text);font-size:13px;padding:4px 0;outline:none;}
+.ms-row .ms-title:focus{border-color:var(--accent);}
+.ms-row .ms-date{font-size:12px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;padding:3px 6px;color:var(--text);}
+.ms-row .ms-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:0 4px;}
+.ms-progress{height:3px;background:var(--border);border-radius:2px;margin-top:6px;}
+.ms-progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s;}
+/* ── GOAL CHECK-IN ───────────────────────────────────────────── */
+.checkin-banner{background:linear-gradient(135deg,rgba(255,169,77,.08),rgba(255,107,107,.05));border:1px solid rgba(255,169,77,.3);border-radius:10px;padding:14px;margin-bottom:14px;}
+.checkin-goal-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+.checkin-goal-row:last-child{border-bottom:none;}
+.checkin-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:16px;cursor:pointer;transition:background .12s;line-height:1;}
+.checkin-btn:hover,.checkin-btn.active{background:var(--surface2);border-color:var(--accent);}
 /* ── OVERDUE BANNER ─────────────────────────────────────────── */
 #overdue-banner{background:linear-gradient(135deg,rgba(255,90,90,.12),rgba(255,160,60,.08));border:1px solid rgba(255,90,90,.35);border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
 #overdue-banner.hidden{display:none!important;}
@@ -495,6 +552,7 @@ select.fc option{background:var(--surface2);}
 <nav class="sidebar">
   <div class="logo" style="display:flex;align-items:center;justify-content:space-between;">
     <span>Task <span style="color:var(--accent);">OS</span></span>
+    <button onclick="openSearch()" style="background:none;border:1px solid var(--border);border-radius:8px;color:var(--muted);cursor:pointer;font-size:14px;padding:4px 10px;transition:all .15s;" title="Search tasks (/)">🔍</button>
   </div>
   <div class="user-chip" onclick="openSettings()" id="sidebar-user">
     <div class="user-avatar" id="sidebar-avatar">?</div>
@@ -533,6 +591,7 @@ select.fc option{background:var(--surface2);}
     <button class="btn bp" onclick="openAdd()">+ Add Task</button>
   </div>
   <div id="overdue-banner" class="hidden"></div>
+  <div id="goal-checkin-banner"></div>
   <div class="stats" id="stats"></div>
   <div id="dash-journal" style="display:flex;align-items:center;margin-bottom:14px;padding:8px 14px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);cursor:pointer;" onclick="nav('journal')"></div>
   <div class="rb" style="margin-bottom:10px;">
@@ -576,7 +635,7 @@ select.fc option{background:var(--surface2);}
 
 <!-- BUCKETS -->
 <div id="v-buckets" class="view">
-  <div class="ph"><div><h1>📦 Buckets</h1><p class="sub">4D: Do · Defer · Delegate · Delete</p></div><button class="btn bp" onclick="openAdd()">+ Add Task</button></div>
+  <div class="ph"><div><h1>📦 Buckets</h1><p class="sub">4D: Do · Defer · Delegate · Delete</p></div><div style="display:flex;gap:8px;align-items:center;"><button class="btn" style="font-size:12px;" onclick="toggleSelMode()" title="Bulk select">☑ Select</button><button class="btn bp" onclick="openAdd()">+ Add Task</button></div></div>
   <div class="bgrid" id="bgrid"></div>
 </div>
 
@@ -602,6 +661,7 @@ select.fc option{background:var(--surface2);}
     <div><h1>✅ All Tasks</h1><p class="sub" id="atc"></p></div>
     <div class="row">
       <input class="sb" id="srch" placeholder="🔍 Search..." oninput="onSearchInput()">
+      <button class="btn" style="font-size:12px;" onclick="toggleSelMode()" id="sel-mode-btn" title="Bulk select">☑ Select</button>
       <button class="btn bp" onclick="openAdd()">+ Add Task</button>
     </div>
   </div>
@@ -678,6 +738,28 @@ select.fc option{background:var(--surface2);}
     <h2 style="margin:0;">🏆 Goal Progress</h2>
   </div>
   <div id="ai-goals-panel"></div>
+  <hr style="margin:20px 0;border-color:var(--border);">
+  <div class="rb" style="margin-bottom:10px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+      <div>
+        <h2 style="margin:0;">💬 AI Coach Chat</h2>
+        <p style="margin:4px 0 0;font-size:12px;color:var(--muted);">Ask anything about your tasks, goals, and priorities. Full context included.</p>
+      </div>
+      <button class="btn" style="font-size:12px;" onclick="clearChat()">Clear</button>
+    </div>
+  </div>
+  <div class="chat-wrap">
+    <div class="chat-history" id="chat-history">
+      <div class="chat-msg">
+        <div class="chat-avatar">🤖</div>
+        <div class="chat-bubble ai">Hey! I have full context of your tasks, goals, journal, and reflections. Ask me anything — what to focus on, how to approach a challenge, or what you're avoiding.</div>
+      </div>
+    </div>
+    <div class="chat-footer">
+      <input id="chat-input" placeholder="Ask your AI coach..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}">
+      <button onclick="sendChat()">Send</button>
+    </div>
+  </div>
 </div>
 
 <!-- AI TOOLS -->
@@ -858,6 +940,24 @@ select.fc option{background:var(--surface2);}
     <div class="card">
       <h3 style="margin-bottom:14px;">📈 Best Day of Week</h3>
       <div class="chart-row" id="stat-dow-chart"></div>
+    </div>
+  </div>
+  <div class="g2" style="margin-bottom:16px;">
+    <div class="card">
+      <h3 style="margin-bottom:6px;">😊 Energy Heatmap (30 days)</h3>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:8px;">Daily energy · 💧 Low &nbsp; ⚡ Medium &nbsp; 🔥 High</div>
+      <div class="mood-hm" id="stat-mood-hm"></div>
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;font-size:10px;color:var(--muted);">
+        <span>No data = grey</span>
+        <div style="display:flex;align-items:center;gap:3px;"><div style="width:10px;height:10px;border-radius:2px;background:#3b82f6;"></div>Low</div>
+        <div style="display:flex;align-items:center;gap:3px;"><div style="width:10px;height:10px;border-radius:2px;background:#ffa94d;"></div>Medium</div>
+        <div style="display:flex;align-items:center;gap:3px;"><div style="width:10px;height:10px;border-radius:2px;background:#69db7c;"></div>High</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3 style="margin-bottom:14px;">🧠 Journal Depth (30 days)</h3>
+      <div class="mood-hm" id="stat-journal-hm"></div>
+      <div style="font-size:10px;color:var(--muted);margin-top:8px;">Darker = more complete entry (commitments + morning + evening)</div>
     </div>
   </div>
 </div>
@@ -1145,12 +1245,42 @@ select.fc option{background:var(--surface2);}
 <div id="toast"></div>
 <button class="fab" onclick="openAdd()">+</button>
 
+<!-- SEARCH OVERLAY -->
+<div id="search-overlay" class="hidden">
+  <div class="srch-box">
+    <span style="font-size:18px;color:var(--muted);">🔍</span>
+    <input id="global-srch" placeholder="Search tasks..." oninput="globalSearch(this.value)" autocomplete="off" autocorrect="off">
+    <button onclick="closeSearch()" style="background:none;border:none;color:var(--muted);font-size:20px;cursor:pointer;padding:0 4px;line-height:1;">×</button>
+  </div>
+  <div class="srch-results" id="srch-results"></div>
+</div>
+
+<!-- PULL-TO-REFRESH -->
+<div class="ptr" id="ptr-bar"><span id="ptr-icon">↓</span> Pull to refresh</div>
+
+<!-- BULK ACTION BAR -->
+<div class="bulk-bar" id="bulk-bar">
+  <span id="bulk-count" style="font-size:13px;font-weight:700;color:var(--accent);flex:1;">0 selected</span>
+  <select class="fc" id="bulk-bucket" style="font-size:12px;padding:4px 8px;width:auto;">
+    <option value="">Move to...</option>
+    <option value="this-week">🔴 This Week</option>
+    <option value="this-month">🟠 This Month</option>
+    <option value="backlog">🟢 Backlog</option>
+    <option value="someday">🔵 Someday</option>
+    <option value="inbox">📥 Inbox</option>
+  </select>
+  <button class="btn bg" style="font-size:12px;" onclick="bulkMove()">Move</button>
+  <button class="btn" style="font-size:12px;background:rgba(105,219,124,.15);border-color:rgba(105,219,124,.4);color:#69db7c;" onclick="bulkDone()">✓ Done</button>
+  <button class="btn bd" style="font-size:12px;" onclick="bulkDelete()">🗑</button>
+  <button onclick="exitSelMode()" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding:0 4px;line-height:1;">×</button>
+</div>
+
 <nav class="bnav">
   <button class="bni active" data-v="dashboard" onclick="nav('dashboard')"><span class="bni-ic">🏠</span>Home</button>
   <button class="bni" data-v="capture" onclick="nav('capture')"><span class="bni-ic">⚡</span>Capture</button>
   <button class="bni" data-v="buckets" onclick="nav('buckets')"><span class="bni-ic">📦</span>Buckets</button>
   <button class="bni" data-v="journal" onclick="nav('journal')"><span class="bni-ic">📔</span>Journal</button>
-  <button class="bni" data-v="aicoach" onclick="nav('aicoach')"><span class="bni-ic">🤖</span>AI</button>
+  <button class="bni" data-v="aitools" onclick="nav('aitools')"><span class="bni-ic">🧠</span>AI Tools</button>
 </nav>
 
 <!-- TASK MODAL -->
@@ -1259,6 +1389,9 @@ select.fc option{background:var(--surface2);}
         <select class="fc" id="g-top"><option value="false">No</option><option value="true">Yes ⭐</option></select>
       </div>
     </div>
+    <div class="m-section">Milestones</div>
+    <div id="g-milestones-list"></div>
+    <button onclick="addMilestoneRow()" class="btn bg" style="font-size:12px;padding:4px 12px;margin-bottom:4px;">+ Add Milestone</button>
     <div class="mf">
       <button class="btn bd sm" id="del-goal-btn" style="margin-right:auto;display:none;" onclick="delCurGoal()">🗑 Delete</button>
       <button class="btn bg" onclick="closeM('gm')">Cancel</button>
@@ -1501,6 +1634,7 @@ function renderDash(){
   const jIntention=jEntry?.intentionWord||'';
   const jStatus=!jTotal?`<span style="color:var(--muted);">No commitments set</span> <span style="color:var(--accent);cursor:pointer;font-size:12px;" onclick="nav('journal')">→ Open Journal</span>`:`<span style="color:${jDone===jTotal?'#69db7c':'#ffa94d'}">${jDone}/${jTotal} commitments done</span>${jIntention?` · <em style="color:var(--accent);">${esc(jIntention)}</em>`:''}`;
   document.getElementById('dash-journal').innerHTML=`<span style="font-size:13px;">📔 Today: ${jStatus}</span>${jStreak>0?`<span class="j-streak" style="margin-left:8px;">🔥 ${jStreak}</span>`:''}`;
+  renderGoalCheckIn();
   renderTop3();
   const wt=a.filter(t=>t.bucket==='this-week').slice(0,6);
   document.getElementById('dash-week').innerHTML=wt.length?wt.map(t=>tcHTML(t,true)).join(''):`<div class="es"><div class="es-ic">📭</div><h3>Nothing scheduled this week</h3><p>Move tasks from your backlog or add something new.</p><button class="btn bp" onclick="nav('buckets')">Open Buckets →</button></div>`;
@@ -1649,17 +1783,23 @@ function goalHTML(g){
   const done=linked.filter(t=>t.status==='done').length;
   const total=linked.length;
   const pct=total>0?Math.round(done/total*100):0;
+  const prediction=_goalPrediction(g);
+  const milestones=(g.milestones||[]);
+  const msDone=milestones.filter(m=>m.done).length;
+  const checkinStatus=g.lastCheckin?.status;
+  const checkinEmoji={['on-track']:'✅',behind:'⚠️',blocked:'🔴',ahead:'🚀'}[checkinStatus]||'';
   return`<div class="gc ${g.isTop3?'top':''}" onclick="openEditGoal('${g.id}')">
     ${g.isTop3?'<span style="float:right;font-size:16px;">⭐</span>':''}
-    <div style="font-weight:600;margin-bottom:5px;">${esc(g.title)}</div>
+    <div style="font-weight:600;margin-bottom:5px;">${esc(g.title)}${checkinEmoji?` <span style="font-size:12px;">${checkinEmoji}</span>`:''}</div>
     ${g.description?`<div style="font-size:12px;color:var(--muted);margin-bottom:7px;line-height:1.4;">${esc(g.description)}</div>`:''}
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
       <span class="badge c${g.category[0]}">${c.e} ${c.l}</span>
       <button class="btn bg sm" style="font-size:10px;padding:2px 8px;" onclick="event.stopPropagation();aiGoalSuggest('${g.id}')">🤖 Suggest Tasks</button>
     </div>
     ${total>0?`<div class="gp"><div class="gpf" style="width:${pct}%;"></div></div>
-    <div class="gps"><span>${done}/${total} tasks done</span><span style="font-weight:600;color:${pct>=100?'var(--bb)':pct>=50?'var(--accent)':'var(--muted)'};">${pct}%</span></div>`
+    <div class="gps"><span>${done}/${total} tasks done</span><span style="font-weight:600;color:${pct>=100?'var(--bb)':pct>=50?'var(--accent)':'var(--muted)'};">${pct}%</span>${prediction?`<span style="font-size:10px;color:var(--muted);margin-left:6px;">🏁 ${prediction}</span>`:''}</div>`
     :`<div style="font-size:11px;color:var(--muted);margin-top:6px;">No tasks linked yet — click 🤖 to get suggestions</div>`}
+    ${milestones.length?`<div style="margin-top:6px;font-size:11px;color:var(--muted);">${msDone}/${milestones.length} milestones · ${milestones.filter(m=>!m.done).map(m=>esc(m.title.slice(0,20))).slice(0,2).join(', ')}</div>`:''}
   </div>`;
 }
 
@@ -1689,9 +1829,10 @@ function tcHTML(t,showT3btn=false,draggable=false){
   const isOverdue=t.dueDate&&t.status!=='done'&&new Date(t.dueDate)<new Date();
   const statusLabel={todo:'Todo',  'in-progress':'In Progress',done:'Done'}[t.status]||'Todo';
   const statusClass={'todo':'sc-todo','in-progress':'sc-prog','done':'sc-done'}[t.status]||'sc-todo';
-  return`<div class="tc fi ${t.status==='done'?'done':''} ${t.status==='in-progress'?'in-progress':''} ${t.isT3&&t.status!=='done'?'top3':''} ${isOverdue?'overdue':''}" data-id="${t.id}" ${draggable?`draggable="true" ondragstart="onDragStart('${t.id}',event)" ondragend="onDragEnd(event)"`:''}  onclick="openEdit('${t.id}')">
+  return`<div class="tc fi ${t.status==='done'?'done':''} ${t.status==='in-progress'?'in-progress':''} ${t.isT3&&t.status!=='done'?'top3':''} ${isOverdue?'overdue':''} ${_selIds.has(t.id)?'selected':''}" data-id="${t.id}" ${draggable?`draggable="true" ondragstart="onDragStart('${t.id}',event)" ondragend="onDragEnd(event)"`:''}  onclick="_selMode?toggleSelTask('${t.id}',this):openEdit('${t.id}')">
     <div class="swipe-hint-r">✓ Done</div><div class="swipe-hint-l">🗑 Trash</div>
-    <div class="ck ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${t.status==='done'?'<span style="color:#fff;font-size:10px;">✓</span>':t.status==='in-progress'?'<span style="color:var(--bm);font-size:10px;">▶</span>':''}</div>
+    <div class="sel-chk" onclick="event.stopPropagation();toggleSelTask('${t.id}',this.closest('.tc'))">${_selIds.has(t.id)?'<span style="color:#fff;font-size:10px;">✓</span>':''}</div>
+    <div class="ck ${t.status==='done'?'on':''}" onclick="event.stopPropagation();if(_selMode)toggleSelTask('${t.id}',this.closest('.tc'));else toggleDone('${t.id}')">${t.status==='done'?'<span style="color:#fff;font-size:10px;">✓</span>':t.status==='in-progress'?'<span style="color:var(--bm);font-size:10px;">▶</span>':''}</div>
     <div class="tb">
       <div class="tt">${esc(t.title)}</div>
       <div class="tm">
@@ -1818,31 +1959,33 @@ function rmT3(id){const t=S.tasks.find(x=>x.id===id);if(!t)return;t.isT3=false;t
 
 // ── GOALS CRUD ────────────────────────────────────────────────
 function openAddGoal(){
-  editG=null;
+  editG=null;_editMilestones=[];
   document.getElementById('gm-title').textContent='Add Goal';
   ['g-title','g-desc'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('g-cat').value='other';
   document.getElementById('g-top').value='false';
   document.getElementById('del-goal-btn').style.display='none';
+  _renderMilestoneRows();
   document.getElementById('gm').classList.remove('hidden');
 }
 
 function openEditGoal(id){
   const g=S.goals.find(x=>x.id===id);if(!g)return;
-  editG=id;
+  editG=id;_editMilestones=JSON.parse(JSON.stringify(g.milestones||[]));
   document.getElementById('gm-title').textContent='Edit Goal';
   document.getElementById('g-title').value=g.title;
   document.getElementById('g-desc').value=g.description||'';
   document.getElementById('g-cat').value=g.category;
   document.getElementById('g-top').value=g.isTop3?'true':'false';
   document.getElementById('del-goal-btn').style.display='block';
+  _renderMilestoneRows();
   document.getElementById('gm').classList.remove('hidden');
 }
 
 function saveGoal(){
   const title=document.getElementById('g-title').value.trim();
   if(!title){toast('Enter a goal title.');return;}
-  const d={title,description:document.getElementById('g-desc').value,category:document.getElementById('g-cat').value,isTop3:document.getElementById('g-top').value==='true'};
+  const d={title,description:document.getElementById('g-desc').value,category:document.getElementById('g-cat').value,isTop3:document.getElementById('g-top').value==='true',milestones:_editMilestones.filter(m=>m.title.trim())};
   if(editG){const i=S.goals.findIndex(g=>g.id===editG);S.goals[i]={...S.goals[i],...d};}
   else S.goals.push({id:uid(),...d});
   save();closeM('gm');renderGoals();
@@ -2661,6 +2804,351 @@ function _renderSfWalkHistory(){
     <button onclick="deleteSfWalk('${w.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:2px 6px;flex-shrink:0;">×</button>
   </div>`).join('')}
 </div>`;
+}
+
+// ── GLOBAL SEARCH ─────────────────────────────────────────────
+function openSearch(){
+  const el=document.getElementById('search-overlay');
+  el.classList.remove('hidden');
+  const inp=document.getElementById('global-srch');
+  inp.value='';
+  document.getElementById('srch-results').innerHTML='<div style="color:var(--muted);font-size:13px;padding:20px;text-align:center;">Start typing to search tasks…</div>';
+  setTimeout(()=>inp.focus(),80);
+}
+function closeSearch(){
+  document.getElementById('search-overlay').classList.add('hidden');
+}
+function globalSearch(q){
+  const el=document.getElementById('srch-results');
+  if(!q||q.length<2){el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:20px;text-align:center;">Start typing to search tasks…</div>';return;}
+  const qL=q.toLowerCase();
+  const hits=S.tasks.filter(t=>t.bucket!=='trash'&&(t.title.toLowerCase().includes(qL)||(t.notes||'').toLowerCase().includes(qL))).slice(0,20);
+  if(!hits.length){el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:20px;text-align:center;">No tasks found</div>';return;}
+  el.innerHTML=hits.map(t=>{
+    const hi=s=>esc(s).replace(new RegExp('('+esc(q)+')','gi'),'<mark style="background:rgba(88,166,255,.3);border-radius:2px;padding:0 1px;">$1</mark>');
+    const BMAP={'inbox':'📥 Inbox','this-week':'🔴 This Week','this-month':'🟠 This Month','backlog':'🟢 Backlog','someday':'🔵 Someday'};
+    return`<div class="srch-hit" onclick="closeSearch();openEdit('${t.id}')">
+      <div style="font-size:13px;font-weight:500;margin-bottom:3px;line-height:1.4;">${hi(t.title)}</div>
+      <div style="font-size:11px;color:var(--muted);display:flex;gap:8px;flex-wrap:wrap;">
+        <span>${BMAP[t.bucket]||t.bucket}</span>
+        ${t.status==='done'?'<span style="color:#69db7c;">✓ Done</span>':''}
+        ${t.dueDate?`<span>📅 ${fd(t.dueDate)}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='/'&&!document.querySelector('.mo:not(.hidden)')&&e.target.tagName!=='INPUT'&&e.target.tagName!=='TEXTAREA'){
+    e.preventDefault();openSearch();
+  }
+  if(e.key==='Escape'&&!document.getElementById('search-overlay').classList.contains('hidden')){
+    closeSearch();
+  }
+});
+
+// ── AI CHAT COACH ──────────────────────────────────────────────
+let _chatHistory=[];
+async function sendChat(){
+  const inp=document.getElementById('chat-input');
+  const q=(inp?.value||'').trim();
+  if(!q)return;
+  if(!S.claudeKey){toast('Add your Claude API key in Settings first');return;}
+  inp.value='';
+  _chatHistory.push({role:'user',content:q});
+  _renderChat();
+  const hist=document.getElementById('chat-history');
+  if(hist)hist.scrollTop=hist.scrollHeight;
+  const taskSummary=S.tasks.filter(t=>t.status!=='done'&&t.bucket!=='trash').slice(0,30).map(t=>`- [${t.bucket}] ${t.title}`).join('\n');
+  const goalSummary=S.goals.slice(0,10).map(g=>`- ${g.title}`).join('\n');
+  const sys=`You are an AI productivity coach for ${S.userName||'the user'}. Their active tasks:\n${taskSummary||'(none)'}\n\nGoals:\n${goalSummary||'(none)'}\n\nValues: ${(S.values||[]).join(', ')||'(none)'}\n\nBe concise, warm, and actionable. Reply in 2-4 sentences max unless asked for more.`;
+  const msgs=[{role:'user',content:sys},..._chatHistory];
+  try{
+    const reply=await callClaude(msgs.map(m=>m.content).join('\n\n---\n\n'),sys);
+    _chatHistory.push({role:'assistant',content:reply});
+  }catch(err){
+    _chatHistory.push({role:'assistant',content:'Sorry, I ran into an error. Please check your API key.'});
+  }
+  _renderChat();
+  if(hist)hist.scrollTop=hist.scrollHeight;
+}
+function _renderChat(){
+  const el=document.getElementById('chat-history');if(!el)return;
+  const msgs=_chatHistory.filter(m=>m.role!=='system');
+  if(!msgs.length){el.innerHTML='<div style="color:var(--muted);font-size:13px;text-align:center;padding:20px;">Ask me anything about your tasks, goals, or productivity…</div>';return;}
+  el.innerHTML=msgs.map(m=>`<div class="chat-msg ${m.role}">
+    <div class="chat-bubble ${m.role==='assistant'?'ai':'user'}">${esc(m.content).replace(/\n/g,'<br>')}</div>
+  </div>`).join('');
+}
+function clearChat(){_chatHistory=[];_renderChat();toast('Chat cleared');}
+
+// ── BULK TASK ACTIONS ──────────────────────────────────────────
+let _selMode=false;
+let _selIds=new Set();
+function toggleSelMode(){
+  _selMode=!_selMode;
+  _selIds.clear();
+  document.body.classList.toggle('sel-mode',_selMode);
+  document.getElementById('bulk-bar').classList.toggle('visible',_selMode);
+  document.getElementById('bulk-count').textContent='0 selected';
+  refresh();
+}
+function toggleSelTask(id,el){
+  if(!_selMode)return;
+  if(_selIds.has(id)){_selIds.delete(id);el?.classList.remove('selected');}
+  else{_selIds.add(id);el?.classList.add('selected');}
+  document.getElementById('bulk-count').textContent=_selIds.size+' selected';
+}
+function bulkMove(){
+  const bucket=document.getElementById('bulk-bucket').value;
+  if(!bucket){toast('Choose a bucket first');return;}
+  if(!_selIds.size){toast('No tasks selected');return;}
+  S.tasks.forEach(t=>{if(_selIds.has(t.id))t.bucket=bucket;});
+  save();exitSelMode();toast('Moved '+_selIds.size+' tasks');
+}
+function bulkDone(){
+  if(!_selIds.size){toast('No tasks selected');return;}
+  const n=_selIds.size;
+  S.tasks.forEach(t=>{
+    if(_selIds.has(t.id)&&t.status!=='done'){
+      t.status='done';t.completedAt=new Date().toISOString();t.isT3=false;t.t3s=null;
+      if(t.recurrence&&t.recurrence!=='none')spawnRecurring(t);
+    }
+  });
+  save();exitSelMode();toast('✅ Marked '+n+' tasks done');
+}
+function bulkDelete(){
+  if(!_selIds.size){toast('No tasks selected');return;}
+  if(!confirm('Move '+_selIds.size+' tasks to trash?'))return;
+  S.tasks.forEach(t=>{if(_selIds.has(t.id))t.bucket='trash';});
+  save();exitSelMode();toast('Moved to trash');
+}
+function exitSelMode(){
+  _selMode=false;_selIds.clear();
+  document.body.classList.remove('sel-mode');
+  document.getElementById('bulk-bar').classList.remove('visible');
+  refresh();
+}
+
+// ── PULL-TO-REFRESH ────────────────────────────────────────────
+(function(){
+  let _ptrStart=0,_ptrActive=false;
+  const PTR_THRESHOLD=70;
+  document.addEventListener('touchstart',e=>{
+    if(window.scrollY===0)_ptrStart=e.touches[0].clientY;
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(!_ptrStart)return;
+    const dy=e.touches[0].clientY-_ptrStart;
+    if(dy>20){
+      _ptrActive=true;
+      const bar=document.getElementById('ptr-bar');
+      if(bar){bar.classList.add('ptr-show');document.getElementById('ptr-icon').textContent=dy>PTR_THRESHOLD?'↑':'↓';}
+    }
+  },{passive:true});
+  document.addEventListener('touchend',()=>{
+    if(_ptrActive){
+      const bar=document.getElementById('ptr-bar');
+      if(bar)bar.classList.remove('ptr-show');
+      refresh();toast('Refreshed ✓');
+    }
+    _ptrStart=0;_ptrActive=false;
+  },{passive:true});
+})();
+
+// ── JOURNAL SWIPE GESTURES ─────────────────────────────────────
+(function(){
+  let _jx=0,_jy=0,_jActive=false;
+  const SWIPE_MIN=60;
+  document.addEventListener('touchstart',e=>{
+    const view=document.getElementById('v-journal');
+    if(!view?.classList.contains('active'))return;
+    _jx=e.touches[0].clientX;_jy=e.touches[0].clientY;_jActive=true;
+  },{passive:true});
+  document.addEventListener('touchend',e=>{
+    if(!_jActive)return;_jActive=false;
+    const view=document.getElementById('v-journal');
+    if(!view?.classList.contains('active'))return;
+    const dx=e.changedTouches[0].clientX-_jx;
+    const dy=e.changedTouches[0].clientY-_jy;
+    if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>SWIPE_MIN){
+      if(dx<0)navJournalDate(1); // swipe left = next day
+      else navJournalDate(-1);   // swipe right = prev day
+    }
+  },{passive:true});
+})();
+
+// ── DAILY QUESTION PROMPTS ─────────────────────────────────────
+const DAILY_QUESTIONS=[
+  'What is the one thing, that if done today, would make everything else easier?',
+  'Who is one person you could reach out to today that would move something important forward?',
+  'What fear are you avoiding that you should face today?',
+  'What would "great" look like for today — not just "good"?',
+  'What habit, if consistent for 30 days, would most change your life?',
+  'What project are you procrastinating on and what is the smallest next action?',
+  'What conversation have you been avoiding that needs to happen?',
+  'What would you do today if you knew you could not fail?',
+  'What are you most grateful for right now and why?',
+  'What assumption are you making that might be wrong?',
+  'If you had only 2 hours of deep work today, what would you spend them on?',
+  'What would your future self thank you for doing today?',
+  'What is draining your energy and how can you minimize it?',
+  'What is one small way you can show up better for the people around you?',
+  'What does success look like for this week, specifically?',
+  'What is your biggest leverage point right now?',
+  'What would you do differently if you had no fear of judgment?',
+  'What new skill would make you 10x more valuable in 1 year?',
+  'What relationship deserves more of your intentional energy?',
+  'What system or process would, if improved, save you the most time?',
+  'What is the story you are telling yourself that is holding you back?',
+  'How can you make today a little easier for someone else?',
+  'What does your body need today that your mind keeps ignoring?',
+  'What would it mean to play a bigger game today?',
+  'What is one thing you can do today that your competitor is not willing to do?'
+];
+function getDailyQuestion(){
+  const day=Math.floor(Date.now()/86400000);
+  return DAILY_QUESTIONS[day%DAILY_QUESTIONS.length];
+}
+
+// ── MOOD & JOURNAL HEATMAPS ────────────────────────────────────
+const ENERGY_COLORS={high:'#69db7c',medium:'#ffa94d',low:'#ff6b6b','':`var(--border)`};
+function _renderMoodHeatmap(){
+  const el=document.getElementById('stat-mood-hm');if(!el)return;
+  const cells=[];
+  for(let i=83;i>=0;i--){
+    const d=new Date(Date.now()-i*86400000);
+    const key=d.toISOString().slice(0,10);
+    const entry=S.journal?.[key];
+    const energy=entry?.energy||'';
+    const color=ENERGY_COLORS[energy]||'var(--border)';
+    const label=d.toLocaleDateString('en',{month:'short',day:'numeric'});
+    cells.push(`<div class="mood-cell" style="background:${color};opacity:${energy?'1':'.25'};" title="${label}${energy?' · '+energy+' energy':''}"></div>`);
+  }
+  el.innerHTML=cells.join('');
+  const lg=document.getElementById('stat-mood-hm-legend');
+  if(lg)lg.innerHTML=`<span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#69db7c;display:inline-block;"></span>High</span><span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#ffa94d;display:inline-block;"></span>Med</span><span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#ff6b6b;display:inline-block;"></span>Low</span>`;
+}
+function _renderJournalHeatmap(){
+  const el=document.getElementById('stat-journal-hm');if(!el)return;
+  const cells=[];
+  for(let i=83;i>=0;i--){
+    const d=new Date(Date.now()-i*86400000);
+    const key=d.toISOString().slice(0,10);
+    const entry=S.journal?.[key];
+    const depth=!entry?0:(entry.reflection?3:entry.priorities?.some(p=>p.text)?2:entry.intentionWord?1:0);
+    const colors=['var(--border)','rgba(88,166,255,.25)','rgba(88,166,255,.6)','rgba(88,166,255,1)'];
+    const label=d.toLocaleDateString('en',{month:'short',day:'numeric'});
+    const depthLabel=['No entry','Partial entry','Commitments set','Full reflection'][depth];
+    cells.push(`<div class="mood-cell" style="background:${colors[depth]};opacity:${depth?'1':'.25'};" title="${label} · ${depthLabel}"></div>`);
+  }
+  el.innerHTML=cells.join('');
+}
+
+// ── GOAL MILESTONES ────────────────────────────────────────────
+let _editMilestones=[];
+function addMilestoneRow(title='',done=false,dueDate=''){
+  _editMilestones.push({id:uid(),title,done,dueDate});
+  _renderMilestoneRows();
+}
+function removeMilestoneRow(id){
+  _editMilestones=_editMilestones.filter(m=>m.id!==id);
+  _renderMilestoneRows();
+}
+function _renderMilestoneRows(){
+  const el=document.getElementById('g-milestones-list');if(!el)return;
+  el.innerHTML=_editMilestones.map(m=>`
+    <div class="ms-row" id="msrow-${m.id}">
+      <input type="checkbox" ${m.done?'checked':''} onchange="(function(){const ms=_editMilestones.find(x=>x.id==='${m.id}');if(ms)ms.done=this.checked;}).call(this)">
+      <input type="text" class="ms-title" value="${esc(m.title)}" placeholder="Milestone…" oninput="(function(){const ms=_editMilestones.find(x=>x.id==='${m.id}');if(ms)ms.title=this.value;}).call(this)">
+      <input type="date" class="ms-date" value="${m.dueDate||''}" onchange="(function(){const ms=_editMilestones.find(x=>x.id==='${m.id}');if(ms)ms.dueDate=this.value;}).call(this)">
+      <button class="ms-del" onclick="removeMilestoneRow('${m.id}')">×</button>
+    </div>`).join('');
+}
+
+// ── GOAL CHECK-IN BANNER ───────────────────────────────────────
+function renderGoalCheckIn(){
+  const el=document.getElementById('goal-checkin-banner');if(!el)return;
+  const topGoals=S.goals.filter(g=>g.isTop3);
+  if(!topGoals.length){el.innerHTML='';return;}
+  const now=new Date();
+  const isMon=now.getDay()===1;
+  const lastCheckin=S._lastGoalCheckin;
+  const thisWeek=_todayKey().slice(0,7)+'-W'+_isoWeek(now);
+  if(!isMon||(lastCheckin&&lastCheckin===thisWeek)){el.innerHTML='';return;}
+  el.innerHTML=`<div class="checkin-banner">
+    <div style="font-size:13px;font-weight:700;margin-bottom:6px;">🎯 Monday Goal Check-in</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">How are your top goals progressing this week?</div>
+    ${topGoals.map(g=>{
+      const linked=S.tasks.filter(t=>t.goalId===g.id);
+      const done=linked.filter(t=>t.status==='done').length;
+      const total=linked.length;
+      const pct=total>0?Math.round(done/total*100):0;
+      return`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;flex-wrap:wrap;">
+        <span style="font-size:12px;flex:1;min-width:0;font-weight:500;">${esc(g.title.slice(0,40))}</span>
+        <span style="font-size:11px;color:var(--muted);">${pct}% (${done}/${total})</span>
+        <select class="checkin-btn" onchange="saveGoalCheckin('${g.id}',this.value)" style="font-size:11px;padding:3px 8px;">
+          <option value="">Rate progress…</option>
+          <option value="on-track">✅ On track</option>
+          <option value="behind">⚠️ Behind</option>
+          <option value="blocked">🔴 Blocked</option>
+          <option value="ahead">🚀 Ahead</option>
+        </select>
+      </div>`;
+    }).join('')}
+    <button class="btn" style="font-size:11px;margin-top:4px;" onclick="dismissGoalCheckin()">Dismiss for this week</button>
+  </div>`;
+}
+function saveGoalCheckin(goalId,status){
+  if(!status)return;
+  const g=S.goals.find(x=>x.id===goalId);
+  if(g){g.lastCheckin={status,date:_todayKey()};save();}
+  toast('Check-in saved: '+status.replace('-',' '));
+}
+function dismissGoalCheckin(){
+  S._lastGoalCheckin=_todayKey().slice(0,7)+'-W'+_isoWeek(new Date());
+  save();
+  document.getElementById('goal-checkin-banner').innerHTML='';
+}
+function _isoWeek(d){
+  const date=new Date(d.valueOf());
+  const day=date.getDay()||7;
+  date.setDate(date.getDate()+4-day);
+  const yearStart=new Date(date.getFullYear(),0,1);
+  return Math.ceil((((date-yearStart)/86400000)+1)/7);
+}
+
+// ── COMPLETION PREDICTION ──────────────────────────────────────
+function _goalPrediction(g){
+  const linked=S.tasks.filter(t=>t.goalId===g.id&&t.bucket!=='trash');
+  const remaining=linked.filter(t=>t.status!=='done').length;
+  if(!remaining)return null;
+  // velocity: tasks linked to this goal completed in last 14 days
+  const cutoff=Date.now()-14*86400000;
+  const velocity=linked.filter(t=>t.status==='done'&&t.completedAt&&new Date(t.completedAt)>=cutoff).length/14*7; // per week
+  if(velocity<0.1)return null;
+  const weeksLeft=Math.ceil(remaining/velocity);
+  if(weeksLeft>52)return null;
+  return weeksLeft===1?'~1 week away':`~${weeksLeft} weeks away`;
+}
+
+// ── WEEKLY SLACK DIGEST ────────────────────────────────────────
+function _checkWeeklyDigest(){
+  const n=S.notif||{};
+  if(!n.slack)return;
+  const now=new Date();
+  if(now.getDay()!==0)return; // Sunday only
+  const thisWeek=_todayKey().slice(0,7)+'-W'+_isoWeek(now);
+  if(n._lastWeeklyDigest===thisWeek)return;
+  n._lastWeeklyDigest=thisWeek;save();
+  const done7=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>=new Date(Date.now()-7*86400000)).length;
+  const active7=S.tasks.filter(t=>t.status!=='done'&&t.bucket!=='trash').length;
+  const topGoals=S.goals.filter(g=>g.isTop3).map(g=>{
+    const linked=S.tasks.filter(t=>t.goalId===g.id);
+    const done=linked.filter(t=>t.status==='done').length;
+    return`• ${g.title}: ${done}/${linked.length} tasks done`;
+  }).join('\n');
+  const msg=`📊 *Task OS — Weekly Digest* · ${now.toLocaleDateString('en-US',{month:'short',day:'numeric'})}\n\n✅ *${done7} tasks* completed this week\n📋 *${active7} tasks* still active\n\n🎯 *Top Goals Progress:*\n${topGoals||'No top goals set'}\n\nKeep pushing! 💪`;
+  _sendWebhookNoRead(n.slack,{text:msg});
 }
 
 // ── SEED DATA ─────────────────────────────────────────────────
@@ -3642,6 +4130,8 @@ function renderStats(){
   _renderHeatmap();
   _renderEnergyBreakdown(allTasks);
   _renderDayOfWeek(completed);
+  _renderMoodHeatmap();
+  _renderJournalHeatmap();
 }
 
 function _calcStreak(){
@@ -3911,6 +4401,10 @@ ${undone.length&&!carryoverDismissed?`<div class="j-carryover" id="j-carryover">
   ${!isToday?`<button class="j-date-today" onclick="jumpJournalToday()">Today</button>`:''}
   <button onclick="navJournalDate(1)" ${canGoNext?'':'disabled'} title="Next day">Next ›</button>
 </div>
+${isToday?`<div class="jq-card">
+  <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">💭 Today's Reflection Prompt</div>
+  <div style="font-size:14px;font-style:italic;line-height:1.5;color:var(--text);">${esc(getDailyQuestion())}</div>
+</div>`:''}
 <div class="rb" style="margin-bottom:14px;text-align:center;">
   <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">${isToday?"Today's":'Day'} Intention Word</div>
   <input id="j-intention" class="fc" placeholder="FOCUS" value="${esc(entry.intentionWord||'')}" oninput="journalAutoSave()" style="text-align:center;font-size:20px;font-weight:700;letter-spacing:3px;max-width:280px;margin:0 auto;display:block;text-transform:uppercase;">
@@ -4232,6 +4726,22 @@ document.addEventListener('touchend',()=>{
   _sw={id:null,x0:0,y0:0,dx:0,locked:false};
 },{passive:true});
 
+// Long-press on task card → enter bulk select mode
+(function(){
+  let _lpTimer=null;
+  document.addEventListener('touchstart',e=>{
+    const tc=e.target.closest('.tc[data-id]');
+    if(!tc||_selMode)return;
+    _lpTimer=setTimeout(()=>{
+      _lpTimer=null;
+      toggleSelMode();
+      toggleSelTask(tc.dataset.id,tc);
+    },500);
+  },{passive:true});
+  document.addEventListener('touchend',()=>{if(_lpTimer){clearTimeout(_lpTimer);_lpTimer=null;}},{passive:true});
+  document.addEventListener('touchmove',()=>{if(_lpTimer){clearTimeout(_lpTimer);_lpTimer=null;}},{passive:true});
+})();
+
 // ── NOTIFICATIONS ─────────────────────────────────────────────
 function _startNotifScheduler(){
   setInterval(()=>{
@@ -4243,6 +4753,7 @@ function _startNotifScheduler(){
     if(now.getHours()===hh&&now.getMinutes()===mm&&n.lastSentDate!==todayKey){
       n.lastSentDate=todayKey;save();
       _fireNotification();
+      _checkWeeklyDigest();
     }
   },60000);
 }

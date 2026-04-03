@@ -481,6 +481,48 @@ select.fc option{background:var(--surface2);}
 .checkin-goal-row:last-child{border-bottom:none;}
 .checkin-btn{background:none;border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:16px;cursor:pointer;transition:background .12s;line-height:1;}
 .checkin-btn:hover,.checkin-btn.active{background:var(--surface2);border-color:var(--accent);}
+/* ── OFFLINE INDICATOR ──────────────────────────────────────── */
+#offline-bar{position:fixed;top:0;left:0;right:0;height:32px;display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;font-weight:600;z-index:2000;transform:translateY(-100%);transition:transform .3s;}
+#offline-bar.offline{background:#ff6b6b;color:#fff;transform:translateY(0);}
+#offline-bar.back-online{background:#69db7c;color:#000;transform:translateY(0);}
+#save-status{position:fixed;bottom:calc(60px + env(safe-area-inset-bottom,0px));right:14px;font-size:11px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:20px;padding:3px 10px;opacity:0;transition:opacity .4s;pointer-events:none;z-index:400;}
+#save-status.show{opacity:1;}
+/* ── COMMAND PALETTE ────────────────────────────────────────── */
+#cmd-palette{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1200;display:flex;align-items:flex-start;justify-content:center;padding-top:max(60px,15vh);backdrop-filter:blur(4px);}
+#cmd-palette.hidden{display:none;}
+#cmd-palette .cp-box{background:var(--surface);border:1px solid var(--border);border-radius:14px;width:560px;max-width:92vw;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+#cmd-palette .cp-input{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--border);}
+#cmd-palette .cp-input input{flex:1;background:none;border:none;outline:none;font-size:16px;color:var(--text);}
+#cmd-palette .cp-results{max-height:320px;overflow-y:auto;}
+.cp-item{display:flex;align-items:center;gap:12px;padding:11px 16px;cursor:pointer;border-bottom:1px solid rgba(255,255,255,.04);transition:background .1s;}
+.cp-item:hover,.cp-item.cp-active{background:var(--surface2);}
+.cp-item-icon{font-size:18px;width:28px;text-align:center;flex-shrink:0;}
+.cp-item-label{font-size:14px;font-weight:500;flex:1;}
+.cp-item-hint{font-size:11px;color:var(--muted);}
+/* ── TASK TEMPLATES ─────────────────────────────────────────── */
+#tempm .tpl-row{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--border);}
+#tempm .tpl-name{flex:1;font-size:13px;font-weight:500;}
+#tempm .tpl-meta{font-size:11px;color:var(--muted);}
+/* ── FRICTION / HIGH-FRICTION ───────────────────────────────── */
+.friction-badge{font-size:10px;background:rgba(255,107,107,.15);border:1px solid rgba(255,107,107,.3);color:#ff6b6b;border-radius:10px;padding:1px 7px;margin-left:6px;}
+/* ── WEEKLY DEBRIEF ─────────────────────────────────────────── */
+#ait-debrief{}
+.debrief-section{margin-bottom:14px;}
+.debrief-section h4{font-size:13px;font-weight:700;color:var(--accent);margin:0 0 6px;}
+/* ── ONBOARDING ─────────────────────────────────────────────── */
+#onboarding-modal .ob-step{display:none;}
+#onboarding-modal .ob-step.active{display:block;}
+.ob-progress{display:flex;gap:6px;justify-content:center;margin-bottom:18px;}
+.ob-dot{width:8px;height:8px;border-radius:50%;background:var(--border);transition:background .2s;}
+.ob-dot.active{background:var(--accent);}
+/* ── GOAL BREAKDOWN MODAL ───────────────────────────────────── */
+#goal-breakdown-modal .gbm-task{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);}
+#goal-breakdown-modal .gbm-task input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);}
+#goal-breakdown-modal .gbm-task-title{flex:1;font-size:13px;}
+/* ── JOURNAL TEMPLATE ───────────────────────────────────────── */
+.jtpl-day{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.jtpl-day label{width:80px;font-size:12px;color:var(--muted);flex-shrink:0;}
+.jtpl-day input{flex:1;}
 /* ── OVERDUE BANNER ─────────────────────────────────────────── */
 #overdue-banner{background:linear-gradient(135deg,rgba(255,90,90,.12),rgba(255,160,60,.08));border:1px solid rgba(255,90,90,.35);border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
 #overdue-banner.hidden{display:none!important;}
@@ -773,6 +815,7 @@ select.fc option{background:var(--surface2);}
     <button class="ait-tab active" data-tab="daily" onclick="showAiTool('daily')">📅 Daily Plan</button>
     <button class="ait-tab" data-tab="weekly" onclick="showAiTool('weekly')">📆 Weekly Plan</button>
     <button class="ait-tab" data-tab="routine" onclick="showAiTool('routine')">✅ Routines</button>
+    <button class="ait-tab" data-tab="debrief" onclick="showAiTool('debrief')">📊 Debrief</button>
     <button class="ait-tab" data-tab="sfwalk" onclick="showAiTool('sfwalk')">🍀 Luck Generator</button>
   </div>
 
@@ -827,6 +870,20 @@ select.fc option{background:var(--surface2);}
       <textarea class="fc" id="ait-routine-input" style="min-height:90px;font-size:13px;" placeholder="Morning workout&#10;Evening wind-down&#10;Read 30 min before bed&#10;No phone before 9am"></textarea>
     </div>
     <div id="ait-routine-result"></div>
+  </div>
+
+  <!-- WEEKLY DEBRIEF -->
+  <div id="ait-debrief" class="ait-panel hidden">
+    <div class="rb" style="margin-bottom:14px;">
+      <h3 style="margin:0 0 4px;font-size:15px;font-weight:700;">📊 AI Weekly Debrief</h3>
+      <p style="margin:0;font-size:12px;color:var(--muted);">Claude analyzes your week: what you completed, patterns, what you're avoiding, and 3 recommendations.</p>
+    </div>
+    <div class="rb" style="margin-bottom:14px;">
+      <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:6px;">Optional: anything specific you want feedback on?</label>
+      <textarea class="fc" id="debrief-context" style="min-height:64px;font-size:13px;" placeholder="e.g. I felt scattered this week and kept pushing big tasks…"></textarea>
+    </div>
+    <button class="btn bp" style="width:100%;min-height:44px;font-size:15px;font-weight:700;" onclick="runWeeklyDebrief()" id="debrief-btn">📊 Generate Weekly Debrief</button>
+    <div id="ait-debrief-result" style="margin-top:14px;"></div>
   </div>
 
   <!-- LUCK SURFACE AREA GENERATOR -->
@@ -1364,6 +1421,7 @@ select.fc option{background:var(--surface2);}
     </div>
     <div class="mf">
       <button class="btn bd" id="del-btn" style="margin-right:auto;display:none;" onclick="delCurTask()">🗑 Delete</button>
+      <button class="btn bg" style="font-size:12px;" onclick="openTemplates()">📋</button>
       <button class="btn bg" onclick="closeM('tm')">Cancel</button>
       <button class="btn bp" onclick="saveTask()">Save Task</button>
     </div>
@@ -1394,8 +1452,104 @@ select.fc option{background:var(--surface2);}
     <button onclick="addMilestoneRow()" class="btn bg" style="font-size:12px;padding:4px 12px;margin-bottom:4px;">+ Add Milestone</button>
     <div class="mf">
       <button class="btn bd sm" id="del-goal-btn" style="margin-right:auto;display:none;" onclick="delCurGoal()">🗑 Delete</button>
+      <button class="btn bg" id="gbm-breakdown-btn" style="display:none;" onclick="openGoalBreakdown()">🤖 Breakdown</button>
       <button class="btn bg" onclick="closeM('gm')">Cancel</button>
       <button class="btn bp" onclick="saveGoal()">Save Goal</button>
+    </div>
+  </div>
+</div>
+
+<!-- COMMAND PALETTE -->
+<div id="cmd-palette" class="hidden">
+  <div class="cp-box">
+    <div class="cp-input">
+      <span style="font-size:18px;color:var(--muted);">⌘</span>
+      <input id="cp-input" placeholder="Search commands or tasks…" oninput="cpFilter(this.value)" autocomplete="off">
+      <span style="font-size:11px;color:var(--muted);">ESC to close</span>
+    </div>
+    <div class="cp-results" id="cp-results"></div>
+  </div>
+</div>
+
+<!-- TASK TEMPLATES MODAL -->
+<div class="mo hidden" id="tempm">
+  <div class="md" style="width:500px;">
+    <div class="mh"><h3>📋 Task Templates</h3><button class="mc" onclick="closeM('tempm')">×</button></div>
+    <div id="tpl-list" style="margin-bottom:14px;"></div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('tempm')">Close</button>
+      <button class="btn bp" onclick="saveCurrentTaskAsTemplate()">💾 Save Current as Template</button>
+    </div>
+  </div>
+</div>
+
+<!-- GOAL BREAKDOWN MODAL -->
+<div class="mo hidden" id="goal-breakdown-modal">
+  <div class="md" style="width:520px;">
+    <div class="mh"><h3 id="gbm-title">🤖 AI Goal Breakdown</h3><button class="mc" onclick="closeM('goal-breakdown-modal')">×</button></div>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:14px;" id="gbm-subtitle"></p>
+    <div id="gbm-task-list"></div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('goal-breakdown-modal')">Cancel</button>
+      <button class="btn bp" id="gbm-add-btn" onclick="addCheckedBreakdownTasks()">+ Add Selected Tasks</button>
+    </div>
+  </div>
+</div>
+
+<!-- ONBOARDING MODAL -->
+<div class="mo hidden" id="onboarding-modal" style="align-items:center;">
+  <div class="md" style="width:460px;text-align:center;">
+    <div class="ob-progress" id="ob-progress"></div>
+    <div class="ob-step active" id="ob-step-0">
+      <div style="font-size:48px;margin-bottom:12px;">👋</div>
+      <h2 style="font-size:22px;font-weight:800;margin-bottom:8px;">Welcome to Task OS</h2>
+      <p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:20px;">Your personal OS for goals, tasks, and daily reflection. Let's set you up in 3 quick steps.</p>
+      <div class="fg" style="text-align:left;">
+        <label>Your name</label>
+        <input class="fc" id="ob-name" placeholder="e.g. Panos" style="font-size:16px;">
+      </div>
+    </div>
+    <div class="ob-step" id="ob-step-1">
+      <div style="font-size:48px;margin-bottom:12px;">🎯</div>
+      <h2 style="font-size:20px;font-weight:800;margin-bottom:8px;">What's your #1 goal this quarter?</h2>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">Be specific. Good goals have a clear outcome and deadline.</p>
+      <input class="fc" id="ob-goal" placeholder="e.g. Launch Givelink to 50 nonprofits by June" style="font-size:15px;margin-bottom:10px;">
+      <input class="fc" id="ob-goal-why" placeholder="Why does this matter to you?" style="font-size:13px;">
+    </div>
+    <div class="ob-step" id="ob-step-2">
+      <div style="font-size:48px;margin-bottom:12px;">⚡</div>
+      <h2 style="font-size:20px;font-weight:800;margin-bottom:8px;">Add your first 3 tasks</h2>
+      <p style="font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:16px;">What are 3 specific things you can do <strong>this week</strong> to move your goal forward?</p>
+      <input class="fc ob-task-inp" placeholder="Task 1…" style="margin-bottom:8px;">
+      <input class="fc ob-task-inp" placeholder="Task 2…" style="margin-bottom:8px;">
+      <input class="fc ob-task-inp" placeholder="Task 3…" style="margin-bottom:8px;">
+    </div>
+    <div class="ob-step" id="ob-step-3">
+      <div style="font-size:48px;margin-bottom:12px;">🚀</div>
+      <h2 style="font-size:20px;font-weight:800;margin-bottom:8px;">You're all set!</h2>
+      <p style="font-size:14px;color:var(--muted);line-height:1.6;margin-bottom:20px;">Your goal and first tasks are ready. Add your Claude API key in Settings to unlock AI features.</p>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;margin-top:20px;">
+      <button class="btn bg" id="ob-back-btn" onclick="obStep(-1)" style="display:none;">← Back</button>
+      <button class="btn bp" id="ob-next-btn" onclick="obStep(1)" style="min-width:120px;">Get Started →</button>
+    </div>
+  </div>
+</div>
+
+<!-- OFFLINE BAR -->
+<div id="offline-bar">📵 You're offline — changes saved locally</div>
+<!-- SAVE STATUS -->
+<div id="save-status">✓ Saved</div>
+
+<!-- JOURNAL TEMPLATES MODAL -->
+<div class="mo hidden" id="jtplm">
+  <div class="md" style="width:460px;">
+    <div class="mh"><h3>📔 Journal Day Templates</h3><button class="mc" onclick="closeM('jtplm')">×</button></div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Set a custom reflection prompt for each day of the week. It appears at the top of your journal for that day.</p>
+    <div id="jtpl-rows"></div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('jtplm')">Cancel</button>
+      <button class="btn bp" onclick="saveJournalTemplates()">Save Templates</button>
     </div>
   </div>
 </div>
@@ -1454,6 +1608,11 @@ select.fc option{background:var(--surface2);}
         <button class="btn bg sm" onclick="testEmailNotif()" style="white-space:nowrap;flex-shrink:0;">Test</button>
       </div>
       <p style="font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5;">Slack: create an <strong style="color:var(--text);">Incoming Webhook</strong> in your Slack workspace settings. Email: create a free <strong style="color:var(--text);">Make.com</strong> scenario — Custom Webhook → Email module — and paste the URL above.</p>
+    </div>
+    <hr style="border:none;border-top:1px solid var(--border);margin:12px 0;">
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn bg sm" onclick="closeM('settm');openJournalTemplates()">📔 Journal Day Templates</button>
+      <button class="btn bg sm" onclick="closeM('settm');openTemplates()">📋 Task Templates</button>
     </div>
     <div class="mf">
       <button class="btn bd sm" style="margin-right:auto;" onclick="authLogout()">🚪 Sign Out</button>
@@ -1534,7 +1693,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-const _BLANK_S=()=>({tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],reflections:{},wisdom:{books:[],principles:[]},seededGoalsV3:true,seededV2:true,claudeKey:'',userName:'',userEmoji:'🧑',journal:{},sfWalks:[],notif:{time:'09:00',slack:'',emailWebhook:'',lastSentDate:null,browserEnabled:false,lastRoutineNudge:null}});
+const _BLANK_S=()=>({tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],reflections:{},wisdom:{books:[],principles:[]},seededGoalsV3:true,seededV2:true,claudeKey:'',userName:'',userEmoji:'🧑',journal:{},sfWalks:[],taskTemplates:[],journalTemplates:{},notif:{time:'09:00',slack:'',emailWebhook:'',lastSentDate:null,browserEnabled:false,lastRoutineNudge:null}});
 let S=_BLANK_S();
 let editT=null,editG=null,editBook=null,editPrin=null,fCat='all',wTab='all',rTab='daily',draggedTaskId=null,pendingAiTasks=[];
 let _searchTimer=null;
@@ -1834,7 +1993,7 @@ function tcHTML(t,showT3btn=false,draggable=false){
     <div class="sel-chk" onclick="event.stopPropagation();toggleSelTask('${t.id}',this.closest('.tc'))">${_selIds.has(t.id)?'<span style="color:#fff;font-size:10px;">✓</span>':''}</div>
     <div class="ck ${t.status==='done'?'on':''}" onclick="event.stopPropagation();if(_selMode)toggleSelTask('${t.id}',this.closest('.tc'));else toggleDone('${t.id}')">${t.status==='done'?'<span style="color:#fff;font-size:10px;">✓</span>':t.status==='in-progress'?'<span style="color:var(--bm);font-size:10px;">▶</span>':''}</div>
     <div class="tb">
-      <div class="tt">${esc(t.title)}</div>
+      <div class="tt">${esc(t.title)}${_frictionBadge(t)}</div>
       <div class="tm">
         ${catB(t.category)}${eB(t)}
         <button class="status-cycle ${statusClass}" onclick="event.stopPropagation();cycleStatus('${t.id}')">${statusLabel}</button>
@@ -1965,6 +2124,8 @@ function openAddGoal(){
   document.getElementById('g-cat').value='other';
   document.getElementById('g-top').value='false';
   document.getElementById('del-goal-btn').style.display='none';
+  const gbmbtn=document.getElementById('gbm-breakdown-btn');
+  if(gbmbtn)gbmbtn.style.display='none';
   _renderMilestoneRows();
   document.getElementById('gm').classList.remove('hidden');
 }
@@ -1978,6 +2139,8 @@ function openEditGoal(id){
   document.getElementById('g-cat').value=g.category;
   document.getElementById('g-top').value=g.isTop3?'true':'false';
   document.getElementById('del-goal-btn').style.display='block';
+  const gbmbtn=document.getElementById('gbm-breakdown-btn');
+  if(gbmbtn)gbmbtn.style.display='block';
   _renderMilestoneRows();
   document.getElementById('gm').classList.remove('hidden');
 }
@@ -3149,6 +3312,418 @@ function _checkWeeklyDigest(){
   }).join('\n');
   const msg=`📊 *Task OS — Weekly Digest* · ${now.toLocaleDateString('en-US',{month:'short',day:'numeric'})}\n\n✅ *${done7} tasks* completed this week\n📋 *${active7} tasks* still active\n\n🎯 *Top Goals Progress:*\n${topGoals||'No top goals set'}\n\nKeep pushing! 💪`;
   _sendWebhookNoRead(n.slack,{text:msg});
+}
+
+// ── OFFLINE INDICATOR & SAVE STATUS ───────────────────────────
+(function(){
+  let _backOnlineTimer=null;
+  function _setOffline(){
+    const b=document.getElementById('offline-bar');
+    if(!b)return;
+    b.textContent='📵 You\'re offline — changes saved locally';
+    b.className='offline';
+  }
+  function _setBackOnline(){
+    const b=document.getElementById('offline-bar');
+    if(!b)return;
+    b.textContent='✅ Back online';
+    b.className='back-online';
+    clearTimeout(_backOnlineTimer);
+    _backOnlineTimer=setTimeout(()=>{b.className='';},2500);
+  }
+  window.addEventListener('offline',_setOffline);
+  window.addEventListener('online',_setBackOnline);
+  if(!navigator.onLine)_setOffline();
+})();
+
+let _saveStatusTimer=null;
+function _showSaveStatus(){
+  const el=document.getElementById('save-status');
+  if(!el)return;
+  el.classList.add('show');
+  clearTimeout(_saveStatusTimer);
+  _saveStatusTimer=setTimeout(()=>el.classList.remove('show'),1800);
+}
+
+// Patch save() to show status
+const _origSave=save;
+// We'll hook it after JS runs by wrapping in init
+
+// ── COMMAND PALETTE ────────────────────────────────────────────
+const CP_COMMANDS=[
+  {icon:'🏠',label:'Go to Dashboard',hint:'d',action:()=>nav('dashboard')},
+  {icon:'⚡',label:'Go to Capture',hint:'c',action:()=>nav('capture')},
+  {icon:'📦',label:'Go to Buckets',hint:'b',action:()=>nav('buckets')},
+  {icon:'✅',label:'Go to All Tasks',hint:'',action:()=>nav('all')},
+  {icon:'🏆',label:'Go to Goals',hint:'g',action:()=>nav('goals')},
+  {icon:'📔',label:'Go to Journal',hint:'j',action:()=>nav('journal')},
+  {icon:'🧠',label:'Go to AI Tools',hint:'',action:()=>nav('aitools')},
+  {icon:'📊',label:'Go to Stats',hint:'s',action:()=>nav('stats')},
+  {icon:'🔮',label:'Go to Reflections',hint:'',action:()=>nav('reflect')},
+  {icon:'➕',label:'Add New Task',hint:'n',action:()=>{closeCmdPalette();openAdd();}},
+  {icon:'🎯',label:'Add New Goal',hint:'',action:()=>{closeCmdPalette();nav('goals');setTimeout(openAddGoal,150);}},
+  {icon:'📅',label:'AI Daily Planner',hint:'',action:()=>{nav('aitools');showAiTool('daily');}},
+  {icon:'📊',label:'AI Weekly Debrief',hint:'',action:()=>{nav('aitools');showAiTool('debrief');}},
+  {icon:'📋',label:'Task Templates',hint:'',action:()=>{closeCmdPalette();openTemplates();}},
+  {icon:'📔',label:'Journal Templates',hint:'',action:()=>{closeCmdPalette();openJournalTemplates();}},
+  {icon:'🔍',label:'Search Tasks',hint:'/',action:()=>{closeCmdPalette();openSearch();}},
+  {icon:'⚙️',label:'Settings',hint:'',action:()=>{closeCmdPalette();openSettings();}},
+  {icon:'🔥',label:'High Friction Tasks',hint:'',action:()=>{closeCmdPalette();nav('all');showFrictionFilter();}},
+];
+let _cpActive=0;
+function openCmdPalette(){
+  document.getElementById('cmd-palette').classList.remove('hidden');
+  const inp=document.getElementById('cp-input');
+  inp.value='';
+  _cpActive=0;
+  cpFilter('');
+  setTimeout(()=>inp.focus(),60);
+}
+function closeCmdPalette(){document.getElementById('cmd-palette').classList.add('hidden');}
+function cpFilter(q){
+  const ql=q.toLowerCase();
+  const el=document.getElementById('cp-results');
+  if(!el)return;
+  let results=[...CP_COMMANDS];
+  if(ql){
+    // Match commands
+    const cmds=CP_COMMANDS.filter(c=>c.label.toLowerCase().includes(ql));
+    // Match tasks
+    const tasks=S.tasks.filter(t=>t.bucket!=='trash'&&t.status!=='done'&&t.title.toLowerCase().includes(ql)).slice(0,5)
+      .map(t=>({icon:'📌',label:t.title,hint:BKTS[t.bucket]?.l||t.bucket,action:()=>{closeCmdPalette();openEdit(t.id);}}));
+    results=[...cmds,...tasks].slice(0,12);
+  }else{
+    results=CP_COMMANDS.slice(0,10);
+  }
+  _cpActive=Math.min(_cpActive,results.length-1);
+  el.innerHTML=results.map((r,i)=>`<div class="cp-item ${i===_cpActive?'cp-active':''}" onclick="(${r.action.toString()})()">
+    <span class="cp-item-icon">${r.icon}</span>
+    <span class="cp-item-label">${esc(r.label)}</span>
+    <span class="cp-item-hint">${r.hint?esc(r.hint):''}</span>
+  </div>`).join('');
+  el._results=results;
+}
+document.addEventListener('keydown',e=>{
+  if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openCmdPalette();return;}
+  const palette=document.getElementById('cmd-palette');
+  if(!palette||palette.classList.contains('hidden'))return;
+  const el=document.getElementById('cp-results');
+  const results=el?._results||[];
+  if(e.key==='ArrowDown'){e.preventDefault();_cpActive=(_cpActive+1)%Math.max(results.length,1);cpFilter(document.getElementById('cp-input').value);}
+  if(e.key==='ArrowUp'){e.preventDefault();_cpActive=(_cpActive-1+Math.max(results.length,1))%Math.max(results.length,1);cpFilter(document.getElementById('cp-input').value);}
+  if(e.key==='Enter'&&results[_cpActive]){results[_cpActive].action();}
+  if(e.key==='Escape'){closeCmdPalette();}
+});
+document.getElementById('cmd-palette')?.addEventListener('click',e=>{if(e.target===document.getElementById('cmd-palette'))closeCmdPalette();});
+
+// ── TASK TEMPLATES ─────────────────────────────────────────────
+function openTemplates(){
+  if(!S.taskTemplates)S.taskTemplates=[];
+  const el=document.getElementById('tpl-list');
+  if(!el){document.getElementById('tempm').classList.remove('hidden');return;}
+  if(!S.taskTemplates.length){
+    el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:16px 0;text-align:center;">No templates yet. Fill in a task and click "Save as Template".</div>';
+  }else{
+    el.innerHTML=S.taskTemplates.map(tpl=>`<div class="tpl-row">
+      <div style="flex:1;min-width:0;">
+        <div class="tpl-name">${esc(tpl.name)}</div>
+        <div class="tpl-meta">${BKTS[tpl.bucket]?.e||''} ${tpl.bucket} · ${tpl.category}</div>
+      </div>
+      <button class="btn bg sm" style="font-size:12px;" onclick="applyTemplate('${tpl.id}')">Use</button>
+      <button class="btn bd sm" style="font-size:12px;" onclick="deleteTemplate('${tpl.id}')">×</button>
+    </div>`).join('');
+  }
+  document.getElementById('tempm').classList.remove('hidden');
+}
+function saveCurrentTaskAsTemplate(){
+  const title=document.getElementById('t-title')?.value.trim();
+  if(!title){toast('Fill in a task title first');return;}
+  if(!S.taskTemplates)S.taskTemplates=[];
+  const name=prompt('Template name:',title);
+  if(!name)return;
+  S.taskTemplates.push({
+    id:uid(),name,
+    title:document.getElementById('t-title').value,
+    notes:document.getElementById('t-notes').value,
+    category:document.getElementById('t-cat').value,
+    bucket:document.getElementById('t-bucket').value,
+    urgency:document.getElementById('t-urg').value,
+    importance:document.getElementById('t-imp').value,
+    energy:document.getElementById('t-eng').value,
+    timeBlock:document.getElementById('t-time').value,
+    recurrence:document.getElementById('t-recur').value,
+  });
+  save();toast('Template saved ✓');openTemplates();
+}
+function applyTemplate(id){
+  const tpl=S.taskTemplates?.find(t=>t.id===id);if(!tpl)return;
+  closeM('tempm');
+  openAdd(tpl.bucket);
+  setTimeout(()=>{
+    document.getElementById('t-title').value=tpl.title;
+    document.getElementById('t-notes').value=tpl.notes||'';
+    document.getElementById('t-cat').value=tpl.category||'other';
+    document.getElementById('t-bucket').value=tpl.bucket||'inbox';
+    document.getElementById('t-urg').value=tpl.urgency||'low';
+    document.getElementById('t-imp').value=tpl.importance||'high';
+    document.getElementById('t-eng').value=tpl.energy||'high';
+    document.getElementById('t-time').value=tpl.timeBlock||'';
+    document.getElementById('t-recur').value=tpl.recurrence||'none';
+  },50);
+}
+function deleteTemplate(id){
+  S.taskTemplates=(S.taskTemplates||[]).filter(t=>t.id!==id);
+  save();openTemplates();
+}
+
+// ── TASK FRICTION TRACKING ─────────────────────────────────────
+function _trackFriction(taskId){
+  const t=S.tasks.find(x=>x.id===taskId);
+  if(!t)return;
+  t._friction=(t._friction||0)+1;
+  t._lastMoved=new Date().toISOString();
+}
+// Patch mvB to track friction
+const _origMvB=typeof mvB!=='undefined'?mvB:null;
+
+function _frictionBadge(t){
+  const f=t._friction||0;
+  if(f<3)return'';
+  return`<span class="friction-badge" title="Moved ${f} times — consider breaking this down or deleting it">🔥 ${f}×</span>`;
+}
+
+function showFrictionFilter(){
+  // Already handled by renderAll — just scroll to high-friction section
+  toast('Showing high-friction tasks (moved 3+ times)');
+}
+
+// ── JOURNAL DAY TEMPLATES ──────────────────────────────────────
+const DAYS_OF_WEEK=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+function openJournalTemplates(){
+  if(!S.journalTemplates)S.journalTemplates={};
+  const el=document.getElementById('jtpl-rows');
+  if(!el){document.getElementById('jtplm').classList.remove('hidden');return;}
+  el.innerHTML=DAYS_OF_WEEK.map((d,i)=>`<div class="jtpl-day">
+    <label>${d}</label>
+    <input class="fc" id="jtpl-${i}" value="${esc(S.journalTemplates[i]||'')}" placeholder="e.g. What is my priority this ${d}?" style="font-size:12px;">
+  </div>`).join('');
+  document.getElementById('jtplm').classList.remove('hidden');
+}
+function saveJournalTemplates(){
+  if(!S.journalTemplates)S.journalTemplates={};
+  DAYS_OF_WEEK.forEach((_,i)=>{
+    const val=document.getElementById('jtpl-'+i)?.value.trim()||'';
+    if(val)S.journalTemplates[i]=val; else delete S.journalTemplates[i];
+  });
+  save();closeM('jtplm');toast('Journal templates saved ✓');
+}
+
+// ── GOAL AI BREAKDOWN ──────────────────────────────────────────
+let _breakdownGoalId=null;
+let _breakdownTasks=[];
+function openGoalBreakdown(){
+  if(!editG)return;
+  const g=S.goals.find(x=>x.id===editG);if(!g)return;
+  _breakdownGoalId=editG;
+  _breakdownTasks=[];
+  document.getElementById('gbm-title').textContent='🤖 AI Breakdown: '+g.title.slice(0,40);
+  document.getElementById('gbm-subtitle').textContent='Claude will generate 5–7 concrete tasks and link them to this goal.';
+  document.getElementById('gbm-task-list').innerHTML=aiLoadingHTML('Breaking down your goal…');
+  document.getElementById('goal-breakdown-modal').classList.remove('hidden');
+  _runGoalBreakdown(g);
+}
+async function _runGoalBreakdown(g){
+  const existing=S.tasks.filter(t=>t.goalId===g.id&&t.status!=='done').map(t=>t.title);
+  const sys='You are a goal achievement strategist. Break the goal into concrete actionable tasks. Return ONLY valid JSON.';
+  const prompt=`Goal: ${g.title}\nWhy: ${g.description||'Not specified'}\nCategory: ${g.category}\nAlready have:\n${existing.join('\n')||'Nothing yet'}\n\nCreate 5-7 concrete tasks that together would achieve this goal. Mix quick wins (this-week) with bigger work (this-month, backlog). Return JSON: {"tasks":[{"title":"...","bucket":"this-week|this-month|backlog","notes":"why this matters for the goal","timeBlock":30}]}`;
+  const result=await callClaude(sys,prompt,1500);
+  const el=document.getElementById('gbm-task-list');
+  if(!result){if(el)el.innerHTML='<div class="empty">AI unavailable — check your API key</div>';return;}
+  try{
+    const json=JSON.parse(result.replace(/```json\n?|\n?```/g,'').trim());
+    _breakdownTasks=(json.tasks||[]).map((t,i)=>({...t,_idx:i,_checked:true,category:g.category,goalId:g.id}));
+    if(el)el.innerHTML=_breakdownTasks.map((t,i)=>`<div class="gbm-task">
+      <input type="checkbox" checked onchange="_breakdownTasks[${i}]._checked=this.checked">
+      <div style="flex:1;min-width:0;">
+        <div class="gbm-task-title">${esc(t.title)}</div>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">${BKTS[t.bucket]?.e||''} ${t.bucket}${t.timeBlock?' · '+t.timeBlock+'min':''}</div>
+      </div>
+    </div>`).join('');
+  }catch(e){
+    if(el)el.innerHTML=`<div style="font-size:12px;white-space:pre-wrap;">${esc(result)}</div>`;
+  }
+}
+function addCheckedBreakdownTasks(){
+  const toAdd=_breakdownTasks.filter(t=>t._checked);
+  if(!toAdd.length){toast('No tasks selected');return;}
+  const now=new Date().toISOString();
+  toAdd.forEach(t=>{
+    S.tasks.push({id:uid(),title:t.title,notes:t.notes||'',category:t.category||'other',bucket:t.bucket||'backlog',urgency:'low',importance:'high',energy:'high',timeBlock:t.timeBlock||null,dueDate:'',goalId:t.goalId||null,status:'todo',isT3:false,t3s:null,recurrence:'none',completedAt:null,createdAt:now});
+  });
+  save();closeM('goal-breakdown-modal');refresh();
+  toast('✅ Added '+toAdd.length+' tasks to your system');
+}
+
+// ── AI WEEKLY DEBRIEF ──────────────────────────────────────────
+async function runWeeklyDebrief(){
+  const btn=document.getElementById('debrief-btn');
+  if(btn){btn.textContent='⏳ Analyzing your week…';btn.disabled=true;}
+  const el=document.getElementById('ait-debrief-result');
+  if(el)el.innerHTML=aiLoadingHTML('Claude is analyzing your week…');
+  const cutoff=new Date(Date.now()-7*86400000);
+  const done7=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>=cutoff);
+  const active=S.tasks.filter(t=>t.status!=='done'&&t.bucket!=='trash');
+  const highFriction=active.filter(t=>(t._friction||0)>=3).map(t=>t.title);
+  const jEntries=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(Date.now()-i*86400000);
+    const key=d.toISOString().slice(0,10);
+    const e=S.journal?.[key];
+    if(e&&(e.intentionWord||e.priorities?.some(p=>p.text)))jEntries.push({date:key,word:e.intentionWord,done:(e.priorities||[]).filter(p=>p.done&&p.text).length,total:(e.priorities||[]).filter(p=>p.text).length});
+  }
+  const context=document.getElementById('debrief-context')?.value||'';
+  const sys='You are an insightful productivity coach. Give an honest, warm, and actionable debrief. Use markdown with ## headers and bullet points.';
+  const prompt=`Weekly debrief for ${S.userName||'user'}.
+
+COMPLETED THIS WEEK (${done7.length} tasks):
+${done7.map(t=>`- ${t.title} [${t.category}]`).join('\n')||'None'}
+
+STILL ACTIVE (${active.length} tasks):
+${active.slice(0,20).map(t=>`- ${t.title} [${t.bucket}]${(t._friction||0)>=3?' ⚠️ high friction':''}`).join('\n')}
+
+HIGH FRICTION (avoided 3+ times):
+${highFriction.join('\n')||'None'}
+
+JOURNAL SUMMARY:
+${jEntries.map(e=>`${e.date}: "${e.word||'no word'}" — ${e.done}/${e.total} commitments done`).join('\n')||'No journal entries'}
+
+GOALS:
+${S.goals.filter(g=>g.isTop3).map(g=>{const linked=S.tasks.filter(t=>t.goalId===g.id);const done=linked.filter(t=>t.status==='done').length;return`- ${g.title}: ${done}/${linked.length} tasks done`;}).join('\n')||'No top goals'}
+
+USER NOTES: ${context||'None'}
+
+Write a debrief with:
+## 🏆 Wins This Week
+## 😬 What You're Avoiding
+## 📈 Patterns I Notice
+## 🎯 3 Recommendations for Next Week
+## 💬 One Honest Observation`;
+  const result=await callClaude(sys,prompt,1800);
+  if(btn){btn.textContent='📊 Generate Weekly Debrief';btn.disabled=false;}
+  if(!el)return;
+  if(!result){el.innerHTML='<div class="empty">AI unavailable — check your API key</div>';return;}
+  // Render markdown-like output
+  const html=result
+    .replace(/^## (.+)$/gm,'<h4 style="margin:16px 0 6px;font-size:14px;font-weight:700;color:var(--accent);">$1</h4>')
+    .replace(/^### (.+)$/gm,'<h5 style="margin:10px 0 4px;font-size:13px;font-weight:700;">$1</h5>')
+    .replace(/^\*\*(.+)\*\*$/gm,'<strong>$1</strong>')
+    .replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')
+    .replace(/^- (.+)$/gm,'<li style="margin-bottom:4px;">$1</li>')
+    .replace(/(<li[^>]*>.*<\/li>\s*)+/gs,m=>`<ul style="margin:6px 0 10px;padding-left:20px;">${m}</ul>`)
+    .replace(/\n\n/g,'</p><p style="margin:0 0 8px;">')
+    .replace(/\n/g,'<br>');
+  el.innerHTML=`<div class="rb"><div style="font-size:13px;line-height:1.7;">${html}</div>
+    ${S.notif?.slack?`<button class="btn bg sm" style="margin-top:12px;font-size:12px;" onclick="sendDebriefToSlack(${JSON.stringify(result).replace(/"/g,'&quot;')})">📤 Send to Slack</button>`:''}
+  </div>`;
+}
+function sendDebriefToSlack(text){
+  if(!S.notif?.slack){toast('No Slack webhook configured in Settings');return;}
+  _sendWebhookNoRead(S.notif.slack,{text:`📊 *Task OS — Weekly Debrief*\n\n${text}`});
+  toast('Sent to Slack ✓');
+}
+
+// ── ONBOARDING ─────────────────────────────────────────────────
+let _obStep=0;
+const OB_STEPS=4;
+function _shouldShowOnboarding(){
+  return S.tasks.length===0&&S.goals.length===0&&!localStorage.getItem('taskos_ob_done');
+}
+function openOnboarding(){
+  _obStep=0;
+  _renderObStep();
+  document.getElementById('onboarding-modal').classList.remove('hidden');
+}
+function _renderObStep(){
+  document.querySelectorAll('.ob-step').forEach((s,i)=>s.classList.toggle('active',i===_obStep));
+  const prog=document.getElementById('ob-progress');
+  if(prog)prog.innerHTML=Array.from({length:OB_STEPS},(_,i)=>`<div class="ob-dot ${i<=_obStep?'active':''}"></div>`).join('');
+  const back=document.getElementById('ob-back-btn');
+  const next=document.getElementById('ob-next-btn');
+  if(back)back.style.display=_obStep>0?'':'none';
+  if(next)next.textContent=_obStep===OB_STEPS-1?'Start Using Task OS →':'Next →';
+}
+function obStep(dir){
+  if(dir===1){
+    // Validate and save each step
+    if(_obStep===0){
+      const name=document.getElementById('ob-name')?.value.trim();
+      if(name){S.userName=name;document.getElementById('greeting')&&(document.getElementById('greeting').textContent='');}
+    }
+    if(_obStep===1){
+      const g=document.getElementById('ob-goal')?.value.trim();
+      const why=document.getElementById('ob-goal-why')?.value.trim();
+      if(g)S.goals.push({id:uid(),title:g,description:why||'',category:'other',isTop3:true,milestones:[]});
+    }
+    if(_obStep===2){
+      const goalId=S.goals[0]?.id||null;
+      document.querySelectorAll('.ob-task-inp').forEach(inp=>{
+        const t=inp.value.trim();
+        if(t)S.tasks.push({id:uid(),title:t,notes:'',category:'givelink',bucket:'this-week',urgency:'low',importance:'high',energy:'high',timeBlock:null,dueDate:'',goalId,status:'todo',isT3:false,t3s:null,recurrence:'none',completedAt:null,createdAt:new Date().toISOString()});
+      });
+    }
+    if(_obStep===OB_STEPS-1){
+      save();
+      localStorage.setItem('taskos_ob_done','1');
+      closeM('onboarding-modal');
+      nav('dashboard');
+      return;
+    }
+  }
+  _obStep=Math.max(0,Math.min(OB_STEPS-1,_obStep+dir));
+  _renderObStep();
+}
+
+// ── PWA SHARE TARGET & SHORTCUTS ──────────────────────────────
+(function(){
+  // Handle URL hash shortcuts from manifest shortcuts
+  const hash=location.hash;
+  if(hash==='#quick-add'){setTimeout(()=>openAdd(),500);}
+  else if(hash==='#coach'){setTimeout(()=>nav('aitools'),500);}
+  else if(hash==='#journal'){setTimeout(()=>nav('journal'),500);}
+  else if(hash==='#reflect'){setTimeout(()=>nav('reflect'),500);}
+  // Handle Web Share Target (shared URLs/text via service worker)
+  const params=new URLSearchParams(location.search);
+  const sharedTitle=params.get('title')||params.get('text')||'';
+  const sharedUrl=params.get('url')||'';
+  if(sharedTitle||sharedUrl){
+    setTimeout(()=>{
+      openAdd('inbox');
+      const titleEl=document.getElementById('t-title');
+      const notesEl=document.getElementById('t-notes');
+      if(titleEl)titleEl.value=sharedTitle.slice(0,100);
+      if(notesEl&&sharedUrl)notesEl.value=sharedUrl;
+    },600);
+  }
+})();
+
+// ── FRICTION-AWARE mvB PATCH ───────────────────────────────────
+// Called after mvB is defined — wrap it to track friction
+function _patchMvB(){
+  if(typeof mvB==='function'){
+    const _orig=mvB;
+    window.mvB=function(id,bucket){
+      _trackFriction(id);
+      _orig(id,bucket);
+    };
+  }
+}
+
+// ── SAVE STATUS HOOK ───────────────────────────────────────────
+function _patchSaveStatus(){
+  if(typeof save==='function'){
+    const _orig=save;
+    window.save=function(){_orig();_showSaveStatus();};
+  }
 }
 
 // ── SEED DATA ─────────────────────────────────────────────────
@@ -4401,10 +4976,17 @@ ${undone.length&&!carryoverDismissed?`<div class="j-carryover" id="j-carryover">
   ${!isToday?`<button class="j-date-today" onclick="jumpJournalToday()">Today</button>`:''}
   <button onclick="navJournalDate(1)" ${canGoNext?'':'disabled'} title="Next day">Next ›</button>
 </div>
-${isToday?`<div class="jq-card">
-  <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">💭 Today's Reflection Prompt</div>
-  <div style="font-size:14px;font-style:italic;line-height:1.5;color:var(--text);">${esc(getDailyQuestion())}</div>
-</div>`:''}
+${(()=>{
+  const dow=dateObj.getDay();
+  const dayTpl=S.journalTemplates?.[dow];
+  const q=isToday?getDailyQuestion():null;
+  const prompt=dayTpl||q;
+  const label=dayTpl?`📅 ${DAYS_OF_WEEK[dow]} Template`:'💭 Today\'s Reflection Prompt';
+  return prompt?`<div class="jq-card">
+  <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:6px;">${label}</div>
+  <div style="font-size:14px;font-style:italic;line-height:1.5;color:var(--text);">${esc(prompt)}</div>
+</div>`:'';
+})()}
 <div class="rb" style="margin-bottom:14px;text-align:center;">
   <div style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px;">${isToday?"Today's":'Day'} Intention Word</div>
   <input id="j-intention" class="fc" placeholder="FOCUS" value="${esc(entry.intentionWord||'')}" oninput="journalAutoSave()" style="text-align:center;font-size:20px;font-weight:700;letter-spacing:3px;max-width:280px;margin:0 auto;display:block;text-transform:uppercase;">
@@ -4818,7 +5400,11 @@ function appInit(){
   authInit();
   checkPWAStatus();
   _startNotifScheduler();
+  _patchMvB();
+  _patchSaveStatus();
   if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+  // Show onboarding for brand new users (after a brief delay)
+  setTimeout(()=>{if(_shouldShowOnboarding())openOnboarding();},800);
 }
 appInit();
 </script>

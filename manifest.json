@@ -27,9 +27,16 @@
       "icons": [{ "src": "icon.svg", "sizes": "any" }]
     },
     {
-      "name": "AI Coach",
-      "short_name": "AI Coach",
-      "description": "Open AI coaching assistant",
+      "name": "Today's Journal",
+      "short_name": "Journal",
+      "description": "Open today's journal",
+      "url": "./index.html#journal",
+      "icons": [{ "src": "icon.svg", "sizes": "any" }]
+    },
+    {
+      "name": "AI Tools",
+      "short_name": "AI Tools",
+      "description": "Open AI planning tools",
       "url": "./index.html#coach",
       "icons": [{ "src": "icon.svg", "sizes": "any" }]
     },
@@ -40,5 +47,14 @@
       "url": "./index.html#reflect",
       "icons": [{ "src": "icon.svg", "sizes": "any" }]
     }
-  ]
+  ],
+  "share_target": {
+    "action": "./index.html",
+    "method": "GET",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
 }

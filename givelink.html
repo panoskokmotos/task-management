@@ -173,8 +173,26 @@ select.fc option{background:var(--s2);}
   .bni.active{color:var(--accent);}
   .bni-ic{font-size:18px;line-height:1.2;}
 }
-#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--sf2);border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:13px;z-index:2000;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;}
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--sf);border:1px solid var(--border);border-radius:8px;padding:8px 16px;font-size:13px;z-index:2000;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;}
 #toast.show{opacity:1;}
+/* ── PAST SPRINTS ───────────────────────────────────────── */
+.psp-card{background:var(--sf);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:12px;}
+.psp-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;}
+.psp-name{font-size:14px;font-weight:700;}
+.psp-dates{font-size:11px;color:var(--muted);margin-top:2px;}
+.psp-rate{font-size:22px;font-weight:800;line-height:1;}
+.psp-stats{font-size:12px;color:var(--muted);margin-bottom:10px;}
+.psp-goals{display:flex;flex-direction:column;gap:5px;border-top:1px solid var(--border);padding-top:10px;margin-top:4px;}
+.psp-goal{display:flex;align-items:center;gap:7px;font-size:12px;}
+.psp-goal-txt{flex:1;color:var(--text);}
+.psp-goal-pillar{font-size:14px;}
+/* ── NEW SPRINT MODAL ───────────────────────────────────── */
+.ns-summary{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:18px;}
+.ns-summary-title{font-size:13px;font-weight:700;margin-bottom:4px;}
+.ns-summary-sub{font-size:12px;color:var(--muted);margin-bottom:10px;}
+.ns-goal-row{display:flex;align-items:center;gap:7px;font-size:12px;padding:3px 0;}
+.ns-divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--muted);font-size:12px;font-weight:700;}
+.ns-divider::before,.ns-divider::after{content:'';flex:1;border-top:1px solid var(--border);}
 </style>
 </head>
 <body>
@@ -202,6 +220,7 @@ select.fc option{background:var(--s2);}
   <div class="ni" onclick="nav('ops')"><span class="pip" style="background:var(--op)"></span>Smooth Ops <span class="bcnt2" id="cnt-ops"></span></div>
   <div class="ns">More</div>
   <div class="ni" onclick="nav('backlog')">📋 Backlog <span class="bcnt2" id="cnt-backlog"></span></div>
+  <div class="ni" onclick="nav('past')">📚 Past Sprints <span class="bcnt2" id="cnt-past"></span></div>
   <div class="ni" onclick="openSprintSettings()">⚙️ Sprint Settings</div>
 </nav>
 
@@ -210,6 +229,8 @@ select.fc option{background:var(--s2);}
     <span class="sprint-bar-name" id="bar-name">Sprint 1</span>
     <span class="sprint-bar-dates" id="bar-dates"></span>
     <span class="sprint-bar-pct" id="bar-pct" style="display:flex;align-items:center;gap:6px;"></span>
+    <button class="btn bg" onclick="openAiSprintPlanner()" style="font-size:11px;padding:4px 10px;flex-shrink:0;">🤖 AI Sprint Planner</button>
+    <button class="btn bg" onclick="syncToTaskOS()" style="font-size:11px;padding:4px 10px;flex-shrink:0;">🔗 Sync to Task OS</button>
   </div>
 
   <div class="content">
@@ -230,6 +251,9 @@ select.fc option{background:var(--s2);}
   <div id="v-product" class="view"></div>
   <div id="v-execution" class="view"></div>
   <div id="v-ops" class="view"></div>
+
+  <!-- PAST SPRINTS -->
+  <div id="v-past" class="view"></div>
 
   <!-- BACKLOG -->
   <div id="v-backlog" class="view">
@@ -324,7 +348,43 @@ select.fc option{background:var(--s2);}
       <div class="fg"><label>Start Date</label><input class="fc" id="s-start" type="date"></div>
       <div class="fg"><label>End Date</label><input class="fc" id="s-end" type="date"></div>
     </div>
-    <div class="mf"><button class="btn bg" onclick="closeM('sm')">Cancel</button><button class="btn bp" onclick="saveSprint()">Save Sprint</button></div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('sm')">Cancel</button>
+      <button class="btn bg" onclick="closeM('sm');openCloseSprint()" style="margin-right:auto;">🔄 Close Sprint →</button>
+      <button class="btn bp" onclick="saveSprint()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- NEW SPRINT MODAL -->
+<div class="mo hidden" id="nsm">
+  <div class="md" style="width:480px;">
+    <div class="mh"><h3>🔄 Close Sprint & Start New</h3><button class="mc" onclick="closeM('nsm')">×</button></div>
+    <div class="ns-summary" id="ns-summary"></div>
+    <div class="ns-divider">New Sprint</div>
+    <div class="fg"><label>Sprint Name</label><input class="fc" id="ns-name" placeholder="Sprint 2 — ..."></div>
+    <div class="fr">
+      <div class="fg"><label>Start Date</label><input class="fc" id="ns-start" type="date"></div>
+      <div class="fg"><label>End Date</label><input class="fc" id="ns-end" type="date"></div>
+    </div>
+    <p style="font-size:11px;color:var(--muted);margin-bottom:4px;">Incomplete tasks will move to Backlog. Done tasks are archived with this sprint.</p>
+    <div class="mf"><button class="btn bg" onclick="closeM('nsm')">Cancel</button><button class="btn bp" onclick="confirmNewSprint()">Start New Sprint →</button></div>
+  </div>
+</div>
+
+<!-- AI SPRINT PLANNER MODAL -->
+<div class="mo hidden" id="ai-sprint-modal">
+  <div class="md" style="width:580px;">
+    <div class="mh"><h3>🤖 AI Sprint Planner</h3><button class="mc" onclick="closeM('ai-sprint-modal')">×</button></div>
+    <div id="ai-sprint-body">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Analyzing your backlog and current sprint to suggest the best next 10 tasks across pillars...</p>
+      <div style="text-align:center;padding:28px 0;color:var(--muted);font-size:13px;">✨ Click "Generate" to start</div>
+    </div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('ai-sprint-modal')">Close</button>
+      <button class="btn bg" id="ai-add-btn" style="display:none;" onclick="addSuggestedSprintTasks()">✅ Add Selected to Backlog</button>
+      <button class="btn bp" id="ai-gen-btn" onclick="runAiSprintPlanner()">✨ Generate</button>
+    </div>
   </div>
 </div>
 
@@ -348,7 +408,8 @@ const PRI={high:{l:'High',cls:'pri-high'},medium:{l:'Medium',cls:'pri-med'},low:
 let S={
   sprint:{name:'Sprint 1 — US Growth Push',start:'2026-03-28',end:'2026-04-11'},
   tasks:[],
-  blFilter:'all'
+  blFilter:'all',
+  pastSprints:[]
 };
 let editId=null;
 
@@ -386,6 +447,7 @@ function renderView(v){
   if(v==='overview')renderOverview();
   else if(PILLARS[v])renderPillar(v);
   else if(v==='backlog')renderBacklog();
+  else if(v==='past')renderPastSprints();
 }
 function refresh(){renderView(curView);updateSidebar();}
 
@@ -410,6 +472,7 @@ function updateSidebar(){
     document.getElementById('cnt-'+p).textContent=c||'';
   });
   document.getElementById('cnt-backlog').textContent=blTasks().length||'';
+  document.getElementById('cnt-past').textContent=(S.pastSprints||[]).length||'';
 }
 
 // ── OVERVIEW ─────────────────────────────────────────────────────
@@ -429,8 +492,13 @@ function renderOverview(){
     const tasks=ct.filter(t=>t.pillar===k);
     const d=tasks.filter(t=>t.status==='done').length;
     const pct=tasks.length?Math.round(d/tasks.length*100):0;
+    const healthColor=pct>=60?'#22c55e':pct>=30?'#fbbf24':'#ef4444';
+    const healthLabel=pct>=60?'Healthy':pct>=30?'At Risk':'Needs Attention';
     return`<div class="pcard" onclick="nav('${k}')">
-      <div class="pcard-emoji">${p.e}</div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+        <div class="pcard-emoji" style="margin-bottom:0;">${p.e}</div>
+        <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;background:${healthColor}22;color:${healthColor};border:1px solid ${healthColor}44;">${healthLabel}</span>
+      </div>
       <div class="pcard-label">${p.l}</div>
       <div class="pcard-stats" style="color:${p.hex}">${d}<span style="font-size:13px;font-weight:400;color:var(--muted)">/${tasks.length}</span></div>
       <div style="height:3px;background:var(--border);border-radius:2px;margin:6px 0 4px;">
@@ -619,6 +687,8 @@ function saveTask(){
     assignee:document.getElementById('t-assignee').value,
     isGoal:document.getElementById('t-isgoal').value==='true'
   };
+  if((d.current??0)<0||(d.target??0)<0){toast('Values must be 0 or greater.');return;}
+  if(d.target&&d.current>d.target){toast('Current progress cannot exceed target.');return;}
   if(editId){const i=S.tasks.findIndex(t=>t.id===editId);S.tasks[i]={...S.tasks[i],...d};}
   else S.tasks.push({id:uid(),...d,createdAt:new Date().toISOString(),completedAt:null});
   save();closeM('tm');refresh();
@@ -628,7 +698,6 @@ function toggleDone(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
   t.status=t.status==='done'?'todo':'done';
   t.completedAt=t.status==='done'?new Date().toISOString():null;
-  if(t.status==='done'&&t.target)t.current=t.target;
   save();refresh();
 }
 function moveSprint(id,sprint){
@@ -644,10 +713,92 @@ function openSprintSettings(){
   document.getElementById('sm').classList.remove('hidden');
 }
 function saveSprint(){
-  S.sprint.name=document.getElementById('s-name').value||'Sprint 1';
-  S.sprint.start=document.getElementById('s-start').value;
-  S.sprint.end=document.getElementById('s-end').value;
+  const name=document.getElementById('s-name').value.trim();
+  if(!name){toast('Enter a sprint name.');return;}
+  const start=document.getElementById('s-start').value;
+  const end=document.getElementById('s-end').value;
+  if(start&&end&&new Date(end)<=new Date(start)){toast('End date must be after start date.');return;}
+  S.sprint.name=name;
+  S.sprint.start=start;
+  S.sprint.end=end;
   save();closeM('sm');renderSprintBar();updateSidebar();
+}
+
+// ── CLOSE SPRINT / NEW SPRINT ─────────────────────────────────────
+function openCloseSprint(){
+  const ct=curTasks();
+  const done=ct.filter(t=>t.status==='done').length;
+  const goals=ct.filter(t=>t.isGoal);
+  const rate=ct.length?Math.round(done/ct.length*100):0;
+  const rateColor=rate>=70?'var(--done)':rate>=40?'#fbbf24':'var(--block)';
+  document.getElementById('ns-summary').innerHTML=`
+    <div class="ns-summary-title">${esc(S.sprint.name)}</div>
+    <div class="ns-summary-sub">${fd(S.sprint.start)} – ${fd(S.sprint.end)}</div>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:${goals.length?'12px':'0'};">
+      <div><span style="font-size:22px;font-weight:800;color:${rateColor};">${rate}%</span><span style="font-size:11px;color:var(--muted);margin-left:5px;">complete</span></div>
+      <div style="font-size:12px;color:var(--muted);">${done} / ${ct.length} tasks done</div>
+    </div>
+    ${goals.length?`<div style="border-top:1px solid var(--border);padding-top:10px;">${goals.map(g=>`<div class="ns-goal-row"><span>${g.status==='done'?'✅':'⬜'}</span><span style="flex:1;">${esc(g.title)}</span><span>${PILLARS[g.pillar]?.e||''}</span></div>`).join('')}</div>`:''}`;
+  // Pre-fill new sprint defaults
+  const n=(S.pastSprints||[]).length+2;
+  document.getElementById('ns-name').value=`Sprint ${n}`;
+  const start=new Date();start.setDate(start.getDate()+1);
+  const end=new Date();end.setDate(end.getDate()+15);
+  document.getElementById('ns-start').value=start.toISOString().slice(0,10);
+  document.getElementById('ns-end').value=end.toISOString().slice(0,10);
+  document.getElementById('nsm').classList.remove('hidden');
+}
+function confirmNewSprint(){
+  const name=document.getElementById('ns-name').value.trim();
+  if(!name){toast('Enter a sprint name.');return;}
+  const start=document.getElementById('ns-start').value;
+  const end=document.getElementById('ns-end').value;
+  if(start&&end&&new Date(end)<=new Date(start)){toast('End date must be after start date.');return;}
+  // Archive current sprint
+  const ct=curTasks();
+  const done=ct.filter(t=>t.status==='done').length;
+  const archive={
+    id:uid(),name:S.sprint.name,start:S.sprint.start,end:S.sprint.end,
+    closedAt:new Date().toISOString(),
+    stats:{total:ct.length,done},
+    goals:ct.filter(t=>t.isGoal).map(t=>({id:t.id,title:t.title,pillar:t.pillar,status:t.status}))
+  };
+  if(!S.pastSprints)S.pastSprints=[];
+  S.pastSprints.unshift(archive);
+  // Move tasks: done → archived, incomplete → backlog
+  S.tasks.forEach(t=>{
+    if(t.sprint==='current'){
+      if(t.status==='done'){t.sprint='archived';t.archivedSprintId=archive.id;}
+      else{t.sprint='backlog';}
+    }
+  });
+  // Start new sprint
+  S.sprint={name,start,end};
+  save();closeM('nsm');nav('overview');
+  toast(`"${archive.name}" archived · New sprint started! 🚀`,3500);
+}
+// ── PAST SPRINTS ──────────────────────────────────────────────────
+function renderPastSprints(){
+  const el=document.getElementById('v-past');
+  const past=S.pastSprints||[];
+  if(!past.length){
+    el.innerHTML=`<div class="ph"><div><h1>📚 Past Sprints</h1><p class="sub">Your sprint history will appear here.</p></div></div><div class="empty" style="padding:44px 0;text-align:center;"><div style="font-size:42px;margin-bottom:12px;">🏁</div><div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;">No past sprints yet</div><p style="font-size:13px;color:var(--muted);">Close your current sprint to archive it and start a new one.</p><button class="btn bp" style="margin-top:14px;" onclick="openCloseSprint()">🔄 Close Current Sprint →</button></div>`;
+    return;
+  }
+  el.innerHTML=`<div class="ph"><div><h1>📚 Past Sprints</h1><p class="sub">${past.length} sprint${past.length!==1?'s':''} completed</p></div><button class="btn bp" onclick="openCloseSprint()">🔄 Close Sprint →</button></div>`+
+    past.map(s=>{
+      const rate=s.stats.total?Math.round(s.stats.done/s.stats.total*100):0;
+      const rateColor=rate>=70?'var(--done)':rate>=40?'#fbbf24':'var(--block)';
+      const goals=s.goals||[];
+      const doneGoals=goals.filter(g=>g.status==='done').length;
+      return`<div class="psp-card">
+        <div class="psp-header">
+          <div><div class="psp-name">${esc(s.name)}</div><div class="psp-dates">${fd(s.start)} – ${fd(s.end)} · archived ${fd(s.closedAt)}</div></div>
+          <div class="psp-rate" style="color:${rateColor};">${rate}%</div>
+        </div>
+        <div class="psp-stats">${s.stats.done}/${s.stats.total} tasks done${goals.length?` · ${doneGoals}/${goals.length} goals completed`:''}</div>
+        ${goals.length?`<div class="psp-goals">${goals.map(g=>`<div class="psp-goal"><span>${g.status==='done'?'✅':'⬜'}</span><span class="psp-goal-txt">${esc(g.title)}</span><span class="psp-goal-pillar">${PILLARS[g.pillar]?.e||''}</span></div>`).join('')}</div>`:''}</div>`;
+    }).join('');
 }
 
 // ── MODAL ─────────────────────────────────────────────────────────
@@ -656,7 +807,7 @@ document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',function(
 document.addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
   if(e.key==='n')openAdd();
-  if(e.key==='Escape')document.querySelectorAll('.mo:not(.hidden)').forEach(m=>m.classList.add('hidden'));
+  if(e.key==='Escape'){document.querySelectorAll('.mo:not(.hidden)').forEach(m=>m.classList.add('hidden'));editId=null;}
 });
 
 // ── SEED ─────────────────────────────────────────────────────────
@@ -849,6 +1000,185 @@ function seed(){
     mk('Apply moonshots gathering and competition','growth','backlog','todo','medium',false,null,null,''),
   ];
   save();
+}
+
+// ── AI SPRINT PLANNER ─────────────────────────────────────────────
+function getApiKey(){
+  // Try to find key from a Task OS profile's data
+  try{
+    const profiles=JSON.parse(localStorage.getItem('taskos_profiles')||'[]');
+    for(const p of profiles){
+      const d=JSON.parse(localStorage.getItem('taskos_data_'+p.id)||'null');
+      if(d&&d.apiKey)return d.apiKey;
+    }
+  }catch(e){}
+  // Fall back to shared key
+  let k=localStorage.getItem('taskos_api_key');
+  if(!k){k=prompt('Enter your Anthropic API key:');if(k)localStorage.setItem('taskos_api_key',k);}
+  return k||null;
+}
+
+function openAiSprintPlanner(){
+  document.getElementById('ai-sprint-body').innerHTML=`<p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Analyze your backlog and current sprint completion to suggest the best 10 tasks for your next sprint across pillars.</p><div style="text-align:center;padding:28px 0;color:var(--muted);font-size:13px;">✨ Click "Generate" to start</div>`;
+  document.getElementById('ai-add-btn').style.display='none';
+  document.getElementById('ai-gen-btn').style.display='';
+  document.getElementById('ai-sprint-modal').classList.remove('hidden');
+}
+
+async function runAiSprintPlanner(){
+  const apiKey=getApiKey();
+  if(!apiKey){toast('API key required.');return;}
+  const genBtn=document.getElementById('ai-gen-btn');
+  genBtn.disabled=true;genBtn.textContent='⏳ Thinking...';
+  document.getElementById('ai-sprint-body').innerHTML=`<div style="text-align:center;padding:36px 0;"><div style="font-size:32px;margin-bottom:12px;">🤖</div><div style="color:var(--muted);font-size:13px;">Claude is analyzing your sprint data...</div></div>`;
+
+  const ct=curTasks();
+  const bl=blTasks();
+  const done=ct.filter(t=>t.status==='done').length;
+  const pillarStats=Object.keys(PILLARS).map(k=>{
+    const tasks=ct.filter(t=>t.pillar===k);
+    const d=tasks.filter(t=>t.status==='done').length;
+    return `${PILLARS[k].l}: ${d}/${tasks.length} done`;
+  }).join(', ');
+  const blSample=bl.slice(0,40).map(t=>`[${t.pillar}] ${t.title}`).join('\n');
+
+  const prompt=`You are a sprint planning assistant for Givelink, a platform connecting donors to nonprofits.
+
+Current sprint: "${S.sprint.name}" (${S.sprint.start} to ${S.sprint.end})
+Sprint completion: ${done}/${ct.length} tasks done
+Pillar breakdown: ${pillarStats}
+
+Backlog tasks (top ${Math.min(bl.length,40)} of ${bl.length}):
+${blSample}
+
+Based on the current sprint completion and backlog, suggest exactly 10 high-impact tasks for the next sprint, balanced across pillars (growth, nonprofits, product, execution, ops). For each task, provide:
+- A clear, actionable title (max 80 chars)
+- The pillar it belongs to (one of: growth, nonprofits, product, execution, ops)
+- Priority (high, medium, or low)
+
+Respond ONLY with a JSON array of 10 objects, each with keys: title, pillar, priority. No markdown, no explanation, just the JSON array.`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-opus-4-5',
+        max_tokens:1024,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    if(!res.ok){const err=await res.text();throw new Error(err);}
+    const data=await res.json();
+    const raw=data.content[0].text.trim();
+    let suggestions;
+    try{suggestions=JSON.parse(raw);}
+    catch(e){
+      // Try to extract JSON array from response
+      const m=raw.match(/\[[\s\S]*\]/);
+      if(m)suggestions=JSON.parse(m[0]);
+      else throw new Error('Could not parse response');
+    }
+    renderAiSuggestions(suggestions);
+  }catch(e){
+    document.getElementById('ai-sprint-body').innerHTML=`<div style="color:#ef4444;font-size:13px;padding:16px;">Error: ${esc(e.message||'Unknown error')}</div>`;
+  }
+  genBtn.disabled=false;genBtn.textContent='✨ Regenerate';
+}
+
+let _aiSuggestions=[];
+function renderAiSuggestions(suggestions){
+  _aiSuggestions=suggestions;
+  document.getElementById('ai-sprint-body').innerHTML=`
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Select tasks to add to your backlog:</p>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+    ${suggestions.map((t,i)=>{
+      const P=PILLARS[t.pillar]||{hex:'var(--muted)',e:'',l:t.pillar};
+      const priCls=t.priority==='high'?'pri-high':t.priority==='low'?'pri-low':'pri-med';
+      return`<label style="display:flex;align-items:flex-start;gap:10px;padding:9px 10px;background:var(--s2);border:1px solid var(--border);border-radius:7px;cursor:pointer;">
+        <input type="checkbox" id="ai-t-${i}" checked style="margin-top:2px;accent-color:var(--accent);">
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:500;">${esc(t.title)}</div>
+          <div style="display:flex;gap:5px;margin-top:4px;">
+            <span style="font-size:10px;font-weight:700;color:${P.hex};">${P.e} ${P.l}</span>
+            <span class="badge ${priCls}" style="font-size:10px;">${t.priority}</span>
+          </div>
+        </div>
+      </label>`;
+    }).join('')}
+    </div>`;
+  document.getElementById('ai-add-btn').style.display='';
+}
+
+function addSuggestedSprintTasks(){
+  let added=0;
+  _aiSuggestions.forEach((t,i)=>{
+    const cb=document.getElementById('ai-t-'+i);
+    if(cb&&cb.checked){
+      S.tasks.push({
+        id:uid(),title:t.title,notes:'',pillar:t.pillar||'execution',
+        sprint:'backlog',status:'todo',priority:t.priority||'medium',
+        target:null,current:0,assignee:'',isGoal:false,
+        createdAt:new Date().toISOString(),completedAt:null
+      });
+      added++;
+    }
+  });
+  if(added){save();refresh();toast(`Added ${added} task${added!==1?'s':''} to Backlog ✅`);}
+  closeM('ai-sprint-modal');
+}
+
+// ── TASK OS SYNC ──────────────────────────────────────────────────
+function syncToTaskOS(){
+  let profiles;
+  try{profiles=JSON.parse(localStorage.getItem('taskos_profiles')||'[]');}
+  catch(e){profiles=[];}
+  if(!profiles.length){toast('No Task OS profile found');return;}
+  const profile=profiles.find(p=>p.active!==false)||profiles[0];
+  let tosData;
+  try{tosData=JSON.parse(localStorage.getItem('taskos_data_'+profile.id)||'null');}
+  catch(e){tosData=null;}
+  if(!tosData){tosData={tasks:[]};}
+  if(!Array.isArray(tosData.tasks))tosData.tasks=[];
+
+  let synced=0;
+
+  // 1. Mark done Givelink sprint tasks as done in Task OS (match by title)
+  const doneTasks=curTasks().filter(t=>t.status==='done');
+  doneTasks.forEach(gt=>{
+    const match=tosData.tasks.find(tt=>tt.title&&tt.title.toLowerCase()===gt.title.toLowerCase());
+    if(match&&match.status!=='done'){
+      match.status='done';
+      match.completedAt=gt.completedAt||new Date().toISOString();
+      synced++;
+    }
+  });
+
+  // 2. Push new Givelink backlog tasks (status=todo) into Task OS inbox under category 'givelink'
+  const blTasksList=blTasks();
+  blTasksList.forEach(gt=>{
+    const exists=tosData.tasks.some(tt=>tt.title&&tt.title.toLowerCase()===gt.title.toLowerCase());
+    if(!exists){
+      tosData.tasks.push({
+        id:uid(),title:gt.title,notes:gt.notes||'',
+        category:'givelink',bucket:'inbox',
+        urgency:'low',importance:'high',energy:'high',
+        timeBlock:null,dueDate:'',goalId:null,
+        status:'todo',isT3:false,t3s:null,
+        recurrence:'none',completedAt:null,
+        createdAt:new Date().toISOString()
+      });
+      synced++;
+    }
+  });
+
+  localStorage.setItem('taskos_data_'+profile.id,JSON.stringify(tosData));
+  toast(`Synced ${synced} task${synced!==1?'s':''} to Task OS${profile.name?' ('+profile.name+')':''} 🔗`,3000);
 }
 
 // ── MOBILE ────────────────────────────────────────────────────────

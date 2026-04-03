@@ -416,6 +416,9 @@ select.fc option{background:var(--surface2);}
 .ait-wp-name{font-size:13px;font-weight:700;margin-bottom:3px;}
 .ait-wp-desc{font-size:12px;color:var(--muted);line-height:1.5;}
 .ait-maps-btn{display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#000;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;margin-top:12px;}
+#luck-btn{background:linear-gradient(135deg,#ff9944,#ff6b6b);border:none;color:#fff;letter-spacing:.3px;transition:opacity .15s;}
+#luck-btn:hover{opacity:.9;}
+#luck-btn:disabled{opacity:.6;}
 @media(max-width:640px){
   .ait-week-grid{grid-template-columns:1fr 1fr;}
   .ait-tabs{gap:4px;}
@@ -688,7 +691,7 @@ select.fc option{background:var(--surface2);}
     <button class="ait-tab active" data-tab="daily" onclick="showAiTool('daily')">📅 Daily Plan</button>
     <button class="ait-tab" data-tab="weekly" onclick="showAiTool('weekly')">📆 Weekly Plan</button>
     <button class="ait-tab" data-tab="routine" onclick="showAiTool('routine')">✅ Routines</button>
-    <button class="ait-tab" data-tab="sfwalk" onclick="showAiTool('sfwalk')">🗺️ SF Walk</button>
+    <button class="ait-tab" data-tab="sfwalk" onclick="showAiTool('sfwalk')">🍀 Luck Generator</button>
   </div>
 
   <!-- DAILY PLANNER -->
@@ -744,39 +747,42 @@ select.fc option{background:var(--surface2);}
     <div id="ait-routine-result"></div>
   </div>
 
-  <!-- SF WALK GENERATOR -->
+  <!-- LUCK SURFACE AREA GENERATOR -->
   <div id="ait-sfwalk" class="ait-panel hidden">
-    <div class="rb" style="margin-bottom:14px;">
-      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
-        <div>
-          <h3 style="margin:0 0 4px;font-size:15px;">🗺️ SF Walk Generator</h3>
-          <p style="margin:0;font-size:12px;color:var(--muted);">Generate the longest, most interesting walking route from your current location in SF — maximum surface area, maximum discovery.</p>
-        </div>
-        <button class="btn bp" id="ait-sfwalk-btn" onclick="runSfWalk()">📍 Generate Route</button>
-      </div>
+    <div class="rb" style="margin-bottom:14px;background:linear-gradient(135deg,rgba(255,169,77,.07),rgba(255,107,107,.05));">
+      <h3 style="margin:0 0 6px;font-size:16px;font-weight:800;">🍀 Luck Surface Area Generator</h3>
+      <p style="margin:0;font-size:12px;color:var(--muted);line-height:1.6;">Luck = <strong style="color:var(--text);">doing × telling people</strong>. This tool tells you exactly where to be, what to do, and who to meet in SF today to maximise serendipity and opportunity.</p>
     </div>
     <div class="rb" style="margin-bottom:14px;">
-      <div style="display:flex;gap:12px;flex-wrap:wrap;">
-        <div style="flex:1;min-width:140px;">
-          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;">Walk duration</label>
-          <select class="fc" id="ait-walk-duration" style="font-size:12px;padding:4px 8px;">
-            <option value="30">~30 min (1.5 mi)</option>
-            <option value="60" selected>~1 hour (3 mi)</option>
-            <option value="90">~1.5 hours (5 mi)</option>
-            <option value="180">~3 hours (8+ mi)</option>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:160px;">
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;">I want to maximise luck for</label>
+          <select class="fc" id="luck-goal" style="font-size:13px;">
+            <option value="network">🤝 Networking & meeting key people</option>
+            <option value="startup">🚀 Startup / fundraising opportunities</option>
+            <option value="career">💼 Career moves & new roles</option>
+            <option value="knowledge">📚 Learning & knowledge transfer</option>
+            <option value="deals">💰 Deals, partnerships & business</option>
+            <option value="all">✨ All of the above</option>
           </select>
         </div>
         <div style="flex:1;min-width:140px;">
-          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;">Vibe</label>
-          <select class="fc" id="ait-walk-vibe" style="font-size:12px;padding:4px 8px;">
-            <option value="explorer">🔭 Explorer (max coverage)</option>
-            <option value="scenic">🌅 Scenic (views + parks)</option>
-            <option value="urban">🏙️ Urban (neighborhoods)</option>
-            <option value="nature">🌿 Nature (greenery + hills)</option>
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;">My schedule today</label>
+          <select class="fc" id="luck-schedule" style="font-size:13px;">
+            <option value="free">🆓 Mostly free — can go anywhere</option>
+            <option value="morning">🌅 Free this morning</option>
+            <option value="afternoon">☀️ Free this afternoon</option>
+            <option value="evening">🌆 Free this evening</option>
+            <option value="limited">⏱ Very limited time (1–2 hrs)</option>
           </select>
         </div>
       </div>
+      <div style="margin-top:10px;">
+        <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;">Anything I want luck to help with? (optional)</label>
+        <input class="fc" id="luck-context" placeholder="e.g. looking for co-founder, want to break into VC, building in AI, want to meet SF founders..." style="font-size:13px;">
+      </div>
     </div>
+    <button class="btn bp" id="luck-btn" onclick="runLuckGenerator()" style="width:100%;min-height:46px;font-size:15px;font-weight:700;margin-bottom:16px;">🍀 Generate My Luck Plan</button>
     <div id="ait-sfwalk-result"></div>
   </div>
 </div>
@@ -2485,114 +2491,173 @@ ${data.recommendation?`<div class="rb" style="background:rgba(185,100,255,.05);b
   }catch(e){panel.innerHTML='<div style="color:var(--red);font-size:13px;">Could not parse result. Try again.</div>';}
 }
 
-// ─ SF Walk Generator ─────────────────────────────────────────
-function runSfWalk(){
-  const btn=document.getElementById('ait-sfwalk-btn');
+// ─ Luck Surface Area Generator ─────────────────────────────────
+function runLuckGenerator(){
+  const btn=document.getElementById('luck-btn');
   const panel=document.getElementById('ait-sfwalk-result');
   if(!S.claudeKey){toast('Add API key in Settings first');return;}
-  if(btn){btn.textContent='📍 Getting location...';btn.disabled=true;}
-  panel.innerHTML=aiLoadingHTML('Getting your location...');
-  if(!navigator.geolocation){
-    if(btn){btn.textContent='📍 Generate Route';btn.disabled=false;}
-    _generateSfWalkFromCoords(37.7749,-122.4194);return;
-  }
-  navigator.geolocation.getCurrentPosition(
-    pos=>_generateSfWalkFromCoords(pos.coords.latitude,pos.coords.longitude,btn),
-    ()=>{
-      toast('Location not available — using downtown SF as start');
-      _generateSfWalkFromCoords(37.7749,-122.4194,btn);
-    },{timeout:8000}
-  );
+  if(btn){btn.textContent='⏳ Calculating your luck...';btn.disabled=true;}
+  panel.innerHTML=aiLoadingHTML('Mapping your luck surface area...');
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(
+      pos=>_runLuck(pos.coords.latitude,pos.coords.longitude,btn),
+      ()=>_runLuck(37.7749,-122.4194,btn),
+      {timeout:6000}
+    );
+  }else{_runLuck(37.7749,-122.4194,btn);}
 }
-async function _generateSfWalkFromCoords(lat,lng,btn){
+async function _runLuck(lat,lng,btn){
   const panel=document.getElementById('ait-sfwalk-result');
-  if(btn){btn.textContent='✨ Building route...';btn.disabled=true;}
-  panel.innerHTML=aiLoadingHTML('Designing your SF route...');
-  const duration=parseInt(document.getElementById('ait-walk-duration')?.value||'60');
-  const vibe=document.getElementById('ait-walk-vibe')?.value||'explorer';
-  const hour=new Date().getHours();
-  const timeOfDay=hour<10?'early morning':hour<12?'morning':hour<15?'midday':hour<18?'afternoon':'evening';
-  const vibeDesc={explorer:'maximize surface area covered — hit as many distinct neighborhoods and streets as possible',scenic:'prioritize views, parks, and waterfront — Golden Gate, Marin headlands views, Embarcadero',urban:'deep neighborhood exploration — coffee shops, murals, hidden gems, local culture',nature:'greenery, hills, and parks — Presidio, Buena Vista, Twin Peaks, McLaren'};
-  const distMiles={30:1.5,60:3,90:5,180:8.5};
-  const miles=distMiles[duration]||3;
-  const sys=`You are an expert San Francisco walking guide obsessed with maximizing the experience. Design the optimal walking route. Return ONLY valid JSON:
-{"routeTitle":"creative name for this route","tagline":"one exciting sentence","distance":"X miles","duration":"X hours X min","difficulty":"Easy|Moderate|Challenging","waypoints":[{"num":1,"name":"place name","lat":37.xxxx,"lng":-122.xxxx,"description":"what to see/do here in 1-2 sentences","walkingNote":"brief note on the walk TO this point"}],"highlights":["3-5 best things about this route"],"bestTip":"the one insider tip that makes this route special","mapsQuery":"the Google Maps walking route search query for this start→finish"}
-Include 5-8 waypoints. Lat/lng must be real SF coordinates. Vibe: ${vibeDesc[vibe]}.`;
-  const user=`Start location: ${lat.toFixed(5)}, ${lng.toFixed(5)} (in San Francisco)\nTime of day: ${timeOfDay}\nDuration: ~${duration} minutes (~${miles} miles)\nVibe: ${vibe} — ${vibeDesc[vibe]}\n\nDesign a walk that covers maximum ground and gives the richest SF experience for this vibe. Suggest a route from this start point that loops back or ends at a logical transit point.`;
-  const raw=await callClaude(sys,user,1200);
-  if(btn){btn.textContent='📍 Generate Route';btn.disabled=false;}
+  const luckGoal=document.getElementById('luck-goal')?.value||'all';
+  const schedule=document.getElementById('luck-schedule')?.value||'free';
+  const context=document.getElementById('luck-context')?.value||'';
+  const now=new Date();
+  const hour=now.getHours();
+  const dayOfWeek=now.toLocaleDateString('en-US',{weekday:'long'});
+  const timeSlot=hour<9?'early morning (7–9am)':hour<12?'morning (9–12pm)':hour<15?'midday (12–3pm)':hour<18?'afternoon (3–6pm)':hour<21?'evening (6–9pm)':'night (9pm+)';
+  const goals=(S.goals||[]).filter(g=>!g.done).slice(0,6).map(g=>g.title);
+  const catCounts={};S.tasks.filter(t=>t.status!=='done').forEach(t=>{catCounts[t.category]=(catCounts[t.category]||0)+1;});
+  const topCats=Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([c])=>c);
+  const wisdom=getWisdomContext(2);
+  const goalLabels={network:'Networking & meeting key people',startup:'Startup / fundraising',career:'Career moves & new roles',knowledge:'Learning & knowledge transfer',deals:'Deals, partnerships & business',all:'All opportunity types'};
+  const schedLabels={free:'Full day free',morning:'Free this morning',afternoon:'Free this afternoon',evening:'Free this evening',limited:'Very limited (1–2 hrs)'};
+
+  const sys=`You are a world-class luck architect who deeply understands serendipity, network effects, and opportunity creation. Your job is to maximise this person's "luck surface area" in San Francisco today. Luck surface area = doing × telling people — the more high-leverage actions, the right places, and the right conversations, the more luck gets created. Return ONLY valid JSON:
+{
+  "luckScore": 0-100,
+  "luckGrade": "A/B/C/D/F",
+  "headline": "one sharp sentence about their current luck potential",
+  "todayMoves": [
+    {"time":"HH:MM","icon":"emoji","action":"specific action to take","place":"exact SF location/venue","why":"why this maximises luck","luckMultiplier":"High/Medium/Low","tip":"insider detail"}
+  ],
+  "places": [
+    {"name":"place name","type":"coffee/event/coworking/park/bar","address":"SF address","bestTime":"when to be there","crowd":"who congregates there","luckAngle":"how this creates luck for them"}
+  ],
+  "keyDecisions": [
+    {"decision":"specific decision or action","impact":"what door it opens","urgency":"Do today/This week/Soon"}
+  ],
+  "communities": [
+    {"name":"community/group name","why":"why relevant","howToJoin":"specific action to join/attend"}
+  ],
+  "luckFormula": "their personalised luck formula based on goals",
+  "biggestMistake": "the #1 thing they're doing (or not doing) that's killing their luck",
+  "weekPattern": "best days/times this week for maximum serendipity",
+  "luckChallenge": "one bold 24-hour challenge to spike their luck surface area"
+}
+Be hyper-specific about SF locations, venues, events, and communities. Name real places. Give tactical advice, not platitudes.`;
+
+  const user=`Person is in San Francisco at: ${lat.toFixed(4)}, ${lng.toFixed(4)}\nDay: ${dayOfWeek}, ${timeSlot}\nSchedule: ${schedLabels[schedule]}\nMaximising luck for: ${goalLabels[luckGoal]}\n${context?`Their specific context: ${context}\n`:''}\nActive goals:\n${goals.map(g=>'- '+g).join('\n')||'none set'}\n\nTop work areas: ${topCats.join(', ')||'varied'}\n\n${wisdom}`;
+
+  const raw=await callClaude(sys,user,1600);
+  if(btn){btn.textContent='🍀 Generate My Luck Plan';btn.disabled=false;}
   if(!raw){panel.innerHTML='';return;}
   try{
-    const route=JSON.parse(raw.replace(/```json\n?|\n?```/g,'').trim());
-    const waypoints=route.waypoints||[];
-    // Build Google Maps URL
-    const origin=`${lat},${lng}`;
-    const wps=waypoints.slice(1,-1).map(w=>`${w.lat},${w.lng}`).join('|');
-    const dest=waypoints[waypoints.length-1]?`${waypoints[waypoints.length-1].lat},${waypoints[waypoints.length-1].lng}`:origin;
-    const mapsUrl=`https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}${wps?'&waypoints='+encodeURIComponent(wps):''}&travelmode=walking`;
+    const d=JSON.parse(raw.replace(/```json\n?|\n?```/g,'').trim());
+    const gradeColor={A:'#69db7c',B:'#a9e34b',C:'#ffa94d',D:'#ff6b6b',F:'#ff5a5a'}[d.luckGrade]||'var(--muted)';
+    const multColor={High:'#69db7c',Medium:'#ffa94d',Low:'var(--muted)'};
     panel.innerHTML=`
-<div class="rb" style="margin-bottom:14px;background:linear-gradient(135deg,rgba(105,219,124,.08),rgba(88,166,255,.05));">
-  <div style="font-size:18px;font-weight:800;margin-bottom:4px;">🗺️ ${esc(route.routeTitle||'Your SF Route')}</div>
-  <div style="font-size:13px;color:var(--muted);margin-bottom:10px;">${esc(route.tagline||'')}</div>
-  <div style="display:flex;flex-wrap:wrap;gap:8px;">
-    <span style="background:rgba(105,219,124,.15);border:1px solid rgba(105,219,124,.3);border-radius:6px;padding:3px 10px;font-size:12px;font-weight:600;">📏 ${esc(route.distance||miles+' mi')}</span>
-    <span style="background:rgba(88,166,255,.1);border:1px solid rgba(88,166,255,.25);border-radius:6px;padding:3px 10px;font-size:12px;font-weight:600;">⏱ ${esc(route.duration||duration+' min')}</span>
-    <span style="background:rgba(255,169,77,.1);border:1px solid rgba(255,169,77,.25);border-radius:6px;padding:3px 10px;font-size:12px;font-weight:600;">💪 ${esc(route.difficulty||'Moderate')}</span>
+<div class="rb" style="margin-bottom:14px;background:linear-gradient(135deg,rgba(255,169,77,.1),rgba(255,107,107,.06));">
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div style="text-align:center;flex-shrink:0;">
+      <div style="font-size:44px;font-weight:900;color:${gradeColor};line-height:1;">${esc(d.luckGrade||'?')}</div>
+      <div style="font-size:11px;color:var(--muted);">luck score: ${d.luckScore||0}/100</div>
+    </div>
+    <div style="flex:1;">
+      <div style="font-size:15px;font-weight:700;margin-bottom:6px;">${esc(d.headline||'')}</div>
+      ${d.luckFormula?`<div style="font-size:12px;color:var(--accent);font-weight:600;">✨ Your formula: ${esc(d.luckFormula)}</div>`:''}
+    </div>
   </div>
 </div>
+
+${d.biggestMistake?`<div class="rb" style="margin-bottom:14px;background:rgba(255,90,90,.06);border-color:rgba(255,90,90,.25);">
+  <div style="font-size:10px;color:#ff5a5a;font-weight:700;margin-bottom:5px;">⚠️ LUCK KILLER — FIX THIS FIRST</div>
+  <div style="font-size:13px;line-height:1.5;">${esc(d.biggestMistake)}</div>
+</div>`:''}
+
 <div class="rb" style="margin-bottom:14px;">
-  <h4 style="margin:0 0 10px;font-size:13px;font-weight:700;">📍 Waypoints</h4>
-  ${waypoints.map(w=>`<div class="ait-waypoint">
-  <div class="ait-wp-num">${w.num||'·'}</div>
-  <div class="ait-wp-body">
-    <div class="ait-wp-name">${esc(w.name||'')}</div>
-    ${w.walkingNote?`<div style="font-size:11px;color:var(--accent);margin-bottom:3px;">→ ${esc(w.walkingNote)}</div>`:''}
-    <div class="ait-wp-desc">${esc(w.description||'')}</div>
-  </div>
-</div>`).join('')}
+  <h4 style="margin:0 0 12px;font-size:14px;font-weight:700;">🎯 Today's Luck Moves</h4>
+  ${(d.todayMoves||[]).map((m,i)=>`<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);">
+    <div style="font-size:22px;flex-shrink:0;margin-top:2px;">${m.icon||'📍'}</div>
+    <div style="flex:1;">
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:3px;">
+        ${m.time?`<span style="font-size:11px;font-weight:700;color:var(--muted);background:var(--surface2);border-radius:4px;padding:1px 6px;">${esc(m.time)}</span>`:''}
+        <span style="font-size:13px;font-weight:700;">${esc(m.action||'')}</span>
+        ${m.luckMultiplier?`<span style="font-size:10px;font-weight:700;color:${multColor[m.luckMultiplier]||'var(--muted)'};">×${m.luckMultiplier}</span>`:''}
+      </div>
+      ${m.place?`<div style="font-size:12px;color:var(--accent);margin-bottom:3px;">📍 ${esc(m.place)}</div>`:''}
+      <div style="font-size:12px;color:var(--muted);line-height:1.5;">${esc(m.why||'')}</div>
+      ${m.tip?`<div style="font-size:11px;color:#ffa94d;margin-top:3px;">💡 ${esc(m.tip)}</div>`:''}
+    </div>
+  </div>`).join('')}
 </div>
-${route.highlights?.length?`<div class="rb" style="margin-bottom:14px;">
-  <h4 style="margin:0 0 8px;font-size:13px;font-weight:700;">✨ Highlights</h4>
-  ${route.highlights.map(h=>`<div style="display:flex;gap:8px;font-size:12px;margin-bottom:5px;"><span>🔸</span><span>${esc(h)}</span></div>`).join('')}
+
+<div class="rb" style="margin-bottom:14px;">
+  <h4 style="margin:0 0 12px;font-size:14px;font-weight:700;">🏙 Best Places to Be in SF Today</h4>
+  ${(d.places||[]).map(p=>`<div style="display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);">
+    <div style="flex:1;">
+      <div style="font-size:13px;font-weight:700;margin-bottom:2px;">${esc(p.name||'')}<span style="font-size:11px;font-weight:400;color:var(--muted);margin-left:6px;">${esc(p.type||'')}</span></div>
+      ${p.address?`<div style="font-size:11px;color:var(--muted);margin-bottom:3px;">📍 ${esc(p.address)}</div>`:''}
+      <div style="font-size:12px;margin-bottom:3px;">${esc(p.luckAngle||'')}</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${p.bestTime?`<span style="font-size:11px;color:var(--accent);">⏰ ${esc(p.bestTime)}</span>`:''}
+        ${p.crowd?`<span style="font-size:11px;color:var(--muted);">👥 ${esc(p.crowd)}</span>`:''}
+      </div>
+    </div>
+    <a href="https://www.google.com/maps/search/${encodeURIComponent((p.name||'')+' '+( p.address||'San Francisco'))}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent);text-decoration:none;flex-shrink:0;padding-top:4px;">🗺</a>
+  </div>`).join('')}
+</div>
+
+${(d.keyDecisions||[]).length?`<div class="rb" style="margin-bottom:14px;background:rgba(88,166,255,.05);border-color:rgba(88,166,255,.2);">
+  <h4 style="margin:0 0 10px;font-size:14px;font-weight:700;">⚡ Key Decisions That Open Doors</h4>
+  ${d.keyDecisions.map(k=>`<div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);align-items:flex-start;">
+    <div style="flex:1;">
+      <div style="font-size:13px;font-weight:600;margin-bottom:2px;">${esc(k.decision||'')}</div>
+      <div style="font-size:12px;color:var(--muted);">${esc(k.impact||'')}</div>
+    </div>
+    <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:8px;flex-shrink:0;background:${k.urgency==='Do today'?'rgba(255,90,90,.15)':k.urgency==='This week'?'rgba(255,169,77,.15)':'rgba(105,219,124,.15)'};color:${k.urgency==='Do today'?'#ff5a5a':k.urgency==='This week'?'#ffa94d':'#69db7c'};">${esc(k.urgency||'')}</span>
+  </div>`).join('')}
 </div>`:''}
-${route.bestTip?`<div class="rb" style="margin-bottom:14px;background:rgba(255,169,77,.06);border-color:rgba(255,169,77,.3);">
-  <div style="font-size:10px;color:#ffa94d;font-weight:700;margin-bottom:4px;">🗝 INSIDER TIP</div>
-  <div style="font-size:13px;">${esc(route.bestTip)}</div>
+
+${(d.communities||[]).length?`<div class="rb" style="margin-bottom:14px;">
+  <h4 style="margin:0 0 10px;font-size:14px;font-weight:700;">🤝 Communities That Create Luck</h4>
+  ${d.communities.map(c=>`<div style="padding:8px 0;border-bottom:1px solid var(--border);">
+    <div style="font-size:13px;font-weight:600;margin-bottom:2px;">${esc(c.name||'')}</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:3px;">${esc(c.why||'')}</div>
+    ${c.howToJoin?`<div style="font-size:11px;color:var(--accent);">→ ${esc(c.howToJoin)}</div>`:''}
+  </div>`).join('')}
 </div>`:''}
-<a href="${mapsUrl}" target="_blank" rel="noopener" class="ait-maps-btn">🗺️ Open in Google Maps</a>
-<button onclick="saveSfWalk(${JSON.stringify({route,mapsUrl})})" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer;margin-top:8px;margin-left:8px;">💾 Save Route</button>
-<div id="sfwalk-saved-panel" style="margin-top:16px;"></div>`;
-  }catch(e){panel.innerHTML='<div style="color:var(--red);font-size:13px;">Could not build route. Try again.</div>';}
+
+${d.weekPattern||d.luckChallenge?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;">
+  ${d.weekPattern?`<div class="rb" style="background:rgba(185,100,255,.05);border-color:rgba(185,100,255,.2);">
+    <div style="font-size:10px;color:#b964ff;font-weight:700;margin-bottom:4px;">📅 BEST LUCK WINDOWS THIS WEEK</div>
+    <div style="font-size:12px;line-height:1.5;">${esc(d.weekPattern)}</div>
+  </div>`:''}
+  ${d.luckChallenge?`<div class="rb" style="background:rgba(255,169,77,.07);border-color:rgba(255,169,77,.3);">
+    <div style="font-size:10px;color:#ffa94d;font-weight:700;margin-bottom:4px;">🎯 24-HOUR LUCK CHALLENGE</div>
+    <div style="font-size:12px;font-weight:600;line-height:1.5;">${esc(d.luckChallenge)}</div>
+  </div>`:''}
+</div>`:''}
+<div id="sfwalk-saved-panel" style="margin-top:4px;"></div>`;
+    _renderSfWalkHistory();
+  }catch(e){
+    if(btn){btn.textContent='🍀 Generate My Luck Plan';btn.disabled=false;}
+    panel.innerHTML='<div style="color:var(--red);font-size:13px;">Could not generate plan. Try again.</div>';
+  }
 }
 function saveSfWalk(data){
   if(!S.sfWalks)S.sfWalks=[];
   const entry={id:uid(),savedAt:new Date().toISOString(),...data};
-  S.sfWalks.unshift(entry);
-  if(S.sfWalks.length>10)S.sfWalks=S.sfWalks.slice(0,10);
-  save();
-  toast('Route saved ✓');
-  _renderSfWalkHistory();
+  S.sfWalks.unshift(entry);if(S.sfWalks.length>20)S.sfWalks=S.sfWalks.slice(0,20);
+  save();toast('Plan saved ✓');_renderSfWalkHistory();
 }
-function deleteSfWalk(id){
-  S.sfWalks=(S.sfWalks||[]).filter(w=>w.id!==id);
-  save();_renderSfWalkHistory();toast('Route deleted');
-}
+function deleteSfWalk(id){S.sfWalks=(S.sfWalks||[]).filter(w=>w.id!==id);save();_renderSfWalkHistory();toast('Deleted');}
 function _renderSfWalkHistory(){
-  // Render inside the sfwalk panel if present, otherwise inside the saved panel div
-  const walks=S.sfWalks||[];
-  const target=document.getElementById('sfwalk-saved-panel')||document.getElementById('ait-sfwalk-result');
-  if(!target)return;
-  if(!walks.length){const el=document.getElementById('sfwalk-saved-panel');if(el)el.innerHTML='';return;}
-  const el=document.getElementById('sfwalk-saved-panel');
-  if(!el)return;
-  el.innerHTML=`<div class="rb">
-  <h4 style="margin:0 0 10px;font-size:13px;font-weight:700;">💾 Saved Routes (${walks.length})</h4>
+  const el=document.getElementById('sfwalk-saved-panel');if(!el)return;
+  const walks=(S.sfWalks||[]);
+  if(!walks.length){el.innerHTML='';return;}
+  el.innerHTML=`<div class="rb"><h4 style="margin:0 0 10px;font-size:13px;font-weight:700;">💾 Saved Plans (${walks.length})</h4>
   ${walks.map(w=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
-    <div style="flex:1;min-width:0;">
-      <div style="font-size:13px;font-weight:600;">${esc(w.route?.routeTitle||'Unnamed Route')}</div>
-      <div style="font-size:11px;color:var(--muted);">${esc(w.route?.distance||'')} · ${esc(w.route?.difficulty||'')} · ${new Date(w.savedAt).toLocaleDateString()}</div>
-    </div>
-    <a href="${esc(w.mapsUrl||'')}" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent);text-decoration:none;flex-shrink:0;">🗺 Open</a>
+    <div style="flex:1;min-width:0;"><div style="font-size:13px;font-weight:600;">${esc(w.headline||'Luck Plan')}</div><div style="font-size:11px;color:var(--muted);">${new Date(w.savedAt).toLocaleDateString()}</div></div>
     <button onclick="deleteSfWalk('${w.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:2px 6px;flex-shrink:0;">×</button>
   </div>`).join('')}
 </div>`;

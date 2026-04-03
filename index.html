@@ -1395,7 +1395,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-const _BLANK_S=()=>({tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],reflections:{},wisdom:{books:[],principles:[]},seededGoalsV3:true,seededV2:true,claudeKey:'',userName:'',userEmoji:'🧑',journal:{},notif:{time:'09:00',slack:'',emailWebhook:'',lastSentDate:null,browserEnabled:false}});
+const _BLANK_S=()=>({tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],reflections:{},wisdom:{books:[],principles:[]},seededGoalsV3:true,seededV2:true,claudeKey:'',userName:'',userEmoji:'🧑',journal:{},sfWalks:[],notif:{time:'09:00',slack:'',emailWebhook:'',lastSentDate:null,browserEnabled:false,lastRoutineNudge:null}});
 let S=_BLANK_S();
 let editT=null,editG=null,editBook=null,editPrin=null,fCat='all',wTab='all',rTab='daily',draggedTaskId=null,pendingAiTasks=[];
 let _searchTimer=null;
@@ -2256,6 +2256,55 @@ function showAiTool(tab){
   document.querySelectorAll('.ait-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
   document.querySelectorAll('.ait-panel').forEach(p=>p.classList.add('hidden'));
   document.getElementById('ait-'+tab)?.classList.remove('hidden');
+  if(tab==='sfwalk')_renderSfWalkHistory();
+}
+
+// ─ ICS Export helpers ─────────────────────────────────────────
+function _icsDate(d){return d.toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';}
+function _downloadIcs(filename,content){
+  const blob=new Blob([content],{type:'text/calendar;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();URL.revokeObjectURL(a.href);
+}
+function exportDailyPlanIcs(planJson){
+  const plan=JSON.parse(planJson);
+  const today=new Date();const todayStr=today.toISOString().slice(0,10);
+  let ics=`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Task OS//Daily Plan//EN\r\nCALSCALE:GREGORIAN\r\n`;
+  (plan.blocks||[]).forEach((b,i)=>{
+    try{
+      const [startStr,endStr]=(b.time||'').split('–').map(s=>s.trim());
+      const [sh,sm]=(startStr||'09:00').split(':').map(Number);
+      const [eh,em]=(endStr||'10:00').split(':').map(Number);
+      const dtStart=new Date(today);dtStart.setHours(sh,sm||0,0,0);
+      const dtEnd=new Date(today);dtEnd.setHours(eh,em||0,0,0);
+      ics+=`BEGIN:VEVENT\r\nUID:taskos-daily-${todayStr}-${i}@taskos\r\nDTSTAMP:${_icsDate(new Date())}\r\nDTSTART:${_icsDate(dtStart)}\r\nDTEND:${_icsDate(dtEnd)}\r\nSUMMARY:${b.icon||''} ${b.label||'Block'}\r\nDESCRIPTION:${(b.tasks||[]).join('; ')}\r\nEND:VEVENT\r\n`;
+    }catch(_){}
+  });
+  ics+='END:VCALENDAR';
+  _downloadIcs(`daily-plan-${todayStr}.ics`,ics);
+  toast('📅 Calendar exported — open the .ics file to import');
+}
+function exportWeeklyPlanIcs(planJson,weekDaysJson){
+  const plan=JSON.parse(planJson);const weekDays=JSON.parse(weekDaysJson);
+  let ics=`BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Task OS//Weekly Plan//EN\r\nCALSCALE:GREGORIAN\r\n`;
+  (plan.days||[]).forEach((d,i)=>{
+    const wd=weekDays[i];if(!wd)return;
+    const dt=new Date(wd.key+'T09:00:00');
+    ics+=`BEGIN:VEVENT\r\nUID:taskos-week-${wd.key}@taskos\r\nDTSTAMP:${_icsDate(new Date())}\r\nDTSTART;VALUE=DATE:${wd.key.replace(/-/g,'')}\r\nDURATION:P1D\r\nSUMMARY:${d.intention?d.intention+' · ':''}${d.focus||d.day}\r\nDESCRIPTION:${(d.tasks||[]).join('; ')}\r\nEND:VEVENT\r\n`;
+  });
+  ics+='END:VCALENDAR';
+  const weekStart=weekDays[0]?.key||'week';
+  _downloadIcs(`weekly-plan-${weekStart}.ics`,ics);
+  toast('📅 Week plan exported as calendar');
+}
+// Mark task done from Daily Plan chip
+function markPlanTaskDone(taskId,chipEl){
+  const t=S.tasks.find(x=>x.id===taskId);
+  if(!t||t.status==='done')return;
+  t.status='done';t.completedAt=new Date().toISOString();t.isT3=false;t.t3s=null;
+  if(t.recurrence&&t.recurrence!=='none')spawnRecurring(t);
+  save();
+  if(chipEl){chipEl.style.textDecoration='line-through';chipEl.style.opacity='.5';chipEl.querySelector('.chip-done-btn')?.remove();}
+  toast('✅ &ldquo;'+esc(t.title.slice(0,30))+'&rdquo; marked done');
 }
 
 // ─ Daily Planner ─────────────────────────────────────────────
@@ -2274,34 +2323,46 @@ async function runDailyPlanner(){
   const overdue=S.tasks.filter(t=>t.status!=='done'&&t.bucket!=='trash'&&t.dueDate&&new Date(t.dueDate)<now).map(t=>t.title);
   const goals=S.goals.filter(g=>!g.done&&g.isTop3).map(g=>g.title);
   const wisdom=getWisdomContext(2);
-  const todayRefl=(S.reflections?.daily||[]).find(r=>r.savedAt?.startsWith(todayKey));
   const energyMap={high:'High — schedule demanding deep work blocks. Push hard.',medium:'Medium — mix focused work with admin tasks.',low:'Low — do admin, review, light tasks. Protect energy.'};
-  const sys=`You are an expert time-blocking coach. Create a specific, realistic time-blocked plan for today. Return ONLY valid JSON in this exact shape:
-{"theme":"one bold sentence describing today's mission","energyAdvice":"short energy tip","blocks":[{"time":"HH:MM – HH:MM","icon":"emoji","label":"block name","tasks":["task1","task2"],"note":"short tip"}],"protect":"one thing to protect/avoid today","winCondition":"what done = today was a success"}
-Rules: start blocks from current time (${hour}:00), max 6 blocks, each 45-120 min, be specific with task names from the list, use real time slots.`;
-  const user=`Today: ${dayLabel}\nCurrent time: ${hour}:${String(now.getMinutes()).padStart(2,'0')}\nEnergy: ${energyMap[energy]}\n\nJournal commitments:\n${commitments.length?commitments.map(c=>'- '+c).join('\n'):'none'}\n\nTop tasks for today:\n${thisWeek.map(t=>`- [${t.energy}energy] ${t.title}${t.dueDate?' (due '+fd(t.dueDate)+')':''}${t.urgency==='high'?' ⚡':''}`).join('\n')||'none'}\n\nOverdue:\n${overdue.length?overdue.map(x=>'- '+x).join('\n'):'none'}\n\nTop goals:\n${goals.length?goals.map(g=>'- '+g).join('\n'):'none'}\n\n${wisdom}`;
+  const sys=`You are an expert time-blocking coach. Create a specific, realistic time-blocked plan for today. Return ONLY valid JSON:
+{"theme":"one bold sentence describing today's mission","energyAdvice":"short energy tip","blocks":[{"time":"HH:MM – HH:MM","icon":"emoji","label":"block name","tasks":[{"title":"task name","taskId":"ID from task list or null"}],"note":"short tip"}],"protect":"one thing to protect/avoid today","winCondition":"what done = today was a success"}
+Rules: start blocks from current time (${hour}:00), max 6 blocks, each 45-120 min, use real time slots. IMPORTANT: for tasks field, use the object format with title and taskId (copy the exact ID from the task list).`;
+  const user=`Today: ${dayLabel}\nCurrent time: ${hour}:${String(now.getMinutes()).padStart(2,'0')}\nEnergy: ${energyMap[energy]}\n\nJournal commitments:\n${commitments.length?commitments.map(c=>'- '+c).join('\n'):'none'}\n\nTop tasks for today (use these IDs):\n${thisWeek.map(t=>`- ID:${t.id} [${t.energy}energy] "${t.title}"${t.urgency==='high'?' ⚡':''}`).join('\n')||'none'}\n\nOverdue:\n${overdue.join(', ')||'none'}\n\nTop goals:\n${goals.join(', ')||'none'}\n\n${wisdom}`;
   const raw=await callClaude(sys,user,1200);
   if(!raw){panel.innerHTML='';return;}
   try{
     const plan=JSON.parse(raw.replace(/```json\n?|\n?```/g,'').trim());
     const blockColors={'🔥':'rgba(255,90,90,.08)','🧠':'rgba(88,166,255,.08)','⚡':'rgba(255,169,77,.08)','💬':'rgba(185,100,255,.08)','📧':'rgba(105,219,124,.08)','🌙':'rgba(120,120,120,.08)'};
+    const planJson=JSON.stringify(plan).replace(/'/g,'&#39;').replace(/"/g,'&quot;');
     panel.innerHTML=`
 <div class="rb" style="margin-bottom:16px;background:linear-gradient(135deg,rgba(88,166,255,.08),rgba(185,100,255,.05));">
-  <div style="font-size:17px;font-weight:800;margin-bottom:6px;">${esc(plan.theme||'Today\'s Plan')}</div>
-  <div style="font-size:12px;color:var(--accent);">⚡ ${esc(plan.energyAdvice||'')}</div>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+    <div>
+      <div style="font-size:17px;font-weight:800;margin-bottom:6px;">${esc(plan.theme||'Today\'s Plan')}</div>
+      <div style="font-size:12px;color:var(--accent);">⚡ ${esc(plan.energyAdvice||'')}</div>
+    </div>
+    <button class="btn" style="font-size:12px;padding:4px 12px;flex-shrink:0;" onclick='exportDailyPlanIcs(this.dataset.plan)' data-plan="${planJson}">📅 Export .ics</button>
+  </div>
 </div>
-${(plan.blocks||[]).map(b=>`
-<div class="ait-plan-block" style="background:${blockColors[b.icon]||'transparent'}">
+${(plan.blocks||[]).map(b=>{
+  const tasks=Array.isArray(b.tasks)?b.tasks.map(t=>(typeof t==='string')?{title:t,taskId:null}:t):[];
+  return`<div class="ait-plan-block" style="background:${blockColors[b.icon]||'transparent'}">
   <div class="ait-block-header">
     <span class="ait-block-icon">${b.icon||'📌'}</span>
     <span class="ait-block-time">${esc(b.time||'')}</span>
     <span class="ait-block-label">${esc(b.label||'')}</span>
   </div>
   <div class="ait-block-body">
-    ${(b.tasks||[]).map(t=>`<span class="ait-task-chip">✓ ${esc(t)}</span>`).join('')}
+    ${tasks.map(t=>{
+      const taskObj=t.taskId?S.tasks.find(x=>x.id===t.taskId):null;
+      const isDone=taskObj?.status==='done';
+      return`<span class="ait-task-chip" id="chip-${t.taskId||''}" style="${isDone?'text-decoration:line-through;opacity:.5':''}">
+        ${isDone?'✅':'✓'} ${esc(t.title)}
+        ${t.taskId&&!isDone?`<button class="chip-done-btn" onclick="markPlanTaskDone('${t.taskId}',document.getElementById('chip-${t.taskId}'))" style="background:none;border:none;color:var(--accent);cursor:pointer;font-size:11px;padding:0 0 0 4px;vertical-align:middle;">Done ✓</button>`:''}
+      </span>`;}).join('')}
     ${b.note?`<div style="font-size:11px;color:var(--muted);margin-top:8px;padding-top:6px;border-top:1px solid var(--border);">💡 ${esc(b.note)}</div>`:''}
   </div>
-</div>`).join('')}
+</div>`}).join('')}
 <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
   ${plan.protect?`<div class="rb" style="background:rgba(255,90,90,.06);border-color:rgba(255,90,90,.2);"><div style="font-size:10px;color:#ff5a5a;font-weight:700;margin-bottom:4px;">🛡 PROTECT</div><div style="font-size:12px;">${esc(plan.protect)}</div></div>`:''}
   ${plan.winCondition?`<div class="rb" style="background:rgba(105,219,124,.06);border-color:rgba(105,219,124,.2);"><div style="font-size:10px;color:#69db7c;font-weight:700;margin-bottom:4px;">🏆 WIN CONDITION</div><div style="font-size:12px;">${esc(plan.winCondition)}</div></div>`:''}
@@ -2331,10 +2392,17 @@ Be specific. Reference actual task names. Balance deep work, admin, health, rela
   try{
     const plan=JSON.parse(raw.replace(/```json\n?|\n?```/g,'').trim());
     const days=plan.days||[];
+    const planJson=JSON.stringify(plan).replace(/'/g,'&#39;').replace(/"/g,'&quot;');
+    const wdJson=JSON.stringify(weekDays).replace(/'/g,'&#39;').replace(/"/g,'&quot;');
     panel.innerHTML=`
 <div class="rb" style="margin-bottom:14px;background:linear-gradient(135deg,rgba(185,100,255,.08),rgba(88,166,255,.05));">
-  <div style="font-size:16px;font-weight:800;margin-bottom:4px;">🗓 ${esc(plan.weekTheme||'This Week\'s Plan')}</div>
-  <div style="font-size:11px;color:var(--muted);">${weekDays[0].date} – ${weekDays[6].date}</div>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;flex-wrap:wrap;">
+    <div>
+      <div style="font-size:16px;font-weight:800;margin-bottom:4px;">🗓 ${esc(plan.weekTheme||'This Week\'s Plan')}</div>
+      <div style="font-size:11px;color:var(--muted);">${weekDays[0].date} – ${weekDays[6].date}</div>
+    </div>
+    <button class="btn" style="font-size:12px;padding:4px 12px;flex-shrink:0;" onclick='exportWeeklyPlanIcs(this.dataset.plan,this.dataset.wd)' data-plan="${planJson}" data-wd="${wdJson}">📅 Export .ics</button>
+  </div>
 </div>
 <div class="ait-week-grid">
 ${days.map((d,i)=>{
@@ -2344,7 +2412,7 @@ ${days.map((d,i)=>{
   <div class="ait-day-date">${esc(wd.date||d.date||'')}</div>
   ${d.intention?`<div style="font-size:10px;letter-spacing:1px;font-weight:700;color:var(--muted);margin-bottom:4px;">${esc(d.intention.toUpperCase())}</div>`:''}
   <div class="ait-day-focus">${esc(d.focus||'')}</div>
-  ${(d.tasks||[]).map(t=>`<div class="ait-day-task">${esc(t)}</div>`).join('')}
+  ${(d.tasks||[]).map(t=>`<div class="ait-day-task">${esc(typeof t==='string'?t:(t.title||''))}</div>`).join('')}
   ${d.note?`<div style="font-size:10px;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">💡 ${esc(d.note)}</div>`:''}
 </div>`;}).join('')}
 </div>`;
@@ -2491,8 +2559,43 @@ ${route.bestTip?`<div class="rb" style="margin-bottom:14px;background:rgba(255,1
   <div style="font-size:10px;color:#ffa94d;font-weight:700;margin-bottom:4px;">🗝 INSIDER TIP</div>
   <div style="font-size:13px;">${esc(route.bestTip)}</div>
 </div>`:''}
-<a href="${mapsUrl}" target="_blank" rel="noopener" class="ait-maps-btn">🗺️ Open in Google Maps</a>`;
+<a href="${mapsUrl}" target="_blank" rel="noopener" class="ait-maps-btn">🗺️ Open in Google Maps</a>
+<button onclick="saveSfWalk(${JSON.stringify({route,mapsUrl})})" style="display:inline-flex;align-items:center;gap:6px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 18px;font-size:13px;font-weight:600;cursor:pointer;margin-top:8px;margin-left:8px;">💾 Save Route</button>
+<div id="sfwalk-saved-panel" style="margin-top:16px;"></div>`;
   }catch(e){panel.innerHTML='<div style="color:var(--red);font-size:13px;">Could not build route. Try again.</div>';}
+}
+function saveSfWalk(data){
+  if(!S.sfWalks)S.sfWalks=[];
+  const entry={id:uid(),savedAt:new Date().toISOString(),...data};
+  S.sfWalks.unshift(entry);
+  if(S.sfWalks.length>10)S.sfWalks=S.sfWalks.slice(0,10);
+  save();
+  toast('Route saved ✓');
+  _renderSfWalkHistory();
+}
+function deleteSfWalk(id){
+  S.sfWalks=(S.sfWalks||[]).filter(w=>w.id!==id);
+  save();_renderSfWalkHistory();toast('Route deleted');
+}
+function _renderSfWalkHistory(){
+  // Render inside the sfwalk panel if present, otherwise inside the saved panel div
+  const walks=S.sfWalks||[];
+  const target=document.getElementById('sfwalk-saved-panel')||document.getElementById('ait-sfwalk-result');
+  if(!target)return;
+  if(!walks.length){const el=document.getElementById('sfwalk-saved-panel');if(el)el.innerHTML='';return;}
+  const el=document.getElementById('sfwalk-saved-panel');
+  if(!el)return;
+  el.innerHTML=`<div class="rb">
+  <h4 style="margin:0 0 10px;font-size:13px;font-weight:700;">💾 Saved Routes (${walks.length})</h4>
+  ${walks.map(w=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:13px;font-weight:600;">${esc(w.route?.routeTitle||'Unnamed Route')}</div>
+      <div style="font-size:11px;color:var(--muted);">${esc(w.route?.distance||'')} · ${esc(w.route?.difficulty||'')} · ${new Date(w.savedAt).toLocaleDateString()}</div>
+    </div>
+    <a href="${esc(w.mapsUrl||'')}" target="_blank" rel="noopener" style="font-size:12px;color:var(--accent);text-decoration:none;flex-shrink:0;">🗺 Open</a>
+    <button onclick="deleteSfWalk('${w.id}')" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;padding:2px 6px;flex-shrink:0;">×</button>
+  </div>`).join('')}
+</div>`;
 }
 
 // ── SEED DATA ─────────────────────────────────────────────────

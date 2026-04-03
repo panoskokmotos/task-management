@@ -358,6 +358,49 @@ select.fc option{background:var(--surface2);}
 }
 .j-carryover{display:flex;align-items:flex-start;gap:10px;background:rgba(255,169,77,.1);border:1px solid rgba(255,169,77,.35);border-radius:10px;padding:12px 14px;margin-bottom:14px;flex-wrap:wrap;}
 .j-evening-prompt{border-color:rgba(255,169,77,.5)!important;box-shadow:0 0 0 1px rgba(255,169,77,.15)!important;}
+/* ── AI TOOLS ───────────────────────────────────────────────── */
+.ait-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px;}
+.ait-tab{background:var(--surface2);border:1px solid var(--border);border-radius:20px;color:var(--muted);cursor:pointer;font-size:13px;font-weight:500;padding:6px 16px;transition:all .15s;}
+.ait-tab.active,.ait-tab:hover{background:var(--accent);border-color:var(--accent);color:#000;}
+.ait-panel{animation:fadeIn .2s;}
+.ait-panel.hidden{display:none;}
+.ait-plan-block{border:1px solid var(--border);border-radius:10px;margin-bottom:10px;overflow:hidden;}
+.ait-block-header{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--surface2);border-bottom:1px solid var(--border);}
+.ait-block-icon{font-size:18px;}
+.ait-block-time{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.3px;}
+.ait-block-label{font-size:13px;font-weight:700;flex:1;}
+.ait-block-body{padding:10px 14px;}
+.ait-task-chip{display:inline-flex;align-items:center;gap:5px;background:rgba(88,166,255,.1);border:1px solid rgba(88,166,255,.25);border-radius:6px;padding:3px 10px;font-size:12px;margin:3px 4px 3px 0;}
+.ait-week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:16px;}
+.ait-day-card{border:1px solid var(--border);border-radius:10px;padding:10px;min-width:0;}
+.ait-day-card.today{border-color:var(--accent);background:rgba(88,166,255,.06);}
+.ait-day-name{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:3px;}
+.ait-day-date{font-size:12px;font-weight:600;margin-bottom:6px;}
+.ait-day-focus{font-size:11px;color:var(--accent);font-weight:600;margin-bottom:6px;line-height:1.3;}
+.ait-day-task{font-size:11px;color:var(--muted);line-height:1.5;padding-left:8px;position:relative;}
+.ait-day-task::before{content:'·';position:absolute;left:0;}
+.ait-routine-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid var(--border);border-radius:10px;margin-bottom:8px;}
+.ait-routine-icon{font-size:20px;flex-shrink:0;}
+.ait-routine-info{flex:1;min-width:0;}
+.ait-routine-name{font-size:13px;font-weight:600;margin-bottom:2px;}
+.ait-routine-meta{font-size:11px;color:var(--muted);}
+.ait-routine-badge{font-size:11px;font-weight:700;padding:3px 10px;border-radius:10px;flex-shrink:0;}
+.ait-routine-badge.good{background:rgba(105,219,124,.15);color:#69db7c;}
+.ait-routine-badge.ok{background:rgba(255,169,77,.15);color:#ffa94d;}
+.ait-routine-badge.needs{background:rgba(255,90,90,.15);color:#ff5a5a;}
+.ait-score-ring{width:72px;height:72px;flex-shrink:0;}
+.ait-waypoint{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);}
+.ait-waypoint:last-child{border-bottom:none;}
+.ait-wp-num{width:28px;height:28px;border-radius:50%;background:var(--accent);color:#000;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.ait-wp-body{flex:1;}
+.ait-wp-name{font-size:13px;font-weight:700;margin-bottom:3px;}
+.ait-wp-desc{font-size:12px;color:var(--muted);line-height:1.5;}
+.ait-maps-btn{display:inline-flex;align-items:center;gap:6px;background:var(--accent);color:#000;border:none;border-radius:8px;padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;text-decoration:none;margin-top:12px;}
+@media(max-width:640px){
+  .ait-week-grid{grid-template-columns:1fr 1fr;}
+  .ait-tabs{gap:4px;}
+  .ait-tab{font-size:12px;padding:5px 12px;}
+}
 /* ── OVERDUE BANNER ─────────────────────────────────────────── */
 #overdue-banner{background:linear-gradient(135deg,rgba(255,90,90,.12),rgba(255,160,60,.08));border:1px solid rgba(255,90,90,.35);border-radius:10px;padding:11px 14px;display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap;}
 #overdue-banner.hidden{display:none!important;}
@@ -450,6 +493,7 @@ select.fc option{background:var(--surface2);}
   <div class="ns">Knowledge & AI</div>
   <div class="ni" onclick="nav('wisdom')">📚 Wisdom Base</div>
   <div class="ni" onclick="nav('aicoach')">🤖 AI Coach</div>
+  <div class="ni" onclick="nav('aitools')">🧠 AI Tools</div>
   <div class="ni" onclick="nav('notes')">📝 Smart Notes</div>
   <div class="sidebar-footer">
     <a class="app-link" href="givelink.html">🟣 Sprint Board (Givelink) →</a>
@@ -611,6 +655,110 @@ select.fc option{background:var(--surface2);}
     <h2 style="margin:0;">🏆 Goal Progress</h2>
   </div>
   <div id="ai-goals-panel"></div>
+</div>
+
+<!-- AI TOOLS -->
+<div id="v-aitools" class="view">
+  <div class="ph">
+    <div><h1>🧠 AI Tools</h1><p class="sub">AI-powered planning, habit analysis, and exploration.</p></div>
+    <button class="btn bg sm" onclick="openSettings()">⚙️ API Key</button>
+  </div>
+  <!-- Tab pills -->
+  <div class="ait-tabs" id="ait-tabs">
+    <button class="ait-tab active" data-tab="daily" onclick="showAiTool('daily')">📅 Daily Plan</button>
+    <button class="ait-tab" data-tab="weekly" onclick="showAiTool('weekly')">📆 Weekly Plan</button>
+    <button class="ait-tab" data-tab="routine" onclick="showAiTool('routine')">✅ Routines</button>
+    <button class="ait-tab" data-tab="sfwalk" onclick="showAiTool('sfwalk')">🗺️ SF Walk</button>
+  </div>
+
+  <!-- DAILY PLANNER -->
+  <div id="ait-daily" class="ait-panel">
+    <div class="rb" style="margin-bottom:14px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h3 style="margin:0 0 4px;font-size:15px;">📅 AI Daily Planner</h3>
+          <p style="margin:0;font-size:12px;color:var(--muted);">Get a time-blocked plan for today based on your tasks, energy, and goals.</p>
+        </div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <select class="fc" id="ait-energy" style="font-size:12px;padding:4px 8px;width:auto;">
+            <option value="high">🔥 High Energy</option>
+            <option value="medium" selected>⚡ Medium Energy</option>
+            <option value="low">💧 Low Energy</option>
+          </select>
+          <button class="btn bp" onclick="runDailyPlanner()">✨ Generate Plan</button>
+        </div>
+      </div>
+    </div>
+    <div id="ait-daily-result"></div>
+  </div>
+
+  <!-- WEEKLY PLANNER -->
+  <div id="ait-weekly" class="ait-panel hidden">
+    <div class="rb" style="margin-bottom:14px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h3 style="margin:0 0 4px;font-size:15px;">📆 AI Weekly Planner</h3>
+          <p style="margin:0;font-size:12px;color:var(--muted);">A themed plan for each day of this week, aligned to your goals and active tasks.</p>
+        </div>
+        <button class="btn bp" onclick="runWeeklyPlanner()">✨ Generate Week</button>
+      </div>
+    </div>
+    <div id="ait-weekly-result"></div>
+  </div>
+
+  <!-- ROUTINE CHECKER -->
+  <div id="ait-routine" class="ait-panel hidden">
+    <div class="rb" style="margin-bottom:14px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h3 style="margin:0 0 4px;font-size:15px;">✅ AI Routine Checker</h3>
+          <p style="margin:0;font-size:12px;color:var(--muted);">Analyse your habits and routines from tasks, journal, and reflections. Get an honest score.</p>
+        </div>
+        <button class="btn bp" onclick="runRoutineChecker()">✨ Check Routines</button>
+      </div>
+    </div>
+    <div class="rb" style="margin-bottom:14px;">
+      <label style="font-size:12px;color:var(--muted);display:block;margin-bottom:6px;">Add your routines / habits (one per line, optional — AI will also auto-detect from your tasks):</label>
+      <textarea class="fc" id="ait-routine-input" style="min-height:90px;font-size:13px;" placeholder="Morning workout&#10;Evening wind-down&#10;Read 30 min before bed&#10;No phone before 9am"></textarea>
+    </div>
+    <div id="ait-routine-result"></div>
+  </div>
+
+  <!-- SF WALK GENERATOR -->
+  <div id="ait-sfwalk" class="ait-panel hidden">
+    <div class="rb" style="margin-bottom:14px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap;">
+        <div>
+          <h3 style="margin:0 0 4px;font-size:15px;">🗺️ SF Walk Generator</h3>
+          <p style="margin:0;font-size:12px;color:var(--muted);">Generate the longest, most interesting walking route from your current location in SF — maximum surface area, maximum discovery.</p>
+        </div>
+        <button class="btn bp" id="ait-sfwalk-btn" onclick="runSfWalk()">📍 Generate Route</button>
+      </div>
+    </div>
+    <div class="rb" style="margin-bottom:14px;">
+      <div style="display:flex;gap:12px;flex-wrap:wrap;">
+        <div style="flex:1;min-width:140px;">
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;">Walk duration</label>
+          <select class="fc" id="ait-walk-duration" style="font-size:12px;padding:4px 8px;">
+            <option value="30">~30 min (1.5 mi)</option>
+            <option value="60" selected>~1 hour (3 mi)</option>
+            <option value="90">~1.5 hours (5 mi)</option>
+            <option value="180">~3 hours (8+ mi)</option>
+          </select>
+        </div>
+        <div style="flex:1;min-width:140px;">
+          <label style="font-size:11px;color:var(--muted);display:block;margin-bottom:4px;">Vibe</label>
+          <select class="fc" id="ait-walk-vibe" style="font-size:12px;padding:4px 8px;">
+            <option value="explorer">🔭 Explorer (max coverage)</option>
+            <option value="scenic">🌅 Scenic (views + parks)</option>
+            <option value="urban">🏙️ Urban (neighborhoods)</option>
+            <option value="nature">🌿 Nature (greenery + hills)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div id="ait-sfwalk-result"></div>
+  </div>
 </div>
 
 <!-- SMART NOTES -->
@@ -1185,7 +1333,8 @@ function nav(v){
   document.getElementById('s-ov')?.classList.remove('open');
   document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
-function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,aicoach:renderAicoach,notes:renderNotes,wisdom:renderWisdom,reflect:renderReflect,trash:renderTrash,stats:renderStats,journal:renderJournal})[v]?.();}
+function renderAitools(){/* tab-based, no server render needed */}
+function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,aicoach:renderAicoach,aitools:renderAitools,notes:renderNotes,wisdom:renderWisdom,reflect:renderReflect,trash:renderTrash,stats:renderStats,journal:renderJournal})[v]?.();}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
 
 // ── DASHBOARD ─────────────────────────────────────────────────
@@ -1962,6 +2111,250 @@ function renderAicoach(){
       <div class="gps"><span>${done}/${total} tasks done</span><span style="font-weight:600;color:${pct>=100?'var(--bb)':pct>=50?'var(--accent)':'var(--muted)'};">${pct}%</span></div>
     </div>`;
   }).join('')}</div>`:'<div class="empty">No goals yet. Add goals first.</div>';
+}
+
+// ── AI TOOLS ──────────────────────────────────────────────────
+function showAiTool(tab){
+  document.querySelectorAll('.ait-tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  document.querySelectorAll('.ait-panel').forEach(p=>p.classList.add('hidden'));
+  document.getElementById('ait-'+tab)?.classList.remove('hidden');
+}
+
+// ─ Daily Planner ─────────────────────────────────────────────
+async function runDailyPlanner(){
+  if(!S.claudeKey){toast('Add API key in Settings first');return;}
+  const panel=document.getElementById('ait-daily-result');
+  panel.innerHTML=aiLoadingHTML('Building your day plan...');
+  const energy=document.getElementById('ait-energy')?.value||'medium';
+  const now=new Date();
+  const hour=now.getHours();
+  const todayKey=_todayKey();
+  const dayLabel=now.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  const jEntry=S.journal?.[todayKey];
+  const commitments=(jEntry?.priorities||[]).filter(p=>p.text).map(p=>p.text);
+  const thisWeek=S.tasks.filter(t=>t.status!=='done'&&t.bucket!=='trash'&&(t.bucket==='this-week'||t.urgency==='high')).slice(0,20);
+  const overdue=S.tasks.filter(t=>t.status!=='done'&&t.bucket!=='trash'&&t.dueDate&&new Date(t.dueDate)<now).map(t=>t.title);
+  const goals=S.goals.filter(g=>!g.done&&g.isTop3).map(g=>g.title);
+  const wisdom=getWisdomContext(2);
+  const todayRefl=(S.reflections?.daily||[]).find(r=>r.savedAt?.startsWith(todayKey));
+  const energyMap={high:'High — schedule demanding deep work blocks. Push hard.',medium:'Medium — mix focused work with admin tasks.',low:'Low — do admin, review, light tasks. Protect energy.'};
+  const sys=`You are an expert time-blocking coach. Create a specific, realistic time-blocked plan for today. Return ONLY valid JSON in this exact shape:
+{"theme":"one bold sentence describing today's mission","energyAdvice":"short energy tip","blocks":[{"time":"HH:MM – HH:MM","icon":"emoji","label":"block name","tasks":["task1","task2"],"note":"short tip"}],"protect":"one thing to protect/avoid today","winCondition":"what done = today was a success"}
+Rules: start blocks from current time (${hour}:00), max 6 blocks, each 45-120 min, be specific with task names from the list, use real time slots.`;
+  const user=`Today: ${dayLabel}\nCurrent time: ${hour}:${String(now.getMinutes()).padStart(2,'0')}\nEnergy: ${energyMap[energy]}\n\nJournal commitments:\n${commitments.length?commitments.map(c=>'- '+c).join('\n'):'none'}\n\nTop tasks for today:\n${thisWeek.map(t=>`- [${t.energy}energy] ${t.title}${t.dueDate?' (due '+fd(t.dueDate)+')':''}${t.urgency==='high'?' ⚡':''}`).join('\n')||'none'}\n\nOverdue:\n${overdue.length?overdue.map(x=>'- '+x).join('\n'):'none'}\n\nTop goals:\n${goals.length?goals.map(g=>'- '+g).join('\n'):'none'}\n\n${wisdom}`;
+  const raw=await callClaude(sys,user,1200);
+  if(!raw){panel.innerHTML='';return;}
+  try{
+    const plan=JSON.parse(raw.replace(/```json\n?|\n?```/g,'').trim());
+    const blockColors={'🔥':'rgba(255,90,90,.08)','🧠':'rgba(88,166,255,.08)','⚡':'rgba(255,169,77,.08)','💬':'rgba(185,100,255,.08)','📧':'rgba(105,219,124,.08)','🌙':'rgba(120,120,120,.08)'};
+    panel.innerHTML=`
+<div class="rb" style="margin-bottom:16px;background:linear-gradient(135deg,rgba(88,166,255,.08),rgba(185,100,255,.05));">
+  <div style="font-size:17px;font-weight:800;margin-bottom:6px;">${esc(plan.theme||'Today\'s Plan')}</div>
+  <div style="font-size:12px;color:var(--accent);">⚡ ${esc(plan.energyAdvice||'')}</div>
+</div>
+${(plan.blocks||[]).map(b=>`
+<div class="ait-plan-block" style="background:${blockColors[b.icon]||'transparent'}">
+  <div class="ait-block-header">
+    <span class="ait-block-icon">${b.icon||'📌'}</span>
+    <span class="ait-block-time">${esc(b.time||'')}</span>
+    <span class="ait-block-label">${esc(b.label||'')}</span>
+  </div>
+  <div class="ait-block-body">
+    ${(b.tasks||[]).map(t=>`<span class="ait-task-chip">✓ ${esc(t)}</span>`).join('')}
+    ${b.note?`<div style="font-size:11px;color:var(--muted);margin-top:8px;padding-top:6px;border-top:1px solid var(--border);">💡 ${esc(b.note)}</div>`:''}
+  </div>
+</div>`).join('')}
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
+  ${plan.protect?`<div class="rb" style="background:rgba(255,90,90,.06);border-color:rgba(255,90,90,.2);"><div style="font-size:10px;color:#ff5a5a;font-weight:700;margin-bottom:4px;">🛡 PROTECT</div><div style="font-size:12px;">${esc(plan.protect)}</div></div>`:''}
+  ${plan.winCondition?`<div class="rb" style="background:rgba(105,219,124,.06);border-color:rgba(105,219,124,.2);"><div style="font-size:10px;color:#69db7c;font-weight:700;margin-bottom:4px;">🏆 WIN CONDITION</div><div style="font-size:12px;">${esc(plan.winCondition)}</div></div>`:''}
+</div>`;
+  }catch(e){panel.innerHTML='<div style="color:var(--red);font-size:13px;">Could not parse plan. Try again.</div>';}
+}
+
+// ─ Weekly Planner ─────────────────────────────────────────────
+async function runWeeklyPlanner(){
+  if(!S.claudeKey){toast('Add API key in Settings first');return;}
+  const panel=document.getElementById('ait-weekly-result');
+  panel.innerHTML=aiLoadingHTML('Planning your week...');
+  const now=new Date();
+  const todayKey=_todayKey();
+  // Build Mon–Sun for the current week
+  const monday=new Date(now);monday.setDate(now.getDate()-((now.getDay()+6)%7));
+  const weekDays=Array.from({length:7},(_,i)=>{const d=new Date(monday);d.setDate(monday.getDate()+i);return{key:d.toISOString().slice(0,10),label:d.toLocaleDateString('en-US',{weekday:'short'}),date:d.toLocaleDateString('en-US',{month:'short',day:'numeric'}),isToday:d.toISOString().slice(0,10)===todayKey};});
+  const activeTasks=S.tasks.filter(t=>t.status!=='done'&&t.bucket!=='trash').slice(0,35);
+  const goals=S.goals.filter(g=>!g.done).slice(0,8).map(g=>g.title);
+  const wisdom=getWisdomContext(2);
+  const sys=`You are a strategic weekly planning coach. Create a realistic Mon–Sun plan. Return ONLY valid JSON:
+{"weekTheme":"powerful one-liner for this week's mission","days":[{"day":"Mon","date":"Apr 7","focus":"theme in 3-5 words","tasks":["task1","task2","task3"],"intention":"one motivating word","note":"optional short tip"},...all 7 days]}
+Be specific. Reference actual task names. Balance deep work, admin, health, relationships across the week. Keep tasks max 3 per day.`;
+  const user=`Week: ${weekDays[0].date} – ${weekDays[6].date}\nToday: ${weekDays.find(d=>d.isToday)?.label||'Mon'}\n\nActive tasks:\n${activeTasks.map(t=>`- [${t.bucket}][${t.urgency}/${t.importance}] ${t.title}${t.dueDate?' (due '+fd(t.dueDate)+')':''}`).join('\n')}\n\nGoals:\n${goals.map(g=>'- '+g).join('\n')}\n\n${wisdom}`;
+  const raw=await callClaude(sys,user,1400);
+  if(!raw){panel.innerHTML='';return;}
+  try{
+    const plan=JSON.parse(raw.replace(/```json\n?|\n?```/g,'').trim());
+    const days=plan.days||[];
+    panel.innerHTML=`
+<div class="rb" style="margin-bottom:14px;background:linear-gradient(135deg,rgba(185,100,255,.08),rgba(88,166,255,.05));">
+  <div style="font-size:16px;font-weight:800;margin-bottom:4px;">🗓 ${esc(plan.weekTheme||'This Week\'s Plan')}</div>
+  <div style="font-size:11px;color:var(--muted);">${weekDays[0].date} – ${weekDays[6].date}</div>
+</div>
+<div class="ait-week-grid">
+${days.map((d,i)=>{
+  const wd=weekDays[i]||{};
+  return`<div class="ait-day-card${wd.isToday?' today':''}">
+  <div class="ait-day-name">${esc(d.day||wd.label||'')}</div>
+  <div class="ait-day-date">${esc(wd.date||d.date||'')}</div>
+  ${d.intention?`<div style="font-size:10px;letter-spacing:1px;font-weight:700;color:var(--muted);margin-bottom:4px;">${esc(d.intention.toUpperCase())}</div>`:''}
+  <div class="ait-day-focus">${esc(d.focus||'')}</div>
+  ${(d.tasks||[]).map(t=>`<div class="ait-day-task">${esc(t)}</div>`).join('')}
+  ${d.note?`<div style="font-size:10px;color:var(--muted);margin-top:6px;padding-top:6px;border-top:1px solid var(--border);">💡 ${esc(d.note)}</div>`:''}
+</div>`;}).join('')}
+</div>`;
+  }catch(e){panel.innerHTML='<div style="color:var(--red);font-size:13px;">Could not parse plan. Try again.</div>';}
+}
+
+// ─ Routine Checker ─────────────────────────────────────────────
+async function runRoutineChecker(){
+  if(!S.claudeKey){toast('Add API key in Settings first');return;}
+  const panel=document.getElementById('ait-routine-result');
+  panel.innerHTML=aiLoadingHTML('Analysing your routines and habits...');
+  const manualRoutines=document.getElementById('ait-routine-input')?.value.trim();
+  const recurring=S.tasks.filter(t=>t.recurrence&&t.recurrence!=='none').map(t=>`${t.title} (every ${t.recurrence})`);
+  // detect habit-like task titles
+  const habitKeywords=['routine','habit','daily','morning','evening','workout','meditate','read','journal','sleep','walk','run','exercise','stretch','cold','breathe','water','vitamins','plan','review'];
+  const habitTasks=S.tasks.filter(t=>t.status!=='done'&&habitKeywords.some(k=>t.title.toLowerCase().includes(k))).map(t=>t.title);
+  // journal streak data
+  const streak=_journalStreak();
+  // last 7 days journal
+  const last7=[];const d=new Date();
+  for(let i=0;i<7;i++){const k=d.toISOString().slice(0,10);const e=S.journal?.[k];if(e){const dn=(e.priorities||[]).filter(p=>p.done&&p.text).length;const tot=(e.priorities||[]).filter(p=>p.text).length;last7.push(`${d.toLocaleDateString('en-US',{weekday:'short'})}: ${dn}/${tot} commitments done${e.morningNote?' [morning note]':''}${e.eveningNote?' [evening note]':''}`);}d.setDate(d.getDate()-1);}
+  const recentRefl=(S.reflections?.daily||[]).slice(-5).map(r=>`energy:${r.energy||'?'} ${r.done?.join(',')||''}`);
+  const goals=S.goals.filter(g=>!g.done&&g.isTop3).map(g=>g.title);
+  const wisdom=getWisdomContext(2);
+  const sys=`You are a no-BS habit coach. Analyse the user's routines and give an honest assessment. Return ONLY valid JSON:
+{"overallScore":0-100,"grade":"A/B/C/D/F","headline":"one sharp honest sentence","topWin":"what's actually working","topGap":"biggest habit gap","routines":[{"name":"routine name","icon":"emoji","status":"active|inconsistent|missing","adherence":"X/7 days or percentage","insight":"specific observation","tip":"one concrete actionable tip"}],"weeklyChallenge":"one specific 7-day challenge to improve","recommendation":"2-3 sentence overall recommendation"}
+Detect routines from the data. Be honest, specific, not generic.`;
+  const user=`User's manual routines:\n${manualRoutines||'not specified'}\n\nRecurring tasks:\n${recurring.length?recurring.join('\n'):'none'}\n\nHabit-related tasks:\n${habitTasks.slice(0,15).join('\n')||'none'}\n\nJournal streak: ${streak} days\nLast 7 days journal:\n${last7.join('\n')||'no data'}\n\nRecent energy levels: ${recentRefl.join(', ')||'no data'}\n\nTop goals: ${goals.join(', ')||'none set'}\n\n${wisdom}`;
+  const raw=await callClaude(sys,user,1200);
+  if(!raw){panel.innerHTML='';return;}
+  try{
+    const data=JSON.parse(raw.replace(/```json\n?|\n?```/g,'').trim());
+    const gradeColor={A:'#69db7c',B:'#a9e34b',C:'#ffa94d',D:'#ff6b6b',F:'#ff5a5a'}[data.grade]||'var(--muted)';
+    const statusMap={active:{badge:'good',label:'On track'},inconsistent:{badge:'ok',label:'Inconsistent'},missing:{badge:'needs',label:'Missing'}};
+    panel.innerHTML=`
+<div class="rb" style="margin-bottom:14px;">
+  <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+    <div style="text-align:center;flex-shrink:0;">
+      <div style="font-size:42px;font-weight:900;color:${gradeColor};line-height:1;">${esc(data.grade||'?')}</div>
+      <div style="font-size:11px;color:var(--muted);">score: ${data.overallScore||0}/100</div>
+    </div>
+    <div style="flex:1;">
+      <div style="font-size:15px;font-weight:700;margin-bottom:6px;">${esc(data.headline||'')}</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:8px;">
+        ${data.topWin?`<div style="font-size:12px;background:rgba(105,219,124,.1);border:1px solid rgba(105,219,124,.3);border-radius:6px;padding:4px 10px;">✅ ${esc(data.topWin)}</div>`:''}
+        ${data.topGap?`<div style="font-size:12px;background:rgba(255,90,90,.08);border:1px solid rgba(255,90,90,.25);border-radius:6px;padding:4px 10px;">⚠️ ${esc(data.topGap)}</div>`:''}
+      </div>
+    </div>
+  </div>
+</div>
+<div style="margin-bottom:14px;">
+  ${(data.routines||[]).map(r=>{const s=statusMap[r.status]||{badge:'ok',label:r.status};return`<div class="ait-routine-row">
+  <div class="ait-routine-icon">${r.icon||'🔄'}</div>
+  <div class="ait-routine-info">
+    <div class="ait-routine-name">${esc(r.name||'')}</div>
+    <div class="ait-routine-meta">${r.adherence?esc(r.adherence)+' · ':''} ${esc(r.insight||'')}</div>
+    ${r.tip?`<div style="font-size:11px;color:var(--accent);margin-top:3px;">→ ${esc(r.tip)}</div>`:''}
+  </div>
+  <div class="ait-routine-badge ${s.badge}">${s.label}</div>
+</div>`;}).join('')}
+</div>
+${data.weeklyChallenge?`<div class="rb" style="margin-bottom:14px;background:rgba(88,166,255,.05);border-color:rgba(88,166,255,.3);">
+  <div style="font-size:10px;color:var(--accent);font-weight:700;margin-bottom:6px;">🎯 7-DAY CHALLENGE</div>
+  <div style="font-size:13px;font-weight:600;">${esc(data.weeklyChallenge)}</div>
+</div>`:''}
+${data.recommendation?`<div class="rb" style="background:rgba(185,100,255,.05);border-color:rgba(185,100,255,.2);">
+  <div style="font-size:10px;color:#b964ff;font-weight:700;margin-bottom:6px;">🧠 COACH RECOMMENDATION</div>
+  <div style="font-size:13px;line-height:1.6;">${esc(data.recommendation)}</div>
+</div>`:''}`;
+  }catch(e){panel.innerHTML='<div style="color:var(--red);font-size:13px;">Could not parse result. Try again.</div>';}
+}
+
+// ─ SF Walk Generator ─────────────────────────────────────────
+function runSfWalk(){
+  const btn=document.getElementById('ait-sfwalk-btn');
+  const panel=document.getElementById('ait-sfwalk-result');
+  if(!S.claudeKey){toast('Add API key in Settings first');return;}
+  if(btn){btn.textContent='📍 Getting location...';btn.disabled=true;}
+  panel.innerHTML=aiLoadingHTML('Getting your location...');
+  if(!navigator.geolocation){
+    if(btn){btn.textContent='📍 Generate Route';btn.disabled=false;}
+    _generateSfWalkFromCoords(37.7749,-122.4194);return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    pos=>_generateSfWalkFromCoords(pos.coords.latitude,pos.coords.longitude,btn),
+    ()=>{
+      toast('Location not available — using downtown SF as start');
+      _generateSfWalkFromCoords(37.7749,-122.4194,btn);
+    },{timeout:8000}
+  );
+}
+async function _generateSfWalkFromCoords(lat,lng,btn){
+  const panel=document.getElementById('ait-sfwalk-result');
+  if(btn){btn.textContent='✨ Building route...';btn.disabled=true;}
+  panel.innerHTML=aiLoadingHTML('Designing your SF route...');
+  const duration=parseInt(document.getElementById('ait-walk-duration')?.value||'60');
+  const vibe=document.getElementById('ait-walk-vibe')?.value||'explorer';
+  const hour=new Date().getHours();
+  const timeOfDay=hour<10?'early morning':hour<12?'morning':hour<15?'midday':hour<18?'afternoon':'evening';
+  const vibeDesc={explorer:'maximize surface area covered — hit as many distinct neighborhoods and streets as possible',scenic:'prioritize views, parks, and waterfront — Golden Gate, Marin headlands views, Embarcadero',urban:'deep neighborhood exploration — coffee shops, murals, hidden gems, local culture',nature:'greenery, hills, and parks — Presidio, Buena Vista, Twin Peaks, McLaren'};
+  const distMiles={30:1.5,60:3,90:5,180:8.5};
+  const miles=distMiles[duration]||3;
+  const sys=`You are an expert San Francisco walking guide obsessed with maximizing the experience. Design the optimal walking route. Return ONLY valid JSON:
+{"routeTitle":"creative name for this route","tagline":"one exciting sentence","distance":"X miles","duration":"X hours X min","difficulty":"Easy|Moderate|Challenging","waypoints":[{"num":1,"name":"place name","lat":37.xxxx,"lng":-122.xxxx,"description":"what to see/do here in 1-2 sentences","walkingNote":"brief note on the walk TO this point"}],"highlights":["3-5 best things about this route"],"bestTip":"the one insider tip that makes this route special","mapsQuery":"the Google Maps walking route search query for this start→finish"}
+Include 5-8 waypoints. Lat/lng must be real SF coordinates. Vibe: ${vibeDesc[vibe]}.`;
+  const user=`Start location: ${lat.toFixed(5)}, ${lng.toFixed(5)} (in San Francisco)\nTime of day: ${timeOfDay}\nDuration: ~${duration} minutes (~${miles} miles)\nVibe: ${vibe} — ${vibeDesc[vibe]}\n\nDesign a walk that covers maximum ground and gives the richest SF experience for this vibe. Suggest a route from this start point that loops back or ends at a logical transit point.`;
+  const raw=await callClaude(sys,user,1200);
+  if(btn){btn.textContent='📍 Generate Route';btn.disabled=false;}
+  if(!raw){panel.innerHTML='';return;}
+  try{
+    const route=JSON.parse(raw.replace(/```json\n?|\n?```/g,'').trim());
+    const waypoints=route.waypoints||[];
+    // Build Google Maps URL
+    const origin=`${lat},${lng}`;
+    const wps=waypoints.slice(1,-1).map(w=>`${w.lat},${w.lng}`).join('|');
+    const dest=waypoints[waypoints.length-1]?`${waypoints[waypoints.length-1].lat},${waypoints[waypoints.length-1].lng}`:origin;
+    const mapsUrl=`https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${dest}${wps?'&waypoints='+encodeURIComponent(wps):''}&travelmode=walking`;
+    panel.innerHTML=`
+<div class="rb" style="margin-bottom:14px;background:linear-gradient(135deg,rgba(105,219,124,.08),rgba(88,166,255,.05));">
+  <div style="font-size:18px;font-weight:800;margin-bottom:4px;">🗺️ ${esc(route.routeTitle||'Your SF Route')}</div>
+  <div style="font-size:13px;color:var(--muted);margin-bottom:10px;">${esc(route.tagline||'')}</div>
+  <div style="display:flex;flex-wrap:wrap;gap:8px;">
+    <span style="background:rgba(105,219,124,.15);border:1px solid rgba(105,219,124,.3);border-radius:6px;padding:3px 10px;font-size:12px;font-weight:600;">📏 ${esc(route.distance||miles+' mi')}</span>
+    <span style="background:rgba(88,166,255,.1);border:1px solid rgba(88,166,255,.25);border-radius:6px;padding:3px 10px;font-size:12px;font-weight:600;">⏱ ${esc(route.duration||duration+' min')}</span>
+    <span style="background:rgba(255,169,77,.1);border:1px solid rgba(255,169,77,.25);border-radius:6px;padding:3px 10px;font-size:12px;font-weight:600;">💪 ${esc(route.difficulty||'Moderate')}</span>
+  </div>
+</div>
+<div class="rb" style="margin-bottom:14px;">
+  <h4 style="margin:0 0 10px;font-size:13px;font-weight:700;">📍 Waypoints</h4>
+  ${waypoints.map(w=>`<div class="ait-waypoint">
+  <div class="ait-wp-num">${w.num||'·'}</div>
+  <div class="ait-wp-body">
+    <div class="ait-wp-name">${esc(w.name||'')}</div>
+    ${w.walkingNote?`<div style="font-size:11px;color:var(--accent);margin-bottom:3px;">→ ${esc(w.walkingNote)}</div>`:''}
+    <div class="ait-wp-desc">${esc(w.description||'')}</div>
+  </div>
+</div>`).join('')}
+</div>
+${route.highlights?.length?`<div class="rb" style="margin-bottom:14px;">
+  <h4 style="margin:0 0 8px;font-size:13px;font-weight:700;">✨ Highlights</h4>
+  ${route.highlights.map(h=>`<div style="display:flex;gap:8px;font-size:12px;margin-bottom:5px;"><span>🔸</span><span>${esc(h)}</span></div>`).join('')}
+</div>`:''}
+${route.bestTip?`<div class="rb" style="margin-bottom:14px;background:rgba(255,169,77,.06);border-color:rgba(255,169,77,.3);">
+  <div style="font-size:10px;color:#ffa94d;font-weight:700;margin-bottom:4px;">🗝 INSIDER TIP</div>
+  <div style="font-size:13px;">${esc(route.bestTip)}</div>
+</div>`:''}
+<a href="${mapsUrl}" target="_blank" rel="noopener" class="ait-maps-btn">🗺️ Open in Google Maps</a>`;
+  }catch(e){panel.innerHTML='<div style="color:var(--red);font-size:13px;">Could not build route. Try again.</div>';}
 }
 
 // ── SEED DATA ─────────────────────────────────────────────────

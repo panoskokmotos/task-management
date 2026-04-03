@@ -229,6 +229,8 @@ select.fc option{background:var(--s2);}
     <span class="sprint-bar-name" id="bar-name">Sprint 1</span>
     <span class="sprint-bar-dates" id="bar-dates"></span>
     <span class="sprint-bar-pct" id="bar-pct" style="display:flex;align-items:center;gap:6px;"></span>
+    <button class="btn bg" onclick="openAiSprintPlanner()" style="font-size:11px;padding:4px 10px;flex-shrink:0;">🤖 AI Sprint Planner</button>
+    <button class="btn bg" onclick="syncToTaskOS()" style="font-size:11px;padding:4px 10px;flex-shrink:0;">🔗 Sync to Task OS</button>
   </div>
 
   <div class="content">
@@ -370,6 +372,22 @@ select.fc option{background:var(--s2);}
   </div>
 </div>
 
+<!-- AI SPRINT PLANNER MODAL -->
+<div class="mo hidden" id="ai-sprint-modal">
+  <div class="md" style="width:580px;">
+    <div class="mh"><h3>🤖 AI Sprint Planner</h3><button class="mc" onclick="closeM('ai-sprint-modal')">×</button></div>
+    <div id="ai-sprint-body">
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Analyzing your backlog and current sprint to suggest the best next 10 tasks across pillars...</p>
+      <div style="text-align:center;padding:28px 0;color:var(--muted);font-size:13px;">✨ Click "Generate" to start</div>
+    </div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('ai-sprint-modal')">Close</button>
+      <button class="btn bg" id="ai-add-btn" style="display:none;" onclick="addSuggestedSprintTasks()">✅ Add Selected to Backlog</button>
+      <button class="btn bp" id="ai-gen-btn" onclick="runAiSprintPlanner()">✨ Generate</button>
+    </div>
+  </div>
+</div>
+
 <script>
 // ── DATA ────────────────────────────────────────────────────────
 const PILLARS={
@@ -474,8 +492,13 @@ function renderOverview(){
     const tasks=ct.filter(t=>t.pillar===k);
     const d=tasks.filter(t=>t.status==='done').length;
     const pct=tasks.length?Math.round(d/tasks.length*100):0;
+    const healthColor=pct>=60?'#22c55e':pct>=30?'#fbbf24':'#ef4444';
+    const healthLabel=pct>=60?'Healthy':pct>=30?'At Risk':'Needs Attention';
     return`<div class="pcard" onclick="nav('${k}')">
-      <div class="pcard-emoji">${p.e}</div>
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">
+        <div class="pcard-emoji" style="margin-bottom:0;">${p.e}</div>
+        <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;background:${healthColor}22;color:${healthColor};border:1px solid ${healthColor}44;">${healthLabel}</span>
+      </div>
       <div class="pcard-label">${p.l}</div>
       <div class="pcard-stats" style="color:${p.hex}">${d}<span style="font-size:13px;font-weight:400;color:var(--muted)">/${tasks.length}</span></div>
       <div style="height:3px;background:var(--border);border-radius:2px;margin:6px 0 4px;">
@@ -977,6 +1000,185 @@ function seed(){
     mk('Apply moonshots gathering and competition','growth','backlog','todo','medium',false,null,null,''),
   ];
   save();
+}
+
+// ── AI SPRINT PLANNER ─────────────────────────────────────────────
+function getApiKey(){
+  // Try to find key from a Task OS profile's data
+  try{
+    const profiles=JSON.parse(localStorage.getItem('taskos_profiles')||'[]');
+    for(const p of profiles){
+      const d=JSON.parse(localStorage.getItem('taskos_data_'+p.id)||'null');
+      if(d&&d.apiKey)return d.apiKey;
+    }
+  }catch(e){}
+  // Fall back to shared key
+  let k=localStorage.getItem('taskos_api_key');
+  if(!k){k=prompt('Enter your Anthropic API key:');if(k)localStorage.setItem('taskos_api_key',k);}
+  return k||null;
+}
+
+function openAiSprintPlanner(){
+  document.getElementById('ai-sprint-body').innerHTML=`<p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Analyze your backlog and current sprint completion to suggest the best 10 tasks for your next sprint across pillars.</p><div style="text-align:center;padding:28px 0;color:var(--muted);font-size:13px;">✨ Click "Generate" to start</div>`;
+  document.getElementById('ai-add-btn').style.display='none';
+  document.getElementById('ai-gen-btn').style.display='';
+  document.getElementById('ai-sprint-modal').classList.remove('hidden');
+}
+
+async function runAiSprintPlanner(){
+  const apiKey=getApiKey();
+  if(!apiKey){toast('API key required.');return;}
+  const genBtn=document.getElementById('ai-gen-btn');
+  genBtn.disabled=true;genBtn.textContent='⏳ Thinking...';
+  document.getElementById('ai-sprint-body').innerHTML=`<div style="text-align:center;padding:36px 0;"><div style="font-size:32px;margin-bottom:12px;">🤖</div><div style="color:var(--muted);font-size:13px;">Claude is analyzing your sprint data...</div></div>`;
+
+  const ct=curTasks();
+  const bl=blTasks();
+  const done=ct.filter(t=>t.status==='done').length;
+  const pillarStats=Object.keys(PILLARS).map(k=>{
+    const tasks=ct.filter(t=>t.pillar===k);
+    const d=tasks.filter(t=>t.status==='done').length;
+    return `${PILLARS[k].l}: ${d}/${tasks.length} done`;
+  }).join(', ');
+  const blSample=bl.slice(0,40).map(t=>`[${t.pillar}] ${t.title}`).join('\n');
+
+  const prompt=`You are a sprint planning assistant for Givelink, a platform connecting donors to nonprofits.
+
+Current sprint: "${S.sprint.name}" (${S.sprint.start} to ${S.sprint.end})
+Sprint completion: ${done}/${ct.length} tasks done
+Pillar breakdown: ${pillarStats}
+
+Backlog tasks (top ${Math.min(bl.length,40)} of ${bl.length}):
+${blSample}
+
+Based on the current sprint completion and backlog, suggest exactly 10 high-impact tasks for the next sprint, balanced across pillars (growth, nonprofits, product, execution, ops). For each task, provide:
+- A clear, actionable title (max 80 chars)
+- The pillar it belongs to (one of: growth, nonprofits, product, execution, ops)
+- Priority (high, medium, or low)
+
+Respond ONLY with a JSON array of 10 objects, each with keys: title, pillar, priority. No markdown, no explanation, just the JSON array.`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'Content-Type':'application/json',
+        'x-api-key':apiKey,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({
+        model:'claude-opus-4-5',
+        max_tokens:1024,
+        messages:[{role:'user',content:prompt}]
+      })
+    });
+    if(!res.ok){const err=await res.text();throw new Error(err);}
+    const data=await res.json();
+    const raw=data.content[0].text.trim();
+    let suggestions;
+    try{suggestions=JSON.parse(raw);}
+    catch(e){
+      // Try to extract JSON array from response
+      const m=raw.match(/\[[\s\S]*\]/);
+      if(m)suggestions=JSON.parse(m[0]);
+      else throw new Error('Could not parse response');
+    }
+    renderAiSuggestions(suggestions);
+  }catch(e){
+    document.getElementById('ai-sprint-body').innerHTML=`<div style="color:#ef4444;font-size:13px;padding:16px;">Error: ${esc(e.message||'Unknown error')}</div>`;
+  }
+  genBtn.disabled=false;genBtn.textContent='✨ Regenerate';
+}
+
+let _aiSuggestions=[];
+function renderAiSuggestions(suggestions){
+  _aiSuggestions=suggestions;
+  document.getElementById('ai-sprint-body').innerHTML=`
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Select tasks to add to your backlog:</p>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+    ${suggestions.map((t,i)=>{
+      const P=PILLARS[t.pillar]||{hex:'var(--muted)',e:'',l:t.pillar};
+      const priCls=t.priority==='high'?'pri-high':t.priority==='low'?'pri-low':'pri-med';
+      return`<label style="display:flex;align-items:flex-start;gap:10px;padding:9px 10px;background:var(--s2);border:1px solid var(--border);border-radius:7px;cursor:pointer;">
+        <input type="checkbox" id="ai-t-${i}" checked style="margin-top:2px;accent-color:var(--accent);">
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:500;">${esc(t.title)}</div>
+          <div style="display:flex;gap:5px;margin-top:4px;">
+            <span style="font-size:10px;font-weight:700;color:${P.hex};">${P.e} ${P.l}</span>
+            <span class="badge ${priCls}" style="font-size:10px;">${t.priority}</span>
+          </div>
+        </div>
+      </label>`;
+    }).join('')}
+    </div>`;
+  document.getElementById('ai-add-btn').style.display='';
+}
+
+function addSuggestedSprintTasks(){
+  let added=0;
+  _aiSuggestions.forEach((t,i)=>{
+    const cb=document.getElementById('ai-t-'+i);
+    if(cb&&cb.checked){
+      S.tasks.push({
+        id:uid(),title:t.title,notes:'',pillar:t.pillar||'execution',
+        sprint:'backlog',status:'todo',priority:t.priority||'medium',
+        target:null,current:0,assignee:'',isGoal:false,
+        createdAt:new Date().toISOString(),completedAt:null
+      });
+      added++;
+    }
+  });
+  if(added){save();refresh();toast(`Added ${added} task${added!==1?'s':''} to Backlog ✅`);}
+  closeM('ai-sprint-modal');
+}
+
+// ── TASK OS SYNC ──────────────────────────────────────────────────
+function syncToTaskOS(){
+  let profiles;
+  try{profiles=JSON.parse(localStorage.getItem('taskos_profiles')||'[]');}
+  catch(e){profiles=[];}
+  if(!profiles.length){toast('No Task OS profile found');return;}
+  const profile=profiles.find(p=>p.active!==false)||profiles[0];
+  let tosData;
+  try{tosData=JSON.parse(localStorage.getItem('taskos_data_'+profile.id)||'null');}
+  catch(e){tosData=null;}
+  if(!tosData){tosData={tasks:[]};}
+  if(!Array.isArray(tosData.tasks))tosData.tasks=[];
+
+  let synced=0;
+
+  // 1. Mark done Givelink sprint tasks as done in Task OS (match by title)
+  const doneTasks=curTasks().filter(t=>t.status==='done');
+  doneTasks.forEach(gt=>{
+    const match=tosData.tasks.find(tt=>tt.title&&tt.title.toLowerCase()===gt.title.toLowerCase());
+    if(match&&match.status!=='done'){
+      match.status='done';
+      match.completedAt=gt.completedAt||new Date().toISOString();
+      synced++;
+    }
+  });
+
+  // 2. Push new Givelink backlog tasks (status=todo) into Task OS inbox under category 'givelink'
+  const blTasksList=blTasks();
+  blTasksList.forEach(gt=>{
+    const exists=tosData.tasks.some(tt=>tt.title&&tt.title.toLowerCase()===gt.title.toLowerCase());
+    if(!exists){
+      tosData.tasks.push({
+        id:uid(),title:gt.title,notes:gt.notes||'',
+        category:'givelink',bucket:'inbox',
+        urgency:'low',importance:'high',energy:'high',
+        timeBlock:null,dueDate:'',goalId:null,
+        status:'todo',isT3:false,t3s:null,
+        recurrence:'none',completedAt:null,
+        createdAt:new Date().toISOString()
+      });
+      synced++;
+    }
+  });
+
+  localStorage.setItem('taskos_data_'+profile.id,JSON.stringify(tosData));
+  toast(`Synced ${synced} task${synced!==1?'s':''} to Task OS${profile.name?' ('+profile.name+')':''} 🔗`,3000);
 }
 
 // ── MOBILE ────────────────────────────────────────────────────────

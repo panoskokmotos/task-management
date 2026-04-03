@@ -519,6 +519,60 @@ select.fc option{background:var(--surface2);}
 #goal-breakdown-modal .gbm-task{display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);}
 #goal-breakdown-modal .gbm-task input[type=checkbox]{width:16px;height:16px;accent-color:var(--accent);}
 #goal-breakdown-modal .gbm-task-title{flex:1;font-size:13px;}
+/* ── PIPELINE / CRM ─────────────────────────────────────────── */
+.pipe-col{flex:1;min-width:120px;}
+.pipe-col-head{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);padding:8px 10px;border-radius:8px 8px 0 0;background:var(--surface2);border:1px solid var(--border);border-bottom:none;}
+.pipe-col-body{border:1px solid var(--border);border-radius:0 0 8px 8px;min-height:80px;padding:6px;}
+.pipe-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:6px;cursor:pointer;transition:border-color .12s;position:relative;}
+.pipe-card:hover{border-color:var(--accent);}
+.pipe-card-name{font-size:13px;font-weight:600;margin-bottom:3px;}
+.pipe-card-meta{font-size:11px;color:var(--muted);}
+.pipe-score-ring{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;}
+.pipe-score-high{background:rgba(105,219,124,.2);color:#69db7c;border:1px solid #69db7c;}
+.pipe-score-mid{background:rgba(255,169,77,.2);color:#ffa94d;border:1px solid #ffa94d;}
+.pipe-score-low{background:rgba(255,90,90,.2);color:#ff5a5a;border:1px solid #ff5a5a;}
+/* ── HEALTH DASHBOARD ───────────────────────────────────────── */
+.health-goal-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
+.health-goal-val{font-size:22px;font-weight:800;color:var(--accent);}
+.health-goal-lbl{font-size:11px;color:var(--muted);margin-top:3px;}
+.health-log-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.workout-hm{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;}
+.workout-cell{aspect-ratio:1;border-radius:3px;min-height:14px;}
+/* ── FINANCE ─────────────────────────────────────────────────── */
+.fin-goal-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;}
+.fin-goal-val{font-size:20px;font-weight:800;color:var(--accent);}
+.fin-row{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);cursor:pointer;}
+.inv-card{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;cursor:pointer;}
+/* ── AI LAB ──────────────────────────────────────────────────── */
+.auto-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;transition:border-color .12s;}
+.auto-card:hover{border-color:var(--accent);}
+.auto-status-idea{color:#ffa94d;background:rgba(255,169,77,.12);border-radius:10px;padding:2px 8px;font-size:11px;}
+.auto-status-built{color:#60a5fa;background:rgba(88,166,255,.12);border-radius:10px;padding:2px 8px;font-size:11px;}
+.auto-status-running{color:#69db7c;background:rgba(105,219,124,.12);border-radius:10px;padding:2px 8px;font-size:11px;}
+/* ── RELATIONSHIPS ───────────────────────────────────────────── */
+.person-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;gap:12px;transition:border-color .12s;}
+.person-card:hover{border-color:var(--accent);}
+.person-avatar{width:40px;height:40px;border-radius:50%;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+.person-overdue{border-color:rgba(255,90,90,.5)!important;background:rgba(255,90,90,.04)!important;}
+/* ── HABITS ──────────────────────────────────────────────────── */
+.habit-row{display:flex;align-items:center;gap:12px;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;margin-bottom:8px;}
+.habit-check{width:24px;height:24px;border-radius:6px;border:2px solid var(--border);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;}
+.habit-check.done{background:var(--accent);border-color:var(--accent);}
+.habit-streak{font-size:11px;color:var(--muted);margin-left:auto;}
+/* ── CONTENT CALENDAR ───────────────────────────────────────── */
+.content-col{border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+.content-col-head{padding:10px 12px;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;background:var(--surface2);}
+.content-col-body{padding:8px;min-height:80px;}
+.content-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px;margin-bottom:6px;cursor:pointer;font-size:12px;transition:border-color .12s;}
+.content-card:hover{border-color:var(--accent);}
+/* ── DISCOMFORT LOG ──────────────────────────────────────────── */
+.dc-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;display:flex;gap:12px;align-items:center;}
+.dc-diff{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;flex-shrink:0;}
+/* ── DEEP WORK ───────────────────────────────────────────────── */
+.dw-stat-card{background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px;text-align:center;}
+.dw-stat-val{font-size:22px;font-weight:800;color:var(--accent);}
+.dw-stat-lbl{font-size:11px;color:var(--muted);margin-top:3px;}
+.dw-log-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);font-size:13px;}
 /* ── JOURNAL TEMPLATE ───────────────────────────────────────── */
 .jtpl-day{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
 .jtpl-day label{width:80px;font-size:12px;color:var(--muted);flex-shrink:0;}
@@ -618,6 +672,17 @@ select.fc option{background:var(--surface2);}
   <div class="ni" onclick="nav('aicoach')">🤖 AI Coach</div>
   <div class="ni" onclick="nav('aitools')">🧠 AI Tools</div>
   <div class="ni" onclick="nav('notes')">📝 Smart Notes</div>
+  <div class="ns">Givelink</div>
+  <div class="ni" onclick="nav('pipeline')">🤝 Nonprofit Pipeline</div>
+  <div class="ns">Life OS</div>
+  <div class="ni" onclick="nav('health')">💪 Health</div>
+  <div class="ni" onclick="nav('finance')">💰 Finance</div>
+  <div class="ni" onclick="nav('ailab')">🤖 AI Lab</div>
+  <div class="ni" onclick="nav('relationships')">👥 Relationships</div>
+  <div class="ni" onclick="nav('habits')">✅ Habits</div>
+  <div class="ni" onclick="nav('content')">📅 Content</div>
+  <div class="ni" onclick="nav('discomfort')">🔥 Discomfort Log</div>
+  <div class="ni" onclick="nav('deepwork')">⏱ Deep Work</div>
   <div class="sidebar-footer">
     <a class="app-link" href="givelink.html">🟣 Sprint Board (Givelink) →</a>
     <div class="ni" onclick="exportData()" style="margin:0;font-size:12px;">📤 Export Backup</div>
@@ -1277,6 +1342,166 @@ select.fc option{background:var(--surface2);}
   <div id="trash-list"></div>
 </div>
 
+<!-- NONPROFIT PIPELINE -->
+<div id="v-pipeline" class="view">
+  <div class="ph">
+    <div><h1>🤝 Nonprofit Pipeline</h1><p class="sub">Givelink CRM — track every org from lead to closed</p></div>
+    <button class="btn bp" onclick="openAddOrg()">+ Add Org</button>
+  </div>
+  <div id="pipeline-impact-bar" style="background:linear-gradient(135deg,rgba(105,219,124,.08),rgba(88,166,255,.06));border:1px solid rgba(105,219,124,.25);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;"></div>
+  <div id="pipeline-board"></div>
+</div>
+
+<!-- HEALTH DASHBOARD -->
+<div id="v-health" class="view">
+  <div class="ph">
+    <div><h1>💪 Health Dashboard</h1><p class="sub">Body · Sleep · Workout — track toward your physique goals</p></div>
+    <button class="btn bp" onclick="openAddHealthLog()">+ Log Today</button>
+  </div>
+  <div id="health-goals-bar" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;"></div>
+  <div class="rb" style="margin-bottom:14px;">
+    <h3 style="margin:0 0 12px;font-size:14px;font-weight:700;">🏋️ Workout Streak</h3>
+    <div id="health-workout-streak"></div>
+    <div id="health-workout-hm" style="margin-top:10px;"></div>
+  </div>
+  <div class="rb" style="margin-bottom:14px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <h3 style="margin:0;font-size:14px;font-weight:700;">📈 Body Fat % History</h3>
+    </div>
+    <div id="health-bf-chart"></div>
+  </div>
+  <div class="rb" style="margin-bottom:14px;">
+    <h3 style="margin:0 0 10px;font-size:14px;font-weight:700;">😴 Sleep Score Log</h3>
+    <div id="health-sleep-chart"></div>
+  </div>
+  <div class="rb">
+    <h3 style="margin:0 0 10px;font-size:14px;font-weight:700;">📋 Recent Logs</h3>
+    <div id="health-log-list"></div>
+  </div>
+</div>
+
+<!-- FINANCE DASHBOARD -->
+<div id="v-finance" class="view">
+  <div class="ph">
+    <div><h1>💰 Finance Dashboard</h1><p class="sub">Income · Investments · Passive — track toward financial independence</p></div>
+    <button class="btn bp" onclick="openAddFinanceEntry()">+ Log Entry</button>
+  </div>
+  <div id="finance-goals-bar" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;"></div>
+  <div class="rb" style="margin-bottom:14px;">
+    <h3 style="margin:0 0 10px;font-size:14px;font-weight:700;">💵 Income Log</h3>
+    <div id="finance-income-list"></div>
+  </div>
+  <div class="rb" style="margin-bottom:14px;">
+    <h3 style="margin:0 0 10px;font-size:14px;font-weight:700;">📈 Investments (12 target)</h3>
+    <div id="finance-investments-list"></div>
+    <button class="btn bg sm" style="margin-top:8px;" onclick="openAddInvestment()">+ Add Investment</button>
+  </div>
+  <div class="rb">
+    <h3 style="margin:0 0 10px;font-size:14px;font-weight:700;">⚡ Passive Income (€300/mo target)</h3>
+    <div id="finance-passive-list"></div>
+  </div>
+</div>
+
+<!-- AI AUTOMATION LIBRARY -->
+<div id="v-ailab" class="view">
+  <div class="ph">
+    <div><h1>🤖 AI Automation Library</h1><p class="sub">Track progress toward 100 AI workflows · <span id="ailab-count" style="color:var(--accent);font-weight:700;">0/100</span> built</p></div>
+    <button class="btn bp" onclick="openAddAutomation()">+ Add Automation</button>
+  </div>
+  <div id="ailab-progress-bar" style="margin-bottom:14px;"></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+    <button class="fp active" onclick="setAilabFilter('all',this)">All</button>
+    <button class="fp" onclick="setAilabFilter('idea',this)">💡 Ideas</button>
+    <button class="fp" onclick="setAilabFilter('built',this)">🔨 Built</button>
+    <button class="fp" onclick="setAilabFilter('running',this)">✅ Running</button>
+  </div>
+  <div id="ailab-list"></div>
+  <button class="btn bg" style="width:100%;margin-top:10px;" onclick="aiSuggestAutomations()">🤖 Suggest 5 More Automations</button>
+  <div id="ailab-suggestions" style="margin-top:10px;"></div>
+</div>
+
+<!-- RELATIONSHIP CRM -->
+<div id="v-relationships" class="view">
+  <div class="ph">
+    <div><h1>🤝 Relationship CRM</h1><p class="sub">Top people · last contact · follow-up reminders</p></div>
+    <button class="btn bp" onclick="openAddPerson()">+ Add Person</button>
+  </div>
+  <div id="rel-nudge-bar" style="margin-bottom:12px;"></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
+    <button class="fp active" onclick="setRelFilter('all',this)">All</button>
+    <button class="fp" onclick="setRelFilter('top',this)">⭐ Top</button>
+    <button class="fp" onclick="setRelFilter('overdue',this)">⚠️ Overdue</button>
+  </div>
+  <div id="rel-list"></div>
+  <button class="btn bg" style="width:100%;margin-top:10px;" onclick="aiRelNudge()">🤖 Who Should I Reach Out To This Week?</button>
+  <div id="rel-ai-result" style="margin-top:10px;"></div>
+</div>
+
+<!-- HABITS TRACKER -->
+<div id="v-habits" class="view">
+  <div class="ph">
+    <div><h1>✅ Habit Tracker</h1><p class="sub">Daily habits · streaks · monthly heatmap</p></div>
+    <button class="btn bg sm" onclick="openHabitSettings()">⚙️ Edit Habits</button>
+  </div>
+  <div id="habits-today" style="margin-bottom:16px;"></div>
+  <div id="habits-streaks" style="margin-bottom:16px;"></div>
+  <div id="habits-heatmaps"></div>
+  <button class="btn bg" style="width:100%;margin-top:10px;" onclick="aiHabitReview()">🤖 Monthly Habit Review</button>
+  <div id="habits-ai-result" style="margin-top:10px;"></div>
+</div>
+
+<!-- CONTENT CALENDAR -->
+<div id="v-content" class="view">
+  <div class="ph">
+    <div><h1>📅 Content Calendar</h1><p class="sub">Idea → Draft → Scheduled → Published</p></div>
+    <button class="btn bp" onclick="openAddContent()">+ Add Content</button>
+  </div>
+  <div id="content-kanban" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;"></div>
+  <button class="btn bg" style="width:100%;" onclick="aiContentIdeas()">🤖 Generate 5 Content Ideas</button>
+  <div id="content-ai-result" style="margin-top:10px;"></div>
+</div>
+
+<!-- DISCOMFORT LOG -->
+<div id="v-discomfort" class="view">
+  <div class="ph">
+    <div><h1>🔥 Discomfort Log</h1><p class="sub">Voluntary hard things · build antifragility</p></div>
+    <button class="btn bp" onclick="openAddDiscomfort()">+ Log Challenge</button>
+  </div>
+  <div id="discomfort-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;"></div>
+  <div id="discomfort-list"></div>
+</div>
+
+<!-- DEEP WORK TIMER -->
+<div id="v-deepwork" class="view">
+  <div class="ph">
+    <div><h1>⏱ Deep Work</h1><p class="sub">Focus sessions · track your <em>Deep Work</em> value in practice</p></div>
+  </div>
+  <div id="dw-timer-panel" class="rb" style="text-align:center;margin-bottom:16px;padding:28px 20px;">
+    <div id="dw-clock" style="font-size:56px;font-weight:800;letter-spacing:2px;font-variant-numeric:tabular-nums;color:var(--accent);margin-bottom:12px;">25:00</div>
+    <div style="margin-bottom:16px;display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
+      <select class="fc" id="dw-task-sel" style="max-width:240px;font-size:13px;">
+        <option value="">— No task selected —</option>
+      </select>
+      <select class="fc" id="dw-duration" style="width:auto;font-size:13px;">
+        <option value="25">25 min (Pomodoro)</option>
+        <option value="50">50 min (Deep block)</option>
+        <option value="90">90 min (Flow state)</option>
+        <option value="120">120 min (Full session)</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:10px;justify-content:center;">
+      <button class="btn bp" id="dw-start-btn" onclick="dwToggle()" style="min-width:100px;min-height:44px;font-size:15px;font-weight:700;">▶ Start</button>
+      <button class="btn bg" onclick="dwReset()">Reset</button>
+    </div>
+    <div id="dw-session-label" style="margin-top:10px;font-size:12px;color:var(--muted);"></div>
+  </div>
+  <div id="dw-stats-panel" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px;"></div>
+  <div class="rb">
+    <h3 style="margin:0 0 10px;font-size:14px;font-weight:700;">📋 Session Log</h3>
+    <div id="dw-log-list"></div>
+  </div>
+</div>
+
 </main>
 
 <!-- SHORTCUTS HELP MODAL -->
@@ -1541,6 +1766,238 @@ select.fc option{background:var(--surface2);}
 <!-- SAVE STATUS -->
 <div id="save-status">✓ Saved</div>
 
+<!-- ORG MODAL (Nonprofit Pipeline) -->
+<div class="mo hidden" id="org-modal">
+  <div class="md" style="width:540px;">
+    <div class="mh"><h3 id="org-modal-title">Add Organization</h3><button class="mc" onclick="closeM('org-modal')">×</button></div>
+    <div class="fr">
+      <div class="fg"><label>Organization Name *</label><input class="fc" id="org-name" placeholder="e.g. Make-A-Wish Greece"></div>
+      <div class="fg"><label>Country</label>
+        <select class="fc" id="org-country"><option value="US">🇺🇸 US</option><option value="GR">🇬🇷 Greece</option><option value="Other">🌍 Other</option></select>
+      </div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Contact Name</label><input class="fc" id="org-contact" placeholder="e.g. Maria Papadaki"></div>
+      <div class="fg"><label>Contact Email</label><input class="fc" id="org-email" type="email" placeholder="maria@nonprofit.org"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Pipeline Stage</label>
+        <select class="fc" id="org-stage">
+          <option value="lead">🔵 Lead</option><option value="contacted">📧 Contacted</option>
+          <option value="demo-booked">📅 Demo Booked</option><option value="demo-done">✅ Demo Done</option>
+          <option value="proposal">📄 Proposal Sent</option><option value="closed-won">🏆 Closed Won</option>
+          <option value="closed-lost">❌ Closed Lost</option>
+        </select>
+      </div>
+      <div class="fg"><label>People Served (est.)</label><input class="fc" id="org-impact" type="number" placeholder="e.g. 5000" min="0"></div>
+    </div>
+    <div class="fg"><label>Notes / Pain Point</label><textarea class="fc" id="org-notes" style="min-height:60px;" placeholder="What problem do they have? Why Givelink?"></textarea></div>
+    <div class="m-section">MEDDPICC Score (1–3 each)</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+      <div class="fg"><label style="font-size:10px;">Metrics</label><select class="fc" id="m-metrics"><option value="1">1 – Weak</option><option value="2">2 – Medium</option><option value="3">3 – Strong</option></select></div>
+      <div class="fg"><label style="font-size:10px;">Econ. Buyer</label><select class="fc" id="m-buyer"><option value="1">1 – Weak</option><option value="2">2 – Medium</option><option value="3">3 – Strong</option></select></div>
+      <div class="fg"><label style="font-size:10px;">Decision Criteria</label><select class="fc" id="m-criteria"><option value="1">1 – Weak</option><option value="2">2 – Medium</option><option value="3">3 – Strong</option></select></div>
+      <div class="fg"><label style="font-size:10px;">Decision Process</label><select class="fc" id="m-process"><option value="1">1 – Weak</option><option value="2">2 – Medium</option><option value="3">3 – Strong</option></select></div>
+      <div class="fg"><label style="font-size:10px;">Identify Pain</label><select class="fc" id="m-pain"><option value="1">1 – Weak</option><option value="2">2 – Medium</option><option value="3">3 – Strong</option></select></div>
+      <div class="fg"><label style="font-size:10px;">Champion</label><select class="fc" id="m-champ"><option value="1">1 – Weak</option><option value="2">2 – Medium</option><option value="3">3 – Strong</option></select></div>
+    </div>
+    <div class="mf">
+      <button class="btn bd sm" id="org-del-btn" style="margin-right:auto;display:none;" onclick="deleteOrg()">🗑 Delete</button>
+      <button class="btn bg sm" id="org-outreach-btn" style="display:none;" onclick="generateOutreach()">✉️ AI Outreach</button>
+      <button class="btn bg" onclick="closeM('org-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveOrg()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- OUTREACH MODAL -->
+<div class="mo hidden" id="outreach-modal">
+  <div class="md" style="width:560px;">
+    <div class="mh"><h3 id="outreach-title">✉️ AI Outreach Email</h3><button class="mc" onclick="closeM('outreach-modal')">×</button></div>
+    <div id="outreach-result" style="background:var(--surface2);border-radius:8px;padding:14px;font-size:13px;line-height:1.7;min-height:100px;white-space:pre-wrap;font-family:inherit;"></div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('outreach-modal')">Close</button>
+      <button class="btn bp" onclick="copyOutreach()">📋 Copy to Clipboard</button>
+    </div>
+  </div>
+</div>
+
+<!-- HEALTH LOG MODAL -->
+<div class="mo hidden" id="health-modal">
+  <div class="md" style="width:460px;">
+    <div class="mh"><h3 id="health-modal-title">Log Health Entry</h3><button class="mc" onclick="closeM('health-modal')">×</button></div>
+    <div class="fg"><label>Date</label><input class="fc" id="hl-date" type="date"></div>
+    <div class="fr">
+      <div class="fg"><label>Body Fat % (optional)</label><input class="fc" id="hl-bf" type="number" step="0.1" placeholder="e.g. 16.5" min="3" max="50"></div>
+      <div class="fg"><label>Sleep Score (optional)</label><input class="fc" id="hl-sleep" type="number" placeholder="e.g. 82" min="0" max="100"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Workout?</label><select class="fc" id="hl-workout"><option value="0">No workout</option><option value="1">✅ Worked out</option></select></div>
+      <div class="fg"><label>Weight kg (optional)</label><input class="fc" id="hl-weight" type="number" step="0.1" placeholder="e.g. 78.5"></div>
+    </div>
+    <div class="fg"><label>Notes</label><input class="fc" id="hl-notes" placeholder="e.g. Leg day, felt great"></div>
+    <div class="mf">
+      <button class="btn bd sm" id="hl-del-btn" style="margin-right:auto;display:none;" onclick="deleteHealthLog()">🗑</button>
+      <button class="btn bg" onclick="closeM('health-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveHealthLog()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- FINANCE MODAL -->
+<div class="mo hidden" id="finance-modal">
+  <div class="md" style="width:460px;">
+    <div class="mh"><h3 id="finance-modal-title">Log Finance Entry</h3><button class="mc" onclick="closeM('finance-modal')">×</button></div>
+    <div class="fr">
+      <div class="fg"><label>Type</label>
+        <select class="fc" id="fin-type">
+          <option value="income">💵 Income</option>
+          <option value="passive">⚡ Passive Income</option>
+          <option value="investment">📈 Investment</option>
+          <option value="networth">🏦 Net Worth Snapshot</option>
+        </select>
+      </div>
+      <div class="fg"><label>Date</label><input class="fc" id="fin-date" type="date"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Amount (€)</label><input class="fc" id="fin-amount" type="number" step="0.01" placeholder="e.g. 1500"></div>
+      <div class="fg"><label>Description</label><input class="fc" id="fin-desc" placeholder="e.g. Givelink consulting"></div>
+    </div>
+    <div class="mf">
+      <button class="btn bd sm" id="fin-del-btn" style="margin-right:auto;display:none;" onclick="deleteFinanceEntry()">🗑</button>
+      <button class="btn bg" onclick="closeM('finance-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveFinanceEntry()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- INVESTMENT MODAL -->
+<div class="mo hidden" id="invest-modal">
+  <div class="md" style="width:460px;">
+    <div class="mh"><h3 id="invest-modal-title">Add Investment</h3><button class="mc" onclick="closeM('invest-modal')">×</button></div>
+    <div class="fr">
+      <div class="fg"><label>Name</label><input class="fc" id="inv-name" placeholder="e.g. S&P 500 ETF"></div>
+      <div class="fg"><label>Type</label><select class="fc" id="inv-type"><option value="stock">📈 Stock/ETF</option><option value="crypto">🪙 Crypto</option><option value="real-estate">🏠 Real Estate</option><option value="startup">🚀 Startup</option><option value="other">📦 Other</option></select></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Amount Invested (€)</label><input class="fc" id="inv-amount" type="number" step="0.01" placeholder="e.g. 500"></div>
+      <div class="fg"><label>Current Value (€)</label><input class="fc" id="inv-value" type="number" step="0.01" placeholder="e.g. 620"></div>
+    </div>
+    <div class="fg"><label>Date Started</label><input class="fc" id="inv-date" type="date"></div>
+    <div class="mf">
+      <button class="btn bd sm" id="inv-del-btn" style="margin-right:auto;display:none;" onclick="deleteInvestment()">🗑</button>
+      <button class="btn bg" onclick="closeM('invest-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveInvestment()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- AUTOMATION MODAL -->
+<div class="mo hidden" id="automation-modal">
+  <div class="md" style="width:480px;">
+    <div class="mh"><h3 id="auto-modal-title">Add Automation</h3><button class="mc" onclick="closeM('automation-modal')">×</button></div>
+    <div class="fg"><label>Name *</label><input class="fc" id="auto-name" placeholder="e.g. Auto-summarize Slack DMs with Claude"></div>
+    <div class="fg"><label>Description</label><textarea class="fc" id="auto-desc" style="min-height:64px;" placeholder="What does it do? What problem does it solve?"></textarea></div>
+    <div class="fr">
+      <div class="fg"><label>Category</label>
+        <select class="fc" id="auto-cat"><option value="givelink">🟣 Givelink</option><option value="personal">🧑 Personal</option><option value="content">🎬 Content</option><option value="finance">💰 Finance</option><option value="health">💪 Health</option><option value="other">📦 Other</option></select>
+      </div>
+      <div class="fg"><label>Status</label>
+        <select class="fc" id="auto-status"><option value="idea">💡 Idea</option><option value="built">🔨 Built</option><option value="running">✅ Running</option></select>
+      </div>
+    </div>
+    <div class="fg"><label>Tools Used</label><input class="fc" id="auto-tools" placeholder="e.g. Make.com, Claude API, Airtable"></div>
+    <div class="mf">
+      <button class="btn bd sm" id="auto-del-btn" style="margin-right:auto;display:none;" onclick="deleteAutomation()">🗑</button>
+      <button class="btn bg" onclick="closeM('automation-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveAutomation()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- PERSON MODAL (Relationship CRM) -->
+<div class="mo hidden" id="person-modal">
+  <div class="md" style="width:460px;">
+    <div class="mh"><h3 id="person-modal-title">Add Person</h3><button class="mc" onclick="closeM('person-modal')">×</button></div>
+    <div class="fr">
+      <div class="fg"><label>Name *</label><input class="fc" id="p-name" placeholder="e.g. Alex Chen"></div>
+      <div class="fg"><label>Relationship Type</label>
+        <select class="fc" id="p-type"><option value="friend">👋 Friend</option><option value="mentor">🎓 Mentor</option><option value="investor">💼 Investor</option><option value="collaborator">🤝 Collaborator</option><option value="customer">🟣 Customer/Nonprofit</option><option value="other">📌 Other</option></select>
+      </div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Last Contacted</label><input class="fc" id="p-last" type="date"></div>
+      <div class="fg"><label>Follow-up every (days)</label><input class="fc" id="p-freq" type="number" placeholder="e.g. 14" min="1"></div>
+    </div>
+    <div class="fg"><label>Is Top Relationship?</label><select class="fc" id="p-top"><option value="false">No</option><option value="true">Yes ⭐</option></select></div>
+    <div class="fg"><label>Notes</label><textarea class="fc" id="p-notes" style="min-height:60px;" placeholder="What are you working on together? What matters to them?"></textarea></div>
+    <div class="mf">
+      <button class="btn bd sm" id="p-del-btn" style="margin-right:auto;display:none;" onclick="deletePerson()">🗑</button>
+      <button class="btn bg" onclick="closeM('person-modal')">Cancel</button>
+      <button class="btn bp" onclick="savePerson()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- HABIT SETTINGS MODAL -->
+<div class="mo hidden" id="habit-settings-modal">
+  <div class="md" style="width:440px;">
+    <div class="mh"><h3>⚙️ Edit Habits</h3><button class="mc" onclick="closeM('habit-settings-modal')">×</button></div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">One habit per line. These appear as daily checkboxes.</p>
+    <div id="habit-edit-list"></div>
+    <button class="btn bg sm" style="margin-bottom:12px;" onclick="addHabitRow()">+ Add Habit</button>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('habit-settings-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveHabitSettings()">Save Habits</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENT ITEM MODAL -->
+<div class="mo hidden" id="content-modal">
+  <div class="md" style="width:480px;">
+    <div class="mh"><h3 id="content-modal-title">Add Content</h3><button class="mc" onclick="closeM('content-modal')">×</button></div>
+    <div class="fg"><label>Title *</label><input class="fc" id="c-title" placeholder="e.g. Why nonprofits need AI: A founder's perspective"></div>
+    <div class="fr">
+      <div class="fg"><label>Format</label>
+        <select class="fc" id="c-format"><option value="post">📝 LinkedIn Post</option><option value="article">📄 Article</option><option value="video">🎬 YouTube Video</option><option value="thread">🐦 X Thread</option><option value="newsletter">📧 Newsletter</option></select>
+      </div>
+      <div class="fg"><label>Stage</label>
+        <select class="fc" id="c-stage"><option value="idea">💡 Idea</option><option value="draft">📝 Draft</option><option value="scheduled">📅 Scheduled</option><option value="published">✅ Published</option></select>
+      </div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Linked Goal</label><select class="fc" id="c-goal"><option value="">— None —</option></select></div>
+      <div class="fg"><label>Publish Date</label><input class="fc" id="c-date" type="date"></div>
+    </div>
+    <div class="fg"><label>Notes / Angle</label><textarea class="fc" id="c-notes" style="min-height:56px;" placeholder="Main angle, hook, CTA..."></textarea></div>
+    <div class="mf">
+      <button class="btn bd sm" id="c-del-btn" style="margin-right:auto;display:none;" onclick="deleteContent()">🗑</button>
+      <button class="btn bg" onclick="closeM('content-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveContent()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- DISCOMFORT MODAL -->
+<div class="mo hidden" id="discomfort-modal">
+  <div class="md" style="width:440px;">
+    <div class="mh"><h3>🔥 Log Discomfort Challenge</h3><button class="mc" onclick="closeM('discomfort-modal')">×</button></div>
+    <div class="fg"><label>Date</label><input class="fc" id="dc-date" type="date"></div>
+    <div class="fr">
+      <div class="fg"><label>Type</label>
+        <select class="fc" id="dc-type"><option value="cold">🧊 Cold Exposure</option><option value="fast">🍽️ Fasting</option><option value="conversation">💬 Hard Conversation</option><option value="public">🎤 Public Speaking</option><option value="physical">💪 Physical Challenge</option><option value="risk">🎲 Calculated Risk</option><option value="social">👥 Social Courage</option><option value="other">📦 Other</option></select>
+      </div>
+      <div class="fg"><label>Difficulty (1–10)</label><input class="fc" id="dc-diff" type="number" min="1" max="10" placeholder="e.g. 7"></div>
+    </div>
+    <div class="fg"><label>Description</label><textarea class="fc" id="dc-notes" style="min-height:56px;" placeholder="What did you do? What was hard about it?"></textarea></div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('discomfort-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveDiscomfort()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- JOURNAL TEMPLATES MODAL -->
 <div class="mo hidden" id="jtplm">
   <div class="md" style="width:460px;">
@@ -1693,7 +2150,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-const _BLANK_S=()=>({tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],reflections:{},wisdom:{books:[],principles:[]},seededGoalsV3:true,seededV2:true,claudeKey:'',userName:'',userEmoji:'🧑',journal:{},sfWalks:[],taskTemplates:[],journalTemplates:{},notif:{time:'09:00',slack:'',emailWebhook:'',lastSentDate:null,browserEnabled:false,lastRoutineNudge:null}});
+const _BLANK_S=()=>({tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],reflections:{},wisdom:{books:[],principles:[]},seededGoalsV3:true,seededV2:true,claudeKey:'',userName:'',userEmoji:'🧑',journal:{},sfWalks:[],taskTemplates:[],journalTemplates:{},pipeline:[],healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},contentItems:[],discomfortLogs:[],deepWorkSessions:[],notif:{time:'09:00',slack:'',emailWebhook:'',lastSentDate:null,browserEnabled:false,lastRoutineNudge:null}});
 let S=_BLANK_S();
 let editT=null,editG=null,editBook=null,editPrin=null,fCat='all',wTab='all',rTab='daily',draggedTaskId=null,pendingAiTasks=[];
 let _searchTimer=null;
@@ -1765,7 +2222,7 @@ function nav(v){
   document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
 function renderAitools(){/* tab-based, no server render needed */}
-function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,aicoach:renderAicoach,aitools:renderAitools,notes:renderNotes,wisdom:renderWisdom,reflect:renderReflect,trash:renderTrash,stats:renderStats,journal:renderJournal})[v]?.();}
+function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,aicoach:renderAicoach,aitools:renderAitools,notes:renderNotes,wisdom:renderWisdom,reflect:renderReflect,trash:renderTrash,stats:renderStats,journal:renderJournal,pipeline:renderPipeline,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,habits:renderHabits,content:renderContent,discomfort:renderDiscomfort,deepwork:renderDeepWork})[v]?.();}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
 
 // ── DASHBOARD ─────────────────────────────────────────────────

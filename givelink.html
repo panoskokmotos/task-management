@@ -287,7 +287,7 @@ select.fc option{background:var(--s2);}
 <div class="mo hidden" id="tm">
   <div class="md">
     <div class="mh"><h3 id="tm-title">Add Task</h3><button class="mc" onclick="closeM('tm')">×</button></div>
-    <div class="fg"><label>Title *</label><input class="fc" id="t-title" placeholder="What needs to be done?"></div>
+    <div class="fg"><label>Title *</label><input class="fc" id="t-title" placeholder="What needs to be done?" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();saveTask();}"></div>
     <div class="fg"><label>Notes</label><textarea class="fc" id="t-notes" placeholder="Details, context, links..."></textarea></div>
     <div class="fr">
       <div class="fg"><label>Pillar</label>
@@ -331,10 +331,11 @@ select.fc option{background:var(--s2);}
       <div class="fg"><label>Assignee</label><input class="fc" id="t-assignee" placeholder="e.g. Panos, Fanos..."></div>
       <div class="fg"><label>Sprint Goal?</label><select class="fc" id="t-isgoal"><option value="false">No — regular task</option><option value="true">Yes — sprint goal</option></select></div>
     </div>
+    <input type="hidden" id="t-goalid" value="">
     <div class="mf">
       <button class="btn bd sm" id="del-btn" style="margin-right:auto;display:none;" onclick="delCur()">🗑 Delete</button>
       <button class="btn bg" onclick="closeM('tm')">Cancel</button>
-      <button class="btn bp" onclick="saveTask()">Save</button>
+      <button class="btn bp" onclick="saveTask()" id="save-task-btn">Save</button>
     </div>
   </div>
 </div>
@@ -512,39 +513,84 @@ function renderOverview(){
 }
 
 // ── PILLAR VIEW ───────────────────────────────────────────────────
+function _goalTasksHTML(goal, showDone){
+  const linked=curTasks().filter(t=>t.goalId===goal.id&&!t.isGoal);
+  const active=linked.filter(t=>t.status!=='done');
+  const done=linked.filter(t=>t.status==='done');
+  if(!linked.length)return'';
+  let html=`<div id="gtasks-${goal.id}" style="margin:4px 0 8px 20px;border-left:2px solid var(--border);padding-left:10px;">`;
+  html+=active.map(t=>taskHTML(t)).join('');
+  if(done.length){
+    if(showDone){
+      html+=done.map(t=>taskHTML(t)).join('');
+    }
+  }
+  html+='</div>';
+  return html;
+}
+function _ungroupedTasksHTML(pillar, showDone){
+  const tasks=curTasks().filter(t=>t.pillar===pillar&&!t.isGoal&&!t.goalId);
+  const active=tasks.filter(t=>t.status!=='done');
+  const done=tasks.filter(t=>t.status==='done');
+  let html='';
+  html+=active.length?active.map(t=>taskHTML(t)).join(''):'';
+  if(showDone&&done.length) html+=done.map(t=>taskHTML(t)).join('');
+  return html||'<div class="empty">No active tasks.</div>';
+}
 function renderPillar(p){
   const P=PILLARS[p]||{hex:'var(--muted)',e:'',l:p};
   const tasks=curTasks().filter(t=>t.pillar===p);
   const goals=tasks.filter(t=>t.isGoal);
   const subtasks=tasks.filter(t=>!t.isGoal);
-  const done=tasks.filter(t=>t.status==='done').length;
+  const activeCt=subtasks.filter(t=>t.status!=='done').length;
+  const doneCt=subtasks.filter(t=>t.status==='done').length;
+  const totalDone=tasks.filter(t=>t.status==='done').length;
+  const goalsHTML=goals.map(g=>`${goalHTML(g)}${_goalTasksHTML(g,false)}`).join('');
+  const ungroupedActive=subtasks.filter(t=>!t.goalId&&t.status!=='done');
+  const ungroupedDone=subtasks.filter(t=>!t.goalId&&t.status==='done');
+  const ungroupedHTML=ungroupedActive.length?ungroupedActive.map(t=>taskHTML(t)).join(''):'<div class="empty">No active tasks.</div>';
+  const completedToggle=(doneCt>0)?`<div class="done-toggle" id="dtog-${p}" onclick="toggleDoneSection('${p}')" style="cursor:pointer;font-size:12px;color:var(--muted);padding:8px 4px;user-select:none;">▶ ${doneCt} completed task${doneCt!==1?'s':''}</div><div id="dsec-${p}" style="display:none;">${subtasks.filter(t=>t.status==='done').map(t=>taskHTML(t)).join('')}</div>`:'';
   document.getElementById('v-'+p).innerHTML=`
     <div class="ph">
-      <div><h1>${P.e} ${P.l}</h1><p class="sub">${done}/${tasks.length} done · Sprint</p></div>
+      <div><h1>${P.e} ${P.l}</h1><p class="sub">${totalDone}/${tasks.length} done · Sprint</p></div>
       <div class="row">
         <button class="btn bg" onclick="openAdd('${p}','current',true)">+ Goal</button>
         <button class="btn bp" onclick="openAdd('${p}')">+ Task</button>
       </div>
     </div>
-    ${goals.length?`<div class="sh"><div class="sh-left"><span style="font-size:12px;font-weight:700;color:${P.hex};">Sprint Goals</span></div></div>${goals.map(t=>goalHTML(t)).join('')}<hr>`:``}
+    ${goals.length?`<div class="sh"><div class="sh-left"><span style="font-size:12px;font-weight:700;color:${P.hex};">Sprint Goals</span></div></div>${goalsHTML}<hr>`:``}
     <div class="sh">
-      <div class="sh-left"><span style="font-size:12px;font-weight:700;color:var(--muted);">Tasks (${subtasks.filter(t=>t.status!=='done').length} active)</span></div>
+      <div class="sh-left"><span style="font-size:12px;font-weight:700;color:var(--muted);">Tasks (${activeCt} active)</span></div>
       <div class="row">
-        <button class="ftab active" id="pf-all-${p}" onclick="setPFilter('all','${p}',this)" style="padding:3px 8px;font-size:10px;">All</button>
+        <button class="ftab active" id="pf-active-${p}" onclick="setPFilter('active','${p}',this)" style="padding:3px 8px;font-size:10px;">Active</button>
+        <button class="ftab" onclick="setPFilter('all','${p}',this)" style="padding:3px 8px;font-size:10px;">All</button>
         <button class="ftab" onclick="setPFilter('todo','${p}',this)" style="padding:3px 8px;font-size:10px;">Todo</button>
         <button class="ftab" onclick="setPFilter('in-progress','${p}',this)" style="padding:3px 8px;font-size:10px;">In Progress</button>
-        <button class="ftab" onclick="setPFilter('done','${p}',this)" style="padding:3px 8px;font-size:10px;">Done</button>
         <button class="ftab" onclick="setPFilter('blocked','${p}',this)" style="padding:3px 8px;font-size:10px;">Blocked</button>
+        <button class="ftab" onclick="setPFilter('done','${p}',this)" style="padding:3px 8px;font-size:10px;">Done</button>
       </div>
     </div>
-    <div id="plist-${p}">${subtasks.length?subtasks.map(t=>taskHTML(t)).join(''):'<div class="empty">No tasks yet for this pillar.</div>'}</div>
+    <div id="plist-${p}">${ungroupedHTML}</div>
+    ${completedToggle}
   `;
+}
+function toggleDoneSection(p){
+  const sec=document.getElementById('dsec-'+p);
+  const tog=document.getElementById('dtog-'+p);
+  if(!sec)return;
+  const isHidden=sec.style.display==='none';
+  sec.style.display=isHidden?'':'none';
+  const doneCt=curTasks().filter(t=>t.pillar===p&&!t.isGoal&&t.status==='done').length;
+  tog.textContent=(isHidden?'▼':'▶')+` ${doneCt} completed task${doneCt!==1?'s':''}`;
 }
 function setPFilter(status,pillar,el){
   el.closest('.sh').querySelectorAll('.ftab').forEach(x=>x.classList.remove('active'));
   el.classList.add('active');
-  const tasks=curTasks().filter(t=>t.pillar===pillar&&!t.isGoal);
-  const filtered=status==='all'?tasks:tasks.filter(t=>t.status===status);
+  const allTasks=curTasks().filter(t=>t.pillar===pillar&&!t.isGoal&&!t.goalId);
+  let filtered;
+  if(status==='active') filtered=allTasks.filter(t=>t.status!=='done');
+  else if(status==='all') filtered=allTasks;
+  else filtered=allTasks.filter(t=>t.status===status);
   document.getElementById('plist-'+pillar).innerHTML=filtered.length?filtered.map(t=>taskHTML(t)).join(''):'<div class="empty">No tasks matching this filter.</div>';
 }
 
@@ -588,31 +634,48 @@ function renderBacklog(){
 function goalHTML(t){
   const P=PILLARS[t.pillar]||{hex:'var(--muted)',e:'',l:t.pillar||''};
   const isDone=t.status==='done';
-  const hasProg=t.target&&t.target>0;
-  const pct=hasProg?Math.min(100,Math.round((t.current||0)/t.target*100)):0;
+  // Dynamic progress from linked tasks
+  const linked=S.tasks.filter(x=>x.goalId===t.id&&!x.isGoal);
+  const linkedDone=linked.filter(x=>x.status==='done').length;
+  const hasDynProg=linked.length>0;
+  const dynPct=hasDynProg?Math.round(linkedDone/linked.length*100):0;
+  // Fallback to manual target/current if no linked tasks
+  const hasManualProg=!hasDynProg&&t.target&&t.target>0;
+  const manualPct=hasManualProg?Math.min(100,Math.round((t.current||0)/t.target*100)):0;
   return`<div class="gc2 ${isDone?'done-g':''} fi" onclick="openEdit('${t.id}')">
     <div class="gc2-header">
       <div class="gcheck ${isDone?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${isDone?'<span style="color:#fff;font-size:10px;">✓</span>':''}</div>
       <div style="flex:1;">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap;">
           <span style="font-size:11px;color:${P.hex};font-weight:700;">${P.e} ${P.l}</span>
           <span class="goal-tag">Goal</span>
           <span class="badge ${STATUS[t.status]?.cls||'st-todo'}" style="margin-left:auto;">${STATUS[t.status]?.l||'Todo'}</span>
+          <button class="btn bg sm" style="font-size:10px;padding:2px 8px;" onclick="event.stopPropagation();openAdd('${t.pillar}','current',false,'${t.id}')">⊕ Task</button>
+          <button class="btn bg sm" style="font-size:10px;padding:2px 8px;" onclick="event.stopPropagation();aiGoalBreakdown('${t.id}')">🤖</button>
         </div>
         <div class="gc2-title">${esc(t.title)}</div>
         ${t.notes?`<div style="font-size:11px;color:var(--muted);margin-top:4px;">${esc(t.notes)}</div>`:''}
       </div>
     </div>
-    ${hasProg?`<div class="gc2-prog">
+    ${hasDynProg?`<div class="gc2-prog">
+      <div class="prog-row">
+        <span class="prog-label">Tasks</span>
+        <span class="prog-num" style="color:${P.hex}">${linkedDone}</span>
+        <span class="prog-label">/ ${linked.length}</span>
+        <div class="prog-bar"><div class="prog-fill" style="width:${dynPct}%;background:${P.hex}"></div></div>
+        <span class="prog-pct">${dynPct}%</span>
+      </div>
+    </div>`:hasManualProg?`<div class="gc2-prog">
       <div class="prog-row">
         <span class="prog-label">Progress</span>
         <span class="prog-num" style="color:${P.hex}">${t.current||0}</span>
         <span class="prog-label">/ ${t.target}</span>
-        <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${P.hex}"></div></div>
-        <span class="prog-pct">${pct}%</span>
+        <div class="prog-bar"><div class="prog-fill" style="width:${manualPct}%;background:${P.hex}"></div></div>
+        <span class="prog-pct">${manualPct}%</span>
       </div>
-    </div>`:''}
+    </div>`:`<div style="font-size:11px;color:var(--muted);margin-top:6px;">⊕ Add tasks to track progress</div>`}
     ${t.assignee?`<div style="font-size:11px;color:var(--muted);margin-top:6px;">👤 ${esc(t.assignee)}</div>`:''}
+    <div id="ai-breakdown-${t.id}" style="display:none;margin-top:8px;"></div>
   </div>`;
 }
 
@@ -637,9 +700,11 @@ function taskHTML(t){
 }
 
 // ── TASK CRUD ─────────────────────────────────────────────────────
-function openAdd(pillar='growth',sprint='current',isGoal=false){
+function openAdd(pillar='growth',sprint='current',isGoal=false,goalId=null){
   editId=null;
-  document.getElementById('tm-title').textContent='Add Task';
+  // If linking to a goal, inherit pillar from the goal
+  if(goalId){const g=S.tasks.find(x=>x.id===goalId);if(g)pillar=g.pillar;}
+  document.getElementById('tm-title').textContent=goalId?'Add Task (linked to goal)':'Add Task';
   document.getElementById('t-title').value='';
   document.getElementById('t-notes').value='';
   document.getElementById('t-pillar').value=pillar||'growth';
@@ -650,6 +715,7 @@ function openAdd(pillar='growth',sprint='current',isGoal=false){
   document.getElementById('t-current').value='';
   document.getElementById('t-assignee').value='';
   document.getElementById('t-isgoal').value=isGoal?'true':'false';
+  document.getElementById('t-goalid').value=goalId||'';
   document.getElementById('del-btn').style.display='none';
   document.getElementById('tm').classList.remove('hidden');
   document.getElementById('t-title').focus();
@@ -668,6 +734,7 @@ function openEdit(id){
   document.getElementById('t-current').value=t.current||'';
   document.getElementById('t-assignee').value=t.assignee||'';
   document.getElementById('t-isgoal').value=t.isGoal?'true':'false';
+  document.getElementById('t-goalid').value=t.goalId||'';
   document.getElementById('del-btn').style.display='block';
   document.getElementById('tm').classList.remove('hidden');
   document.getElementById('t-title').focus();
@@ -685,7 +752,8 @@ function saveTask(){
     target:parseInt(document.getElementById('t-target').value)||null,
     current:parseInt(document.getElementById('t-current').value)||0,
     assignee:document.getElementById('t-assignee').value,
-    isGoal:document.getElementById('t-isgoal').value==='true'
+    isGoal:document.getElementById('t-isgoal').value==='true',
+    goalId:document.getElementById('t-goalid').value||null
   };
   if((d.current??0)<0||(d.target??0)<0){toast('Values must be 0 or greater.');return;}
   if(d.target&&d.current>d.target){toast('Current progress cannot exceed target.');return;}
@@ -805,8 +873,21 @@ function renderPastSprints(){
 function closeM(id){document.getElementById(id).classList.add('hidden');editId=null;}
 document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',function(e){if(e.target===this){this.classList.add('hidden');editId=null;}}));
 document.addEventListener('keydown',e=>{
+  // Cmd/Ctrl+Enter: submit the open modal
+  if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){
+    const openModal=document.querySelector('.mo:not(.hidden)');
+    if(openModal){
+      e.preventDefault();
+      const id=openModal.id;
+      if(id==='tm')saveTask();
+      else if(id==='sm')saveSprint();
+      else if(id==='nsm')confirmNewSprint();
+    }
+    return;
+  }
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
   if(e.key==='n')openAdd();
+  if(e.key==='g')openAdd(PILLARS[curView]?curView:'growth','current',true);
   if(e.key==='Escape'){document.querySelectorAll('.mo:not(.hidden)').forEach(m=>m.classList.add('hidden'));editId=null;}
 });
 
@@ -816,7 +897,7 @@ function seed(){
   const now=new Date().toISOString();
   const mk=(title,pillar,sprint,status,pri,isGoal,target,current,notes,assignee)=>({
     id:uid(),title,notes:notes||'',pillar,sprint,status,priority:pri,
-    target:target||null,current:current||0,assignee:assignee||'',isGoal:!!isGoal,
+    target:target||null,current:current||0,assignee:assignee||'',isGoal:!!isGoal,goalId:null,
     createdAt:now,completedAt:status==='done'?now:null
   });
   S.tasks=[
@@ -1092,6 +1173,7 @@ Respond ONLY with a JSON array of 10 objects, each with keys: title, pillar, pri
 }
 
 let _aiSuggestions=[];
+let _goalBreakdowns={};
 function renderAiSuggestions(suggestions){
   _aiSuggestions=suggestions;
   document.getElementById('ai-sprint-body').innerHTML=`
@@ -1131,6 +1213,92 @@ function addSuggestedSprintTasks(){
   });
   if(added){save();refresh();toast(`Added ${added} task${added!==1?'s':''} to Backlog ✅`);}
   closeM('ai-sprint-modal');
+}
+
+// ── AI GOAL BREAKDOWN ─────────────────────────────────────────────
+async function aiGoalBreakdown(goalId){
+  const goal=S.tasks.find(t=>t.id===goalId);
+  if(!goal)return;
+  const apiKey=getApiKey();
+  if(!apiKey){toast('API key required for AI breakdown.');return;}
+  const container=document.getElementById('ai-breakdown-'+goalId);
+  if(!container)return;
+  // Toggle off if already open and not loading
+  if(container.style.display!=='none'&&!container.dataset.loading){
+    container.style.display='none';
+    return;
+  }
+  container.dataset.loading='1';
+  container.style.display='block';
+  container.innerHTML=`<div style="text-align:center;padding:14px 0;color:var(--muted);font-size:12px;">🤖 Breaking down goal into tasks...</div>`;
+  const existing=S.tasks.filter(t=>t.goalId===goalId&&!t.isGoal).map(t=>t.title);
+  const prompt=`You are a task breakdown specialist. Break this goal into 5–8 concrete, actionable tasks.
+
+Goal: "${goal.title}"
+${goal.notes?`Context: "${goal.notes}"`:''}
+${existing.length?`Already linked tasks: ${existing.join(', ')}`:''}
+
+Respond ONLY with a JSON array of objects, each with keys: "title" (string, max 80 chars), "priority" ("high", "medium", or "low"), "notes" (string, optional short context). No markdown, no explanation, just the JSON array.`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-opus-4-5',max_tokens:1024,messages:[{role:'user',content:prompt}]})
+    });
+    if(!res.ok){const err=await res.text();throw new Error(err);}
+    const data=await res.json();
+    const raw=data.content[0].text.trim();
+    let suggestions;
+    try{suggestions=JSON.parse(raw);}
+    catch(e){const m=raw.match(/\[[\s\S]*\]/);if(m)suggestions=JSON.parse(m[0]);else throw new Error('Could not parse response');}
+    delete container.dataset.loading;
+    _goalBreakdowns[goalId]=suggestions;
+    container.innerHTML=`
+      <div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-top:4px;">
+        <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;">🤖 AI Suggested Tasks (select to add)</div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          ${suggestions.map((t,i)=>{
+            const priCls=t.priority==='high'?'pri-high':t.priority==='low'?'pri-low':'pri-med';
+            return`<label style="display:flex;align-items:flex-start;gap:8px;padding:7px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;">
+              <input type="checkbox" id="aig-${goalId}-${i}" checked style="margin-top:2px;accent-color:var(--accent);">
+              <div style="flex:1;">
+                <div style="font-size:12px;font-weight:500;">${esc(t.title)}</div>
+                ${t.notes?`<div style="font-size:11px;color:var(--muted);margin-top:2px;">${esc(t.notes)}</div>`:''}
+                <span class="badge ${priCls}" style="font-size:10px;margin-top:3px;">${t.priority||'medium'}</span>
+              </div>
+            </label>`;
+          }).join('')}
+        </div>
+        <div style="display:flex;gap:6px;margin-top:8px;">
+          <button class="btn bp sm" onclick="addGoalBreakdownTasks('${goalId}')">+ Add Selected</button>
+          <button class="btn sm" onclick="document.getElementById('ai-breakdown-${goalId}').style.display='none'" style="background:var(--s2);border:1px solid var(--border);">✕ Close</button>
+        </div>
+      </div>`;
+  }catch(e){
+    delete container.dataset.loading;
+    container.innerHTML=`<div style="color:#ef4444;font-size:12px;padding:8px;">Error: ${esc(e.message||'Unknown error')}</div>`;
+  }
+}
+function addGoalBreakdownTasks(goalId){
+  const goal=S.tasks.find(t=>t.id===goalId);
+  if(!goal)return;
+  const suggestions=_goalBreakdowns[goalId]||[];
+  if(!suggestions.length){toast('No suggestions available.');return;}
+  let added=0;
+  suggestions.forEach((t,i)=>{
+    const cb=document.getElementById('aig-'+goalId+'-'+i);
+    if(cb&&cb.checked){
+      S.tasks.push({
+        id:uid(),title:t.title,notes:t.notes||'',pillar:goal.pillar,
+        sprint:'current',status:'todo',priority:t.priority||'medium',
+        target:null,current:0,assignee:'',isGoal:false,goalId:goalId,
+        createdAt:new Date().toISOString(),completedAt:null
+      });
+      added++;
+    }
+  });
+  if(added){save();refresh();toast(`Added ${added} task${added!==1?'s':''} linked to goal ✅`);}
+  else toast('No tasks selected.');
 }
 
 // ── TASK OS SYNC ──────────────────────────────────────────────────

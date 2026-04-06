@@ -4138,8 +4138,426 @@ function deduplicateTasks(){
 }
 function renderJournal(){}
 
+// ── IDENTITY ──────────────────────────────────────────────────
+function renderIdentity(){
+  const vEl=document.getElementById('identity-core-values');
+  const gEl=document.getElementById('identity-goals-list');
+  if(vEl){
+    vEl.innerHTML=`<div class="card" style="margin-bottom:20px;">
+      <h2 style="margin-bottom:12px;">💎 Core Values</h2>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">${(S.values||[]).map(v=>`<span class="badge co" style="font-size:13px;padding:6px 14px;">✦ ${esc(v)}</span>`).join('')}</div>
+    </div>`;
+  }
+  const goals=(S.goals||[]).filter(g=>g.identity);
+  if(!gEl)return;
+  if(!goals.length){gEl.innerHTML='<div class="empty" style="padding:40px;text-align:center;"><div style="font-size:36px;margin-bottom:12px;">🌟</div><p>No identity statements yet.<br>Edit a goal and fill in "Who am I becoming?" to see it here.</p></div>';return;}
+  const bycat={};goals.forEach(g=>{(bycat[g.category]=bycat[g.category]||[]).push(g);});
+  gEl.innerHTML=Object.entries(bycat).map(([cat,gs])=>{
+    const c=CATS[cat]||CATS.other;
+    return`<div style="margin-bottom:24px;"><h3 style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">${c.e} ${c.l}</h3>
+    ${gs.map(g=>{
+      const linked=S.tasks.filter(t=>t.goalId===g.id&&t.bucket!=='trash');
+      const done=linked.filter(t=>t.status==='done').length;
+      const pct=linked.length?Math.round(done/linked.length*100):0;
+      return`<div class="card" style="margin-bottom:10px;border-left:3px solid var(--accent);">
+        <div style="font-size:18px;font-weight:700;color:var(--accent);font-style:italic;margin-bottom:8px;line-height:1.4;">"${esc(g.identity)}"</div>
+        <div style="font-weight:600;margin-bottom:6px;">${esc(g.title)}</div>
+        ${g.deepWhy?`<div style="font-size:12px;color:var(--muted);margin-bottom:8px;line-height:1.6;padding:8px 10px;background:var(--surface2);border-radius:6px;white-space:pre-wrap;">${esc(g.deepWhy)}</div>`:''}
+        <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+          <div style="flex:1;height:4px;background:var(--border);border-radius:2px;"><div style="height:100%;border-radius:2px;background:var(--accent);width:${pct}%;transition:width .3s;"></div></div>
+          <span style="font-size:11px;color:var(--muted);">${pct}%</span>
+        </div>
+      </div>`;
+    }).join('')}</div>`;
+  }).join('');
+}
+
+// ── IMPACT ────────────────────────────────────────────────────
+function logImpact(){
+  const metric=document.getElementById('imp-metric')?.value;
+  const value=parseFloat(document.getElementById('imp-value')?.value);
+  const date=document.getElementById('imp-date')?.value||new Date().toISOString().slice(0,10);
+  const notes=document.getElementById('imp-notes')?.value||'';
+  if(!metric||isNaN(value)||value<=0){alert('Enter a valid metric and value.');return;}
+  if(!S.impactLog)S.impactLog=[];
+  S.impactLog.push({id:uid(),date,metric,value,notes,loggedAt:new Date().toISOString()});
+  save();renderImpact();toast('Impact logged!');
+  document.getElementById('imp-value').value='';document.getElementById('imp-notes').value='';
+}
+function _impactTotals(){
+  const t={donors_facilitated:0,dollars_moved:0,nonprofits_served:0,communities_helped:0,people_impacted:0};
+  (S.impactLog||[]).forEach(e=>{if(t[e.metric]!==undefined)t[e.metric]+=e.value;});
+  return t;
+}
+function renderImpact(){
+  const tot=_impactTotals();
+  const metrics=[
+    {key:'donors_facilitated',label:'Donors Facilitated',icon:'🤝',fmt:v=>v},
+    {key:'dollars_moved',label:'Dollars Moved',icon:'💰',fmt:v=>'$'+v.toLocaleString()},
+    {key:'nonprofits_served',label:'Nonprofits Served',icon:'🏛',fmt:v=>v},
+    {key:'communities_helped',label:'Communities Helped',icon:'🌐',fmt:v=>v},
+    {key:'people_impacted',label:'People Impacted',icon:'👥',fmt:v=>v.toLocaleString()}
+  ];
+  const sc=document.getElementById('impact-stats');
+  if(sc)sc.innerHTML=metrics.map(m=>`<div class="sc" style="text-align:center;"><div style="font-size:28px;font-weight:700;color:var(--accent);">${m.fmt(tot[m.key])}</div><div style="font-size:11px;color:var(--muted);margin-top:3px;">${m.icon} ${m.label}</div></div>`).join('');
+  // Milestones
+  const ms=[];
+  const d=tot.donors_facilitated,p=tot.people_impacted,n=tot.nonprofits_served,dol=tot.dollars_moved;
+  if(d>=1)ms.push('🥇 First donor!');if(d>=10)ms.push('🏅 10 donors');if(d>=50)ms.push('🏆 50 donors');if(d>=100)ms.push('🌟 100 donors');
+  if(dol>=1000)ms.push('💰 $1K moved');if(dol>=10000)ms.push('💰 $10K moved');if(dol>=100000)ms.push('💰 $100K moved');
+  if(n>=1)ms.push('🏛 First nonprofit!');if(n>=10)ms.push('🏛 10 nonprofits');if(n>=50)ms.push('🏛 50 nonprofits');
+  if(p>=100)ms.push('👥 100 people');if(p>=1000)ms.push('👥 1,000 people');
+  const mel=document.getElementById('impact-milestones');
+  if(mel&&ms.length)mel.innerHTML=`<h3 style="margin-bottom:8px;">🏆 Milestones</h3><div style="display:flex;flex-wrap:wrap;gap:6px;">${ms.map(m=>`<span class="badge" style="background:rgba(88,166,255,.15);color:var(--accent);font-size:12px;padding:4px 10px;">${m}</span>`).join('')}</div>`;
+  // Log list
+  const ll=document.getElementById('impact-log-list');
+  if(!ll)return;
+  const log=[...(S.impactLog||[])].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,20);
+  if(!log.length){ll.innerHTML='<div class="empty">No entries yet. Log your first impact above.</div>';return;}
+  ll.innerHTML=log.map(e=>{
+    const m=metrics.find(x=>x.key===e.metric)||{icon:'📊',label:e.metric,fmt:v=>v};
+    return`<div class="tc" style="margin-bottom:6px;"><div class="tb"><div class="tt">${m.icon} ${m.fmt(e.value)} — ${m.label}</div><div class="tm"><span style="font-size:11px;color:var(--muted);">${fd(e.date)}${e.notes?' · '+esc(e.notes):''}</span></div></div></div>`;
+  }).join('');
+  // Set date default
+  const di=document.getElementById('imp-date');if(di&&!di.value)di.value=new Date().toISOString().slice(0,10);
+}
+function renderImpactDashWidget(){
+  const el=document.getElementById('impact-dash-widget');if(!el)return;
+  const tot=_impactTotals();
+  if(!S.impactLog||!S.impactLog.length){el.innerHTML='';return;}
+  el.innerHTML=`<div class="card" style="margin-bottom:14px;border-left:3px solid var(--accent);">
+    <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px;">🌍 Real-World Impact</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;">
+      <span style="font-size:12px;color:var(--text);">🤝 <strong>${tot.donors_facilitated}</strong> donors</span>
+      <span style="font-size:12px;color:var(--text);">🏛 <strong>${tot.nonprofits_served}</strong> nonprofits</span>
+      <span style="font-size:12px;color:var(--text);">👥 <strong>${tot.people_impacted.toLocaleString()}</strong> people</span>
+    </div>
+  </div>`;
+}
+
+// ── ENERGY ────────────────────────────────────────────────────
+let _eTmp={sleep:0,energy:0,mood:0};
+function _setEScore(dim,val){
+  _eTmp[dim]=val;
+  document.querySelectorAll(`.e-btn-${dim}`).forEach((b,i)=>{b.style.opacity=i<val?'1':'0.3';});
+}
+function logEnergy(){
+  const s=_eTmp.sleep,e=_eTmp.energy,m=_eTmp.mood;
+  if(!s||!e||!m){alert('Rate all three: Sleep, Energy, and Mood.');return;}
+  const today=new Date().toISOString().slice(0,10);
+  if(!S.energyLog)S.energyLog=[];
+  const idx=S.energyLog.findIndex(x=>x.date===today);
+  const entry={date:today,sleep:s,energy:e,mood:m,notes:document.getElementById('energy-notes')?.value||'',loggedAt:new Date().toISOString()};
+  if(idx>=0)S.energyLog[idx]=entry;else S.energyLog.push(entry);
+  _eTmp={sleep:0,energy:0,mood:0};save();renderEnergy();toast('Energy logged!');
+}
+function renderEnergy(){
+  const today=new Date().toISOString().slice(0,10);
+  const todayEntry=(S.energyLog||[]).find(x=>x.date===today);
+  const tc=document.getElementById('energy-today-card');
+  if(tc){
+    const dims=[{key:'sleep',icon:'😴',label:'Sleep Quality'},{key:'energy',icon:'⚡',label:'Energy Level'},{key:'mood',icon:'😊',label:'Mood'}];
+    if(todayEntry){
+      tc.innerHTML=`<div class="card" style="border-left:3px solid var(--bb);">
+        <div style="font-weight:700;margin-bottom:10px;color:var(--bb);">✓ Today logged</div>
+        <div style="display:flex;gap:20px;flex-wrap:wrap;">${dims.map(d=>`<span>${d.icon} ${d.label}: <strong>${'⭐'.repeat(todayEntry[d.key])}</strong></span>`).join('')}</div>
+        ${todayEntry.notes?`<div style="font-size:12px;color:var(--muted);margin-top:6px;">${esc(todayEntry.notes)}</div>`:''}
+        <button class="btn bg sm" style="margin-top:8px;" onclick="_eTmp={sleep:${todayEntry.sleep},energy:${todayEntry.energy},mood:${todayEntry.mood}};renderEnergy()">✏️ Edit</button>
+      </div>`;
+    } else {
+      tc.innerHTML=`<div class="card">
+        <div style="font-weight:700;margin-bottom:14px;">📊 Log Today</div>
+        ${dims.map(d=>`<div style="margin-bottom:10px;"><label style="font-size:12px;color:var(--muted);display:block;margin-bottom:5px;">${d.icon} ${d.label}</label>
+          <div style="display:flex;gap:6px;">${[1,2,3,4,5].map(i=>`<button class="e-btn-${d.key}" onclick="_setEScore('${d.key}',${i})" style="width:32px;height:32px;border-radius:50%;border:1px solid var(--border);background:var(--surface2);cursor:pointer;font-size:16px;opacity:0.3;transition:opacity .1s;">${['😔','😕','😐','🙂','😄'][i-1]}</button>`).join('')}</div>
+        </div>`).join('')}
+        <div class="fg" style="margin-top:8px;"><label style="font-size:12px;color:var(--muted);">Notes (optional)</label><input class="fc" id="energy-notes" placeholder="Anything that affected today..."></div>
+        <button class="btn bp" style="margin-top:8px;" onclick="logEnergy()">💾 Log Today</button>
+      </div>`;
+    }
+  }
+  // 30-day dot chart
+  const ec=document.getElementById('energy-chart');
+  if(ec){
+    const days=[];for(let i=29;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10));}
+    ec.innerHTML=`<div style="display:flex;flex-wrap:wrap;gap:4px;padding:8px 0;">${days.map(day=>{
+      const e=(S.energyLog||[]).find(x=>x.date===day);
+      const avg=e?Math.round((e.sleep+e.energy+e.mood)/3):0;
+      const col=avg>=4?'#69db7c':avg>=3?'#ffa94d':avg>=1?'#ff6b6b':'var(--border)';
+      const label=day.slice(5);
+      return`<div title="${label}${e?': Sleep '+e.sleep+' Energy '+e.energy+' Mood '+e.mood:' (no data)'}" style="width:16px;height:16px;border-radius:3px;background:${col};cursor:default;"></div>`;
+    }).join('')}</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:4px;display:flex;gap:10px;">
+      <span style="display:flex;align-items:center;gap:3px;"><span style="width:10px;height:10px;border-radius:2px;background:#69db7c;display:inline-block;"></span> Great (4-5)</span>
+      <span style="display:flex;align-items:center;gap:3px;"><span style="width:10px;height:10px;border-radius:2px;background:#ffa94d;display:inline-block;"></span> OK (3)</span>
+      <span style="display:flex;align-items:center;gap:3px;"><span style="width:10px;height:10px;border-radius:2px;background:#ff6b6b;display:inline-block;"></span> Low (1-2)</span>
+    </div>`;
+  }
+  // Insights
+  const ei=document.getElementById('energy-insights');
+  if(ei){
+    const log=S.energyLog||[];
+    const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
+    const week=log.filter(e=>new Date(e.date)>=wAgo);
+    if(!week.length){ei.innerHTML='<h3>💡 Insights</h3><p style="color:var(--muted);font-size:13px;margin-top:8px;">Log a few days to see patterns.</p>';return;}
+    const avg=k=>week.length?(week.reduce((s,e)=>s+(e[k]||0),0)/week.length).toFixed(1):'-';
+    ei.innerHTML=`<h3>💡 Insights</h3>
+      <div style="margin-top:10px;display:flex;flex-direction:column;gap:6px;">
+        <div style="font-size:13px;">😴 Avg sleep this week: <strong>${avg('sleep')}/5</strong></div>
+        <div style="font-size:13px;">⚡ Avg energy: <strong>${avg('energy')}/5</strong></div>
+        <div style="font-size:13px;">😊 Avg mood: <strong>${avg('mood')}/5</strong></div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px;">${week.length}/7 days logged this week</div>
+      </div>`;
+  }
+}
+function renderEnergyDashWidget(){
+  const el=document.getElementById('energy-dash-widget');if(!el)return;
+  const today=new Date().toISOString().slice(0,10);
+  const e=(S.energyLog||[]).find(x=>x.date===today);
+  if(!e){el.innerHTML='<div style="font-size:12px;color:var(--muted);padding:6px 0;">⚡ <span style="cursor:pointer;color:var(--accent);" onclick="nav(\'energy\')">Log your energy for today →</span></div>';return;}
+  const avg=Math.round((e.sleep+e.energy+e.mood)/3);
+  const col=avg>=4?'var(--bb)':avg>=3?'var(--bm)':'var(--bw)';
+  const label=avg>=4?'Great':avg>=3?'OK':'Low';
+  el.innerHTML=`<div style="font-size:12px;padding:4px 0;">⚡ Today: <strong style="color:${col};">${label}</strong> · Sleep ${e.sleep}/5 · Energy ${e.energy}/5 · Mood ${e.mood}/5</div>`;
+}
+
+// ── RELATIONSHIPS ─────────────────────────────────────────────
+let editPersonId=null;
+function openAddPerson(){
+  editPersonId=null;
+  document.getElementById('person-modal-title').textContent='Add Person';
+  ['pm-name','pm-notes'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
+  document.getElementById('pm-emoji').value='😊';
+  document.getElementById('pm-rel').value='close-friend';
+  document.getElementById('pm-importance').value='2';
+  document.getElementById('pm-cadence').value='30';
+  document.getElementById('pm-last-contact').value=new Date().toISOString().slice(0,10);
+  document.getElementById('del-person-btn').style.display='none';
+  document.getElementById('person-modal').classList.remove('hidden');
+}
+function openEditPerson(id){
+  const p=(S.people||[]).find(x=>x.id===id);if(!p)return;
+  editPersonId=id;
+  document.getElementById('person-modal-title').textContent='Edit Person';
+  document.getElementById('pm-name').value=p.name||'';
+  document.getElementById('pm-emoji').value=p.emoji||'😊';
+  document.getElementById('pm-rel').value=p.relationship||'close-friend';
+  document.getElementById('pm-importance').value=String(p.importance||2);
+  document.getElementById('pm-cadence').value=String(p.cadenceDays||30);
+  document.getElementById('pm-last-contact').value=p.lastContact||'';
+  document.getElementById('pm-notes').value=p.notes||'';
+  document.getElementById('del-person-btn').style.display='block';
+  document.getElementById('person-modal').classList.remove('hidden');
+}
+function saveP(){
+  const name=document.getElementById('pm-name').value.trim();
+  if(!name){alert('Enter a name.');return;}
+  const d={name,emoji:document.getElementById('pm-emoji').value||'😊',relationship:document.getElementById('pm-rel').value,importance:parseInt(document.getElementById('pm-importance').value)||2,cadenceDays:parseInt(document.getElementById('pm-cadence').value)||30,lastContact:document.getElementById('pm-last-contact').value,notes:document.getElementById('pm-notes').value};
+  if(!S.people)S.people=[];
+  if(editPersonId){const i=S.people.findIndex(p=>p.id===editPersonId);S.people[i]={...S.people[i],...d};}
+  else S.people.push({id:uid(),...d,addedAt:new Date().toISOString()});
+  save();closeM('person-modal');renderRelationships();toast('Saved!');
+}
+function delCurPerson(){if(!editPersonId||!confirm('Remove this person?'))return;S.people=S.people.filter(p=>p.id!==editPersonId);save();closeM('person-modal');renderRelationships();toast('Removed');}
+function markContacted(id){
+  const p=(S.people||[]).find(x=>x.id===id);if(!p)return;
+  p.lastContact=new Date().toISOString().slice(0,10);save();renderRelationships();renderRelationshipsDashWidget();toast('✓ Marked contacted');
+}
+function renderRelationships(){
+  const people=S.people||[];
+  const hEl=document.getElementById('rel-health-score');
+  const lEl=document.getElementById('relationships-list');
+  const now=new Date();
+  const daysAgo=lc=>{if(!lc)return 999;return Math.floor((now-new Date(lc))/(1000*60*60*24));};
+  const overdue=p=>daysAgo(p.lastContact)>(p.cadenceDays||30);
+  if(hEl){
+    if(!people.length){hEl.innerHTML='';} else {
+      const pct=Math.round(people.filter(p=>!overdue(p)).length/people.length*100);
+      const col=pct>=80?'var(--bb)':pct>=50?'var(--bm)':'var(--bw)';
+      hEl.innerHTML=`<div class="card" style="display:flex;align-items:center;gap:14px;margin-bottom:0;">
+        <div style="font-size:28px;font-weight:700;color:${col};">${pct}%</div>
+        <div><div style="font-size:13px;font-weight:600;">Relationship Health</div><div style="font-size:12px;color:var(--muted);">${people.filter(p=>!overdue(p)).length} of ${people.length} people contacted within cadence</div></div>
+      </div>`;
+    }
+  }
+  if(!lEl)return;
+  if(!people.length){lEl.innerHTML='<div class="empty" style="padding:40px;text-align:center;"><div style="font-size:36px;margin-bottom:12px;">🤝</div><p>Add the 10 people most important to you.<br>Track when you last connected and stay intentional.</p></div>';return;}
+  const relOrder={mentor:0,'close-friend':1,family:2,collaborator:3,network:4};
+  const sorted=[...people].sort((a,b)=>{const oa=overdue(a)?-1:1,ob=overdue(b)?-1:1;if(oa!==ob)return oa-ob;return(relOrder[a.relationship]||9)-(relOrder[b.relationship]||9);});
+  const byRel={};sorted.forEach(p=>{(byRel[p.relationship]=byRel[p.relationship]||[]).push(p);});
+  const relLabel={mentor:'🧠 Mentors','close-friend':'💚 Close Friends',family:'❤️ Family',collaborator:'🤝 Collaborators',network:'🌐 Network'};
+  lEl.innerHTML=Object.entries(byRel).map(([rel,ps])=>`<div style="margin-bottom:20px;"><h3 style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;">${relLabel[rel]||rel}</h3>
+    ${ps.map(p=>{
+      const ago=daysAgo(p.lastContact);const od=overdue(p);const due=p.cadenceDays-ago;
+      return`<div class="tc" style="margin-bottom:6px;${od?'border-color:rgba(255,107,107,.4);':''}" onclick="openEditPerson('${p.id}')">
+        <div style="font-size:20px;flex-shrink:0;">${p.emoji||'😊'}</div>
+        <div class="tb">
+          <div class="tt">${esc(p.name)} ${'⭐'.repeat(p.importance||2)}</div>
+          <div class="tm">
+            <span style="font-size:11px;color:var(--muted);">Last contact: ${ago===999?'never':`${ago}d ago`}</span>
+            <span style="font-size:11px;color:${od?'var(--bw)':'var(--bb)'};">${od?`⚠️ Overdue by ${ago-(p.cadenceDays||30)}d`:`✓ Due in ${due}d`}</span>
+          </div>
+        </div>
+        <button class="btn bp sm" onclick="event.stopPropagation();markContacted('${p.id}')">✓ Today</button>
+      </div>`;
+    }).join('')}</div>`).join('');
+}
+function renderRelationshipsDashWidget(){
+  const el=document.getElementById('relationships-dash-widget');if(!el)return;
+  const people=S.people||[];if(!people.length){el.innerHTML='';return;}
+  const now=new Date();
+  const overdue=people.filter(p=>{const ago=Math.floor((now-new Date(p.lastContact||0))/(864e5));return ago>(p.cadenceDays||30);}).slice(0,3);
+  if(!overdue.length){el.innerHTML='';return;}
+  el.innerHTML=`<div class="card" style="margin-bottom:14px;border-left:3px solid var(--bm);">
+    <div style="font-size:12px;font-weight:700;color:var(--bm);margin-bottom:8px;">👥 ${overdue.length} relationship${overdue.length>1?'s':''} need attention</div>
+    ${overdue.map(p=>`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12px;">${p.emoji||'😊'} ${esc(p.name)}</span><button class="btn bp sm" onclick="markContacted('${p.id}');renderDash()">✓ Today</button></div>`).join('')}
+  </div>`;
+}
+
+// ── LEARNING LIBRARY ──────────────────────────────────────────
+let _learnFilter='all',_learnEditId=null;
+function setLearnFilter(f,el){
+  _learnFilter=f;
+  document.querySelectorAll('#learning-filter-bar .fp').forEach(b=>b.classList.remove('active'));
+  if(el)el.classList.add('active');
+  renderLearning();
+}
+function openAddStandaloneLearn(){
+  _learnEditId=null;
+  document.getElementById('learn-modal-title').textContent='Add Learning Item';
+  document.getElementById('lm-title').value='';
+  document.getElementById('lm-type').value='book';
+  document.getElementById('lm-status').value='to-read';
+  document.getElementById('lm-notes').value='';
+  document.getElementById('del-learn-btn').style.display='none';
+  document.getElementById('learn-modal').classList.remove('hidden');
+}
+function openEditLearnItem(id){
+  if(!S.learningLibrary)S.learningLibrary=[];
+  const li=S.learningLibrary.find(x=>x.id===id);if(!li)return;
+  _learnEditId=id;
+  document.getElementById('learn-modal-title').textContent='Edit Item';
+  document.getElementById('lm-title').value=li.title||'';
+  document.getElementById('lm-type').value=li.type||'book';
+  document.getElementById('lm-status').value=li.status||'to-read';
+  document.getElementById('lm-notes').value=li.notes||'';
+  document.getElementById('del-learn-btn').style.display='block';
+  document.getElementById('learn-modal').classList.remove('hidden');
+}
+function saveLearnItem(){
+  const title=document.getElementById('lm-title').value.trim();if(!title){alert('Enter a title.');return;}
+  const d={title,type:document.getElementById('lm-type').value,status:document.getElementById('lm-status').value,notes:document.getElementById('lm-notes').value};
+  if(!S.learningLibrary)S.learningLibrary=[];
+  if(_learnEditId){const i=S.learningLibrary.findIndex(x=>x.id===_learnEditId);S.learningLibrary[i]={...S.learningLibrary[i],...d};}
+  else S.learningLibrary.push({id:uid(),...d,addedAt:new Date().toISOString()});
+  save();closeM('learn-modal');renderLearning();toast('Saved!');
+}
+function delCurLearnItem(){if(!_learnEditId||!confirm('Delete?'))return;S.learningLibrary=S.learningLibrary.filter(x=>x.id!==_learnEditId);save();closeM('learn-modal');renderLearning();}
+function updateGoalLearnStatus(goalId,itemId,status){
+  const g=S.goals.find(x=>x.id===goalId);if(!g||!g.learningItems)return;
+  const li=g.learningItems.find(x=>x.id===itemId);if(!li)return;
+  li.status=status;save();renderLearning();toast('Updated!');
+}
+function renderLearning(){
+  const typeIcons={book:'📖',course:'🎓',article:'📄',video:'🎬',podcast:'🎙'};
+  const statusLabel={'to-read':'To Read',reading:'Reading',done:'Done'};
+  // Aggregate all items
+  const all=[];
+  (S.goals||[]).forEach(g=>{(g.learningItems||[]).forEach(li=>{all.push({...li,goalId:g.id,goalTitle:g.title,source:'goal'});});});
+  (S.learningLibrary||[]).forEach(li=>{all.push({...li,source:'library'});});
+  // Stats
+  const sc=document.getElementById('learning-stats');
+  if(sc){
+    const reading=all.filter(x=>x.status==='reading').length;
+    const done=all.filter(x=>x.status==='done').length;
+    sc.innerHTML=`<div class="sc"><div class="sn">${all.length}</div><div class="sl">Total Items</div></div>
+      <div class="sc"><div class="sn" style="color:var(--accent);">${reading}</div><div class="sl">Reading Now</div></div>
+      <div class="sc"><div class="sn" style="color:var(--bb);">${done}</div><div class="sl">Completed</div></div>`;
+  }
+  // Filter
+  const typeFilters=['book','course','article','video','podcast'];
+  const statusFilters=['to-read','reading','done'];
+  let filtered=all;
+  if(typeFilters.includes(_learnFilter))filtered=all.filter(x=>x.type===_learnFilter);
+  else if(statusFilters.includes(_learnFilter))filtered=all.filter(x=>x.status===_learnFilter);
+  const ll=document.getElementById('learning-list');if(!ll)return;
+  if(!filtered.length){ll.innerHTML='<div class="empty">No items match this filter.</div>';return;}
+  ll.innerHTML=filtered.map(li=>{
+    const icon=typeIcons[li.type]||'📚';
+    const sCol={'to-read':'var(--muted)',reading:'var(--accent)',done:'var(--bb)'}[li.status]||'var(--muted)';
+    return`<div class="tc" style="margin-bottom:6px;"${li.source==='library'?` onclick="openEditLearnItem('${li.id}')"`:''}><div class="tb">
+      <div class="tt">${icon} ${esc(li.title)}</div>
+      <div class="tm">
+        <span class="badge co">${li.type}</span>
+        <span style="font-size:11px;color:${sCol};">${statusLabel[li.status]||li.status}</span>
+        ${li.goalTitle?`<span style="font-size:11px;color:var(--muted);">→ ${esc(li.goalTitle)}</span>`:''}
+        ${li.notes?`<span style="font-size:11px;color:var(--muted);">${esc(li.notes.slice(0,40))}</span>`:''}
+      </div>
+    </div>
+    ${li.source==='goal'?`<select onchange="updateGoalLearnStatus('${li.goalId}','${li.id}',this.value)" style="font-size:11px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--text);padding:3px 6px;" onclick="event.stopPropagation()">
+      ${['to-read','reading','done'].map(s=>`<option value="${s}" ${li.status===s?'selected':''}>${statusLabel[s]}</option>`).join('')}
+    </select>`:''}
+    </div>`;
+  }).join('');
+}
+
+// ── FUTURE SELF ───────────────────────────────────────────────
+function saveFutureLetter(){
+  const text=document.getElementById('fl-text')?.value?.trim();
+  const years=parseInt(document.getElementById('fl-years')?.value)||1;
+  if(!text||text.length<20){alert('Write at least a few sentences for your future self.');return;}
+  if(!S.futureLetters)S.futureLetters=[];
+  const futureYear=new Date().getFullYear()+years;
+  S.futureLetters.push({id:uid(),year:years,futureYear,letter:text,writtenAt:new Date().toISOString(),readAt:null});
+  save();document.getElementById('fl-text').value='';renderFutureSelf();toast('Letter saved to your future self!');
+}
+function readLetter(id){
+  const l=(S.futureLetters||[]).find(x=>x.id===id);if(!l)return;
+  l.readAt=new Date().toISOString();save();
+  const prev=document.getElementById('fl-'+id);
+  if(prev)prev.innerHTML=`<div style="white-space:pre-wrap;font-size:13px;line-height:1.8;color:var(--text);padding:12px;background:var(--surface2);border-radius:8px;margin-top:8px;">${esc(l.letter)}</div><div style="font-size:11px;color:var(--muted);margin-top:6px;">Last read: just now</div>`;
+}
+function delLetter(id){if(!confirm('Delete this letter?'))return;S.futureLetters=S.futureLetters.filter(x=>x.id!==id);save();renderFutureSelf();}
+function renderFutureSelf(){
+  const nudgeEl=document.getElementById('futureself-nudge');
+  const listEl=document.getElementById('future-letters-list');
+  const letters=[...(S.futureLetters||[])].sort((a,b)=>new Date(b.writtenAt)-new Date(a.writtenAt));
+  if(nudgeEl){
+    const unread=letters.filter(l=>{if(!l.readAt)return true;return(new Date()-new Date(l.readAt))>14*864e5;});
+    nudgeEl.innerHTML=unread.length?`<div class="card" style="margin-bottom:16px;border-left:3px solid var(--accent);background:rgba(88,166,255,.05);">
+      <div style="font-size:13px;color:var(--accent);font-weight:600;margin-bottom:4px;">📬 You have ${unread.length} letter${unread.length>1?'s':''} waiting to be read</div>
+      <div style="font-size:12px;color:var(--muted);">Your future self wrote to you. Take 2 minutes to read.</div>
+    </div>`:'';
+  }
+  if(!listEl)return;
+  if(!letters.length){listEl.innerHTML='<div class="empty" style="padding:40px;text-align:center;"><div style="font-size:36px;margin-bottom:12px;">✉️</div><p>No letters yet.<br>Write your first letter from your future self above.</p></div>';return;}
+  listEl.innerHTML=letters.map(l=>{
+    const daysUnread=l.readAt?Math.floor((new Date()-new Date(l.readAt))/864e5):999;
+    const needsRead=!l.readAt||daysUnread>14;
+    return`<div class="card" style="margin-bottom:12px;${needsRead?'border-left:3px solid var(--accent);':''}">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+        <div style="flex:1;">
+          <div style="font-weight:700;margin-bottom:4px;">✉️ From ${l.futureYear||'the future'} (${l.year}yr horizon)</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">Written ${fd(l.writtenAt)} · ${l.readAt?`Last read ${fd(l.readAt)}`:'Never read'}</div>
+          <div style="font-size:13px;color:var(--muted);font-style:italic;">"${esc(l.letter.slice(0,120))}..."</div>
+          <div id="fl-${l.id}"></div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:6px;flex-shrink:0;">
+          <button class="btn bp sm" onclick="readLetter('${l.id}')">📖 Read</button>
+          <button class="btn bd sm" onclick="delLetter('${l.id}')">🗑</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function renderFutureSelfDashWidget(){
+  const el=document.getElementById('futureself-dash-widget');if(!el)return;
+  const letters=S.futureLetters||[];if(!letters.length){el.innerHTML='';return;}
+  const unread=letters.filter(l=>!l.readAt||(new Date()-new Date(l.readAt))>14*864e5);
+  if(!unread.length){el.innerHTML='';return;}
+  el.innerHTML=`<div style="font-size:12px;color:var(--accent);padding:4px 0;cursor:pointer;" onclick="nav('futureself')">📬 ${unread.length} letter${unread.length>1?'s':''} from your future self — re-read now →</div>`;
+}
+
 // ── INIT ──────────────────────────────────────────────────────
-function appInit(){
   load();seed();seedGoals();
   // Ensure new S fields exist
   if(!S.lastMorningDate)S.lastMorningDate='';

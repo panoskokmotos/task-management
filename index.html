@@ -551,8 +551,11 @@ select.fc option{background:var(--surface2);}
   <div class="ni" onclick="nav('identity')">🌟 Identity</div>
   <div class="ni" onclick="nav('impact')">🌍 Impact</div>
   <div class="ni" onclick="nav('futureself')">✉️ Future Self</div>
+  <div class="ni" onclick="nav('review')">📅 Weekly Review<span id="review-overdue-dot" class="nav-dot hidden" style="background:#ff6b6b;"></span></div>
   <div class="ni" onclick="nav('reflect')">🪞 Reflections</div>
   <div class="ns">Life Stack</div>
+  <div class="ni" onclick="nav('journal')">📓 Journal</div>
+  <div class="ni" onclick="nav('habits')">✅ Habits</div>
   <div class="ni" onclick="nav('energy')">⚡ Energy</div>
   <div class="ni" onclick="nav('relationships')">🤝 Relationships</div>
   <div class="ns">Knowledge & AI</div>
@@ -570,6 +573,7 @@ select.fc option{background:var(--surface2);}
 
 <!-- DASHBOARD -->
 <div id="v-dashboard" class="view active">
+  <div id="theme-day-widget"></div>
   <div class="ph">
     <div><h1 id="greeting">Good morning, Panos 👋</h1><p class="sub" id="ddate"></p><span id="streak-badge-dash"></span></div>
     <div style="display:flex;gap:8px;align-items:center;"><span id="evening-checkin-btn"></span><button class="btn bp" onclick="openAdd()">+ Add Task</button></div>
@@ -583,6 +587,7 @@ select.fc option{background:var(--surface2);}
     <button class="btn bg sm" onclick="nav('buckets')">Pick from This Week →</button>
   </div>
   <div class="t3g" id="top3"></div>
+  <div id="habits-dash-widget"></div>
   <div id="goal-alignment-widget"></div>
   <div id="givelink-widget"></div>
   <div id="recent-wins-widget"></div>
@@ -695,6 +700,7 @@ select.fc option{background:var(--surface2);}
 <!-- WEEKLY REVIEW -->
 <div id="v-review" class="view">
   <div class="ph"><div><h1>📅 Weekly Review</h1><p class="sub">Every Sunday · 20 min · non-negotiable.</p></div></div>
+  <div id="review-cadence-card" style="margin-bottom:20px;"></div>
   <div class="rs">
     <h3><span class="sn2">🏆</span>Wins This Week</h3>
     <div style="margin-top:12px;">
@@ -712,6 +718,14 @@ select.fc option{background:var(--surface2);}
       <div class="fg"><label>What went well?</label><textarea class="fc" id="rw" placeholder="Wins this week..."></textarea></div>
       <div class="fg"><label>What to improve?</label><textarea class="fc" id="ri" placeholder="What would you do differently..."></textarea></div>
       <div class="fg"><label>Next week's focus (one sentence)</label><input class="fc" id="rf" placeholder="This week I will focus on..."></div>
+      <div class="fg"><label>Review Type</label>
+        <select class="fc" id="review-type" style="width:auto;">
+          <option value="weekly">📅 Weekly</option>
+          <option value="monthly">📆 Monthly</option>
+          <option value="quarterly">🗓 Quarterly</option>
+          <option value="annual">🎯 Annual</option>
+        </select>
+      </div>
       <button class="btn bp" onclick="saveReview()">💾 Save Review</button>
       <button class="btn bg" style="margin-left:8px;" onclick="generateNarrativeSummary()">✨ Generate Narrative Summary</button>
     </div>
@@ -754,6 +768,13 @@ select.fc option{background:var(--surface2);}
     <h2 style="margin:0;">🏆 Goal Progress</h2>
   </div>
   <div id="ai-goals-panel"></div>
+  <hr style="margin:24px 0;">
+  <div class="rb" style="margin-bottom:14px;">
+    <h2 style="margin:0;">🧭 Weekly Life Report</h2>
+    <button class="btn bp sm" onclick="aiWeeklyLifeReport()">✨ Generate Report</button>
+  </div>
+  <div id="ai-life-report-panel"><div class="empty" style="font-size:12px;">Generate a weekly life report to get a holistic synthesis of your progress, patterns, and values alignment across all life areas.</div></div>
+  <div id="ai-past-reports" style="margin-top:14px;"></div>
 </div>
 
 <!-- SMART NOTES -->
@@ -997,6 +1018,34 @@ select.fc option{background:var(--surface2);}
   <div id="trash-list"></div>
 </div>
 
+<!-- JOURNAL -->
+<div id="v-journal" class="view">
+  <div class="ph">
+    <div><h1>📓 Daily Journal</h1><p class="sub">Morning pages · Evening reflection · Daily habits</p></div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span id="journal-streak-badge" style="font-size:12px;color:var(--accent);font-weight:700;"></span>
+    </div>
+  </div>
+  <div id="journal-today"></div>
+  <hr style="margin:24px 0;">
+  <div class="rb" style="margin-bottom:12px;">
+    <h2 style="margin:0;">📅 Journal History</h2>
+    <button class="btn bg sm" onclick="renderJournalHistory()">Load 14 Days</button>
+  </div>
+  <div id="journal-history"></div>
+</div>
+
+<!-- HABITS -->
+<div id="v-habits" class="view">
+  <div class="ph">
+    <div><h1>✅ Habit Tracker</h1><p class="sub">Build the daily rituals that compound into transformation.</p></div>
+    <button class="btn bp sm" onclick="openAddHabit()">+ Add Habit</button>
+  </div>
+  <div id="habits-today-card" style="margin-bottom:20px;"></div>
+  <div id="habits-heatmap" style="margin-bottom:20px;"></div>
+  <div id="habits-stats"></div>
+</div>
+
 <!-- IDENTITY -->
 <div id="v-identity" class="view">
   <div class="ph"><div><h1>🌟 Identity Goals</h1><p class="sub">Who are you becoming? Your goals shaped by identity and deep purpose.</p></div></div>
@@ -1007,6 +1056,7 @@ select.fc option{background:var(--surface2);}
 <!-- IMPACT -->
 <div id="v-impact" class="view">
   <div class="ph"><div><h1>🌍 Impact Tracker</h1><p class="sub">Transcendence metrics — measure your effect on the world.</p></div></div>
+  <div id="mission-progress-section"></div>
   <div class="g4" style="margin-bottom:20px;" id="impact-stats"></div>
   <div class="g2">
     <div>
@@ -1288,6 +1338,16 @@ select.fc option{background:var(--surface2);}
       </div>
     </div>
     <div style="margin-top:14px;">
+      <div class="rb" style="cursor:pointer;margin-bottom:6px;" onclick="this.nextElementSibling.classList.toggle('open')">
+        <h3 style="font-size:13px;">📅 Theme Days</h3>
+        <span style="color:var(--muted);font-size:12px;">▼</span>
+      </div>
+      <div class="letter-full" style="padding:4px 0;" id="theme-days-section">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;" id="theme-days-inputs"></div>
+        <button class="btn bp sm" style="margin-top:10px;" onclick="saveThemeDays()">💾 Save Theme Days</button>
+      </div>
+    </div>
+    <div style="margin-top:14px;">
       <div class="rb" style="cursor:pointer;margin-bottom:6px;" onclick="toggleDecisionLog(this)">
         <h3 style="font-size:13px;">📋 Decision Log</h3>
         <span style="color:var(--muted);font-size:12px;">▼</span>
@@ -1298,6 +1358,41 @@ select.fc option{background:var(--surface2);}
       <button class="btn bd sm" style="margin-right:auto;" onclick="authLogout()">🚪 Sign Out</button>
       <button class="btn bg" onclick="closeM('settm')">Cancel</button>
       <button class="btn bp" onclick="saveSettings()">Save Settings</button>
+    </div>
+  </div>
+</div>
+
+<!-- HABIT MODAL -->
+<div class="mo hidden" id="habit-modal">
+  <div class="md" style="width:400px;">
+    <div class="mh"><h3 id="habit-modal-title">+ Add Habit</h3><button class="mc" onclick="closeM('habit-modal')">×</button></div>
+    <input type="hidden" id="edit-habit-id">
+    <div class="fg"><label>Habit Name</label><input class="fc" id="habit-name-inp" placeholder="e.g. Cold Shower"></div>
+    <div class="fg"><label>Emoji Icon</label><input class="fc" id="habit-icon-inp" placeholder="🚿" maxlength="4" style="font-size:20px;width:80px;"></div>
+    <div class="fg">
+      <label>Frequency</label>
+      <select class="fc" id="habit-freq-inp" onchange="document.getElementById('habit-custom-days').style.display=this.value==='custom'?'block':'none'">
+        <option value="daily">Daily</option>
+        <option value="weekdays">Weekdays (Mon–Fri)</option>
+        <option value="custom">Custom Days</option>
+      </select>
+    </div>
+    <div class="fg" id="habit-custom-days" style="display:none;">
+      <label>Target Days</label>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;"><input type="checkbox" class="habit-day-cb" value="0"> Sun</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;"><input type="checkbox" class="habit-day-cb" value="1"> Mon</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;"><input type="checkbox" class="habit-day-cb" value="2"> Tue</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;"><input type="checkbox" class="habit-day-cb" value="3"> Wed</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;"><input type="checkbox" class="habit-day-cb" value="4"> Thu</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;"><input type="checkbox" class="habit-day-cb" value="5"> Fri</label>
+        <label style="display:flex;align-items:center;gap:4px;font-size:12px;"><input type="checkbox" class="habit-day-cb" value="6"> Sat</label>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn bd sm" id="del-habit-btn" onclick="delHabit()" style="margin-right:auto;display:none;">🗑 Delete</button>
+      <button class="btn bg" onclick="closeM('habit-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveHabit()">Save Habit</button>
     </div>
   </div>
 </div>
@@ -1528,7 +1623,17 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],reflections:{},wisdom:{books:[],principles:[]},profiles:[],seededGoalsV3:false,claudeKey:'',userName:'Panos',userEmoji:'🧑',lastMorningDate:'',lastEveningDate:'',dailyCommitments:[],dailyIntention:'',morningLog:[],eveningLog:[],streak:0,longestStreak:0,decisionLog:[],impactLog:[],energyLog:[],people:[],learningLibrary:[],futureLetters:[]};
+const DEFAULT_HABITS=[
+  {id:'h1',name:'Cold Shower',icon:'🚿',frequency:'daily',targetDays:[0,1,2,3,4,5,6],active:true},
+  {id:'h2',name:'Binaural Beats',icon:'🎵',frequency:'daily',targetDays:[0,1,2,3,4,5,6],active:true},
+  {id:'h3',name:'Supplements',icon:'💊',frequency:'daily',targetDays:[0,1,2,3,4,5,6],active:true},
+  {id:'h4',name:'Morning Sunlight',icon:'☀️',frequency:'daily',targetDays:[0,1,2,3,4,5,6],active:true},
+  {id:'h5',name:'Shutdown Ritual',icon:'🌙',frequency:'daily',targetDays:[0,1,2,3,4,5,6],active:true},
+  {id:'h6',name:'Workout',icon:'💪',frequency:'weekdays',targetDays:[1,2,3,4,5],active:true},
+  {id:'h7',name:'Morning Pages',icon:'📝',frequency:'daily',targetDays:[0,1,2,3,4,5,6],active:true},
+  {id:'h8',name:'Pre-Sleep Lockout',icon:'📵',frequency:'daily',targetDays:[0,1,2,3,4,5,6],active:true}
+];
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],notes:[],reflections:{},wisdom:{books:[],principles:[]},profiles:[],seededGoalsV3:false,claudeKey:'',userName:'Panos',userEmoji:'🧑',lastMorningDate:'',lastEveningDate:'',dailyCommitments:[],dailyIntention:'',morningLog:[],eveningLog:[],streak:0,longestStreak:0,decisionLog:[],impactLog:[],energyLog:[],people:[],learningLibrary:[],futureLetters:[],journal:[],journalStreakDays:0,habits:[],habitLog:[],themeDays:{0:{name:'Rest & Reflect',emoji:'🪞',category:'other'},1:{name:'Growth',emoji:'🚀',category:'givelink'},2:{name:'Product',emoji:'🏗️',category:'givelink'},3:{name:'Execution',emoji:'⚡',category:'automation'},4:{name:'Nonprofits',emoji:'🤝',category:'relationships'},5:{name:'Ops',emoji:'🔧',category:'finance'},6:{name:'Health',emoji:'💚',category:'health'}},weeklyReports:[]};
 let editT=null,editG=null,editBook=null,editPrin=null,fCat='all',wTab='all',rTab='daily',draggedTaskId=null,pendingAiTasks=[];
 let _searchTimer=null;
 
@@ -1557,7 +1662,7 @@ function nav(v){
   document.getElementById('s-ov')?.classList.remove('open');
   document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
-function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,aicoach:renderAicoach,notes:renderNotes,wisdom:renderWisdom,reflect:renderReflect,trash:renderTrash,stats:renderStats,journal:renderJournal,archive:renderArchive,identity:renderIdentity,impact:renderImpact,energy:renderEnergy,relationships:renderRelationships,learning:renderLearning,futureself:renderFutureSelf})[v]?.();}
+function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,aicoach:renderAicoach,notes:renderNotes,wisdom:renderWisdom,reflect:renderReflect,trash:renderTrash,stats:renderStats,journal:renderJournal,archive:renderArchive,identity:renderIdentity,impact:renderImpact,energy:renderEnergy,relationships:renderRelationships,learning:renderLearning,futureself:renderFutureSelf,habits:renderHabits})[v]?.();}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
 
 // ── ENERGY FILTER STATE ───────────────────────────────────────
@@ -1600,6 +1705,8 @@ function renderDash(){
     <div class="sc"><div class="sn" style="color:var(--bm)">${mc}</div><div class="sl">This Month</div></div>
     <div class="sc"><div class="sn" style="color:var(--bb)">${bc}</div><div class="sl">Backlog</div></div>
     <div class="sc"><div class="sn" style="color:var(--accent)">${dc}</div><div class="sl">Done Today</div></div>`;
+  renderThemeDayWidget();
+  renderHabitsDashWidget();
   renderTop3();
   renderDashBanners();
   renderGoalAlignmentWidget();
@@ -2046,7 +2153,46 @@ function goalHTML(g){
 }
 
 // ── REVIEW ────────────────────────────────────────────────────
+function renderReviewCadence(){
+  const el=document.getElementById('review-cadence-card');if(!el)return;
+  const revs=S.reviews||[];
+  const weekly=revs.filter(r=>!r.type||r.type==='weekly').length;
+  const monthly=revs.filter(r=>r.type==='monthly').length;
+  const quarterly=revs.filter(r=>r.type==='quarterly').length;
+  const annual=revs.filter(r=>r.type==='annual').length;
+  // Streak: consecutive weeks with a review
+  let weekStreak=0;
+  for(let i=0;i<52;i++){
+    const ws=new Date();ws.setDate(ws.getDate()-i*7);
+    const we=new Date(ws);we.setDate(we.getDate()-7);
+    if(revs.some(r=>new Date(r.weekOf)>=we&&new Date(r.weekOf)<ws))weekStreak++;else break;
+  }
+  // Next due
+  const lastWeekly=revs.filter(r=>!r.type||r.type==='weekly').sort((a,b)=>b.weekOf.localeCompare(a.weekOf))[0];
+  const daysSinceLast=lastWeekly?Math.floor((Date.now()-new Date(lastWeekly.weekOf))/(86400000)):999;
+  const overdue=daysSinceLast>7;
+  el.innerHTML=`<div class="card" style="border-left:3px solid ${overdue?'#ff6b6b':'var(--accent)'};">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+      <h2 style="margin:0;">📊 Review Cadence</h2>
+      ${weekStreak?`<span style="font-size:12px;color:var(--accent);font-weight:700;">🔥 ${weekStreak}-week streak</span>`:''}
+      ${overdue?`<span style="font-size:12px;color:#ff6b6b;font-weight:700;">⚠️ Review overdue!</span>`:''}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px;">
+      ${[{label:'Weekly',count:weekly,goal:50,icon:'📅'},{label:'Monthly',count:monthly,goal:11,icon:'📆'},{label:'Quarterly',count:quarterly,goal:3,icon:'🗓'},{label:'Annual',count:annual,goal:1,icon:'🎯'}].map(c=>`<div style="text-align:center;padding:10px;background:var(--surface2);border-radius:8px;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${c.icon} ${c.label}</div>
+        <div style="font-size:20px;font-weight:700;color:${c.count>=c.goal?'var(--bb)':'var(--accent)'};">${c.count}</div>
+        <div style="font-size:11px;color:var(--muted);">/ ${c.goal} goal</div>
+        <div style="height:4px;background:var(--border);border-radius:2px;margin-top:6px;overflow:hidden;"><div style="height:100%;background:${c.count>=c.goal?'var(--bb)':'var(--accent)'};border-radius:2px;width:${Math.min(100,c.count/c.goal*100)}%;"></div></div>
+      </div>`).join('')}
+    </div>
+    <div style="font-size:12px;color:var(--muted);">
+      ${lastWeekly?`Last review: ${fd(lastWeekly.weekOf)} (${daysSinceLast} days ago) · `:'No reviews yet · '}
+      Next weekly due: ${(()=>{const n=new Date();const d=n.getDay();const sun=new Date(n);sun.setDate(n.getDate()+(7-d)%7||7);return fd(sun);})()}
+    </div>
+  </div>`;
+}
 function renderReview(){
+  renderReviewCadence();
   const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
   const done=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>wAgo);
   document.getElementById('r-done').innerHTML=done.length?done.map(t=>`<div class="tc" style="opacity:.7;"><div class="ck on">✓</div><div class="tb"><div class="tt" style="text-decoration:line-through;">${t.title}</div><div class="tm">${catB(t.category)}</div></div></div>`).join(''):'<div class="empty">No completed tasks this week yet.</div>';
@@ -2086,11 +2232,12 @@ function setValueRating(idx,n){
 function saveReview(){
   const wins=[document.getElementById('rwin1')?.value||'',document.getElementById('rwin2')?.value||'',document.getElementById('rwin3')?.value||''].filter(Boolean);
   const valuesAlignment=S.values.map((v,i)=>({value:v,rating:_valueRatings[i]||0}));
-  const reviewObj={id:uid(),weekOf:new Date().toISOString(),wentWell:document.getElementById('rw').value,improve:document.getElementById('ri').value,focus:document.getElementById('rf').value,wins,valuesAlignment,valuesCompromise:(document.getElementById('rv-compromise')||{}).value||'',valuesDiff:(document.getElementById('rv-diff')||{}).value||''};
+  const type=document.getElementById('review-type')?.value||'weekly';
+  const reviewObj={id:uid(),weekOf:new Date().toISOString(),type,wentWell:document.getElementById('rw').value,improve:document.getElementById('ri').value,focus:document.getElementById('rf').value,wins,valuesAlignment,valuesCompromise:(document.getElementById('rv-compromise')||{}).value||'',valuesDiff:(document.getElementById('rv-diff')||{}).value||''};
   S.reviews.push(reviewObj);
   _valueRatings={};
   save();['rw','ri','rf','rwin1','rwin2','rwin3','rv-compromise','rv-diff'].forEach(i=>{const el=document.getElementById(i);if(el)el.value='';});
-  renderReview();toast('✅ Weekly review saved!');
+  renderReview();toast('✅ Review saved!');
 }
 
 async function generateNarrativeSummary(){
@@ -2430,6 +2577,17 @@ function toast(msg,ms=2200){
 function openSettings(){
   document.getElementById('claude-key-inp').value=S.claudeKey||'';
   document.getElementById('user-name-inp').value=S.userName||'Panos';
+  // Populate theme days inputs
+  const tdi=document.getElementById('theme-days-inputs');
+  if(tdi){
+    const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const td=S.themeDays||{};
+    tdi.innerHTML=days.map((day,i)=>`<div style="display:flex;align-items:center;gap:6px;">
+      <span style="font-size:11px;color:var(--muted);width:28px;">${day}</span>
+      <input class="fc" id="td-emoji-${i}" value="${esc(td[i]?.emoji||'🎯')}" style="width:40px;font-size:16px;text-align:center;padding:4px;" maxlength="4">
+      <input class="fc" id="td-name-${i}" value="${esc(td[i]?.name||'')}" placeholder="Theme name" style="flex:1;font-size:12px;">
+    </div>`).join('');
+  }
   document.getElementById('settm').classList.remove('hidden');
 }
 function saveSettings(){
@@ -2718,6 +2876,13 @@ function delNote(id){
 
 // ── AI COACH VIEW ─────────────────────────────────────────────
 function renderAicoach(){
+  // Show latest life report if available
+  const reportPanel=document.getElementById('ai-life-report-panel');
+  if(reportPanel&&S.weeklyReports&&S.weeklyReports.length){
+    const latest=S.weeklyReports[0];
+    reportPanel.innerHTML=`<div class="card" style="border-left:3px solid var(--accent);"><div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Generated ${fd(latest.date)}</div><div style="font-size:13px;line-height:1.8;white-space:pre-wrap;">${esc(latest.report)}</div></div>`;
+  }
+  _renderPastReports();
   const panelEl=document.getElementById('ai-goals-panel');if(!panelEl)return;
   const top3=S.goals.filter(g=>g.isTop3);
   const rest=S.goals.filter(g=>!g.isTop3);
@@ -2739,6 +2904,80 @@ function renderAicoach(){
       <div class="gps"><span>${done}/${total} tasks done</span><span style="font-weight:600;color:${pct>=100?'var(--bb)':pct>=50?'var(--accent)':'var(--muted)'};">${pct}%</span></div>
     </div>`;
   }).join('')}</div>`:'<div class="empty">No goals yet. Add goals first.</div>';
+}
+
+// ── AI WEEKLY LIFE REPORT ────────────────────────────────────
+async function aiWeeklyLifeReport(){
+  if(!S.claudeKey){if(confirm('Add your Claude API key in Settings to use AI features. Open Settings?'))openSettings();return;}
+  const btn=document.querySelector('[onclick="aiWeeklyLifeReport()"]');
+  if(btn){btn.textContent='⏳ Generating...';btn.disabled=true;}
+  const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
+  // Gather context
+  const top3Goals=S.goals.filter(g=>g.isTop3).slice(0,3).map(g=>{
+    const linked=S.tasks.filter(t=>t.goalId===g.id);
+    const pct=linked.length?Math.round(linked.filter(t=>t.status==='done').length/linked.length*100):0;
+    return`${g.title} (${pct}%)`;
+  }).join(', ')||'None set';
+  const tasksDoneThisWeek=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>wAgo);
+  const tasksByCategory={};tasksDoneThisWeek.forEach(t=>{tasksByCategory[t.category]=(tasksByCategory[t.category]||0)+1;});
+  const tasksContext=Object.entries(tasksByCategory).map(([c,n])=>`${(CATS[c]||CATS.other).l}: ${n}`).join(', ')||'None';
+  const energyThisWeek=(S.energyLog||[]).filter(e=>new Date(e.date)>=wAgo);
+  const avgEnergy=energyThisWeek.length?(energyThisWeek.reduce((s,e)=>s+(e.energy||0),0)/energyThisWeek.length).toFixed(1):'N/A';
+  const avgSleep=energyThisWeek.length?(energyThisWeek.reduce((s,e)=>s+(e.sleep||0),0)/energyThisWeek.length).toFixed(1):'N/A';
+  const habits=_getHabits().filter(h=>h.active);
+  const habitRates=habits.map(h=>`${h.name}: ${habitWeeklyRate(h.id)}%`).join(', ')||'No habits tracked';
+  const impactTot=_impactTotals();
+  const overdueRel=(S.people||[]).filter(p=>{if(!p.nextContact)return false;return new Date(p.nextContact)<new Date();}).length;
+  const lastRev=[...S.reviews].sort((a,b)=>b.weekOf.localeCompare(a.weekOf))[0];
+  const lastWins=(lastRev?.wins||[]).join('; ')||'None';
+  const lastValAlign=(lastRev?.valuesAlignment||[]).map(v=>v.value+': '+v.rating+'/5').join(', ')||'Not rated';
+  const journalThisWeek=(S.journal||[]).filter(e=>new Date(e.date)>=wAgo);
+  const journalMoods=journalThisWeek.map(e=>e.mood).filter(Boolean);
+  const avgMood=journalMoods.length?(journalMoods.reduce((s,m)=>s+m,0)/journalMoods.length).toFixed(1):'N/A';
+  const theme=getTodayTheme();
+  const system='You are a deeply insightful personal life coach for Panos, a founder working toward positively impacting 1 million people through Givelink, his nonprofit giving platform. Write with warmth, honesty, and strategic clarity. Plain text only, no markdown.';
+  const prompt=`Weekly Life Snapshot — Week of ${wAgo.toLocaleDateString('en-US',{month:'long',day:'numeric'})}
+
+TOP 3 GOALS & PROGRESS: ${top3Goals}
+TASKS DONE THIS WEEK: ${tasksDoneThisWeek.length} total by category: ${tasksContext}
+ENERGY: avg ${avgEnergy}/5 · Sleep avg ${avgSleep}/5 · Mood avg ${avgMood}/5
+HABIT COMPLETION: ${habitRates}
+CUMULATIVE IMPACT: ${impactTot.people_impacted.toLocaleString()} people · ${impactTot.donors_facilitated} donors · $${impactTot.dollars_moved.toLocaleString()} moved
+RELATIONSHIPS: ${overdueRel} contacts overdue
+LAST REVIEW WINS: ${lastWins}
+LAST VALUES ALIGNMENT: ${lastValAlign}
+TODAY'S THEME: ${theme.emoji} ${theme.name} Day
+
+Values to align with: Impact · Ownership · Growth · Health · Deep Work
+North Star: 1 million people positively impacted
+
+Write exactly 4 paragraphs:
+1) What I accomplished this week and what it means for my mission
+2) What's working and what's not — honest patterns from the data
+3) How aligned my week was with my 5 values (Impact, Ownership, Growth, Health, Deep Work) and my 1M mission
+4) One specific, concrete recommendation for next week — an action I can take Monday morning`;
+  const result=await callClaude(system,prompt,1000);
+  if(btn){btn.textContent='✨ Generate Report';btn.disabled=false;}
+  if(!result)return;
+  if(!S.weeklyReports)S.weeklyReports=[];
+  S.weeklyReports.unshift({date:new Date().toISOString().slice(0,10),report:result,generatedAt:new Date().toISOString()});
+  if(S.weeklyReports.length>8)S.weeklyReports=S.weeklyReports.slice(0,8);
+  save();
+  const panel=document.getElementById('ai-life-report-panel');
+  if(panel)panel.innerHTML=`<div class="card" style="border-left:3px solid var(--accent);"><div style="font-size:11px;color:var(--muted);margin-bottom:10px;">Generated ${fd(new Date().toISOString())}</div><div style="font-size:13px;line-height:1.8;white-space:pre-wrap;">${esc(result)}</div></div>`;
+  _renderPastReports();
+  toast('🧭 Life report generated!');
+}
+function _renderPastReports(){
+  const el=document.getElementById('ai-past-reports');if(!el)return;
+  const reports=(S.weeklyReports||[]).slice(1,5);
+  if(!reports.length){el.innerHTML='';return;}
+  el.innerHTML=`<h3 style="font-size:13px;color:var(--muted);margin-bottom:10px;">Previous Reports</h3>`+reports.map(r=>`<div class="card" style="margin-bottom:8px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:6px;" onclick="this.nextElementSibling.classList.toggle('open')">
+      <span style="font-weight:600;font-size:13px;">📋 ${fd(r.date)}</span><span style="color:var(--muted);font-size:12px;">▼</span>
+    </div>
+    <div class="letter-full"><div style="font-size:12px;line-height:1.7;white-space:pre-wrap;color:var(--muted);">${esc(r.report)}</div></div>
+  </div>`).join('');
 }
 
 // ── SEED DATA ─────────────────────────────────────────────────
@@ -4109,6 +4348,14 @@ function updNavBadges(){
   const overdueWeek=active().filter(t=>t.bucket==='this-week'&&t.dueDate&&new Date(t.dueDate)<twoDaysAgo);
   const bDot=document.getElementById('buckets-dot');
   if(bDot)bDot.classList.toggle('hidden',overdueWeek.length===0);
+  // Review overdue dot
+  const revDot=document.getElementById('review-overdue-dot');
+  if(revDot){
+    const revs=S.reviews||[];
+    const lastRev=revs.sort((a,b)=>b.weekOf.localeCompare(a.weekOf))[0];
+    const daysSince=lastRev?Math.floor((Date.now()-new Date(lastRev.weekOf))/86400000):999;
+    revDot.classList.toggle('hidden',daysSince<=7);
+  }
 }
 
 // ── ARCHIVE / DEDUP ────────────────────────────────────────────
@@ -4136,7 +4383,296 @@ function deduplicateTasks(){
   });
   save();refresh();toast(`Removed ${removed} duplicate task${removed!==1?'s':''}`);
 }
-function renderJournal(){}
+// ── JOURNAL ───────────────────────────────────────────────────
+function _todayStr(){return new Date().toISOString().slice(0,10);}
+function _journalToday(){return(S.journal||[]).find(e=>e.date===_todayStr())||null;}
+function renderJournal(){
+  const el=document.getElementById('journal-today');if(!el)return;
+  const today=_journalToday();
+  const habits=S.habits&&S.habits.length?S.habits:DEFAULT_HABITS;
+  const todayHabits=today?today.habits||{}:{};
+  const streakEl=document.getElementById('journal-streak-badge');
+  if(streakEl)streakEl.textContent=S.journalStreakDays?(S.journalStreakDays>1?`🔥 ${S.journalStreakDays}-day streak`:'🔥 Day 1'):'';
+  el.innerHTML=`
+  <div class="card" style="margin-bottom:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <h2 style="margin:0;">🌅 Morning Pages</h2>
+      <span id="j-wc" style="font-size:12px;color:var(--muted);">0 / 750 words</span>
+    </div>
+    <textarea class="fc" id="j-morning-pages" style="min-height:180px;font-size:13px;line-height:1.7;" placeholder="Stream of consciousness — write whatever comes to mind. No editing, no judgment. Keep going until you reach 750 words (3 pages)..." oninput="updJournalWC()">${esc(today?.morningPages||'')}</textarea>
+    <div style="height:6px;background:var(--border);border-radius:3px;margin-top:10px;overflow:hidden;">
+      <div id="j-wc-bar" style="height:100%;background:var(--accent);border-radius:3px;width:${Math.min(100,(today?.morningPages?.split(/\s+/).filter(Boolean).length||0)/750*100)}%;transition:width .3s;"></div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:16px;">
+    <h2 style="margin-bottom:14px;">🌙 Evening Reflection</h2>
+    <div class="g2" style="gap:12px;">
+      <div class="fg"><label>✅ What went well today?</label><textarea class="fc" id="j-ew" style="min-height:70px;" placeholder="Wins, progress, proud moments...">${esc(today?.eveningReflection?.wentWell||'')}</textarea></div>
+      <div class="fg"><label>🧱 What was hard?</label><textarea class="fc" id="j-eh" style="min-height:70px;" placeholder="Challenges, friction, stuck points...">${esc(today?.eveningReflection?.wasHard||'')}</textarea></div>
+      <div class="fg"><label>🙏 Grateful for?</label><textarea class="fc" id="j-grat" style="min-height:70px;" placeholder="Three things, big or small...">${esc(today?.eveningReflection?.grateful||'')}</textarea></div>
+      <div class="fg"><label>🔄 Do differently?</label><textarea class="fc" id="j-diff" style="min-height:70px;" placeholder="One specific change for tomorrow...">${esc(today?.eveningReflection?.diff||'')}</textarea></div>
+    </div>
+  </div>
+  <div class="card" style="margin-bottom:16px;">
+    <h2 style="margin-bottom:14px;">✅ Daily Habit Check-in</h2>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;" id="j-habit-grid">
+      ${habits.map(h=>{const done=todayHabits[h.id||h.name]||false;return`<button onclick="toggleJournalHabit('${h.id||h.name}')" style="padding:8px 14px;border-radius:20px;border:2px solid ${done?'var(--accent)':'var(--border)'};background:${done?'rgba(88,166,255,.15)':'var(--surface2)'};color:${done?'var(--accent)':'var(--muted)'};font-size:13px;cursor:pointer;transition:all .2s;" id="jh-${h.id||h.name}">${h.icon} ${h.name}</button>`;}).join('')}
+    </div>
+    <div style="margin-top:12px;font-size:12px;color:var(--muted);" id="j-habit-count">${Object.values(todayHabits).filter(Boolean).length}/${habits.length} habits done</div>
+  </div>
+  <div class="card" style="margin-bottom:16px;">
+    <h2 style="margin-bottom:14px;">⚡ Quick Check-in</h2>
+    <div class="g2">
+      <div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">😊 Mood</div>
+        <div style="display:flex;gap:6px;">${[1,2,3,4,5].map(n=>`<button class="j-mood-btn" onclick="setJMood(${n})" style="font-size:20px;opacity:${(today?.mood||0)>=n?'1':'0.3'};background:none;border:none;cursor:pointer;" id="jm-${n}">${['😞','😐','🙂','😄','🤩'][n-1]}</button>`).join('')}</div>
+      </div>
+      <div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:6px;">⚡ Energy</div>
+        <div style="display:flex;gap:6px;">${[1,2,3,4,5].map(n=>`<button class="j-energy-btn" onclick="setJEnergy(${n})" style="font-size:20px;opacity:${(today?.energy||0)>=n?'1':'0.3'};background:none;border:none;cursor:pointer;" id="je-${n}">${['😴','😑','🙂','⚡','🔥'][n-1]}</button>`).join('')}</div>
+      </div>
+    </div>
+  </div>
+  <button class="btn bp" onclick="saveJournalEntry()" style="width:100%;padding:12px;">💾 Save Journal Entry</button>`;
+  _jMood=today?.mood||0;_jEnergy=today?.energy||0;
+}
+let _jMood=0,_jEnergy=0;
+function setJMood(n){_jMood=n;[1,2,3,4,5].forEach(i=>{const b=document.getElementById('jm-'+i);if(b)b.style.opacity=i<=n?'1':'0.3';});}
+function setJEnergy(n){_jEnergy=n;[1,2,3,4,5].forEach(i=>{const b=document.getElementById('je-'+i);if(b)b.style.opacity=i<=n?'1':'0.3';});}
+function updJournalWC(){
+  const ta=document.getElementById('j-morning-pages');if(!ta)return;
+  const words=ta.value.split(/\s+/).filter(Boolean).length;
+  const wc=document.getElementById('j-wc');if(wc)wc.textContent=words+' / 750 words';
+  const bar=document.getElementById('j-wc-bar');if(bar)bar.style.width=Math.min(100,words/750*100)+'%';
+}
+function toggleJournalHabit(hid){
+  const today=_todayStr();
+  let entry=_journalToday()||{date:today,morningPages:'',eveningReflection:{},habits:{},mood:0,energy:0};
+  if(!entry.habits)entry.habits={};
+  entry.habits[hid]=!entry.habits[hid];
+  const idx=(S.journal||[]).findIndex(e=>e.date===today);
+  if(idx>=0)S.journal[idx]=entry;else{if(!S.journal)S.journal=[];S.journal.push(entry);}
+  save();
+  const btn=document.getElementById('jh-'+hid);
+  const done=entry.habits[hid];
+  if(btn){btn.style.borderColor=done?'var(--accent)':'var(--border)';btn.style.background=done?'rgba(88,166,255,.15)':'var(--surface2)';btn.style.color=done?'var(--accent)':'var(--muted)';}
+  const countEl=document.getElementById('j-habit-count');
+  if(countEl){const total=S.habits&&S.habits.length?S.habits.length:DEFAULT_HABITS.length;countEl.textContent=Object.values(entry.habits).filter(Boolean).length+'/'+total+' habits done';}
+}
+function saveJournalEntry(){
+  const today=_todayStr();
+  const mp=document.getElementById('j-morning-pages')?.value||'';
+  const ew=document.getElementById('j-ew')?.value||'';
+  const eh=document.getElementById('j-eh')?.value||'';
+  const gr=document.getElementById('j-grat')?.value||'';
+  const df=document.getElementById('j-diff')?.value||'';
+  const existing=_journalToday();
+  const entry={date:today,morningPages:mp,eveningReflection:{wentWell:ew,wasHard:eh,grateful:gr,diff:df},habits:existing?.habits||{},mood:_jMood,energy:_jEnergy,savedAt:new Date().toISOString()};
+  if(!S.journal)S.journal=[];
+  const idx=S.journal.findIndex(e=>e.date===today);
+  if(idx>=0)S.journal[idx]=entry;else S.journal.push(entry);
+  // Update streak
+  const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
+  const yStr=yesterday.toISOString().slice(0,10);
+  const hadYesterday=S.journal.some(e=>e.date===yStr);
+  S.journalStreakDays=hadYesterday?(S.journalStreakDays||0)+1:1;
+  save();renderJournal();toast('📓 Journal saved!');
+}
+function renderJournalHistory(){
+  const el=document.getElementById('journal-history');if(!el)return;
+  const entries=[...(S.journal||[])].sort((a,b)=>b.date.localeCompare(a.date)).slice(0,14);
+  if(!entries.length){el.innerHTML='<div class="empty">No entries yet. Save today\'s journal to start your history.</div>';return;}
+  el.innerHTML=entries.map(e=>{
+    const wc=e.morningPages?e.morningPages.split(/\s+/).filter(Boolean).length:0;
+    const habDone=Object.values(e.habits||{}).filter(Boolean).length;
+    const habTotal=S.habits&&S.habits.length?S.habits.length:DEFAULT_HABITS.length;
+    return`<div class="card" style="margin-bottom:8px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="this.nextElementSibling.classList.toggle('open')">
+        <div>
+          <span style="font-weight:600;">${fd(e.date)}</span>
+          <span style="font-size:12px;color:var(--muted);margin-left:10px;">${wc} words · ${habDone}/${habTotal} habits${e.mood?` · ${['😞','😐','🙂','😄','🤩'][e.mood-1]}`:''}</span>
+        </div>
+        <span style="color:var(--muted);font-size:12px;">▼</span>
+      </div>
+      <div class="letter-full" style="margin-top:10px;">
+        ${e.morningPages?`<div style="font-size:12px;color:var(--muted);margin-bottom:8px;font-style:italic;white-space:pre-wrap;">${esc(e.morningPages.slice(0,300))}${e.morningPages.length>300?'…':''}</div>`:''}
+        ${e.eveningReflection?.wentWell?`<div style="font-size:12px;margin-bottom:4px;"><strong>✅ Well:</strong> ${esc(e.eveningReflection.wentWell)}</div>`:''}
+        ${e.eveningReflection?.grateful?`<div style="font-size:12px;"><strong>🙏 Grateful:</strong> ${esc(e.eveningReflection.grateful)}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── THEME DAYS ────────────────────────────────────────────────
+function getTodayTheme(){
+  if(!S.themeDays)S.themeDays={0:{name:'Rest & Reflect',emoji:'🪞',category:'other'},1:{name:'Growth',emoji:'🚀',category:'givelink'},2:{name:'Product',emoji:'🏗️',category:'givelink'},3:{name:'Execution',emoji:'⚡',category:'automation'},4:{name:'Nonprofits',emoji:'🤝',category:'relationships'},5:{name:'Ops',emoji:'🔧',category:'finance'},6:{name:'Health',emoji:'💚',category:'health'}};
+  return S.themeDays[new Date().getDay()]||{name:'Focus Day',emoji:'🎯',category:'other'};
+}
+function renderThemeDayWidget(){
+  const el=document.getElementById('theme-day-widget');if(!el)return;
+  const theme=getTodayTheme();
+  const tomorrow=S.themeDays?S.themeDays[(new Date().getDay()+1)%7]:null;
+  el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(88,166,255,.12),rgba(88,166,255,.04));border:1px solid rgba(88,166,255,.25);border-radius:10px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+    <div>
+      <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">Today's Theme</div>
+      <div style="font-size:20px;font-weight:700;color:var(--accent);">${theme.emoji} ${theme.name} Day</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px;">Focus tasks tagged ${(CATS[theme.category]||CATS.other).l}</div>
+    </div>
+    ${tomorrow?`<div style="text-align:right;"><div style="font-size:11px;color:var(--muted);">Tomorrow</div><div style="font-size:13px;color:var(--text);">${tomorrow.emoji} ${tomorrow.name}</div></div>`:''}
+  </div>`;
+}
+function saveThemeDays(){
+  if(!S.themeDays)S.themeDays={};
+  [0,1,2,3,4,5,6].forEach(i=>{
+    const n=document.getElementById('td-name-'+i)?.value.trim();
+    const e=document.getElementById('td-emoji-'+i)?.value.trim();
+    if(n)S.themeDays[i]={...S.themeDays[i],name:n,emoji:e||S.themeDays[i]?.emoji||'🎯'};
+  });
+  save();renderThemeDayWidget();closeM('settm');toast('Theme days saved!');
+}
+
+// ── HABITS ────────────────────────────────────────────────────
+function _getHabits(){if(!S.habits||!S.habits.length){S.habits=[...DEFAULT_HABITS];save();}return S.habits;}
+function _habitDoneToday(hid){const t=_todayStr();return(S.habitLog||[]).some(l=>l.date===t&&l.habitId===hid&&l.done);}
+function habitStreak(hid){
+  const log=S.habitLog||[];let streak=0;
+  const d=new Date();
+  for(let i=0;i<365;i++){
+    const ds=new Date(d);ds.setDate(d.getDate()-i);const dateStr=ds.toISOString().slice(0,10);
+    if(log.some(l=>l.date===dateStr&&l.habitId===hid&&l.done))streak++;else break;
+  }
+  return streak;
+}
+function habitWeeklyRate(hid){
+  const log=S.habitLog||[];let done=0,total=0;
+  for(let i=0;i<7;i++){const d=new Date();d.setDate(d.getDate()-i);const ds=d.toISOString().slice(0,10);total++;if(log.some(l=>l.date===ds&&l.habitId===hid&&l.done))done++;}
+  return total?Math.round(done/total*100):0;
+}
+function toggleHabit(hid,dateStr){
+  if(!S.habitLog)S.habitLog=[];
+  const idx=S.habitLog.findIndex(l=>l.date===dateStr&&l.habitId===hid);
+  if(idx>=0)S.habitLog[idx].done=!S.habitLog[idx].done;
+  else S.habitLog.push({date:dateStr,habitId:hid,done:true});
+  save();renderHabits();renderHabitsDashWidget();
+}
+function renderHabits(){
+  const habits=_getHabits().filter(h=>h.active);
+  const today=_todayStr();
+  // Today card
+  const tc=document.getElementById('habits-today-card');
+  if(tc){
+    const doneCnt=habits.filter(h=>_habitDoneToday(h.id)).length;
+    tc.innerHTML=`<div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <h2 style="margin:0;">Today's Habits</h2>
+        <span style="font-size:14px;font-weight:700;color:${doneCnt===habits.length?'var(--bb)':'var(--accent)'};">${doneCnt}/${habits.length} done</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">${habits.map(h=>{
+        const done=_habitDoneToday(h.id);
+        return`<button onclick="toggleHabit('${h.id}','${today}')" style="padding:10px 16px;border-radius:22px;border:2px solid ${done?'var(--bb)':'var(--border)'};background:${done?'rgba(105,219,124,.15)':'var(--surface2)'};color:${done?'var(--bb)':'var(--text)'};font-size:13px;cursor:pointer;transition:all .2s;">${h.icon} ${h.name}${done?' ✓':''}</button>`;
+      }).join('')}</div>
+      <div style="margin-top:12px;height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+        <div style="height:100%;background:var(--bb);border-radius:3px;width:${habits.length?doneCnt/habits.length*100:0}%;transition:width .3s;"></div>
+      </div>
+    </div>`;
+  }
+  // 30-day heatmap
+  const hm=document.getElementById('habits-heatmap');
+  if(hm){
+    const days=30;const cols=days;
+    const dates=[];for(let i=days-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);dates.push(d.toISOString().slice(0,10));}
+    hm.innerHTML=`<div class="card"><h2 style="margin-bottom:14px;">📅 30-Day Heatmap</h2>
+      <div style="overflow-x:auto;">
+      <div style="display:grid;grid-template-columns:120px repeat(${cols},18px);gap:2px;align-items:center;min-width:${120+cols*20}px;">
+        <div></div>${dates.map(d=>`<div style="font-size:9px;color:var(--muted);text-align:center;writing-mode:vertical-rl;transform:rotate(180deg);height:30px;padding-bottom:2px;">${d.slice(5)}</div>`).join('')}
+        ${habits.map(h=>`
+          <div style="font-size:12px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding-right:8px;">${h.icon} ${h.name}</div>
+          ${dates.map(d=>{
+            const done=(S.habitLog||[]).some(l=>l.date===d&&l.habitId===h.id&&l.done);
+            return`<div onclick="toggleHabit('${h.id}','${d}')" title="${d}: ${done?'Done':'Not done'}" style="width:16px;height:16px;border-radius:3px;background:${done?'var(--bb)':'var(--border)'};cursor:pointer;opacity:${done?'1':'0.4'};transition:all .2s;"></div>`;
+          }).join('')}
+        `).join('')}
+      </div></div>
+    </div>`;
+  }
+  // Stats
+  const st=document.getElementById('habits-stats');
+  if(st){
+    st.innerHTML=`<div class="card"><h2 style="margin-bottom:14px;">📊 Habit Stats</h2>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${habits.map(h=>{
+          const streak=habitStreak(h.id);const rate=habitWeeklyRate(h.id);
+          return`<div style="display:flex;align-items:center;gap:10px;">
+            <span style="width:110px;font-size:12px;white-space:nowrap;">${h.icon} ${h.name}</span>
+            <div style="flex:1;height:6px;background:var(--border);border-radius:3px;overflow:hidden;"><div style="height:100%;background:var(--accent);border-radius:3px;width:${rate}%;"></div></div>
+            <span style="font-size:11px;color:var(--muted);width:40px;text-align:right;">${rate}%</span>
+            <span style="font-size:11px;color:${streak>=3?'var(--bb)':'var(--muted)'};width:50px;">${streak?'🔥'+streak+'d':'-'}</span>
+            <button class="btn bg sm" style="font-size:10px;padding:2px 6px;" onclick="openEditHabit('${h.id}')">✏️</button>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }
+}
+function renderHabitsDashWidget(){
+  const el=document.getElementById('habits-dash-widget');if(!el)return;
+  const habits=_getHabits().filter(h=>h.active);
+  const today=_todayStr();
+  const pending=habits.filter(h=>!_habitDoneToday(h.id));
+  if(!pending.length){el.innerHTML=`<div class="card" style="margin-bottom:14px;border-left:3px solid var(--bb);"><div style="font-size:13px;font-weight:700;color:var(--bb);">✅ All ${habits.length} habits done today!</div></div>`;return;}
+  el.innerHTML=`<div class="card" style="margin-bottom:14px;border-left:3px solid var(--accent);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-size:13px;font-weight:700;color:var(--accent);">✅ Habits Today</div>
+      <span style="font-size:12px;color:var(--muted);">${habits.length-pending.length}/${habits.length}</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">${pending.map(h=>`<button onclick="toggleHabit('${h.id}','${today}');renderDash();" style="padding:5px 10px;border-radius:16px;border:1px solid var(--border);background:var(--surface2);color:var(--muted);font-size:12px;cursor:pointer;">${h.icon} ${h.name}</button>`).join('')}</div>
+  </div>`;
+}
+function openAddHabit(){
+  document.getElementById('habit-modal-title').textContent='+ Add Habit';
+  document.getElementById('edit-habit-id').value='';
+  document.getElementById('habit-name-inp').value='';
+  document.getElementById('habit-icon-inp').value='';
+  document.getElementById('habit-freq-inp').value='daily';
+  document.getElementById('habit-custom-days').style.display='none';
+  document.getElementById('del-habit-btn').style.display='none';
+  document.querySelectorAll('.habit-day-cb').forEach(cb=>cb.checked=false);
+  document.getElementById('habit-modal').classList.remove('hidden');
+}
+function openEditHabit(hid){
+  const h=_getHabits().find(x=>x.id===hid);if(!h)return;
+  document.getElementById('habit-modal-title').textContent='Edit Habit';
+  document.getElementById('edit-habit-id').value=hid;
+  document.getElementById('habit-name-inp').value=h.name;
+  document.getElementById('habit-icon-inp').value=h.icon;
+  document.getElementById('habit-freq-inp').value=h.frequency;
+  document.getElementById('habit-custom-days').style.display=h.frequency==='custom'?'block':'none';
+  document.getElementById('del-habit-btn').style.display='inline-flex';
+  document.querySelectorAll('.habit-day-cb').forEach(cb=>cb.checked=(h.targetDays||[]).includes(parseInt(cb.value)));
+  document.getElementById('habit-modal').classList.remove('hidden');
+}
+function saveHabit(){
+  const name=document.getElementById('habit-name-inp').value.trim();
+  const icon=document.getElementById('habit-icon-inp').value.trim()||'✅';
+  const freq=document.getElementById('habit-freq-inp').value;
+  if(!name){alert('Enter a habit name.');return;}
+  const targetDays=freq==='daily'?[0,1,2,3,4,5,6]:freq==='weekdays'?[1,2,3,4,5]:[...document.querySelectorAll('.habit-day-cb:checked')].map(cb=>parseInt(cb.value));
+  const eid=document.getElementById('edit-habit-id').value;
+  _getHabits();
+  if(eid){
+    const idx=S.habits.findIndex(h=>h.id===eid);
+    if(idx>=0)S.habits[idx]={...S.habits[idx],name,icon,frequency:freq,targetDays};
+  }else{
+    S.habits.push({id:uid(),name,icon,frequency:freq,targetDays,active:true});
+  }
+  save();closeM('habit-modal');renderHabits();toast('Habit saved!');
+}
+function delHabit(){
+  const eid=document.getElementById('edit-habit-id').value;if(!eid)return;
+  if(!confirm('Delete this habit?'))return;
+  S.habits=S.habits.filter(h=>h.id!==eid);
+  save();closeM('habit-modal');renderHabits();toast('Habit deleted.');
+}
 
 // ── IDENTITY ──────────────────────────────────────────────────
 function renderIdentity(){
@@ -4189,8 +4725,50 @@ function _impactTotals(){
   (S.impactLog||[]).forEach(e=>{if(t[e.metric]!==undefined)t[e.metric]+=e.value;});
   return t;
 }
+function renderMissionProgress(){
+  const el=document.getElementById('mission-progress-section');if(!el)return;
+  const tot=_impactTotals();
+  const people=tot.people_impacted||0;
+  const goal=1000000;
+  const pct=Math.min(100,people/goal*100);
+  // Trajectory: avg people/month last 90 days
+  const log=S.impactLog||[];
+  const ninetyDaysAgo=new Date();ninetyDaysAgo.setDate(ninetyDaysAgo.getDate()-90);
+  const recent=log.filter(e=>e.metric==='people_impacted'&&new Date(e.date)>=ninetyDaysAgo);
+  const recentTotal=recent.reduce((s,e)=>s+e.value,0);
+  const avgPerMonth=recentTotal/3;
+  let projection='';
+  if(avgPerMonth>0){
+    const monthsLeft=(goal-people)/avgPerMonth;
+    const projDate=new Date();projDate.setMonth(projDate.getMonth()+Math.round(monthsLeft));
+    projection=`At this rate: <strong>${projDate.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</strong>`;
+  }else if(people<goal){projection='Log impact data to see your trajectory';}
+  const milestones=[100,500,1000,5000,10000,50000,100000,500000,1000000];
+  const achieved=milestones.filter(m=>people>=m);
+  const next=milestones.find(m=>people<m);
+  el.innerHTML=`<div class="card" style="margin-bottom:20px;border-left:3px solid var(--accent);">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+      <div>
+        <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">North Star Mission</div>
+        <div style="font-size:28px;font-weight:700;color:var(--accent);">${people.toLocaleString()} <span style="font-size:16px;color:var(--muted);">/ 1,000,000 people</span></div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:24px;font-weight:700;color:${pct>=10?'var(--bb)':'var(--accent)'};">${pct<0.01?'<0.01':pct.toFixed(pct<1?3:1)}%</div>
+        ${projection?`<div style="font-size:12px;color:var(--muted);">${projection}</div>`:''}
+      </div>
+    </div>
+    <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden;margin-bottom:14px;">
+      <div style="height:100%;background:linear-gradient(90deg,var(--accent),var(--bb));border-radius:4px;width:${Math.max(pct,pct>0?0.5:0)}%;transition:width .5s;"></div>
+    </div>
+    <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;">
+      ${milestones.map(m=>{const done=people>=m;const isCurrent=!done&&m===next;return`<span style="padding:3px 8px;border-radius:10px;font-size:11px;background:${done?'rgba(105,219,124,.2)':isCurrent?'rgba(88,166,255,.15)':'var(--surface2)'};color:${done?'var(--bb)':isCurrent?'var(--accent)':'var(--muted)'};border:1px solid ${done?'rgba(105,219,124,.3)':isCurrent?'rgba(88,166,255,.3)':'transparent'};">${done?'✓':isCurrent?'→':''} ${m>=1000?m/1000+'K':m}</span>`;}).join('')}
+    </div>
+    ${achieved.length?`<div style="font-size:12px;color:var(--bb);">🏆 ${achieved.length} milestone${achieved.length>1?'s':''} achieved!</div>`:''}
+  </div>`;
+}
 function renderImpact(){
   const tot=_impactTotals();
+  renderMissionProgress();
   const metrics=[
     {key:'donors_facilitated',label:'Donors Facilitated',icon:'🤝',fmt:v=>v},
     {key:'dollars_moved',label:'Dollars Moved',icon:'💰',fmt:v=>'$'+v.toLocaleString()},
@@ -4574,6 +5152,12 @@ function renderFutureSelfDashWidget(){
   if(!S.people)S.people=[];
   if(!S.learningLibrary)S.learningLibrary=[];
   if(!S.futureLetters)S.futureLetters=[];
+  if(!S.journal)S.journal=[];
+  if(S.journalStreakDays===undefined)S.journalStreakDays=0;
+  if(!S.habits)S.habits=[];
+  if(!S.habitLog)S.habitLog=[];
+  if(!S.themeDays)S.themeDays={0:{name:'Rest & Reflect',emoji:'🪞',category:'other'},1:{name:'Growth',emoji:'🚀',category:'givelink'},2:{name:'Product',emoji:'🏗️',category:'givelink'},3:{name:'Execution',emoji:'⚡',category:'automation'},4:{name:'Nonprofits',emoji:'🤝',category:'relationships'},5:{name:'Ops',emoji:'🔧',category:'finance'},6:{name:'Health',emoji:'💚',category:'health'}};
+  if(!S.weeklyReports)S.weeklyReports=[];
   calcCommitmentStreak();
   updTrashBadge();
   authInit();

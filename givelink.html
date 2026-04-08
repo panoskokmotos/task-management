@@ -193,6 +193,31 @@ select.fc option{background:var(--s2);}
 .ns-goal-row{display:flex;align-items:center;gap:7px;font-size:12px;padding:3px 0;}
 .ns-divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--muted);font-size:12px;font-weight:700;}
 .ns-divider::before,.ns-divider::after{content:'';flex:1;border-top:1px solid var(--border);}
+/* ── PRIORITY BORDERS ────────────────────────────────────────── */
+.tc2.pbi-high{border-left-width:3px;border-left-color:#ef4444;}
+.tc2.pbi-med{border-left-width:3px;border-left-color:#fbbf24;}
+.tc2.pbi-low{border-left-width:3px;border-left-color:#64748b;}
+/* ── VELOCITY CHART ──────────────────────────────────────────── */
+.vel-chart{background:var(--sf);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:18px;}
+.vel-title{font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text);}
+.vel-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
+.vel-label{font-size:11px;color:var(--muted);width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;}
+.vel-bar{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
+.vel-fill{height:100%;border-radius:4px;transition:width .4s;}
+.vel-pct{font-size:11px;font-weight:700;width:36px;text-align:right;flex-shrink:0;}
+/* ── SEARCH MODAL ────────────────────────────────────────────── */
+.srch-wrap{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:flex-start;justify-content:center;padding-top:80px;z-index:1100;backdrop-filter:blur(4px);}
+.srch-wrap.hidden{display:none;}
+.srch-box{background:var(--sf);border:1px solid var(--accent);border-radius:12px;width:560px;max-width:95vw;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+.srch-inp-wrap{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);}
+.srch-inp{flex:1;background:transparent;border:none;outline:none;font-size:15px;color:var(--text);caret-color:var(--accent);}
+.srch-inp::placeholder{color:var(--muted);}
+.srch-hint{font-size:11px;color:var(--muted);white-space:nowrap;}
+.srch-results{max-height:360px;overflow-y:auto;}
+.srch-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s;}
+.srch-item:hover{background:var(--s2);}
+.srch-item:last-child{border-bottom:none;}
+.srch-empty{padding:24px;text-align:center;color:var(--muted);font-size:12px;}
 </style>
 </head>
 <body>
@@ -228,6 +253,7 @@ select.fc option{background:var(--s2);}
   <div class="sprint-bar">
     <span class="sprint-bar-name" id="bar-name">Sprint 1</span>
     <span class="sprint-bar-dates" id="bar-dates"></span>
+    <button class="btn bg sm" onclick="openSearch()" title="Search tasks (⌘K)" style="padding:4px 8px;margin-left:8px;">🔍</button>
     <span class="sprint-bar-pct" id="bar-pct" style="display:flex;align-items:center;gap:6px;"></span>
     <button class="btn bg" onclick="openAiSprintPlanner()" style="font-size:11px;padding:4px 10px;flex-shrink:0;">🤖 AI Sprint Planner</button>
     <button class="btn bg" onclick="syncToTaskOS()" style="font-size:11px;padding:4px 10px;flex-shrink:0;">🔗 Sync to Task OS</button>
@@ -328,7 +354,18 @@ select.fc option{background:var(--s2);}
       <div class="fg"><label>Current # (optional)</label><input class="fc" id="t-current" type="number" placeholder="e.g. 5" min="0"></div>
     </div>
     <div class="fr">
-      <div class="fg"><label>Assignee</label><input class="fc" id="t-assignee" placeholder="e.g. Panos, Fanos..."></div>
+      <div class="fg"><label>Assignee</label>
+        <select class="fc" id="t-assignee">
+          <option value="">Unassigned</option>
+          <option value="Panos">Panos</option>
+          <option value="Antonis">Antonis</option>
+          <option value="Nick">Nick</option>
+          <option value="Alex">Alex</option>
+        </select>
+      </div>
+      <div class="fg"><label>Due Date (optional)</label><input class="fc" id="t-due" type="date"></div>
+    </div>
+    <div class="fr">
       <div class="fg"><label>Sprint Goal?</label><select class="fc" id="t-isgoal"><option value="false">No — regular task</option><option value="true">Yes — sprint goal</option></select></div>
     </div>
     <input type="hidden" id="t-goalid" value="">
@@ -386,6 +423,18 @@ select.fc option{background:var(--s2);}
       <button class="btn bg" id="ai-add-btn" style="display:none;" onclick="addSuggestedSprintTasks()">✅ Add Selected to Backlog</button>
       <button class="btn bp" id="ai-gen-btn" onclick="runAiSprintPlanner()">✨ Generate</button>
     </div>
+  </div>
+</div>
+
+<!-- SEARCH MODAL -->
+<div class="srch-wrap hidden" id="search-modal" onclick="if(event.target===this)closeSearch()">
+  <div class="srch-box">
+    <div class="srch-inp-wrap">
+      <span style="color:var(--muted);font-size:16px;">🔍</span>
+      <input class="srch-inp" id="srch-inp" placeholder="Search tasks…" oninput="renderSearchResults(this.value)" autocomplete="off">
+      <span class="srch-hint">Esc to close</span>
+    </div>
+    <div class="srch-results" id="srch-results"><div class="srch-empty">Start typing to search all tasks</div></div>
   </div>
 </div>
 
@@ -462,7 +511,8 @@ function renderSprintBar(){
   document.getElementById('bar-dates').textContent=fd(sp.start)+' – '+fd(sp.end);
   const pct=sprintPct();
   const done=doneCount(),total=curTasks().length;
-  document.getElementById('bar-pct').innerHTML=`<strong>${done}/${total}</strong> tasks done&nbsp;<span class="spb"><span class="spb-f" style="width:${total?Math.round(done/total*100):0}%"></span></span>`;
+  const taskPct=total?Math.round(done/total*100):0;
+  document.getElementById('bar-pct').innerHTML=`<strong style="color:${taskPct>=70?'var(--done)':taskPct>=40?'#fbbf24':'var(--text)'}">${taskPct}%</strong>&nbsp;<span style="color:var(--muted);font-size:11px;">${done}/${total} tasks</span>&nbsp;<span class="spb"><span class="spb-f" style="width:${taskPct}%"></span></span>`;
 }
 
 // ── SIDEBAR COUNTS ────────────────────────────────────────────────
@@ -485,10 +535,10 @@ function renderOverview(){
   const todo=ct.filter(t=>t.status==='todo').length;
   document.getElementById('ov-sub').textContent=`${ct.length} sprint tasks · ${blTasks().length} in backlog`;
   document.getElementById('ov-stats').innerHTML=`
-    <div class="sc2"><div class="sn2" style="color:var(--done)">${done}</div><div class="sl2">Done</div></div>
-    <div class="sc2"><div class="sn2" style="color:var(--prog)">${inprog}</div><div class="sl2">In Progress</div></div>
-    <div class="sc2"><div class="sn2" style="color:#fbbf24">${todo}</div><div class="sl2">Todo</div></div>
-    <div class="sc2"><div class="sn2" style="color:var(--block)">${blocked}</div><div class="sl2">Blocked</div></div>`;
+    <div class="sc2" style="border-top:2px solid var(--done)"><div class="sn2" style="color:var(--done)">${done}</div><div class="sl2">Done</div></div>
+    <div class="sc2" style="border-top:2px solid var(--prog)"><div class="sn2" style="color:var(--prog)">${inprog}</div><div class="sl2">In Progress</div></div>
+    <div class="sc2" style="border-top:2px solid #fbbf24"><div class="sn2" style="color:#fbbf24">${todo}</div><div class="sl2">Todo</div></div>
+    <div class="sc2" style="border-top:2px solid var(--block)"><div class="sn2" style="color:var(--block)">${blocked}</div><div class="sl2">Blocked</div></div>`;
   document.getElementById('ov-pillars').innerHTML=Object.entries(PILLARS).map(([k,p])=>{
     const tasks=ct.filter(t=>t.pillar===k);
     const d=tasks.filter(t=>t.status==='done').length;
@@ -502,10 +552,10 @@ function renderOverview(){
       </div>
       <div class="pcard-label">${p.l}</div>
       <div class="pcard-stats" style="color:${p.hex}">${d}<span style="font-size:13px;font-weight:400;color:var(--muted)">/${tasks.length}</span></div>
-      <div style="height:3px;background:var(--border);border-radius:2px;margin:6px 0 4px;">
-        <div style="height:100%;border-radius:2px;background:${p.hex};width:${pct}%;transition:width .3s;"></div>
+      <div style="height:6px;background:var(--border);border-radius:3px;margin:6px 0 4px;">
+        <div style="height:100%;border-radius:3px;background:${p.hex};width:${pct}%;transition:width .3s;"></div>
       </div>
-      <div class="pcard-sub">${pct}% complete</div>
+      <div class="pcard-sub">${pct}% · ${tasks.filter(t=>t.status==='in-progress').length} active${tasks.filter(t=>t.status==='blocked').length?` · <span style="color:var(--block)">${tasks.filter(t=>t.status==='blocked').length} blocked</span>`:''}</div>
     </div>`;
   }).join('');
   const goals=ct.filter(t=>t.isGoal);
@@ -684,7 +734,14 @@ function taskHTML(t){
   const P=PILLARS[t.pillar]||{hex:'var(--muted)',e:'',l:t.pillar||''};
   const hasProg=t.target&&t.target>0;
   const pct=hasProg?Math.min(100,Math.round((t.current||0)/t.target*100)):0;
-  return`<div class="tc2 fi ${t.status==='done'?'done-t':''}" onclick="openEdit('${t.id}')">
+  const priCls=t.priority==='high'?'pbi-high':t.priority==='low'?'pbi-low':'pbi-med';
+  const today=new Date();today.setHours(0,0,0,0);
+  const dueHTML=t.dueDate&&t.status!=='done'?(()=>{
+    const d=new Date(t.dueDate+'T00:00:00');
+    const overdue=d<today;
+    return`<span class="badge" style="color:${overdue?'#ef4444':'var(--muted)'};background:${overdue?'rgba(239,68,68,.1)':'transparent'};padding-left:0;">⏰ ${fd(t.dueDate)}${overdue?' overdue':''}</span>`;
+  })():'';
+  return`<div class="tc2 fi ${t.status==='done'?'done-t':''} ${priCls}" onclick="openEdit('${t.id}')">
     <div class="ck2 ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${t.status==='done'?'<span style="color:#fff;font-size:9px;">✓</span>':''}</div>
     <div class="tb2">
       <div class="tt2">${esc(t.title)}</div>
@@ -693,6 +750,7 @@ function taskHTML(t){
         <span class="badge ${PRI[t.priority]?.cls||'pri-med'}">${t.priority||'medium'}</span>
         ${hasProg?`<span style="font-size:11px;color:${P.hex};font-weight:600;">${t.current||0}/${t.target}</span>`:''}
         ${t.assignee?`<span style="font-size:11px;color:var(--muted);">👤 ${esc(t.assignee)}</span>`:''}
+        ${dueHTML}
       </div>
       ${hasProg?`<div style="height:3px;background:var(--border);border-radius:2px;margin-top:5px;"><div style="height:100%;border-radius:2px;background:${P.hex};width:${pct}%;transition:width .3s;"></div></div>`:''}
     </div>
@@ -714,6 +772,7 @@ function openAdd(pillar='growth',sprint='current',isGoal=false,goalId=null){
   document.getElementById('t-target').value='';
   document.getElementById('t-current').value='';
   document.getElementById('t-assignee').value='';
+  document.getElementById('t-due').value='';
   document.getElementById('t-isgoal').value=isGoal?'true':'false';
   document.getElementById('t-goalid').value=goalId||'';
   document.getElementById('del-btn').style.display='none';
@@ -733,6 +792,7 @@ function openEdit(id){
   document.getElementById('t-target').value=t.target||'';
   document.getElementById('t-current').value=t.current||'';
   document.getElementById('t-assignee').value=t.assignee||'';
+  document.getElementById('t-due').value=t.dueDate||'';
   document.getElementById('t-isgoal').value=t.isGoal?'true':'false';
   document.getElementById('t-goalid').value=t.goalId||'';
   document.getElementById('del-btn').style.display='block';
@@ -752,6 +812,7 @@ function saveTask(){
     target:parseInt(document.getElementById('t-target').value)||null,
     current:parseInt(document.getElementById('t-current').value)||0,
     assignee:document.getElementById('t-assignee').value,
+    dueDate:document.getElementById('t-due').value||null,
     isGoal:document.getElementById('t-isgoal').value==='true',
     goalId:document.getElementById('t-goalid').value||null
   };
@@ -853,7 +914,19 @@ function renderPastSprints(){
     el.innerHTML=`<div class="ph"><div><h1>📚 Past Sprints</h1><p class="sub">Your sprint history will appear here.</p></div></div><div class="empty" style="padding:44px 0;text-align:center;"><div style="font-size:42px;margin-bottom:12px;">🏁</div><div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;">No past sprints yet</div><p style="font-size:13px;color:var(--muted);">Close your current sprint to archive it and start a new one.</p><button class="btn bp" style="margin-top:14px;" onclick="openCloseSprint()">🔄 Close Current Sprint →</button></div>`;
     return;
   }
-  el.innerHTML=`<div class="ph"><div><h1>📚 Past Sprints</h1><p class="sub">${past.length} sprint${past.length!==1?'s':''} completed</p></div><button class="btn bp" onclick="openCloseSprint()">🔄 Close Sprint →</button></div>`+
+  const velChart=`<div class="vel-chart">
+    <div class="vel-title">📈 Sprint Velocity</div>
+    ${past.map(s=>{
+      const pct=s.stats.total?Math.round(s.stats.done/s.stats.total*100):0;
+      const col=pct>=70?'var(--done)':pct>=40?'#fbbf24':'var(--block)';
+      return`<div class="vel-row">
+        <div class="vel-label" title="${esc(s.name)}">${esc(s.name)}</div>
+        <div class="vel-bar"><div class="vel-fill" style="width:${pct}%;background:${col}"></div></div>
+        <div class="vel-pct" style="color:${col}">${pct}%</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+  el.innerHTML=`<div class="ph"><div><h1>📚 Past Sprints</h1><p class="sub">${past.length} sprint${past.length!==1?'s':''} completed</p></div><div class="row"><button class="btn bg" onclick="exportCSV()">📥 Export CSV</button><button class="btn bp" onclick="openCloseSprint()">🔄 Close Sprint →</button></div></div>`+velChart+
     past.map(s=>{
       const rate=s.stats.total?Math.round(s.stats.done/s.stats.total*100):0;
       const rateColor=rate>=70?'var(--done)':rate>=40?'#fbbf24':'var(--block)';
@@ -885,11 +958,64 @@ document.addEventListener('keydown',e=>{
     }
     return;
   }
-  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+  if(e.key==='Escape'){
+    document.querySelectorAll('.mo:not(.hidden)').forEach(m=>m.classList.add('hidden'));
+    editId=null;
+    closeSearch();
+    return;
+  }
+  if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openSearch();return;}
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT')return;
   if(e.key==='n')openAdd();
   if(e.key==='g')openAdd(PILLARS[curView]?curView:'growth','current',true);
-  if(e.key==='Escape'){document.querySelectorAll('.mo:not(.hidden)').forEach(m=>m.classList.add('hidden'));editId=null;}
 });
+
+// ── SEARCH ────────────────────────────────────────────────────────
+function openSearch(){
+  document.getElementById('search-modal').classList.remove('hidden');
+  const inp=document.getElementById('srch-inp');
+  inp.value='';
+  document.getElementById('srch-results').innerHTML='<div class="srch-empty">Start typing to search all tasks</div>';
+  inp.focus();
+}
+function closeSearch(){
+  document.getElementById('search-modal').classList.add('hidden');
+}
+function renderSearchResults(q){
+  const query=q.trim().toLowerCase();
+  if(!query){document.getElementById('srch-results').innerHTML='<div class="srch-empty">Start typing to search all tasks</div>';return;}
+  const results=S.tasks.filter(t=>t.title.toLowerCase().includes(query)||(t.notes||'').toLowerCase().includes(query));
+  if(!results.length){document.getElementById('srch-results').innerHTML='<div class="srch-empty">No tasks found</div>';return;}
+  document.getElementById('srch-results').innerHTML=results.slice(0,20).map(t=>{
+    const P=PILLARS[t.pillar]||{e:'',l:t.pillar};
+    const sprintLabel=t.sprint==='current'?`<span style="font-size:10px;color:var(--accent);">Sprint</span>`:`<span style="font-size:10px;color:var(--muted);">Backlog</span>`;
+    return`<div class="srch-item" onclick="openEdit('${t.id}')">
+      <span style="font-size:16px;">${P.e}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(t.title)}</div>
+        <div style="display:flex;gap:6px;align-items:center;margin-top:2px;">
+          ${sprintLabel}
+          <span class="badge ${STATUS[t.status]?.cls||'st-todo'}" style="font-size:9px;">${STATUS[t.status]?.l||'Todo'}</span>
+          <span style="font-size:10px;color:${P.hex||'var(--muted)'};">${P.l}</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── CSV EXPORT ────────────────────────────────────────────────────
+function exportCSV(){
+  const ct=curTasks();
+  const escC=v=>`"${(v||'').toString().replace(/"/g,'""')}"`;
+  const rows=[['Title','Pillar','Status','Priority','Assignee','Due Date','Is Goal','Notes']];
+  ct.forEach(t=>rows.push([escC(t.title),escC(PILLARS[t.pillar]?.l||t.pillar),escC(t.status),escC(t.priority),escC(t.assignee),escC(t.dueDate||''),escC(t.isGoal?'Yes':'No'),escC(t.notes)]));
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`givelink-${S.sprint.name.replace(/[^a-z0-9]/gi,'-').toLowerCase()}.csv`;
+  a.click();URL.revokeObjectURL(a.href);
+}
 
 // ── SEED ─────────────────────────────────────────────────────────
 function seed(){

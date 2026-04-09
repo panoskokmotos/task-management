@@ -243,6 +243,7 @@ select.fc option{background:var(--s2);}
   <div class="ni" onclick="nav('product')"><span class="pip" style="background:var(--pr)"></span>Product <span class="bcnt2" id="cnt-product"></span></div>
   <div class="ni" onclick="nav('execution')"><span class="pip" style="background:var(--ex)"></span>Execution <span class="bcnt2" id="cnt-execution"></span></div>
   <div class="ni" onclick="nav('ops')"><span class="pip" style="background:var(--op)"></span>Smooth Ops <span class="bcnt2" id="cnt-ops"></span></div>
+  <div class="ni" onclick="nav('focus')">🎯 Daily Focus</div>
   <div class="ns">More</div>
   <div class="ni" onclick="nav('backlog')">📋 Backlog <span class="bcnt2" id="cnt-backlog"></span></div>
   <div class="ni" onclick="nav('past')">📚 Past Sprints <span class="bcnt2" id="cnt-past"></span></div>
@@ -263,12 +264,18 @@ select.fc option{background:var(--s2);}
 
   <!-- OVERVIEW -->
   <div id="v-overview" class="view active">
-    <div class="ph"><div><h1>Sprint Overview 📊</h1><p class="sub" id="ov-sub"></p></div><button class="btn bp" onclick="openAdd()">+ Add Task</button></div>
+    <div class="ph"><div><h1>Sprint Overview 📊</h1><p class="sub" id="ov-sub"></p></div><div class="row"><button class="btn bg sm" onclick="nav('focus')" title="Daily Focus (T)">🎯 Focus</button><button class="btn bg sm" onclick="openWinInput()" title="Log a win">🏆 Win</button><button class="btn bp" onclick="openAdd()">+ Add Task</button></div></div>
+    <div id="ov-velocity"></div>
     <div class="stats2" id="ov-stats"></div>
+    <div id="ov-blocked"></div>
     <div class="pcards" id="ov-pillars"></div>
     <hr>
-    <h2>🎯 Sprint Goals</h2>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <h2 style="margin:0;">🎯 Sprint Goals</h2>
+      <span style="font-size:12px;color:var(--muted);" id="ov-goals-count"></span>
+    </div>
     <div id="ov-goals"></div>
+    <div id="ov-wins" style="margin-top:8px;"></div>
   </div>
 
   <!-- PILLAR VIEWS (generated) -->
@@ -295,6 +302,25 @@ select.fc option{background:var(--s2);}
     <div id="backlog-list"></div>
   </div>
 
+  <!-- FOCUS VIEW -->
+  <div id="v-focus" class="view">
+    <div class="ph">
+      <div><h1>🎯 Daily Focus</h1><p class="sub" id="focus-sub">Pin your 3 most important tasks for today</p></div>
+      <button class="btn bg sm" onclick="nav('overview')">← Overview</button>
+    </div>
+    <div id="focus-win-row" style="background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(16,185,129,.06));border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
+      <span style="font-size:16px;">🏆</span>
+      <input class="fc" id="focus-win-inp" placeholder="What's your win for today? (press Enter to log)" style="background:transparent;border:none;flex:1;padding:0;font-size:13px;" onkeydown="if(event.key==='Enter'){logWin();event.preventDefault();}">
+      <button class="btn bg sm" onclick="logWin()">Log Win</button>
+    </div>
+    <h3 style="margin-bottom:10px;font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;">📌 Today's Focus (max 3)</h3>
+    <div id="focus-pinned" style="margin-bottom:18px;"></div>
+    <h3 style="margin-bottom:10px;font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;">🔴 Suggested — High Priority Active Tasks</h3>
+    <div id="focus-suggestions"></div>
+    <h3 style="margin-bottom:10px;margin-top:18px;font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;">🏆 Recent Wins</h3>
+    <div id="focus-wins-list"></div>
+  </div>
+
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -306,8 +332,29 @@ select.fc option{background:var(--s2);}
   <button class="bni" data-v="growth" onclick="nav('growth')"><span class="bni-ic">🚀</span>Growth</button>
   <button class="bni" data-v="product" onclick="nav('product')"><span class="bni-ic">🏗️</span>Product</button>
   <button class="bni" data-v="execution" onclick="nav('execution')"><span class="bni-ic">⚡</span>Execute</button>
+  <button class="bni" data-v="focus" onclick="nav('focus')"><span class="bni-ic">🎯</span>Focus</button>
   <button class="bni" data-v="backlog" onclick="nav('backlog')"><span class="bni-ic">📋</span>Backlog</button>
 </nav>
+
+<!-- GOAL METRIC MODAL -->
+<div class="mo hidden" id="goal-metric-modal">
+  <div class="md" style="max-width:420px;">
+    <div class="mh"><h3 id="gm-goal-title">📊 Goal Metric</h3><button class="mc" onclick="closeM('goal-metric-modal')">×</button></div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Set one measurable metric and log weekly progress. The system will flag trends automatically.</p>
+    <div class="fr">
+      <div class="fg"><label>Metric Name</label><input class="fc" id="gm-name" placeholder="e.g. Nonprofits contacted"></div>
+      <div class="fg"><label>Unit</label><input class="fc" id="gm-unit" placeholder="e.g. orgs, %, €"></div>
+    </div>
+    <div class="fg"><label>Target</label><input class="fc" id="gm-target" type="number" step="any" placeholder="e.g. 20"></div>
+    <hr>
+    <div class="fg"><label>Log This Week's Value</label><input class="fc" id="gm-value" type="number" step="any" placeholder="e.g. 7"></div>
+    <div id="gm-history" style="margin-top:8px;font-size:12px;color:var(--muted);max-height:100px;overflow-y:auto;"></div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('goal-metric-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveGoalMetric()">Save</button>
+    </div>
+  </div>
+</div>
 
 <!-- ADD/EDIT TASK MODAL -->
 <div class="mo hidden" id="tm">
@@ -459,7 +506,10 @@ let S={
   sprint:{name:'Sprint 1 — US Growth Push',start:'2026-03-28',end:'2026-04-11'},
   tasks:[],
   blFilter:'all',
-  pastSprints:[]
+  pastSprints:[],
+  wins:[],
+  focusTasks:[],
+  outreach:[]
 };
 let editId=null;
 
@@ -495,6 +545,7 @@ function nav(v){
 }
 function renderView(v){
   if(v==='overview')renderOverview();
+  else if(v==='focus')renderFocus();
   else if(PILLARS[v])renderPillar(v);
   else if(v==='backlog')renderBacklog();
   else if(v==='past')renderPastSprints();
@@ -559,7 +610,65 @@ function renderOverview(){
     </div>`;
   }).join('');
   const goals=ct.filter(t=>t.isGoal);
+  const goalsAchieved=goals.filter(t=>t.status==='done').length;
+  // Sprint velocity — tasks completed per day
+  const sprintStart=new Date(S.sprint.start);
+  const today=new Date();
+  const daysElapsed=Math.max(1,Math.ceil((today-sprintStart)/(1000*60*60*24)));
+  const sprintTotalDays=Math.max(1,Math.ceil((new Date(S.sprint.end)-sprintStart)/(1000*60*60*24)));
+  const projectedPct=ct.length?Math.min(100,Math.round((done/daysElapsed)*sprintTotalDays/ct.length*100)):0;
+  const velocityColor=projectedPct>=70?'#22c55e':projectedPct>=40?'#fbbf24':'#ef4444';
+  // Velocity sparkline — done per day for last 14 days
+  const doneDates={};
+  ct.filter(t=>t.status==='done'&&t.completedAt).forEach(t=>{const d=t.completedAt.slice(0,10);doneDates[d]=(doneDates[d]||0)+1;});
+  const sparkDays=7;
+  let sparkHTML='';
+  for(let i=sparkDays-1;i>=0;i--){
+    const d=new Date(today);d.setDate(d.getDate()-i);
+    const k=d.toISOString().slice(0,10);
+    const cnt=doneDates[k]||0;
+    const h=Math.min(20,cnt*5+2);
+    sparkHTML+=`<div style="width:10px;height:${h}px;background:${cnt>0?'#22c55e':'var(--border)'};border-radius:2px;flex-shrink:0;" title="${k}: ${cnt} done"></div>`;
+  }
+  // Blocked tasks
+  const blockedTasks=ct.filter(t=>t.status==='blocked'&&!t.isGoal);
+  const blockedHTML=blockedTasks.length?`<div id="blocked-escalation" style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:12px 14px;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="toggleBlockedPanel()">
+      <span style="font-size:13px;font-weight:700;color:#ef4444;">🚧 ${blockedTasks.length} Blocked Task${blockedTasks.length!==1?'s':''}</span>
+      <span id="blocked-toggle-icon" style="font-size:11px;color:var(--muted);">▼ expand</span>
+    </div>
+    <div id="blocked-panel" style="display:none;margin-top:10px;">${blockedTasks.map(t=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid rgba(239,68,68,.15);">
+      <span style="font-size:11px;flex:1;">${esc(t.title)}</span>
+      <span style="font-size:10px;color:var(--muted);">${PILLARS[t.pillar]?.e||''}</span>
+      <button class="btn bg sm" style="font-size:10px;padding:2px 6px;" onclick="unblockTask('${t.id}')">Unblock</button>
+    </div>`).join('')}</div>
+  </div>`:'';
+  // Sprint velocity bar
+  const velHTML=`<div style="background:var(--sf);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:160px;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600;">SPRINT VELOCITY</div>
+      <div style="display:flex;align-items:flex-end;gap:3px;height:22px;">${sparkHTML}</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:22px;font-weight:800;color:${velocityColor};">${projectedPct}%</div>
+      <div style="font-size:10px;color:var(--muted);">projected completion</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:18px;font-weight:800;color:var(--accent);">${goalsAchieved}/${goals.length}</div>
+      <div style="font-size:10px;color:var(--muted);">goals achieved</div>
+    </div>
+    <div style="text-align:center;">
+      <div style="font-size:18px;font-weight:800;color:var(--text);">${daysLeft()}</div>
+      <div style="font-size:10px;color:var(--muted);">days left</div>
+    </div>
+  </div>`;
+  document.getElementById('ov-velocity').innerHTML=velHTML;
+  document.getElementById('ov-blocked').innerHTML=blockedHTML;
   document.getElementById('ov-goals').innerHTML=goals.length?goals.map(t=>goalHTML(t)).join(''):'<div class="empty">No sprint goals yet. Add one!</div>';
+  // Recent wins
+  const recentWins=(S.wins||[]).slice(-3).reverse();
+  document.getElementById('ov-wins').innerHTML=recentWins.length?recentWins.map(w=>`<div style="font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;"><span style="color:#fbbf24;">🏆</span><span style="flex:1;">${esc(w.text)}</span><span style="font-size:10px;color:var(--muted);">${w.date}</span></div>`).join(''):'<div style="font-size:12px;color:var(--muted);">No wins logged yet. Click 🏆 to add one!</div>';
+  _updateGoalsCount();
 }
 
 // ── PILLAR VIEW ───────────────────────────────────────────────────
@@ -702,6 +811,7 @@ function goalHTML(t){
           <span class="badge ${STATUS[t.status]?.cls||'st-todo'}" style="margin-left:auto;">${STATUS[t.status]?.l||'Todo'}</span>
           <button class="btn bg sm" style="font-size:10px;padding:2px 8px;" onclick="event.stopPropagation();openAdd('${t.pillar}','current',false,'${t.id}')">⊕ Task</button>
           <button class="btn bg sm" style="font-size:10px;padding:2px 8px;" onclick="event.stopPropagation();aiGoalBreakdown('${t.id}')">🤖</button>
+          <button class="btn bg sm" style="font-size:10px;padding:2px 8px;" onclick="event.stopPropagation();openGoalMetric('${t.id}')">${_goalMetricBadge(t)}</button>
         </div>
         <div class="gc2-title">${esc(t.title)}</div>
         ${t.notes?`<div style="font-size:11px;color:var(--muted);margin-top:4px;">${esc(t.notes)}</div>`:''}
@@ -725,6 +835,7 @@ function goalHTML(t){
       </div>
     </div>`:`<div style="font-size:11px;color:var(--muted);margin-top:6px;">⊕ Add tasks to track progress</div>`}
     ${t.assignee?`<div style="font-size:11px;color:var(--muted);margin-top:6px;">👤 ${esc(t.assignee)}</div>`:''}
+    ${_goalMetricRow(t)}
     <div id="ai-breakdown-${t.id}" style="display:none;margin-top:8px;"></div>
   </div>`;
 }
@@ -968,6 +1079,7 @@ document.addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT')return;
   if(e.key==='n')openAdd();
   if(e.key==='g')openAdd(PILLARS[curView]?curView:'growth','current',true);
+  if(e.key==='t')nav('focus');
 });
 
 // ── SEARCH ────────────────────────────────────────────────────────
@@ -1248,17 +1360,25 @@ async function runAiSprintPlanner(){
     return `${PILLARS[k].l}: ${d}/${tasks.length} done`;
   }).join(', ');
   const blSample=bl.slice(0,40).map(t=>`[${t.pillar}] ${t.title}`).join('\n');
+  const stalledGoals=ct.filter(t=>t.isGoal&&t.status!=='done').filter(g=>!ct.some(t=>t.goalId===g.id&&!t.isGoal));
+  const blockedTasks=ct.filter(t=>t.status==='blocked'&&!t.isGoal);
+  const stalledStr=stalledGoals.length?`\nStalled goals (no linked tasks yet):\n${stalledGoals.map(g=>`- ${g.title} [${g.pillar}]`).join('\n')}`:'';
+  const blockedStr=blockedTasks.length?`\nBlocked tasks needing unblocking:\n${blockedTasks.map(t=>`- ${t.title} [${t.pillar}]`).join('\n')}`:'';
 
   const prompt=`You are a sprint planning assistant for Givelink, a platform connecting donors to nonprofits.
 
 Current sprint: "${S.sprint.name}" (${S.sprint.start} to ${S.sprint.end})
 Sprint completion: ${done}/${ct.length} tasks done
-Pillar breakdown: ${pillarStats}
+Pillar breakdown: ${pillarStats}${stalledStr}${blockedStr}
 
 Backlog tasks (top ${Math.min(bl.length,40)} of ${bl.length}):
 ${blSample}
 
-Based on the current sprint completion and backlog, suggest exactly 10 high-impact tasks for the next sprint, balanced across pillars (growth, nonprofits, product, execution, ops). For each task, provide:
+Based on the data above, suggest exactly 10 high-impact tasks for the next sprint. PRIORITIZE tasks that:
+1. Are linked to in-progress goals with 0 linked tasks (those goals are stalled)
+2. Unblock blocked tasks
+3. Move the lowest-completion pillars forward
+Balance across pillars (growth, nonprofits, product, execution, ops). For each task, provide:
 - A clear, actionable title (max 80 chars)
 - The pillar it belongs to (one of: growth, nonprofits, product, execution, ops)
 - Priority (high, medium, or low)
@@ -1479,6 +1599,173 @@ function syncToTaskOS(){
 function toggleSB(){
   document.querySelector('.sb').classList.toggle('open');
   document.getElementById('sb-ov').classList.toggle('open');
+}
+
+// ── GOAL METRIC PULSE ────────────────────────────────────────────
+let _gmGoalId=null;
+function _goalMetricBadge(t){
+  const m=t.metric;
+  if(!m||!m.name)return'📊';
+  const entries=m.entries||[];
+  if(entries.length<2)return'📊 '+esc(m.name);
+  const last=entries[entries.length-1].value;
+  const prev=entries[entries.length-2].value;
+  const tgt=m.target||0;
+  let arrow='→';
+  if(tgt>0){
+    const lastDist=Math.abs(tgt-last),prevDist=Math.abs(tgt-prev);
+    if(lastDist<prevDist)arrow='↑';
+    else if(lastDist>prevDist)arrow='↓';
+  } else {
+    if(last>prev)arrow='↑';
+    else if(last<prev)arrow='↓';
+  }
+  const color=arrow==='↑'?'color:#22c55e':arrow==='↓'?'color:#ef4444':'color:#fbbf24';
+  return`📊 <span style="${color};font-weight:700;">${arrow}</span>`;
+}
+function _goalMetricRow(t){
+  const m=t.metric;
+  if(!m||!m.name)return'';
+  const entries=m.entries||[];
+  const latest=entries.length?entries[entries.length-1].value:null;
+  const tgt=m.target;
+  const pct=tgt&&latest!=null?Math.min(100,Math.round(latest/tgt*100)):null;
+  const P=PILLARS[t.pillar]||{hex:'var(--accent)'};
+  if(latest==null)return`<div style="font-size:11px;color:var(--muted);margin-top:6px;">📊 ${esc(m.name)} — no data yet</div>`;
+  return`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+      <span style="font-size:11px;font-weight:700;">📊 ${esc(m.name)}</span>
+      <span style="font-size:11px;color:var(--muted);">${latest}${m.unit?' '+m.unit:''}${tgt?' / '+tgt+(m.unit?' '+m.unit:''):''}</span>
+    </div>
+    ${pct!=null?`<div style="height:4px;background:var(--border);border-radius:2px;"><div style="height:100%;border-radius:2px;background:${P.hex};width:${pct}%;transition:width .3s;"></div></div>`:''}
+  </div>`;
+}
+function openGoalMetric(id){
+  const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  _gmGoalId=id;
+  const m=t.metric||{};
+  document.getElementById('gm-goal-title').textContent='📊 '+t.title;
+  document.getElementById('gm-name').value=m.name||'';
+  document.getElementById('gm-unit').value=m.unit||'';
+  document.getElementById('gm-target').value=m.target||'';
+  document.getElementById('gm-value').value='';
+  const entries=m.entries||[];
+  document.getElementById('gm-history').innerHTML=entries.length?
+    '<div style="font-weight:600;margin-bottom:4px;">History:</div>'+
+    entries.slice(-5).reverse().map(e=>`<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>${e.date}</span><span style="font-weight:600;">${e.value}${m.unit?' '+m.unit:''}</span></div>`).join('')
+    :'No entries yet.';
+  document.getElementById('goal-metric-modal').classList.remove('hidden');
+}
+function saveGoalMetric(){
+  const t=S.tasks.find(x=>x.id===_gmGoalId);if(!t)return;
+  const name=document.getElementById('gm-name').value.trim();
+  const unit=document.getElementById('gm-unit').value.trim();
+  const target=parseFloat(document.getElementById('gm-target').value)||null;
+  const val=document.getElementById('gm-value').value;
+  if(!name){toast('Enter a metric name.');return;}
+  if(!t.metric)t.metric={name,unit,target,entries:[]};
+  t.metric.name=name;t.metric.unit=unit;t.metric.target=target;
+  if(val!==''){
+    const today=new Date().toISOString().slice(0,10);
+    // Replace today's entry if exists, else push
+    const idx=t.metric.entries.findIndex(e=>e.date===today);
+    if(idx>=0)t.metric.entries[idx].value=parseFloat(val);
+    else t.metric.entries.push({date:today,value:parseFloat(val)});
+  }
+  save();closeM('goal-metric-modal');refresh();
+  toast('Metric saved ✅');
+}
+
+// ── DAILY FOCUS ────────────────────────────────────────────────
+function renderFocus(){
+  if(!S.focusTasks)S.focusTasks=[];
+  const pinned=S.focusTasks.map(id=>S.tasks.find(t=>t.id===id)).filter(Boolean);
+  const suggestions=curTasks().filter(t=>
+    !t.isGoal&&t.status!=='done'&&t.priority==='high'&&!S.focusTasks.includes(t.id)
+  ).slice(0,8);
+  const today=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  document.getElementById('focus-sub').textContent=today+' · '+pinned.length+'/3 tasks pinned';
+  document.getElementById('focus-pinned').innerHTML=pinned.length?
+    pinned.map(t=>_focusTaskHTML(t,true)).join('')+
+    '<div style="font-size:11px;color:var(--muted);margin-top:6px;">Click ✕ to unpin. Click task to edit.</div>'
+    :'<div class="empty" style="padding:16px;">No tasks pinned yet — pin from suggestions below or from any pillar view.</div>';
+  document.getElementById('focus-suggestions').innerHTML=suggestions.length?
+    suggestions.map(t=>_focusTaskHTML(t,false)).join('')
+    :'<div class="empty" style="padding:16px;">No high-priority active tasks found.</div>';
+  // Wins
+  const wins=(S.wins||[]).slice(-5).reverse();
+  document.getElementById('focus-wins-list').innerHTML=wins.length?
+    wins.map(w=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:#fbbf24;">🏆</span><span style="flex:1;font-size:12px;">${esc(w.text)}</span><span style="font-size:10px;color:var(--muted);">${w.date}</span></div>`).join('')
+    :'<div class="empty" style="padding:12px;">Log your first win above!</div>';
+}
+function _focusTaskHTML(t,pinned){
+  const P=PILLARS[t.pillar]||{hex:'var(--muted)',e:''};
+  const priColor=t.priority==='high'?'#ef4444':t.priority==='low'?'#64748b':'#fbbf24';
+  return`<div class="tc2" style="border-left:3px solid ${priColor};margin-bottom:6px;">
+    <div class="ck2 ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')"></div>
+    <div class="tb2" style="cursor:pointer;" onclick="openEdit('${t.id}')">
+      <div class="tt2 ${t.status==='done'?'done-t':''}">${esc(t.title)}</div>
+      <div class="tm2"><span style="font-size:10px;color:${P.hex};">${P.e} ${P.l}</span></div>
+    </div>
+    ${pinned
+      ?`<button style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 4px;" onclick="unpinFocus('${t.id}')" title="Unpin">✕</button>`
+      :`<button class="btn bg sm" style="font-size:10px;padding:2px 6px;" onclick="pinFocus('${t.id}')" ${S.focusTasks?.length>=3?'disabled title="Max 3"':''}>Pin</button>`
+    }
+  </div>`;
+}
+function pinFocus(id){
+  if(!S.focusTasks)S.focusTasks=[];
+  if(S.focusTasks.length>=3){toast('Max 3 focus tasks.');return;}
+  if(!S.focusTasks.includes(id))S.focusTasks.push(id);
+  save();if(curView==='focus')renderFocus();
+  toast('Pinned to Focus ✅');
+}
+function unpinFocus(id){
+  if(!S.focusTasks)return;
+  S.focusTasks=S.focusTasks.filter(x=>x!==id);
+  save();if(curView==='focus')renderFocus();
+}
+
+// ── WIN LOG ────────────────────────────────────────────────────
+function logWin(){
+  const inp=document.getElementById('focus-win-inp');
+  const text=(inp?.value||'').trim();
+  if(!text){toast('Type your win first!');return;}
+  if(!S.wins)S.wins=[];
+  S.wins.push({date:new Date().toISOString().slice(0,10),text});
+  inp.value='';
+  save();
+  if(curView==='focus')renderFocus();
+  if(curView==='overview')refresh();
+  toast('🏆 Win logged!');
+}
+function openWinInput(){
+  nav('focus');
+  setTimeout(()=>{const i=document.getElementById('focus-win-inp');if(i){i.focus();}},100);
+}
+
+// ── BLOCKED HELPERS ────────────────────────────────────────────
+function toggleBlockedPanel(){
+  const p=document.getElementById('blocked-panel');
+  const ic=document.getElementById('blocked-toggle-icon');
+  if(!p)return;
+  const hidden=p.style.display==='none';
+  p.style.display=hidden?'block':'none';
+  if(ic)ic.textContent=hidden?'▲ collapse':'▼ expand';
+}
+function unblockTask(id){
+  const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  t.status='in-progress';
+  save();refresh();toast('Task unblocked → In Progress');
+}
+
+// ── OVERVIEW GOALS COUNT ────────────────────────────────────────
+function _updateGoalsCount(){
+  const el=document.getElementById('ov-goals-count');
+  if(!el)return;
+  const goals=curTasks().filter(t=>t.isGoal);
+  const done=goals.filter(t=>t.status==='done').length;
+  el.textContent=goals.length?done+'/'+goals.length+' goals achieved':'';
 }
 
 // ── INIT ─────────────────────────────────────────────────────────

@@ -214,6 +214,37 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   .bni.active{color:var(--accent);}
   .bni-ic{font-size:18px;line-height:1.2;}
 }
+
+/* ── LIFE OS ─────────────────────────────────────────────────── */
+.los-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
+.los-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;}
+.los-card h3{font-size:13px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
+.los-stat{text-align:center;padding:10px;}
+.los-stat-n{font-size:28px;font-weight:700;}
+.los-stat-l{font-size:11px;color:var(--muted);margin-top:2px;}
+.heat-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:8px;}
+.heat-cell{width:100%;aspect-ratio:1;border-radius:3px;background:var(--surface2);}
+.heat-cell.h1{background:rgba(105,219,124,.2);}
+.heat-cell.h2{background:rgba(105,219,124,.5);}
+.heat-cell.h3{background:rgba(105,219,124,.8);}
+.heat-cell.h4{background:#69db7c;}
+.prog-bar{height:8px;background:var(--surface2);border-radius:4px;margin:6px 0;}
+.prog-fill{height:100%;border-radius:4px;background:var(--accent);transition:width .4s;}
+.dw-timer{font-size:56px;font-weight:700;text-align:center;letter-spacing:2px;margin:16px 0;font-variant-numeric:tabular-nums;}
+.dw-ctrl{display:flex;justify-content:center;gap:10px;margin-bottom:16px;}
+.habit-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--border);}
+.habit-ck{width:22px;height:22px;border:2px solid var(--border);border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;flex-shrink:0;}
+.habit-ck.on{background:var(--bb);border-color:var(--bb);}
+.dis-row{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 13px;margin-bottom:6px;}
+.auto-row{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 13px;margin-bottom:6px;display:flex;align-items:center;gap:10px;}
+.auto-status{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:600;}
+.as-idea{background:rgba(134,142,150,.15);color:var(--muted);}
+.as-built{background:rgba(251,191,36,.15);color:#fbbf24;}
+.as-running{background:rgba(105,219,124,.15);color:#69db7c;}
+.rel-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;margin-bottom:7px;display:flex;align-items:flex-start;gap:10px;}
+.rel-avatar{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#000;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.fin-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
+
 </style>
 </head>
 <body>
@@ -243,6 +274,14 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div class="ni" onclick="nav('review')">📅 Weekly Review</div>
   <div class="ni" onclick="nav('focus')">🧠 Focus Now</div>
   <div class="ni" onclick="nav('history')">📚 Review History</div>
+  <div class="ns">Life OS</div>
+  <div class="ni" onclick="nav('health')">💪 Health</div>
+  <div class="ni" onclick="nav('finance')">💰 Finance</div>
+  <div class="ni" onclick="nav('ailab')">🤖 AI Lab</div>
+  <div class="ni" onclick="nav('relationships')">🤝 Relationships</div>
+  <div class="ni" onclick="nav('deepwork')">🧠 Deep Work</div>
+  <div class="ni" onclick="nav('habits')">✅ Habits</div>
+  <div class="ni" onclick="nav('discomfort')">🔥 Discomfort</div>
   <div style="margin-top:auto;padding:10px 6px 4px;border-top:1px solid var(--border);">
     <div class="ni" onclick="openSettings()" style="margin:0;">⚙️ Settings</div>
   </div>
@@ -532,6 +571,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
       <label>Your Name (used in greeting)</label>
       <input class="fc" id="set-name" placeholder="e.g. Panos">
     </div>
+    <div class="fg"><label>Claude API Key (for AI features)</label><input class="fc" id="set-claude-key" type="password" placeholder="sk-ant-api03-..."></div>
     <hr>
     <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Switch workspace at any time from the sidebar or with <kbd style="background:var(--surface2);padding:2px 6px;border-radius:3px;font-size:11px;">⌘2</kbd></p>
     <div class="mf">
@@ -542,6 +582,341 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   </div>
 </div>
 
+
+<!-- HEALTH DASHBOARD -->
+<div id="v-health" class="view">
+  <div class="ph">
+    <div><h1>💪 Health Dashboard</h1><p class="sub">Track body, sleep & workouts toward your goals</p></div>
+    <div class="row">
+      <button class="btn bp" onclick="openAddHealth()">+ Log Entry</button>
+    </div>
+  </div>
+  <div class="los-grid" id="health-stats"></div>
+  <div class="g2">
+    <div class="los-card">
+      <h3>📅 Workout Calendar (last 28 days)</h3>
+      <div class="heat-grid" id="workout-heat"></div>
+    </div>
+    <div class="los-card">
+      <h3>😴 Sleep Score Trend</h3>
+      <div id="sleep-trend" style="font-size:12px;color:var(--muted);">Log sleep scores to see trend</div>
+    </div>
+  </div>
+  <div style="margin-top:16px;">
+    <div class="ph" style="margin-bottom:10px;"><h2 style="margin:0">📋 Log Entries</h2></div>
+    <div id="health-list"></div>
+  </div>
+</div>
+
+<!-- FINANCE DASHBOARD -->
+<div id="v-finance" class="view">
+  <div class="ph">
+    <div><h1>💰 Finance Dashboard</h1><p class="sub">Track income, investments & passive income toward financial freedom</p></div>
+    <div class="row">
+      <button class="btn bg sm" onclick="openAddInvestment()">+ Investment</button>
+      <button class="btn bp" onclick="openAddFinance()">+ Entry</button>
+    </div>
+  </div>
+  <div class="los-grid" id="finance-stats"></div>
+  <div class="g2">
+    <div class="los-card">
+      <h3>💸 Income Entries</h3>
+      <div id="income-list"></div>
+    </div>
+    <div class="los-card">
+      <h3>📈 Investments</h3>
+      <div id="investment-list"></div>
+    </div>
+  </div>
+</div>
+
+<!-- AI LAB -->
+<div id="v-ailab" class="view">
+  <div class="ph">
+    <div><h1>🤖 AI Automation Library</h1><p class="sub" id="ailab-sub">Track progress toward 100 automations</p></div>
+    <div class="row">
+      <button class="btn bg sm" onclick="aiSuggestAutomations()">✨ Suggest More</button>
+      <button class="btn bp" onclick="openAddAutomation()">+ Add</button>
+    </div>
+  </div>
+  <div style="margin-bottom:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <span id="ailab-prog-label" style="font-size:13px;font-weight:600;"></span>
+      <span id="ailab-prog-pct" style="font-size:12px;color:var(--muted);"></span>
+    </div>
+    <div class="prog-bar"><div class="prog-fill" id="ailab-prog-fill" style="width:0%;background:#22d3ee;"></div></div>
+  </div>
+  <div class="fb" id="ailab-filters">
+    <button class="fp active" onclick="setAilabF('all',this)">All</button>
+    <button class="fp" onclick="setAilabF('idea',this)">💡 Ideas</button>
+    <button class="fp" onclick="setAilabF('built',this)">🔨 Built</button>
+    <button class="fp" onclick="setAilabF('running',this)">▶️ Running</button>
+    <button class="fp" onclick="setAilabF('personal',this)">🙋 Personal</button>
+    <button class="fp" onclick="setAilabF('givelink',this)">🟣 Givelink</button>
+    <button class="fp" onclick="setAilabF('content',this)">📝 Content</button>
+  </div>
+  <div id="ailab-list"></div>
+</div>
+
+<!-- RELATIONSHIPS -->
+<div id="v-relationships" class="view">
+  <div class="ph">
+    <div><h1>🤝 Relationship CRM</h1><p class="sub">Stay connected with the people who matter</p></div>
+    <div class="row">
+      <button class="btn bg sm" onclick="aiRelNudge()">🤖 Who to reach out?</button>
+      <button class="btn bp" onclick="openAddPerson()">+ Add Person</button>
+    </div>
+  </div>
+  <div class="fb">
+    <button class="fp active" onclick="setRelF('all',this)">All</button>
+    <button class="fp" onclick="setRelF('overdue',this)">🔴 Overdue</button>
+    <button class="fp" onclick="setRelF('top',this)">⭐ Top</button>
+    <button class="fp" onclick="setRelF('friend',this)">👥 Friends</button>
+    <button class="fp" onclick="setRelF('mentor',this)">🎓 Mentors</button>
+    <button class="fp" onclick="setRelF('investor',this)">💼 Investors</button>
+    <button class="fp" onclick="setRelF('collaborator',this)">🤝 Collaborators</button>
+  </div>
+  <div id="rel-list"></div>
+</div>
+
+<!-- DEEP WORK TIMER -->
+<div id="v-deepwork" class="view">
+  <div class="ph">
+    <div><h1>🧠 Deep Work Timer</h1><p class="sub">Focus sessions • measure what matters</p></div>
+  </div>
+  <div style="max-width:440px;margin:0 auto;">
+    <div class="los-card" style="text-align:center;margin-bottom:16px;">
+      <div class="dw-timer" id="dw-time">25:00</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;" id="dw-label">Ready to focus</div>
+      <div class="dw-ctrl">
+        <button class="btn bg sm" onclick="dwSetDuration(25)">25m</button>
+        <button class="btn bg sm" onclick="dwSetDuration(50)">50m</button>
+        <button class="btn bg sm" onclick="dwSetDuration(90)">90m</button>
+      </div>
+      <div style="margin-bottom:12px;">
+        <input class="fc" id="dw-task-label" placeholder="What are you working on?" style="text-align:center;">
+      </div>
+      <div style="display:flex;gap:8px;justify-content:center;">
+        <button class="btn bp" id="dw-btn" onclick="dwToggle()">▶ Start</button>
+        <button class="btn bg" onclick="dwReset()">↺ Reset</button>
+      </div>
+    </div>
+    <div class="los-grid" id="dw-stats"></div>
+  </div>
+  <div style="margin-top:16px;">
+    <h2>📋 Session Log</h2>
+    <div id="dw-log"></div>
+  </div>
+</div>
+
+<!-- HABITS -->
+<div id="v-habits" class="view">
+  <div class="ph">
+    <div><h1>✅ Habit Tracker</h1><p class="sub" id="habits-date"></p></div>
+    <div class="row">
+      <button class="btn bg sm" onclick="openHabitSettings()">⚙️ Manage Habits</button>
+    </div>
+  </div>
+  <div class="los-grid" id="habits-stats"></div>
+  <div class="los-card" style="margin-bottom:16px;" id="habits-checklist"></div>
+  <div>
+    <h2 style="margin-bottom:10px;">📅 Last 28 Days</h2>
+    <div id="habits-heat"></div>
+  </div>
+</div>
+
+<!-- DISCOMFORT LOG -->
+<div id="v-discomfort" class="view">
+  <div class="ph">
+    <div><h1>🔥 Voluntary Discomfort</h1><p class="sub">Intentional challenges that build resilience</p></div>
+    <div class="row">
+      <button class="btn bp" onclick="openAddDiscomfort()">+ Log Challenge</button>
+    </div>
+  </div>
+  <div class="los-grid" id="dis-stats"></div>
+  <div id="dis-list"></div>
+</div>
+
+<!-- HEALTH MODAL -->
+<div class="mo hidden" id="health-modal">
+  <div class="md" style="width:440px;">
+    <div class="mh"><h3 id="health-modal-title">📋 Log Health Entry</h3><button class="mc" onclick="closeM('health-modal')">×</button></div>
+    <div class="fg"><label>Date</label><input class="fc" id="h-date" type="date"></div>
+    <div class="fr">
+      <div class="fg"><label>Type</label>
+        <select class="fc" id="h-type">
+          <option value="workout">🏋️ Workout</option>
+          <option value="sleep">😴 Sleep Score</option>
+          <option value="bodyfat">📏 Body Fat %</option>
+          <option value="weight">⚖️ Weight (kg)</option>
+        </select>
+      </div>
+      <div class="fg"><label>Value</label><input class="fc" id="h-value" type="number" step="0.1" placeholder="e.g. 85"></div>
+    </div>
+    <div class="fg"><label>Notes (optional)</label><input class="fc" id="h-notes" placeholder="e.g. Chest day, felt strong"></div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('health-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveHealthLog()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- FINANCE MODAL -->
+<div class="mo hidden" id="finance-modal">
+  <div class="md" style="width:440px;">
+    <div class="mh"><h3 id="finance-modal-title">💰 Log Finance Entry</h3><button class="mc" onclick="closeM('finance-modal')">×</button></div>
+    <div class="fg"><label>Date</label><input class="fc" id="f-date" type="date"></div>
+    <div class="fr">
+      <div class="fg"><label>Type</label>
+        <select class="fc" id="f-type">
+          <option value="income">💸 Income</option>
+          <option value="passive">📈 Passive Income</option>
+          <option value="expense">💳 Expense</option>
+        </select>
+      </div>
+      <div class="fg"><label>Amount (€)</label><input class="fc" id="f-amount" type="number" step="0.01" placeholder="0.00"></div>
+    </div>
+    <div class="fg"><label>Description</label><input class="fc" id="f-desc" placeholder="e.g. Givelink subscription, Consulting"></div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('finance-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveFinanceEntry()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- INVESTMENT MODAL -->
+<div class="mo hidden" id="invest-modal">
+  <div class="md" style="width:440px;">
+    <div class="mh"><h3>📈 Add Investment</h3><button class="mc" onclick="closeM('invest-modal')">×</button></div>
+    <div class="fg"><label>Name</label><input class="fc" id="iv-name" placeholder="e.g. S&P500 ETF, BTC"></div>
+    <div class="fr">
+      <div class="fg"><label>Amount Invested (€)</label><input class="fc" id="iv-amount" type="number" step="0.01" placeholder="0.00"></div>
+      <div class="fg"><label>Current Value (€)</label><input class="fc" id="iv-current" type="number" step="0.01" placeholder="0.00"></div>
+    </div>
+    <div class="fg"><label>Date</label><input class="fc" id="iv-date" type="date"></div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('invest-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveInvestment()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI LAB MODAL -->
+<div class="mo hidden" id="ailab-modal">
+  <div class="md" style="width:480px;">
+    <div class="mh"><h3 id="ailab-modal-title">🤖 Add Automation</h3><button class="mc" onclick="closeM('ailab-modal')">×</button></div>
+    <div class="fg"><label>Name</label><input class="fc" id="al-name" placeholder="e.g. Daily standup generator"></div>
+    <div class="fg"><label>Description</label><textarea class="fc" id="al-desc" style="min-height:56px;" placeholder="What does it do?"></textarea></div>
+    <div class="fr">
+      <div class="fg"><label>Category</label>
+        <select class="fc" id="al-cat">
+          <option value="personal">🙋 Personal</option>
+          <option value="givelink">🟣 Givelink</option>
+          <option value="content">📝 Content</option>
+          <option value="finance">💰 Finance</option>
+        </select>
+      </div>
+      <div class="fg"><label>Status</label>
+        <select class="fc" id="al-status">
+          <option value="idea">💡 Idea</option>
+          <option value="built">🔨 Built</option>
+          <option value="running">▶️ Running</option>
+        </select>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('ailab-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveAutomation()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- RELATIONSHIPS MODAL -->
+<div class="mo hidden" id="rel-modal">
+  <div class="md" style="width:480px;">
+    <div class="mh"><h3 id="rel-modal-title">🤝 Add Person</h3><button class="mc" onclick="closeM('rel-modal')">×</button></div>
+    <div class="fg"><label>Name</label><input class="fc" id="rel-name" placeholder="e.g. Alex Andreou"></div>
+    <div class="fr">
+      <div class="fg"><label>Type</label>
+        <select class="fc" id="rel-type">
+          <option value="friend">👥 Friend</option>
+          <option value="mentor">🎓 Mentor</option>
+          <option value="investor">💼 Investor</option>
+          <option value="collaborator">🤝 Collaborator</option>
+          <option value="other">📌 Other</option>
+        </select>
+      </div>
+      <div class="fg"><label>Check-in every (days)</label><input class="fc" id="rel-interval" type="number" value="30" min="1"></div>
+    </div>
+    <div class="fg"><label>Last Contact Date</label><input class="fc" id="rel-last" type="date"></div>
+    <div class="fg"><label>Notes / What we're working on</label><textarea class="fc" id="rel-notes" style="min-height:56px;" placeholder="Context, shared projects..."></textarea></div>
+    <div class="fg" style="display:flex;align-items:center;gap:8px;">
+      <input type="checkbox" id="rel-top" style="width:16px;height:16px;">
+      <label for="rel-top" style="margin:0;cursor:pointer;">⭐ Top Relationship (invest more)</label>
+    </div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('rel-modal')">Cancel</button>
+      <button class="btn bp" onclick="savePerson()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- HABIT SETTINGS MODAL -->
+<div class="mo hidden" id="habit-settings-modal">
+  <div class="md" style="width:440px;">
+    <div class="mh"><h3>⚙️ Manage Habits</h3><button class="mc" onclick="closeM('habit-settings-modal')">×</button></div>
+    <div id="habit-rows" style="margin-bottom:14px;"></div>
+    <button class="btn bg sm" onclick="addHabitRow()">+ Add Habit</button>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('habit-settings-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveHabitSettings()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- DISCOMFORT MODAL -->
+<div class="mo hidden" id="dis-modal">
+  <div class="md" style="width:440px;">
+    <div class="mh"><h3>🔥 Log Challenge</h3><button class="mc" onclick="closeM('dis-modal')">×</button></div>
+    <div class="fg"><label>Date</label><input class="fc" id="dis-date" type="date"></div>
+    <div class="fg"><label>Type</label>
+      <select class="fc" id="dis-type">
+        <option value="cold">❄️ Cold exposure</option>
+        <option value="fast">🍽️ Fasting</option>
+        <option value="hard-convo">💬 Hard conversation</option>
+        <option value="public">🎤 Public speaking</option>
+        <option value="physical">🏃 Physical challenge</option>
+        <option value="social">👥 Social discomfort</option>
+        <option value="other">📌 Other</option>
+      </select>
+    </div>
+    <div class="fg"><label>Description</label><input class="fc" id="dis-desc" placeholder="What did you do?"></div>
+    <div class="fg"><label>Difficulty (1–5)</label>
+      <select class="fc" id="dis-difficulty">
+        <option value="1">1 — Easy</option>
+        <option value="2">2 — Moderate</option>
+        <option value="3">3 — Hard</option>
+        <option value="4">4 — Very Hard</option>
+        <option value="5">5 — Extreme</option>
+      </select>
+    </div>
+    <div class="fg"><label>Notes</label><textarea class="fc" id="dis-notes" style="min-height:44px;" placeholder="How did it feel?"></textarea></div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('dis-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveDiscomfort()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI SUGGESTION MODAL -->
+<div class="mo hidden" id="ai-out-modal">
+  <div class="md" style="width:520px;">
+    <div class="mh"><h3 id="ai-out-title">🤖 AI Output</h3><button class="mc" onclick="closeM('ai-out-modal')">×</button></div>
+    <div id="ai-out-body" style="font-size:13px;line-height:1.6;white-space:pre-wrap;max-height:400px;overflow-y:auto;"></div>
+    <div class="mf"><button class="btn bp" onclick="closeM('ai-out-modal')">Done</button></div>
+  </div>
+</div>
+
 <script>
 // ── DATA ──────────────────────────────────────────────────────
 const CATS={givelink:{l:'Givelink',e:'🟣'},finance:{l:'Finance',e:'💰'},automation:{l:'Automation',e:'🤖'},health:{l:'Health',e:'🏋️'},relationships:{l:'Relationships',e:'🤝'},learning:{l:'Learning',e:'📚'},brand:{l:'Brand',e:'🌐'},other:{l:'Other',e:'📌'}};
@@ -549,7 +924,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[]};
 let editT=null,editG=null,fCat='all';
 let profileName=localStorage.getItem('taskos_name')||'Panos';
 
@@ -580,7 +955,7 @@ function nav(v){
   document.getElementById('s-ov')?.classList.remove('open');
   document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
-function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,focus:renderFocus,history:renderHistoryView})[v]?.();}
+function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort})[v]?.();}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
 
 // ── DASHBOARD ─────────────────────────────────────────────────
@@ -1529,6 +1904,436 @@ function seedGoals(){
   save();
 }
 
+
+// ── CALL CLAUDE ────────────────────────────────────────────────
+async function callClaude(prompt, maxTokens=1000){
+  if(!S.claudeKey){toast('Add Claude API key in Settings first');return null;}
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':S.claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await res.json();
+    return data.content?.[0]?.text||null;
+  }catch(e){toast('AI error: '+e.message);return null;}
+}
+function showAiOut(title, text){
+  document.getElementById('ai-out-title').textContent=title;
+  document.getElementById('ai-out-body').textContent=text;
+  document.getElementById('ai-out-modal').classList.remove('hidden');
+}
+function daysSinceDate(d){if(!d)return 999;return Math.floor((Date.now()-new Date(d))/(86400000));}
+
+// ── HEALTH ─────────────────────────────────────────────────────
+function renderHealth(){
+  const logs=S.healthLogs||[];
+  const today=new Date().toISOString().slice(0,10);
+  // Stats
+  const workouts=logs.filter(l=>l.type==='workout');
+  const sleepLogs=logs.filter(l=>l.type==='sleep');
+  const bfLogs=logs.filter(l=>l.type==='bodyfat').sort((a,b)=>a.date>b.date?1:-1);
+  const thisWeek=workouts.filter(l=>{const d=new Date(l.date);const now=new Date();const mon=new Date(now);mon.setDate(now.getDate()-((now.getDay()+6)%7));return d>=mon;});
+  const lastSleep=sleepLogs.sort((a,b)=>a.date>b.date?-1:1)[0];
+  const latestBF=bfLogs[bfLogs.length-1];
+  document.getElementById('health-stats').innerHTML=`
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#69db7c;">${thisWeek.length}/5</div><div class="los-stat-l">Workouts this week</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#74c0fc;">${lastSleep?lastSleep.value+'%':'—'}</div><div class="los-stat-l">Last sleep score</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#fbbf24;">${latestBF?latestBF.value+'%':'—'}</div><div class="los-stat-l">Body fat % (goal: 12%)</div></div>`;
+  // Workout heatmap (28 days)
+  const heat=document.getElementById('workout-heat');
+  const days=[];for(let i=27;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10));}
+  const wdSet=new Set(workouts.map(l=>l.date));
+  heat.innerHTML=days.map(d=>`<div class="heat-cell ${wdSet.has(d)?'h4':''}" title="${d}"></div>`).join('');
+  // Sleep trend
+  const last7Sleep=sleepLogs.sort((a,b)=>a.date>b.date?-1:1).slice(0,7).reverse();
+  document.getElementById('sleep-trend').innerHTML=last7Sleep.length
+    ?last7Sleep.map(l=>`<div class="fin-row"><span>${l.date}</span><span style="font-weight:600;color:${l.value>=85?'#69db7c':l.value>=70?'#fbbf24':'#ff6b6b'}">${l.value}%</span></div>`).join('')
+    :'<div class="empty" style="padding:12px 0;">No sleep logs yet</div>';
+  // Log list
+  document.getElementById('health-list').innerHTML=logs.slice().sort((a,b)=>a.date>b.date?-1:1).slice(0,30).map(l=>`
+    <div class="dis-row">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-weight:500;">${{workout:'🏋️',sleep:'😴',bodyfat:'📏',weight:'⚖️'}[l.type]||'📋'} ${l.notes||l.type} <span style="color:var(--accent);font-weight:700;">${l.value}${l.type==='sleep'||l.type==='bodyfat'?'%':l.type==='weight'?'kg':''}</span></span>
+        <span style="font-size:11px;color:var(--muted);">${l.date} <button class="btn bd sm" onclick="deleteHealthLog('${l.id}')">×</button></span>
+      </div>
+    </div>`).join('')||'<div class="empty">No logs yet. Click + Log Entry.</div>';
+}
+function openAddHealth(id=null){
+  document.getElementById('h-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('h-value').value='';document.getElementById('h-notes').value='';
+  document.getElementById('health-modal').classList.remove('hidden');
+}
+function saveHealthLog(){
+  const date=document.getElementById('h-date').value;
+  const type=document.getElementById('h-type').value;
+  const value=parseFloat(document.getElementById('h-value').value);
+  const notes=document.getElementById('h-notes').value.trim();
+  if(!date||isNaN(value))return toast('Date and value required');
+  if(!S.healthLogs)S.healthLogs=[];
+  S.healthLogs.push({id:uid(),date,type,value,notes,createdAt:new Date().toISOString()});
+  save();closeM('health-modal');renderHealth();toast('Health entry logged!');
+}
+function deleteHealthLog(id){
+  S.healthLogs=(S.healthLogs||[]).filter(l=>l.id!==id);save();renderHealth();
+}
+
+// ── FINANCE ────────────────────────────────────────────────────
+function renderFinance(){
+  const entries=S.financeEntries||[];
+  const investments=S.investments||[];
+  const now=new Date();
+  const yr=now.getFullYear();
+  const mo=now.getMonth();
+  const yearIncome=entries.filter(e=>e.type==='income'&&new Date(e.date).getFullYear()===yr).reduce((s,e)=>s+e.amount,0);
+  const moPassive=entries.filter(e=>e.type==='passive'&&new Date(e.date).getFullYear()===yr&&new Date(e.date).getMonth()===mo).reduce((s,e)=>s+e.amount,0);
+  const totalInvested=investments.reduce((s,i)=>s+i.amount,0);
+  const totalCurrent=investments.reduce((s,i)=>s+i.current,0);
+  const invGain=totalCurrent-totalInvested;
+  document.getElementById('finance-stats').innerHTML=`
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#69db7c;">€${yearIncome.toLocaleString()}</div><div class="los-stat-l">Income ${yr} (goal: €25K)</div><div class="prog-bar"><div class="prog-fill" style="width:${Math.min(100,yearIncome/25000*100).toFixed(1)}%;background:#69db7c;"></div></div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#74c0fc;">€${moPassive.toFixed(0)}</div><div class="los-stat-l">Passive this month (goal: €300)</div><div class="prog-bar"><div class="prog-fill" style="width:${Math.min(100,moPassive/300*100).toFixed(1)}%;background:#74c0fc;"></div></div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:${invGain>=0?'#69db7c':'#ff6b6b'};">${invGain>=0?'+':''}€${invGain.toLocaleString()}</div><div class="los-stat-l">Investment P&L (€${totalCurrent.toLocaleString()} total)</div></div>`;
+  const allIncome=entries.filter(e=>e.type!=='expense').sort((a,b)=>a.date>b.date?-1:1);
+  document.getElementById('income-list').innerHTML=allIncome.slice(0,20).map(e=>`
+    <div class="fin-row">
+      <span>${e.type==='passive'?'📈':'💸'} ${e.desc||e.type} <span style="font-size:10px;color:var(--muted);">${e.date}</span></span>
+      <span style="font-weight:600;color:#69db7c;">+€${e.amount.toLocaleString()}</span>
+    </div>`).join('')||'<div class="empty" style="padding:12px 0;">No entries yet</div>';
+  document.getElementById('investment-list').innerHTML=investments.map(i=>{
+    const g=i.current-i.amount;const pct=i.amount?((g/i.amount)*100).toFixed(1):0;
+    return`<div class="fin-row"><span>📈 ${i.name}<br><span style="font-size:10px;color:var(--muted);">Invested: €${i.amount.toLocaleString()}</span></span><span style="text-align:right;"><div style="font-weight:600;">€${i.current.toLocaleString()}</div><div style="font-size:10px;color:${g>=0?'#69db7c':'#ff6b6b'};">${g>=0?'+':''}${pct}%</div></span></div>`;
+  }).join('')||'<div class="empty" style="padding:12px 0;">No investments yet</div>';
+}
+function openAddFinance(id=null){
+  document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('f-amount').value='';document.getElementById('f-desc').value='';
+  document.getElementById('finance-modal').classList.remove('hidden');
+}
+function saveFinanceEntry(){
+  const date=document.getElementById('f-date').value;
+  const type=document.getElementById('f-type').value;
+  const amount=parseFloat(document.getElementById('f-amount').value);
+  const desc=document.getElementById('f-desc').value.trim();
+  if(!date||isNaN(amount))return toast('Date and amount required');
+  if(!S.financeEntries)S.financeEntries=[];
+  S.financeEntries.push({id:uid(),date,type,amount,desc,createdAt:new Date().toISOString()});
+  save();closeM('finance-modal');renderFinance();toast('Finance entry saved!');
+}
+function openAddInvestment(){
+  document.getElementById('iv-name').value='';document.getElementById('iv-amount').value='';
+  document.getElementById('iv-current').value='';document.getElementById('iv-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('invest-modal').classList.remove('hidden');
+}
+function saveInvestment(){
+  const name=document.getElementById('iv-name').value.trim();
+  const amount=parseFloat(document.getElementById('iv-amount').value);
+  const current=parseFloat(document.getElementById('iv-current').value);
+  const date=document.getElementById('iv-date').value;
+  if(!name||isNaN(amount))return toast('Name and amount required');
+  if(!S.investments)S.investments=[];
+  S.investments.push({id:uid(),name,amount,current:current||amount,date,createdAt:new Date().toISOString()});
+  save();closeM('invest-modal');renderFinance();toast('Investment added!');
+}
+
+// ── AI LAB ─────────────────────────────────────────────────────
+let _ailabFilter='all';
+function renderAilab(){
+  const autos=S.automations||[];
+  const running=autos.filter(a=>a.status==='running').length;
+  const built=autos.filter(a=>a.status==='built'||a.status==='running').length;
+  const pct=Math.min(100,(built/100*100)).toFixed(0);
+  document.getElementById('ailab-prog-label').textContent=`${built} / 100 automations built`;
+  document.getElementById('ailab-prog-pct').textContent=`${running} running`;
+  document.getElementById('ailab-prog-fill').style.width=pct+'%';
+  document.getElementById('ailab-sub').textContent=`${built}/100 built · ${running} running · ${autos.length-built} ideas`;
+  const filtered=_ailabFilter==='all'?autos:autos.filter(a=>a.status===_ailabFilter||a.category===_ailabFilter);
+  document.getElementById('ailab-list').innerHTML=filtered.length?filtered.map(a=>`
+    <div class="auto-row">
+      <div style="flex:1;">
+        <div style="font-weight:500;font-size:13px;">${a.name}</div>
+        ${a.desc?`<div style="font-size:11px;color:var(--muted);margin-top:2px;">${a.desc}</div>`:''}
+      </div>
+      <span class="auto-status as-${a.status}">${{idea:'💡 Idea',built:'🔨 Built',running:'▶️ Running'}[a.status]}</span>
+      <span class="badge co">${a.category}</span>
+      <button class="btn bd sm" onclick="deleteAutomation('${a.id}')">×</button>
+    </div>`).join(''):'<div class="empty">No automations yet. Start capturing your AI workflows!</div>';
+}
+function setAilabF(f,el){
+  _ailabFilter=f;
+  document.querySelectorAll('#ailab-filters .fp').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');renderAilab();
+}
+function openAddAutomation(){
+  document.getElementById('al-name').value='';document.getElementById('al-desc').value='';
+  document.getElementById('ailab-modal').classList.remove('hidden');
+}
+function saveAutomation(){
+  const name=document.getElementById('al-name').value.trim();
+  if(!name)return toast('Name required');
+  if(!S.automations)S.automations=[];
+  S.automations.push({id:uid(),name,desc:document.getElementById('al-desc').value.trim(),category:document.getElementById('al-cat').value,status:document.getElementById('al-status').value,createdAt:new Date().toISOString()});
+  save();closeM('ailab-modal');renderAilab();toast('Automation added!');
+}
+function deleteAutomation(id){
+  S.automations=(S.automations||[]).filter(a=>a.id!==id);save();renderAilab();
+}
+async function aiSuggestAutomations(){
+  toast('⏳ Thinking...');
+  const existing=(S.automations||[]).map(a=>a.name).join(', ')||'none yet';
+  const tasks=S.tasks.filter(t=>t.status!=='done').slice(0,10).map(t=>t.title).join(', ');
+  const prompt=`I'm building 100 AI automations. I already have: ${existing}.
+My current active tasks: ${tasks}.
+Suggest 5 NEW automation ideas I haven't built yet. Format: numbered list, each with name + one-line description. Focus on personal productivity, Givelink B2B SaaS for nonprofits, and content creation.`;
+  const result=await callClaude(prompt,600);
+  if(result)showAiOut('✨ Automation Ideas',result);
+}
+
+// ── RELATIONSHIPS ──────────────────────────────────────────────
+let _relFilter='all';
+function renderRelationships(){
+  const people=S.people||[];
+  const overdue=people.filter(p=>daysSinceDate(p.lastContact)>(p.interval||30));
+  const topPeople=people.filter(p=>p.isTop);
+  const filtered=_relFilter==='all'?people
+    :_relFilter==='overdue'?overdue
+    :_relFilter==='top'?topPeople
+    :people.filter(p=>p.type===_relFilter);
+  document.getElementById('rel-list').innerHTML=filtered.length?filtered.map(p=>{
+    const days=daysSinceDate(p.lastContact);
+    const overdue=days>(p.interval||30);
+    return`<div class="rel-card">
+      <div class="rel-avatar">${p.name[0].toUpperCase()}</div>
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+          <span style="font-weight:600;font-size:13px;">${p.name}</span>
+          ${p.isTop?'<span style="font-size:11px;">⭐</span>':''}
+          <span class="badge co">${p.type}</span>
+        </div>
+        ${p.notes?`<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">${p.notes}</div>`:''}
+        <div style="font-size:11px;color:${overdue?'#ff6b6b':'var(--muted)'};">${overdue?'⚠️ ':''}Last contact: ${p.lastContact||'never'} (${days===999?'never':days+'d ago'})</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:5px;">
+        <button class="btn bg sm" onclick="logRelContact('${p.id}')">📞 Logged</button>
+        <button class="btn bg sm" onclick="openAddPerson('${p.id}')">✏️</button>
+        <button class="btn bd sm" onclick="deletePerson('${p.id}')">×</button>
+      </div>
+    </div>`;
+  }).join(''):'<div class="empty">No people yet. Add someone important!</div>';
+}
+function setRelF(f,el){
+  _relFilter=f;
+  document.querySelectorAll('#v-relationships .fb .fp').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');renderRelationships();
+}
+let _editPersonId=null;
+function openAddPerson(id=null){
+  _editPersonId=id;
+  const p=id?(S.people||[]).find(x=>x.id===id):null;
+  document.getElementById('rel-modal-title').textContent=p?'✏️ Edit Person':'🤝 Add Person';
+  document.getElementById('rel-name').value=p?p.name:'';
+  document.getElementById('rel-type').value=p?p.type:'friend';
+  document.getElementById('rel-interval').value=p?(p.interval||30):30;
+  document.getElementById('rel-last').value=p?(p.lastContact||''):'';
+  document.getElementById('rel-notes').value=p?(p.notes||''):'';
+  document.getElementById('rel-top').checked=p?!!p.isTop:false;
+  document.getElementById('rel-modal').classList.remove('hidden');
+}
+function savePerson(){
+  const name=document.getElementById('rel-name').value.trim();
+  if(!name)return toast('Name required');
+  if(!S.people)S.people=[];
+  const obj={id:_editPersonId||uid(),name,type:document.getElementById('rel-type').value,interval:parseInt(document.getElementById('rel-interval').value)||30,lastContact:document.getElementById('rel-last').value,notes:document.getElementById('rel-notes').value.trim(),isTop:document.getElementById('rel-top').checked,updatedAt:new Date().toISOString()};
+  if(_editPersonId){const i=S.people.findIndex(x=>x.id===_editPersonId);if(i>=0)S.people[i]=obj;else S.people.push(obj);}
+  else S.people.push(obj);
+  save();closeM('rel-modal');renderRelationships();toast('Person saved!');
+}
+function deletePerson(id){
+  if(!confirm('Remove this person?'))return;
+  S.people=(S.people||[]).filter(p=>p.id!==id);save();renderRelationships();
+}
+function logRelContact(id){
+  const p=(S.people||[]).find(x=>x.id===id);if(!p)return;
+  p.lastContact=new Date().toISOString().slice(0,10);save();renderRelationships();toast('Contact logged ✓');
+}
+async function aiRelNudge(){
+  toast('⏳ Thinking...');
+  const people=S.people||[];
+  const list=people.map(p=>`${p.name} (${p.type}, ${daysSinceDate(p.lastContact)}d since contact, interval: ${p.interval||30}d${p.isTop?' TOP':''})${p.notes?', '+p.notes:''}`).join('
+');
+  const prompt=`Here are my relationships:
+${list||'No people logged yet.'}
+
+Today is ${new Date().toLocaleDateString()}. Who should I reach out to this week and why? Suggest 3 people with specific reason and conversation starter.`;
+  const result=await callClaude(prompt,500);
+  if(result)showAiOut('🤝 Who to Reach Out To',result);
+}
+
+// ── DEEP WORK ──────────────────────────────────────────────────
+let _dwInterval=null,_dwSecsLeft=25*60,_dwDuration=25*60,_dwRunning=false,_dwStartTime=null;
+function renderDeepWork(){
+  const sessions=S.deepWorkSessions||[];
+  const today=new Date().toISOString().slice(0,10);
+  const todaySecs=sessions.filter(s=>s.date===today).reduce((sum,s)=>sum+s.duration,0);
+  const weekSecs=sessions.filter(s=>{const d=new Date(s.date);const now=new Date();const mon=new Date(now);mon.setDate(now.getDate()-((now.getDay()+6)%7));return d>=mon;}).reduce((sum,s)=>sum+s.duration,0);
+  const allSecs=sessions.reduce((sum,s)=>sum+s.duration,0);
+  document.getElementById('dw-stats').innerHTML=`
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#58a6ff;">${Math.round(todaySecs/3600*10)/10}h</div><div class="los-stat-l">Today</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#22d3ee;">${Math.round(weekSecs/3600*10)/10}h</div><div class="los-stat-l">This Week</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#a78bfa;">${Math.round(allSecs/3600*10)/10}h</div><div class="los-stat-l">Total</div></div>`;
+  document.getElementById('dw-log').innerHTML=sessions.slice().sort((a,b)=>a.date>b.date?-1:1).slice(0,20).map(s=>`
+    <div class="dis-row"><div style="display:flex;justify-content:space-between;"><span style="font-weight:500;">🧠 ${s.label||'Deep Work'}</span><span style="color:var(--accent);font-weight:600;">${Math.round(s.duration/60)}m</span></div><div style="font-size:11px;color:var(--muted);">${s.date}</div></div>`).join('')||'<div class="empty">No sessions yet. Start a timer!</div>';
+  _dwUpdateDisplay();
+}
+function dwSetDuration(mins){_dwSecsLeft=mins*60;_dwDuration=mins*60;_dwUpdateDisplay();}
+function _dwUpdateDisplay(){
+  const m=Math.floor(_dwSecsLeft/60),s=_dwSecsLeft%60;
+  document.getElementById('dw-time').textContent=String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+function dwToggle(){
+  if(_dwRunning){
+    clearInterval(_dwInterval);_dwRunning=false;
+    document.getElementById('dw-btn').textContent='▶ Resume';
+    document.getElementById('dw-label').textContent='Paused';
+  } else {
+    _dwStartTime=_dwStartTime||Date.now();
+    _dwRunning=true;
+    document.getElementById('dw-btn').textContent='⏸ Pause';
+    document.getElementById('dw-label').textContent='Focus mode active...';
+    _dwInterval=setInterval(()=>{
+      _dwSecsLeft--;_dwUpdateDisplay();
+      if(_dwSecsLeft<=0){_dwComplete();}
+    },1000);
+  }
+}
+function _dwComplete(){
+  clearInterval(_dwInterval);_dwRunning=false;_dwStartTime=null;
+  const label=document.getElementById('dw-task-label').value.trim()||'Deep Work';
+  const dur=_dwDuration;
+  if(!S.deepWorkSessions)S.deepWorkSessions=[];
+  S.deepWorkSessions.push({id:uid(),label,duration:dur,date:new Date().toISOString().slice(0,10),completedAt:new Date().toISOString()});
+  save();
+  toast('🧠 Session complete! '+Math.round(dur/60)+'m logged');
+  _dwSecsLeft=_dwDuration;
+  document.getElementById('dw-btn').textContent='▶ Start';
+  document.getElementById('dw-label').textContent='Session complete! Great work.';
+  renderDeepWork();
+}
+function dwReset(){
+  clearInterval(_dwInterval);_dwRunning=false;_dwStartTime=null;
+  _dwSecsLeft=_dwDuration;_dwUpdateDisplay();
+  document.getElementById('dw-btn').textContent='▶ Start';
+  document.getElementById('dw-label').textContent='Ready to focus';
+}
+
+// ── HABITS ─────────────────────────────────────────────────────
+function renderHabits(){
+  const today=new Date().toISOString().slice(0,10);
+  document.getElementById('habits-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  const habits=S.habits||[];
+  const todayLog=S.habitLogs?.[today]||{};
+  const doneToday=habits.filter(h=>todayLog[h]);
+  document.getElementById('habits-stats').innerHTML=`
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#69db7c;">${doneToday.length}/${habits.length}</div><div class="los-stat-l">Done today</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#fbbf24;">${_habitStreak()}</div><div class="los-stat-l">Day streak (all done)</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#74c0fc;">${habits.length}</div><div class="los-stat-l">Active habits</div></div>`;
+  if(!habits.length){
+    document.getElementById('habits-checklist').innerHTML='<div class="empty">No habits yet. Click ⚙️ Manage Habits to add some.</div>';
+  } else {
+    document.getElementById('habits-checklist').innerHTML=`<h3 style="margin-bottom:12px;">Today's Habits</h3>`+habits.map(h=>`
+      <div class="habit-row">
+        <div class="habit-ck ${todayLog[h]?'on':''}" onclick="toggleHabit('${h.replace(/'/g,"\'")}')">
+          ${todayLog[h]?'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':''}
+        </div>
+        <span style="font-size:13px;flex:1;">${h}</span>
+        ${todayLog[h]?'<span style="font-size:12px;color:#69db7c;">✓ Done</span>':''}
+      </div>`).join('');
+  }
+  // Heatmap (last 28 days)
+  const days=[];for(let i=27;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10));}
+  document.getElementById('habits-heat').innerHTML=habits.length?habits.map(h=>`
+    <div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${h}</div>
+    <div class="heat-grid">${days.map(d=>{const done=(S.habitLogs?.[d]||{})[h];return`<div class="heat-cell ${done?'h4':''}" title="${d}"></div>`;}).join('')}</div></div>`).join(''):'';
+}
+function _habitStreak(){
+  const habits=S.habits||[];if(!habits.length)return 0;
+  let streak=0;const today=new Date();
+  for(let i=0;i<60;i++){
+    const d=new Date(today);d.setDate(today.getDate()-i);
+    const key=d.toISOString().slice(0,10);
+    const log=S.habitLogs?.[key]||{};
+    if(habits.every(h=>log[h]))streak++;
+    else break;
+  }return streak;
+}
+function toggleHabit(name){
+  const today=new Date().toISOString().slice(0,10);
+  if(!S.habitLogs)S.habitLogs={};
+  if(!S.habitLogs[today])S.habitLogs[today]={};
+  S.habitLogs[today][name]=!S.habitLogs[today][name];
+  save();renderHabits();
+}
+function openHabitSettings(){
+  const habits=S.habits||[];
+  document.getElementById('habit-rows').innerHTML=habits.map((h,i)=>`
+    <div style="display:flex;gap:8px;margin-bottom:7px;">
+      <input class="fc" value="${h}" id="hr-${i}" style="flex:1;">
+      <button class="btn bd sm" onclick="this.parentElement.remove()">×</button>
+    </div>`).join('');
+  document.getElementById('habit-settings-modal').classList.remove('hidden');
+}
+function addHabitRow(){
+  const c=document.createElement('div');c.style.cssText='display:flex;gap:8px;margin-bottom:7px;';
+  c.innerHTML=`<input class="fc" placeholder="e.g. 5x workout" style="flex:1;"><button class="btn bd sm" onclick="this.parentElement.remove()">×</button>`;
+  document.getElementById('habit-rows').appendChild(c);
+  c.querySelector('input').focus();
+}
+function saveHabitSettings(){
+  const inputs=document.querySelectorAll('#habit-rows input.fc');
+  S.habits=Array.from(inputs).map(i=>i.value.trim()).filter(Boolean);
+  save();closeM('habit-settings-modal');renderHabits();toast('Habits saved!');
+}
+
+// ── DISCOMFORT ─────────────────────────────────────────────────
+function renderDiscomfort(){
+  const logs=S.discomfortLogs||[];
+  const now=new Date();
+  const mo=now.getMonth(),yr=now.getFullYear();
+  const thisMonth=logs.filter(l=>{const d=new Date(l.date);return d.getMonth()===mo&&d.getFullYear()===yr;});
+  const avgDiff=thisMonth.length?Math.round(thisMonth.reduce((s,l)=>s+l.difficulty,0)/thisMonth.length*10)/10:0;
+  document.getElementById('dis-stats').innerHTML=`
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#ff6b6b;">${thisMonth.length}</div><div class="los-stat-l">Challenges this month</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#fbbf24;">${avgDiff||'—'}</div><div class="los-stat-l">Avg difficulty</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#da77f2;">${logs.length}</div><div class="los-stat-l">Total challenges</div></div>`;
+  document.getElementById('dis-list').innerHTML=logs.slice().sort((a,b)=>a.date>b.date?-1:1).map(l=>`
+    <div class="dis-row">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-weight:600;">${{cold:'❄️',fast:'🍽️','hard-convo':'💬',public:'🎤',physical:'🏃',social:'👥',other:'📌'}[l.type]||'🔥'} ${l.desc||l.type}</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:11px;color:var(--muted);">${'⭐'.repeat(l.difficulty)} ${l.date}</span>
+          <button class="btn bd sm" onclick="deleteDiscomfort('${l.id}')">×</button>
+        </div>
+      </div>
+      ${l.notes?`<div style="font-size:11px;color:var(--muted);margin-top:4px;">${l.notes}</div>`:''}
+    </div>`).join('')||'<div class="empty">No challenges logged yet. Embrace discomfort!</div>';
+}
+function openAddDiscomfort(){
+  document.getElementById('dis-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('dis-desc').value='';document.getElementById('dis-notes').value='';
+  document.getElementById('dis-modal').classList.remove('hidden');
+}
+function saveDiscomfort(){
+  const date=document.getElementById('dis-date').value;
+  const desc=document.getElementById('dis-desc').value.trim();
+  if(!date)return toast('Date required');
+  if(!S.discomfortLogs)S.discomfortLogs=[];
+  S.discomfortLogs.push({id:uid(),date,type:document.getElementById('dis-type').value,desc,difficulty:parseInt(document.getElementById('dis-difficulty').value)||3,notes:document.getElementById('dis-notes').value.trim(),createdAt:new Date().toISOString()});
+  save();closeM('dis-modal');renderDiscomfort();toast('Challenge logged! 💪');
+}
+function deleteDiscomfort(id){
+  S.discomfortLogs=(S.discomfortLogs||[]).filter(l=>l.id!==id);save();renderDiscomfort();
+}
+
 // ── RECURRING TASKS ───────────────────────────────────────────
 function resetRecurring(){
   const now=new Date();
@@ -1572,11 +2377,14 @@ function renderHistoryView(){
 // ── SETTINGS ──────────────────────────────────────────────────
 function openSettings(){
   document.getElementById('set-name').value=profileName;
+  document.getElementById('set-claude-key').value=S.claudeKey||'';
   document.getElementById('set-m').classList.remove('hidden');
 }
 function saveSettings(){
   const n=document.getElementById('set-name').value.trim();
   if(n){profileName=n;localStorage.setItem('taskos_name',n);document.title='Task OS — '+n;}
+  const k=document.getElementById('set-claude-key').value.trim();
+  S.claudeKey=k;save();
   closeM('set-m');
   renderDash();
 }

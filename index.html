@@ -297,9 +297,25 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
     <div><h1 id="greeting">Good morning, Panos 👋</h1><p class="sub" id="ddate"></p></div>
     <div class="row">
       <button class="btn bg sm" onclick="openCmdK()" title="⌘K">⌘K</button>
+      <button class="btn bg sm" onclick="showWeeklyDigest()">📊 Digest</button>
+      <button class="btn bg sm" onclick="openTweetGenerator()">🐦 Post</button>
+      <button class="btn bg sm" onclick="showBatchSuggestions()">🔗 Batch</button>
+      <button class="btn bg sm" onclick="nav('eod')">🌙 EOD</button>
       <button class="btn bp" onclick="openAdd()">+ Add Task</button>
     </div>
   </div>
+  <!-- MORNING BRIEFING -->
+  <div id="morning-briefing" style="display:none;background:linear-gradient(135deg,rgba(88,166,255,.08),rgba(34,211,238,.05));border:1px solid rgba(88,166,255,.2);border-radius:12px;padding:14px 16px;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <span style="font-size:13px;font-weight:700;color:var(--accent);">☀️ Morning Briefing</span>
+      <button class="btn bg sm" onclick="document.getElementById('morning-briefing').style.display='none'">×</button>
+    </div>
+    <div id="briefing-body" style="font-size:12px;line-height:1.7;"></div>
+  </div>
+  <!-- STREAK ROW -->
+  <div id="streak-row" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;"></div>
+  <!-- ANTI-PATTERN ALERTS -->
+  <div id="anti-pattern-alerts"></div>
   <div class="stats" id="stats"></div>
   <div class="rb" style="margin-bottom:10px;">
     <h2 style="margin:0">🎯 Today's Top 3</h2>
@@ -388,13 +404,34 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 
 <!-- FOCUS NOW -->
 <div id="v-focus" class="view">
-  <div class="ph"><div><h1>🧠 Focus Now</h1><p class="sub">Select your energy level — I'll recommend what to work on.</p></div></div>
+  <div class="ph">
+    <div><h1>🧠 Focus Now</h1><p class="sub">Your day, structured.</p></div>
+    <div class="row">
+      <button class="btn bg sm" onclick="nav('deepwork')">⏱ Start Timer</button>
+      <button class="btn bg sm" onclick="nav('eod')">🌙 EOD Ritual</button>
+    </div>
+  </div>
+  <!-- DAY PLAN -->
+  <div class="los-card" style="margin-bottom:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <h3 style="margin:0;">📅 Suggested Day Plan</h3>
+      <span style="font-size:11px;color:var(--muted);" id="focus-date"></span>
+    </div>
+    <div id="focus-day-plan"></div>
+  </div>
+  <!-- HABITS TODAY -->
+  <div class="los-card" style="margin-bottom:16px;" id="focus-habits-card">
+    <h3 style="margin-bottom:10px;">✅ Habits Today</h3>
+    <div id="focus-habits"></div>
+  </div>
+  <!-- ENERGY SELECTOR -->
+  <h2 style="margin-bottom:10px;">🔋 Recommendations by Energy</h2>
   <div class="eng-btns">
     <div class="eng-btn" onclick="setEnergy('high',this)">🔥 High Energy<div style="font-size:11px;font-weight:400;margin-top:4px;color:var(--muted);">Deep work · hard problems</div></div>
     <div class="eng-btn" onclick="setEnergy('medium',this)">⚡ Medium Energy<div style="font-size:11px;font-weight:400;margin-top:4px;color:var(--muted);">Meetings · planning · review</div></div>
     <div class="eng-btn" onclick="setEnergy('low',this)">💧 Low Energy<div style="font-size:11px;font-weight:400;margin-top:4px;color:var(--muted);">Admin · easy wins · reading</div></div>
   </div>
-  <div id="focus-recs"><div class="empty" style="padding:40px;font-size:15px;">👆 Pick your energy level above</div></div>
+  <div id="focus-recs"><div class="empty" style="padding:20px;font-size:15px;">👆 Pick your energy level above</div></div>
 </div>
 
 <!-- GOALS -->
@@ -572,6 +609,32 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
         <select class="fc" id="g-top"><option value="false">No</option><option value="true">Yes ⭐</option></select>
       </div>
     </div>
+    <details style="margin-bottom:14px;">
+      <summary style="font-size:12px;color:var(--accent);cursor:pointer;font-weight:600;">🔗 Link to Life OS data (optional)</summary>
+      <div style="margin-top:10px;display:flex;flex-direction:column;gap:10px;">
+        <div class="fg" style="margin:0;"><label>📏 Linked Health Metric</label>
+          <select class="fc" id="g-health-metric">
+            <option value="">— None —</option>
+            <option value="bodyfat">Body Fat %</option>
+            <option value="sleep">Sleep Score</option>
+            <option value="workout">Workout (sessions)</option>
+            <option value="weight">Weight (kg)</option>
+          </select>
+        </div>
+        <div class="fg" style="margin:0;"><label>✅ Linked Habit</label>
+          <select class="fc" id="g-habit">
+            <option value="">— None —</option>
+          </select>
+        </div>
+        <div class="fg" style="margin:0;"><label>💰 Linked Finance Metric</label>
+          <select class="fc" id="g-finance-type">
+            <option value="">— None —</option>
+            <option value="income">Annual Income</option>
+            <option value="passive">Passive Income</option>
+          </select>
+        </div>
+      </div>
+    </details>
     <div class="mf">
       <button class="btn bd sm" id="del-goal-btn" style="margin-right:auto;display:none;" onclick="delCurGoal()">🗑 Delete</button>
       <button class="btn bg" onclick="closeM('gm')">Cancel</button>
@@ -1151,12 +1214,34 @@ function goalHTML(g){
   const c=CATS[g.category]||CATS.other;
   const s=goalStats(g.id);
   const linked=S.tasks.filter(t=>t.goalId===g.id&&t.status!=='done').slice(0,3);
+  const ld=goalLinkedData(g);
+  const HEALTH_LABELS={workout:'Workouts',sleep:'Sleep Score',bodyfat:'Body Fat %',weight:'Weight'};
+  let metricHTML='';
+  if(ld.latestMetric){
+    const targets={bodyfat:12,sleep:85};const tgt=targets[g.linkedHealthMetric];
+    metricHTML=`<div style="display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;">
+      <span style="color:var(--muted);">${HEALTH_LABELS[g.linkedHealthMetric]||g.linkedHealthMetric}:</span>
+      <span style="font-weight:600;color:var(--accent);">${ld.latestMetric.value}${g.linkedHealthMetric==='sleep'||g.linkedHealthMetric==='bodyfat'?'%':''}</span>
+      ${tgt?`<span style="color:var(--muted);">→ ${tgt}% target</span>`:''}
+    </div>`;
+  }
+  let habitHTML='';
+  if(g.linkedHabit&&ld.habitWeek!==undefined){
+    habitHTML=`<div style="font-size:11px;margin-top:4px;color:var(--muted);">${g.linkedHabit}: <span style="color:#69db7c;font-weight:600;">${ld.habitWeek}/7 this week · ${ld.habitStreak}d streak</span></div>`;
+  }
+  let finHTML='';
+  if(g.linkedFinanceType&&ld.financeTotal!==undefined){
+    const targets={income:25000,passive:3600};const tgt=targets[g.linkedFinanceType];
+    const pct=tgt?Math.min(100,Math.round(ld.financeTotal/tgt*100)):null;
+    finHTML=`<div style="margin-top:6px;font-size:11px;"><span style="color:var(--muted);">Income ${new Date().getFullYear()}:</span> <span style="font-weight:600;color:#69db7c;">€${ld.financeTotal.toLocaleString()}</span>${tgt?` / €${tgt.toLocaleString()}`:''}${pct!==null?`<div class="gp" style="margin-top:3px;"><div class="gp-fill" style="width:${pct}%;background:#69db7c;"></div></div>`:''}</div>`;
+  }
   return`<div class="gc ${g.isTop3?'top':''}" onclick="openEditGoal('${g.id}')">
     ${g.isTop3?'<span style="float:right;">⭐</span>':''}
     <div style="font-weight:600;margin-bottom:5px;">${g.title}</div>
     ${g.description?`<div style="font-size:12px;color:var(--muted);margin-bottom:7px;">${g.description}</div>`:''}
     <span class="badge c${g.category[0]}">${c.e} ${c.l}</span>
     ${s.total?`<div style="margin-top:8px;"><div class="gp" style="margin-bottom:3px;"><div class="gp-fill" style="width:${s.pct}%"></div></div><div style="font-size:10px;color:var(--muted);">${s.done}/${s.total} tasks · ${s.pct}%</div></div>`:''}
+    ${metricHTML}${habitHTML}${finHTML}
     ${linked.length?`<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:7px;">${linked.map(t=>`<div style="font-size:11px;color:var(--muted);padding:2px 0;">• ${t.title}</div>`).join('')}</div>`:''}
   </div>`;
 }
@@ -1187,7 +1272,24 @@ function renderWizPanel(){
     body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🏆 Goal Progress</h3>${S.goals.slice(0,8).map(g=>{const s=goalStats(g.id);return`<div style="margin-bottom:10px;"><div style="font-size:13px;font-weight:500;margin-bottom:4px;">${g.isTop3?'⭐ ':''}${g.title}</div><div class="gp"><div class="gp-fill" style="width:${s.pct}%"></div></div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${s.done}/${s.total} tasks · ${s.pct}%</div></div>`;}).join('')||'<div class="empty">No goals set.</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(2)">← Back</button><button class="btn bp" onclick="goStep(4)">Next →</button></div>`;
   } else if(wizStep===4){
     const rev=[...S.reviews].reverse().slice(0,3);
-    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">📝 Reflect & Plan Next Week</h3>
+    const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
+    const mon=new Date();mon.setDate(mon.getDate()-((mon.getDay()+6)%7));
+    const workouts=(S.healthLogs||[]).filter(l=>l.type==='workout'&&new Date(l.date)>=mon).length;
+    const dwSess=(S.deepWorkSessions||[]).filter(s=>new Date(s.date)>=mon);
+    const dwH=Math.round(dwSess.reduce((s,x)=>s+x.duration,0)/3600*10)/10;
+    const incomeWk=(S.financeEntries||[]).filter(e=>e.type==='income'&&new Date(e.date)>wAgo).reduce((s,e)=>s+e.amount,0);
+    const habStreak=_habitStreak();
+    body.innerHTML=`<div class="rs">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <h3>📝 Reflect & Plan Next Week</h3>
+        <button class="btn bg sm" onclick="autoFillReview()">🤖 Auto-Fill from Life OS</button>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;">
+        <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center;"><div style="font-size:18px;font-weight:700;color:#69db7c;">${workouts}</div><div style="font-size:10px;color:var(--muted);">workouts</div></div>
+        <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center;"><div style="font-size:18px;font-weight:700;color:#58a6ff;">${dwH}h</div><div style="font-size:10px;color:var(--muted);">deep work</div></div>
+        <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center;"><div style="font-size:18px;font-weight:700;color:#fbbf24;">${habStreak}d</div><div style="font-size:10px;color:var(--muted);">habit streak</div></div>
+        <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center;"><div style="font-size:18px;font-weight:700;color:#69db7c;">€${incomeWk}</div><div style="font-size:10px;color:var(--muted);">income</div></div>
+      </div>
       <div class="fg"><label>✅ What went well?</label><textarea class="fc" id="rw" placeholder="3 wins from this week..."></textarea></div>
       <div class="fg"><label>📈 What to improve?</label><textarea class="fc" id="ri" placeholder="1-2 things to do differently..."></textarea></div>
       <div class="fg"><label>🎯 Focus for next week?</label><textarea class="fc" id="rf" placeholder="The single most important thing..."></textarea></div>
@@ -1314,12 +1416,20 @@ function addT3(id){
 function rmT3(id){const t=S.tasks.find(x=>x.id===id);if(!t)return;t.isT3=false;t.t3s=null;save();refresh();}
 
 // ── GOALS CRUD ────────────────────────────────────────────────
+function _fillHabitDrop(selId,val=''){
+  const s=document.getElementById(selId);if(!s)return;
+  const habits=S.habits||[];
+  s.innerHTML='<option value="">— None —</option>'+habits.map(h=>`<option value="${h}"${h===val?' selected':''}>${h}</option>`).join('');
+}
 function openAddGoal(){
   editG=null;
   document.getElementById('gm-title').textContent='Add Goal';
   ['g-title','g-desc'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('g-cat').value='givelink';
   document.getElementById('g-top').value='false';
+  document.getElementById('g-health-metric').value='';
+  document.getElementById('g-finance-type').value='';
+  _fillHabitDrop('g-habit','');
   document.getElementById('del-goal-btn').style.display='none';
   document.getElementById('gm').classList.remove('hidden');
 }
@@ -1332,6 +1442,9 @@ function openEditGoal(id){
   document.getElementById('g-desc').value=g.description||'';
   document.getElementById('g-cat').value=g.category;
   document.getElementById('g-top').value=g.isTop3?'true':'false';
+  document.getElementById('g-health-metric').value=g.linkedHealthMetric||'';
+  document.getElementById('g-finance-type').value=g.linkedFinanceType||'';
+  _fillHabitDrop('g-habit',g.linkedHabit||'');
   document.getElementById('del-goal-btn').style.display='block';
   document.getElementById('gm').classList.remove('hidden');
 }
@@ -1339,7 +1452,14 @@ function openEditGoal(id){
 function saveGoal(){
   const title=document.getElementById('g-title').value.trim();
   if(!title){alert('Enter a goal title.');return;}
-  const d={title,description:document.getElementById('g-desc').value,category:document.getElementById('g-cat').value,isTop3:document.getElementById('g-top').value==='true'};
+  const d={
+    title,description:document.getElementById('g-desc').value,
+    category:document.getElementById('g-cat').value,
+    isTop3:document.getElementById('g-top').value==='true',
+    linkedHealthMetric:document.getElementById('g-health-metric')?.value||'',
+    linkedHabit:document.getElementById('g-habit')?.value||'',
+    linkedFinanceType:document.getElementById('g-finance-type')?.value||''
+  };
   if(editG){const i=S.goals.findIndex(g=>g.id===editG);S.goals[i]={...S.goals[i],...d};}
   else S.goals.push({id:uid(),...d});
   save();closeM('gm');renderGoals();
@@ -1381,7 +1501,46 @@ function handleCmdK(e){
 // ── FOCUS NOW ─────────────────────────────────────────────────
 let curEnergy=null;
 function setEnergy(lv,el){curEnergy=lv;document.querySelectorAll('.eng-btn').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');renderFocusRecs();}
-function renderFocus(){if(curEnergy)renderFocusRecs();}
+function renderFocus(){
+  document.getElementById('focus-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+  renderFocusDayPlan();
+  renderFocusHabits();
+  if(curEnergy)renderFocusRecs();
+}
+function renderFocusDayPlan(){
+  const top=S.tasks.filter(t=>t.isT3&&t.status!=='done').sort((a,b)=>a.t3s-b.t3s);
+  const blocks=[
+    {time:'9–11am',icon:'🧠',label:'Deep Work',task:top[0]||null,color:'#58a6ff'},
+    {time:'11–12pm',icon:'🟣',label:'Givelink Outreach',task:top.find(t=>t.category==='givelink')||null,color:'#a78bfa'},
+    {time:'2–4pm',icon:'⚡',label:'Focus Block 2',task:top[1]||null,color:'#22d3ee'},
+    {time:'4–5pm',icon:'📧',label:'Comms & Admin',task:null,color:'var(--muted)'},
+  ];
+  document.getElementById('focus-day-plan').innerHTML=blocks.map(b=>`
+    <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:11px;color:var(--muted);min-width:54px;">${b.time}</span>
+      <span style="font-size:16px;">${b.icon}</span>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:600;color:${b.color};">${b.label}</div>
+        ${b.task?`<div style="font-size:12px;color:var(--muted);margin-top:1px;">→ ${b.task.title}</div>`:'<div style="font-size:11px;color:var(--muted);font-style:italic;">open block</div>'}
+      </div>
+      ${b.task?`<button class="btn bg sm" onclick="toggleDone('${b.task.id}');renderFocus()">✓</button>`:''}
+    </div>`).join('');
+}
+function renderFocusHabits(){
+  const habits=S.habits||[];
+  const today=new Date().toISOString().slice(0,10);
+  const todayLog=S.habitLogs?.[today]||{};
+  if(!habits.length){document.getElementById('focus-habits-card').style.display='none';return;}
+  document.getElementById('focus-habits-card').style.display='';
+  const done=habits.filter(h=>todayLog[h]).length;
+  document.getElementById('focus-habits').innerHTML=`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${done}/${habits.length} done today</div>`+
+    habits.map(h=>`<div class="habit-row" style="padding:6px 0;">
+      <div class="habit-ck ${todayLog[h]?'on':''}" onclick="toggleHabit('${h.replace(/'/g,"\'")}');renderFocus()">
+        ${todayLog[h]?'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':''}
+      </div>
+      <span style="font-size:13px;">${h}</span>
+    </div>`).join('');
+}
 function renderFocusRecs(){
   const h=new Date().getHours();
   const a=active().filter(t=>t.bucket!=='inbox');
@@ -2360,6 +2519,275 @@ function deleteDiscomfort(id){
   S.discomfortLogs=(S.discomfortLogs||[]).filter(l=>l.id!==id);save();renderDiscomfort();
 }
 
+
+// ── MORNING BRIEFING ──────────────────────────────────────────
+function renderMorningBriefing(){
+  const h=new Date().getHours();
+  if(h>=12){document.getElementById('morning-briefing').style.display='none';return;}
+  const habits=S.habits||[];
+  const today=new Date().toISOString().slice(0,10);
+  const todayLog=S.habitLogs?.[today]||{};
+  const habitsDone=habits.filter(h=>todayLog[h]).length;
+  const habitsPending=habits.length-habitsDone;
+  const overduePeople=(S.people||[]).filter(p=>daysSinceDate(p.lastContact)>(p.interval||30)).slice(0,2);
+  const top3=S.tasks.filter(t=>t.isT3&&t.status!=='done').sort((a,b)=>a.t3s-b.t3s);
+  const dwStreak=_dwStreakDays();
+  const lines=[];
+  if(top3[0])lines.push(`🎯 Top priority: <strong>${top3[0].title}</strong>`);
+  if(habitsPending>0)lines.push(`✅ ${habitsPending} habit${habitsPending!==1?'s':''} pending`);
+  if(dwStreak>0)lines.push(`🧠 Deep work streak: <strong>${dwStreak}d</strong>`);
+  if(overduePeople.length)lines.push(`🤝 Overdue: ${overduePeople.map(p=>`${p.name} (${daysSinceDate(p.lastContact)}d)`).join(', ')}`);
+  const thisWeekSess=(S.deepWorkSessions||[]).filter(s=>{const d=new Date(s.date);const now=new Date();const mon=new Date(now);mon.setDate(now.getDate()-((now.getDay()+6)%7));return d>=mon;}).length;
+  if(thisWeekSess<3)lines.push(`⏱ ${thisWeekSess}/3 deep work sessions this week`);
+  if(!lines.length){document.getElementById('morning-briefing').style.display='none';return;}
+  document.getElementById('briefing-body').innerHTML=lines.join(' &nbsp;·&nbsp; ');
+  document.getElementById('morning-briefing').style.display='';
+}
+function _dwStreakDays(){
+  const sessions=S.deepWorkSessions||[];if(!sessions.length)return 0;
+  const daySet=new Set(sessions.map(s=>s.date));
+  let streak=0;const today=new Date();
+  for(let i=0;i<60;i++){
+    const d=new Date(today);d.setDate(today.getDate()-i);
+    if(daySet.has(d.toISOString().slice(0,10)))streak++;else break;
+  }return streak;
+}
+
+// ── STREAK ROW ─────────────────────────────────────────────────
+function renderStreakRow(){
+  const el=document.getElementById('streak-row');if(!el)return;
+  const dwS=_dwStreakDays();
+  const habS=_habitStreak();
+  const disS=_discomfortStreak();
+  const revS=_reviewStreak();
+  const items=[
+    {icon:'🧠',label:'Deep Work',val:dwS,unit:'d',color:'#58a6ff'},
+    {icon:'✅',label:'Habits',val:habS,unit:'d',color:'#69db7c'},
+    {icon:'🔥',label:'Discomfort',val:disS,unit:'d',color:'#ff6b6b'},
+    {icon:'📅',label:'Reviews',val:revS,unit:'wk',color:'#fbbf24'},
+  ];
+  el.innerHTML=items.filter(i=>i.val>0).map(i=>`
+    <div style="display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px;">
+      <span>${i.icon}</span>
+      <span style="font-size:12px;font-weight:700;color:${i.color};">${i.val}${i.unit}</span>
+      <span style="font-size:11px;color:var(--muted);">${i.label}</span>
+    </div>`).join('')||'';
+}
+function _discomfortStreak(){
+  const logs=S.discomfortLogs||[];if(!logs.length)return 0;
+  const daySet=new Set(logs.map(l=>l.date));
+  let streak=0;const today=new Date();
+  for(let i=0;i<30;i++){const d=new Date(today);d.setDate(today.getDate()-i);if(daySet.has(d.toISOString().slice(0,10)))streak++;else break;}
+  return streak;
+}
+function _reviewStreak(){
+  const reviews=S.reviews||[];if(!reviews.length)return 0;
+  // Count consecutive weeks
+  let streak=0;
+  const now=new Date();
+  for(let w=0;w<52;w++){
+    const weekStart=new Date(now);weekStart.setDate(now.getDate()-w*7-7);
+    const weekEnd=new Date(now);weekEnd.setDate(now.getDate()-w*7);
+    if(reviews.some(r=>new Date(r.weekOf)>=weekStart&&new Date(r.weekOf)<weekEnd))streak++;
+    else break;
+  }return streak;
+}
+
+// ── ANTI-PATTERN DETECTOR ─────────────────────────────────────
+function renderAntiPatterns(){
+  const el=document.getElementById('anti-pattern-alerts');if(!el)return;
+  const patterns=[];
+  const a=active();
+  // Zombie tasks: moved 3+ weeks without completion
+  const threeWeeksAgo=new Date();threeWeeksAgo.setDate(threeWeeksAgo.getDate()-21);
+  const zombies=a.filter(t=>t.urgency==='high'&&t.importance==='high'&&t.createdAt&&new Date(t.createdAt)<threeWeeksAgo);
+  if(zombies.length>=2)patterns.push({icon:'🧟',color:'#ff6b6b',msg:`${zombies.length} high-priority tasks over 3 weeks old — are they still relevant?`});
+  // Inbox rot: inbox has 10+ items
+  const inbox=a.filter(t=>t.bucket==='inbox');
+  if(inbox.length>=10)patterns.push({icon:'📥',color:'#fbbf24',msg:`Inbox has ${inbox.length} unprocessed items — schedule a processing session`});
+  // No deep work logged this week
+  const mon=new Date();mon.setDate(mon.getDate()-((mon.getDay()+6)%7));
+  const dwThisWeek=(S.deepWorkSessions||[]).filter(s=>new Date(s.date)>=mon);
+  if(dwThisWeek.length===0&&new Date().getDay()>=3)patterns.push({icon:'🧠',color:'#74c0fc',msg:`No deep work logged this week — protect at least 2 blocks`});
+  // Goals with no linked tasks
+  const goalNoTasks=S.goals.filter(g=>!S.tasks.some(t=>t.goalId===g.id&&t.status!=='done'));
+  if(goalNoTasks.length>=2)patterns.push({icon:'🏆',color:'#a78bfa',msg:`${goalNoTasks.length} goals have no active tasks — goals need execution`});
+  // Same Top 3 for 7+ days
+  const top3=S.tasks.filter(t=>t.isT3&&t.status!=='done');
+  const stale=top3.filter(t=>t.createdAt&&new Date(t.createdAt)<new Date(Date.now()-7*86400000));
+  if(stale.length>=2)patterns.push({icon:'🔄',color:'#ffa94d',msg:`Top 3 tasks unchanged for 7+ days — are you making progress or avoiding?`});
+  el.innerHTML=patterns.length?`<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">${patterns.map(p=>`<div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-left:3px solid ${p.color};border-radius:6px;padding:8px 12px;font-size:12px;">${p.icon} ${p.msg}</div>`).join('')}</div>`:'';
+}
+
+// ── EAT THE FROG ──────────────────────────────────────────────
+let _frogTaskId=null;
+function checkEatTheFrog(){
+  const h=new Date().getHours();
+  if(h>=11)return; // Only show before 11am
+  const already=localStorage.getItem('taskos_frog_'+new Date().toISOString().slice(0,10));
+  if(already)return;
+  // Find the most avoided task: high urgency+importance, oldest creation date
+  const candidates=active().filter(t=>t.urgency==='high'&&t.importance==='high').sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
+  if(!candidates.length)return;
+  const frog=candidates[0];
+  _frogTaskId=frog.id;
+  const daysOld=Math.floor((Date.now()-new Date(frog.createdAt))/(86400000));
+  document.getElementById('frog-task').textContent=frog.title;
+  document.getElementById('frog-meta').textContent=`${daysOld} days in your list · High urgency + importance · ${CATS[frog.category]?.l||'Other'}`;
+  document.getElementById('frog-modal').classList.remove('hidden');
+  localStorage.setItem('taskos_frog_'+new Date().toISOString().slice(0,10),'shown');
+}
+function pinFrogTask(){
+  if(!_frogTaskId)return;
+  const t=S.tasks.find(x=>x.id===_frogTaskId);
+  if(t){
+    // Set as Top 3 slot 1
+    S.tasks.forEach(x=>{if(x.t3s===1)x.isT3=false;x.t3s=null;});
+    t.isT3=true;t.t3s=1;t.bucket='this-week';save();
+    toast('🐸 Frog pinned as Top Priority!');renderDash();
+  }
+  closeM('frog-modal');
+}
+
+// ── SMART BATCHING ─────────────────────────────────────────────
+async function showBatchSuggestions(){
+  const el=document.getElementById('batch-body');
+  document.getElementById('batch-modal').classList.remove('hidden');
+  el.innerHTML='<div style="color:var(--muted);">⏳ Analyzing your tasks...</div>';
+  const tasks=active().filter(t=>t.bucket==='this-week'||t.bucket==='inbox').slice(0,20);
+  if(!tasks.length){el.innerHTML='No tasks to batch.';return;}
+  const list=tasks.map(t=>`- ${t.title} [${t.category}, ${t.urgency}/${t.importance}]`).join('\n');
+  const prompt=`Here are my active tasks:\n${list}\n\nGroup these into 3-4 batches by similarity (same tool, same context, same energy level, same category). For each batch: give a batch name, list the tasks, and suggest the best time of day. Be specific and practical. Format as numbered list.`;
+  const result=await callClaude(prompt,600);
+  el.innerHTML=result||'Could not generate suggestions.';
+}
+
+// ── TWITTER POST GENERATOR ─────────────────────────────────────
+function openTweetGenerator(){
+  const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
+  const wins=(S.wins||[]).filter(w=>new Date(w.date)>=wAgo);
+  const done=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>wAgo).slice(0,8);
+  const all=[...wins.map(w=>({id:'w_'+w.id,text:w.text,type:'win'})),...done.map(t=>({id:'t_'+t.id,text:t.title,type:'task'}))];
+  document.getElementById('tweet-wins-list').innerHTML=all.length
+    ?all.map(i=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;cursor:pointer;"><input type="checkbox" class="tweet-sel" value="${i.text.replace(/"/g,'&quot;')}" style="width:14px;height:14px;"> ${i.type==='win'?'🏆':'✅'} ${i.text}</label>`).join('')
+    :'<div style="color:var(--muted);font-size:12px;">No wins or completed tasks this week yet.</div>';
+  document.getElementById('tweet-output').style.display='none';
+  document.getElementById('tweet-modal').classList.remove('hidden');
+}
+async function generateTweet(){
+  const btn=document.getElementById('tweet-gen-btn');
+  const selected=Array.from(document.querySelectorAll('.tweet-sel:checked')).map(c=>c.value);
+  const angle=document.getElementById('tweet-angle').value;
+  if(!selected.length){toast('Select at least one win/task');return;}
+  btn.textContent='⏳';btn.disabled=true;
+  const angles={founder:'authentic founder journey, vulnerable and real',givelink:'startup progress building B2B SaaS for nonprofits',growth:'personal growth and discipline',health:'health optimization and discipline'};
+  const prompt=`Write a Twitter/X post (max 280 chars) or thread (2-3 tweets) for a startup founder sharing their week. Angle: ${angles[angle]}. Wins/progress to feature:\n${selected.map(s=>'- '+s).join('\n')}\n\nMake it authentic, no hype, specific details. No generic motivational filler. Use minimal emojis. End with a question or observation to drive engagement.`;
+  const result=await callClaude(prompt,400);
+  document.getElementById('tweet-text').textContent=result||'Could not generate.';
+  document.getElementById('tweet-output').style.display='';
+  btn.textContent='✨ Generate';btn.disabled=false;
+}
+
+// ── WEEKLY METRICS DIGEST ─────────────────────────────────────
+function showWeeklyDigest(){
+  const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
+  const now=new Date();
+  const mon=new Date(now);mon.setDate(now.getDate()-((now.getDay()+6)%7));
+  const done=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>wAgo);
+  const wins=(S.wins||[]).filter(w=>new Date(w.date)>wAgo);
+  const workouts=(S.healthLogs||[]).filter(l=>l.type==='workout'&&new Date(l.date)>=mon);
+  const sleepLogs=(S.healthLogs||[]).filter(l=>l.type==='sleep'&&new Date(l.date)>=mon);
+  const avgSleep=sleepLogs.length?Math.round(sleepLogs.reduce((s,l)=>s+l.value,0)/sleepLogs.length):null;
+  const bfLogs=(S.healthLogs||[]).filter(l=>l.type==='bodyfat').sort((a,b)=>a.date>b.date?-1:1);
+  const latestBF=bfLogs[0];
+  const dwSess=(S.deepWorkSessions||[]).filter(s=>new Date(s.date)>=mon);
+  const dwHours=Math.round(dwSess.reduce((s,x)=>s+x.duration,0)/3600*10)/10;
+  const incomeThisWeek=(S.financeEntries||[]).filter(e=>e.type==='income'&&new Date(e.date)>wAgo).reduce((s,e)=>s+e.amount,0);
+  const habits=S.habits||[];
+  const habStreak=_habitStreak();
+  const goals=S.goals;
+  const goalsDone=goals.filter(g=>goalStats(g.id).pct===100);
+  const dateStr=now.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const digest=`📊 WEEKLY METRICS DIGEST — ${dateStr}
+${'─'.repeat(44)}
+
+TASKS & PRODUCTIVITY
+  ✅ Completed: ${done.length} tasks
+  🏆 Wins logged: ${wins.length}
+  🧠 Deep Work: ${dwHours}h (${dwSess.length} sessions)
+  🏆 Goals: ${goalsDone.length}/${goals.length} complete
+
+HEALTH
+  🏋️  Workouts: ${workouts.length}/5 this week
+  😴 Avg sleep: ${avgSleep!==null?avgSleep+'%':'—'}
+  📏 Body fat: ${latestBF?latestBF.value+'% ('+latestBF.date+')':'—'}
+  ✅ Habit streak: ${habStreak} days
+
+FINANCE
+  💸 Income this week: €${incomeThisWeek.toLocaleString()}
+  📈 Automations built: ${(S.automations||[]).filter(a=>a.status!=='idea').length}/100
+
+RELATIONSHIPS
+  🤝 Overdue check-ins: ${(S.people||[]).filter(p=>daysSinceDate(p.lastContact)>(p.interval||30)).length}
+
+TOP WINS THIS WEEK
+${wins.slice(0,5).map(w=>'  🏆 '+w.text).join('\n')||'  None logged yet'}
+
+TOP COMPLETED
+${done.slice(0,5).map(t=>'  ✅ '+t.title).join('\n')||'  None this week'}
+${'─'.repeat(44)}`;
+  document.getElementById('digest-body').textContent=digest;
+  document.getElementById('digest-modal').classList.remove('hidden');
+}
+
+// ── GOAL → METRIC → HABIT LOOP ────────────────────────────────
+function goalLinkedData(g){
+  const out={};
+  if(g.linkedHealthMetric){
+    const logs=(S.healthLogs||[]).filter(l=>l.type===g.linkedHealthMetric).sort((a,b)=>a.date>b.date?-1:1);
+    out.latestMetric=logs[0]||null;
+  }
+  if(g.linkedHabit){
+    const mon=new Date();mon.setDate(mon.getDate()-((mon.getDay()+6)%7));
+    const wDays=[];for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);wDays.push(d.toISOString().slice(0,10));}
+    const done=wDays.filter(d=>(S.habitLogs?.[d]||{})[g.linkedHabit]).length;
+    out.habitWeek=done;
+    out.habitStreak=_habitStreak();
+  }
+  if(g.linkedFinanceType){
+    const yr=new Date().getFullYear();
+    const total=(S.financeEntries||[]).filter(e=>e.type===g.linkedFinanceType&&new Date(e.date).getFullYear()===yr).reduce((s,e)=>s+e.amount,0);
+    out.financeTotal=total;
+  }
+  return out;
+}
+
+// ── WEEKLY REVIEW AUTO-PULL ────────────────────────────────────
+function autoFillReview(){
+  const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
+  const mon=new Date();mon.setDate(mon.getDate()-((mon.getDay()+6)%7));
+  const done=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>wAgo);
+  const wins=(S.wins||[]).filter(w=>new Date(w.date)>wAgo).map(w=>w.text);
+  const workouts=(S.healthLogs||[]).filter(l=>l.type==='workout'&&new Date(l.date)>=mon).length;
+  const dwSess=(S.deepWorkSessions||[]).filter(s=>new Date(s.date)>=mon);
+  const dwH=Math.round(dwSess.reduce((s,x)=>s+x.duration,0)/3600*10)/10;
+  const disLogs=(S.discomfortLogs||[]).filter(l=>new Date(l.date)>wAgo);
+  const habStreak=_habitStreak();
+  const wentWell=[
+    done.length>0?`Completed ${done.length} tasks`:'',
+    wins.length>0?wins.slice(0,2).join('; '):'',
+    workouts>0?`${workouts} workouts done`:'',
+    dwH>0?`${dwH}h deep work`:'',
+    disLogs.length>0?`${disLogs.length} discomfort challenge${disLogs.length!==1?'s':''}`:'',
+  ].filter(Boolean).join('. ');
+  const el=document.getElementById('rw');
+  if(el&&wentWell)el.value=wentWell;
+  const focusEl=document.getElementById('rf');
+  const top3=S.tasks.filter(t=>t.isT3&&t.status!=='done').sort((a,b)=>a.t3s-b.t3s);
+  if(focusEl&&top3[0])focusEl.value=top3[0].title;
+  toast('✅ Auto-filled from your Life OS data!');
+}
+
 // ── RECURRING TASKS ───────────────────────────────────────────
 function resetRecurring(){
   const now=new Date();
@@ -2435,10 +2863,73 @@ if(_lastP&&_lastP!=='dashboard'){nav(_lastP);}else{renderDash();}
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 
 // ── EOD RITUAL ────────────────────────────────────────────────────
+let _eodStep=0;
+const EOD_STEPS=['🏆 Win','✅ Habits','🎯 MIT Tomorrow','⚡ Energy','🌙 Done'];
 function renderEod(){
-  const v=document.getElementById('v-eod');
-  if(!v)return;
-  // Stub: EOD ritual UI will be implemented separately
+  _eodStep=0;_renderEodStep();
+}
+function _renderEodStep(){
+  const dots=document.getElementById('eod-prog-dots');
+  const lbl=document.getElementById('eod-step-label');
+  const body=document.getElementById('eod-step-body');
+  const nav=document.getElementById('eod-nav');
+  if(!dots)return;
+  dots.innerHTML=EOD_STEPS.map((_,i)=>`<div style="width:8px;height:8px;border-radius:50%;background:${i<=_eodStep?'var(--accent)':'var(--border)'}"></div>`).join('');
+  lbl.textContent=`${_eodStep+1} / ${EOD_STEPS.length} — ${EOD_STEPS[_eodStep]}`;
+  const today=new Date().toISOString().slice(0,10);
+  const done=S.tasks.filter(t=>t.completedAt?.slice(0,10)===today);
+  if(_eodStep===0){
+    body.innerHTML=`<h3 style="margin-bottom:10px;">🏆 Log today's biggest win</h3>
+      <textarea class="fc" id="eod-win" style="min-height:72px;" placeholder="What moved the needle today?"></textarea>
+      ${done.length?`<div style="font-size:12px;color:var(--muted);margin-top:8px;">Completed today: ${done.map(t=>t.title).join(' · ')}</div>`:''}`;
+    nav.innerHTML=`<span></span><button class="btn bp" onclick="_eodNext()">Next →</button>`;
+  } else if(_eodStep===1){
+    const habits=S.habits||[];const log=S.habitLogs?.[today]||{};
+    const doneH=habits.filter(h=>log[h]).length;
+    body.innerHTML=`<h3 style="margin-bottom:10px;">✅ Habits — ${doneH}/${habits.length} done</h3>`+
+      (habits.length?habits.map(h=>`<div class="habit-row" style="padding:6px 0;"><div class="habit-ck ${log[h]?'on':''}" onclick="toggleHabit('${h.replace(/'/g,"\'")}');_renderEodStep()">${log[h]?'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':''}</div><span style="font-size:13px;">${h}</span></div>`).join(''):'<div style="color:var(--muted);font-size:13px;">No habits configured yet. <span style="color:var(--accent);cursor:pointer;" onclick="nav('habits')">Set up habits →</span></div>');
+    nav.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="_eodNext()">Next →</button>`;
+  } else if(_eodStep===2){
+    const week=active().filter(t=>t.bucket==='this-week').slice(0,5);
+    body.innerHTML=`<h3 style="margin-bottom:10px;">🎯 Most Important Task for tomorrow</h3>
+      <input class="fc" id="eod-mit" placeholder="The one thing that matters most tomorrow..." style="margin-bottom:10px;">
+      ${week.length?`<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Quick pick:</div>${week.map(t=>`<div onclick="document.getElementById('eod-mit').value='${t.title.replace(/'/g,"\'")}';" style="cursor:pointer;font-size:12px;padding:5px 8px;border-radius:5px;border:1px solid var(--border);margin-bottom:4px;transition:background .1s;" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">${t.title}</div>`).join('')}`:''}`;
+    nav.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="_eodNext()">Next →</button>`;
+  } else if(_eodStep===3){
+    body.innerHTML=`<h3 style="margin-bottom:10px;">⚡ Energy level today?</h3>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${['1 — Burned out','2 — Low','3 — Average','4 — Good','5 — Peak'].map((l,i)=>`<button class="btn bg" id="eod-e${i+1}" onclick="_eodSelEnergy(${i+1})" style="flex:1;">${l}</button>`).join('')}
+      </div>`;
+    nav.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="_eodNext()">Finish →</button>`;
+  } else if(_eodStep===4){
+    body.innerHTML=`<div style="text-align:center;padding:20px 0;">
+      <div style="font-size:48px;margin-bottom:12px;">🌙</div>
+      <div style="font-size:18px;font-weight:700;margin-bottom:8px;">Day complete.</div>
+      <div style="font-size:13px;color:var(--muted);">Well done. Rest, recover, repeat.</div>
+    </div>`;
+    nav.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="nav('dashboard')">Go to Dashboard</button>`;
+  }
+}
+let _eodEnergy=null;
+function _eodSelEnergy(n){
+  _eodEnergy=n;
+  for(let i=1;i<=5;i++){const b=document.getElementById('eod-e'+i);if(b)b.style.borderColor=i===n?'var(--accent)':'var(--border)';}
+}
+function _eodNext(){
+  if(_eodStep===0){
+    const win=document.getElementById('eod-win')?.value.trim();
+    if(win){if(!S.wins)S.wins=[];S.wins.push({id:uid(),text:win,date:new Date().toISOString().slice(0,10)});save();toast('🏆 Win logged!');}
+  }
+  if(_eodStep===2){
+    const mit=document.getElementById('eod-mit')?.value.trim();
+    if(mit){
+      // Prepend MIT to this-week bucket
+      S.tasks.unshift({id:uid(),title:'🎯 '+mit,notes:'',bucket:'this-week',category:'other',urgency:'high',importance:'high',energy:'high',status:'todo',isT3:false,t3s:null,createdAt:new Date().toISOString(),completedAt:null,goalId:null});
+      save();toast('MIT added to This Week!');
+    }
+  }
+  _eodStep=Math.min(_eodStep+1,EOD_STEPS.length-1);
+  _renderEodStep();
 }
 
 // ── DECISIONS ─────────────────────────────────────────────────────

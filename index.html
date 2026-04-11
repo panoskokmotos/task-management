@@ -245,6 +245,16 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 .rel-avatar{width:36px;height:36px;border-radius:50%;background:var(--accent);color:#000;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .fin-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
 
+
+/* ── DAILY CHALLENGE ─────────────────────────────────────────── */
+.dc-card{background:linear-gradient(135deg,rgba(88,166,255,.1),rgba(34,211,238,.06));border:1px solid rgba(88,166,255,.3);border-radius:12px;padding:18px;margin-bottom:20px;position:relative;overflow:hidden;}
+.dc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#58a6ff,#22d3ee,#a78bfa);}
+.dc-badge{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--accent);margin-bottom:6px;}
+.dc-title{font-size:15px;font-weight:700;line-height:1.4;margin-bottom:8px;}
+.dc-why{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:12px;}
+.dc-meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+.dc-pill{font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;background:rgba(88,166,255,.12);color:var(--accent);}
+
 </style>
 </head>
 <body>
@@ -276,6 +286,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div class="ni" onclick="nav('history')">📚 Review History</div>
   <div class="ni" onclick="nav('eod')">🌙 End-of-Day</div>
   <div class="ni" onclick="nav('decisions')">🧠 Decisions</div>
+  <div class="ni" onclick="nav('challenge')">⚡ Daily Challenge</div>
   <div class="ns">Life OS</div>
   <div class="ni" onclick="nav('health')">💪 Health</div>
   <div class="ni" onclick="nav('finance')">💰 Finance</div>
@@ -487,6 +498,28 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
     <button class="btn bp" onclick="openAddDecision()">+ Log Decision</button>
   </div>
   <div id="dec-list"></div>
+</div>
+
+
+<!-- DAILY CHALLENGE -->
+<div id="v-challenge" class="view">
+  <div class="ph">
+    <div><h1>⚡ Daily Challenge</h1><p class="sub">One mission per day. Aligned to your north star.</p></div>
+    <div class="row">
+      <button class="btn bg sm" onclick="genAIChallenge()">🤖 AI Challenge</button>
+      <button class="btn bp" onclick="openAddChallenge()">+ Custom</button>
+    </div>
+  </div>
+  <!-- TODAY -->
+  <div id="dc-today"></div>
+  <!-- HISTORY -->
+  <div style="margin-top:20px;">
+    <div class="ph" style="margin-bottom:10px;">
+      <h2 style="margin:0;">📅 Challenge Log</h2>
+      <span id="dc-streak" style="font-size:13px;font-weight:700;color:#fbbf24;"></span>
+    </div>
+    <div id="dc-history"></div>
+  </div>
 </div>
 
 </main>
@@ -2344,12 +2377,8 @@ function logRelContact(id){
 async function aiRelNudge(){
   toast('⏳ Thinking...');
   const people=S.people||[];
-  const list=people.map(p=>`${p.name} (${p.type}, ${daysSinceDate(p.lastContact)}d since contact, interval: ${p.interval||30}d${p.isTop?' TOP':''})${p.notes?', '+p.notes:''}`).join('
-');
-  const prompt=`Here are my relationships:
-${list||'No people logged yet.'}
-
-Today is ${new Date().toLocaleDateString()}. Who should I reach out to this week and why? Suggest 3 people with specific reason and conversation starter.`;
+  const list=people.map(p=>`${p.name} (${p.type}, ${daysSinceDate(p.lastContact)}d since contact, interval: ${p.interval||30}d${p.isTop?' TOP':''})${p.notes?', '+p.notes:''}`).join('\n');
+  const prompt='Here are my relationships:\n'+(list||'No people logged yet.')+'\n\nToday is '+new Date().toLocaleDateString()+'. Who should I reach out to this week and why? Suggest 3 people with specific reason and conversation starter.';
   const result=await callClaude(prompt,500);
   if(result)showAiOut('🤝 Who to Reach Out To',result);
 }
@@ -2560,11 +2589,13 @@ function renderStreakRow(){
   const habS=_habitStreak();
   const disS=_discomfortStreak();
   const revS=_reviewStreak();
+  const chalS=_challengeStreak();
   const items=[
     {icon:'🧠',label:'Deep Work',val:dwS,unit:'d',color:'#58a6ff'},
     {icon:'✅',label:'Habits',val:habS,unit:'d',color:'#69db7c'},
-    {icon:'🔥',label:'Discomfort',val:disS,unit:'d',color:'#ff6b6b'},
-    {icon:'📅',label:'Reviews',val:revS,unit:'wk',color:'#fbbf24'},
+    {icon:'⚡',label:'Challenges',val:chalS,unit:'d',color:'#ff6b6b'},
+    {icon:'🔥',label:'Discomfort',val:disS,unit:'d',color:'#fbbf24'},
+    {icon:'📅',label:'Reviews',val:revS,unit:'wk',color:'#a78bfa'},
   ];
   el.innerHTML=items.filter(i=>i.val>0).map(i=>`
     <div style="display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px;">
@@ -2788,6 +2819,186 @@ function autoFillReview(){
   toast('✅ Auto-filled from your Life OS data!');
 }
 
+
+// ── DAILY CHALLENGE ──────────────────────────────────────────────
+const DAILY_CHALLENGES=[
+  {id:"c1",title:"Cold outreach: send 3 personalized emails to nonprofits",why:"Every email is a step toward 100 nonprofits and financial freedom",cat:"givelink",diff:2},
+  {id:"c2",title:"Book 1 demo call today",why:"Demos are the fastest path to revenue. One call can change everything.",cat:"givelink",diff:3},
+  {id:"c3",title:"Research 5 new US nonprofit prospects",why:"Pipeline starts with research. Your next client is in a spreadsheet.",cat:"givelink",diff:1},
+  {id:"c4",title:"Follow up with 2 prospects you haven't heard from in 7+ days",why:"Most deals are lost to silence, not rejection.",cat:"givelink",diff:2},
+  {id:"c5",title:"Write and post 1 value-driven LinkedIn piece about nonprofit fundraising",why:"Your personal brand compounds — each post reaches 500+ potential buyers.",cat:"givelink",diff:2},
+  {id:"c6",title:"Improve one part of the Givelink onboarding flow",why:"A 10% better onboarding = 10% more retention. Multiply by 100 nonprofits.",cat:"givelink",diff:2},
+  {id:"c7",title:"Complete a full workout — no shortcuts, no skipping sets",why:"The body you're building is the foundation for everything else.",cat:"health",diff:2},
+  {id:"c8",title:"Take a 5-minute cold shower",why:"Voluntary discomfort at the start of the day builds discipline for the whole day.",cat:"discipline",diff:3},
+  {id:"c9",title:"No phone until 10am",why:"Your first 2 hours set the tone. Protect them.",cat:"discipline",diff:3},
+  {id:"c10",title:"Eat clean all day — no processed food",why:"What you eat is what you build. Your body is your primary asset.",cat:"health",diff:2},
+  {id:"c11",title:"Sleep before midnight and get 8 hours",why:"Sleep is the highest-leverage recovery tool available to you.",cat:"health",diff:1},
+  {id:"c12",title:"Walk 10,000 steps — outside if possible",why:"Active recovery, sunlight, and movement compound over months.",cat:"health",diff:1},
+  {id:"c13",title:"Block 90 uninterrupted minutes on your single hardest task",why:"90 minutes of real focus beats 4 hours of distracted work.",cat:"deep-work",diff:3},
+  {id:"c14",title:"Read 30 pages of a non-fiction book",why:"Books are the highest ROI input. One idea can change your strategy.",cat:"growth",diff:1},
+  {id:"c15",title:"Build or document 1 new AI automation",why:"Each automation compounds — you're building toward 100 workflows.",cat:"growth",diff:2},
+  {id:"c16",title:"Review and update your top 3 goals — are you on track?",why:"Unchecked goals drift. 10 minutes of review prevents weeks of detour.",cat:"growth",diff:1},
+  {id:"c17",title:"Do a 10-minute journaling session: what's really blocking you?",why:"Clarity is a competitive advantage. Most founders avoid it.",cat:"growth",diff:1},
+  {id:"c18",title:"Learn one new skill or concept relevant to Givelink",why:"The fastest path to 100 nonprofits is knowing what they actually need.",cat:"growth",diff:2},
+  {id:"c19",title:"Reach out to 1 mentor or investor — share a win and ask for feedback",why:"Top relationships require consistent deposits, not withdrawals.",cat:"relationships",diff:2},
+  {id:"c20",title:"Send a genuine appreciation message to someone who helped you",why:"Gratitude builds loyalty. Loyalty builds network. Network builds company.",cat:"relationships",diff:1},
+  {id:"c21",title:"Have 1 deep conversation — no small talk",why:"Shallow connections don't move the needle. Depth does.",cat:"relationships",diff:2},
+  {id:"c22",title:"Review your finance tracker — are you on track for your annual goal?",why:"What gets measured gets managed. 5 minutes now prevents a year-end shock.",cat:"finance",diff:1},
+  {id:"c23",title:"Identify and eliminate 1 unnecessary expense",why:"Every euro saved is a euro working for you. Optionality equals freedom.",cat:"finance",diff:2},
+  {id:"c24",title:"Do something today that makes you uncomfortable",why:"Comfort is the enemy of growth. Seek the edge daily.",cat:"discipline",diff:3},
+  {id:"c25",title:"Have a hard conversation you have been postponing",why:"Avoided conversations drain energy. Completed ones free it.",cat:"discipline",diff:3},
+  {id:"c26",title:"Fast until 2pm — intermittent fasting",why:"Physical discomfort that builds mental discipline. Clarity peaks after 16 hours.",cat:"discipline",diff:2},
+  {id:"c27",title:"Do 100 push-ups distributed throughout the day",why:"Small physical acts of discipline recondition your identity.",cat:"health",diff:2},
+  {id:"c28",title:"Think of 1 nonprofit that could benefit from Givelink — write their story",why:"The 1M people goal starts with imagining whose life will change.",cat:"givelink",diff:1},
+  {id:"c29",title:"Write down 3 non-negotiables — values you will never compromise",why:"Clarity on values makes every decision faster and better.",cat:"growth",diff:1},
+  {id:"c30",title:"Do one thing today purely for impact, not for output",why:"Mission-driven action sustains motivation better than metrics alone.",cat:"givelink",diff:1},
+];
+const CAT_COLORS={givelink:'#a78bfa',health:'#69db7c',discipline:'#ff6b6b',relationships:'#74c0fc',growth:'#fbbf24',finance:'#22d3ee','deep-work':'#58a6ff'};
+const CAT_ICONS={givelink:'🟣',health:'💪',discipline:'🔥',relationships:'🤝',growth:'📈',finance:'💰','deep-work':'🧠'};
+const DIFF_LABELS={1:'😌 Easy',2:'💪 Medium',3:'🔥 Hard'};
+
+function _todayChallenge(){
+  const today=new Date().toISOString().slice(0,10);
+  return (S.challengeLogs||[]).find(c=>c.date===today)||null;
+}
+function _challengeStreak(){
+  const logs=S.challengeLogs||[];if(!logs.length)return 0;
+  const daysCompleted=new Set(logs.filter(c=>c.completed).map(c=>c.date));
+  let streak=0;const today=new Date();
+  for(let i=0;i<90;i++){const d=new Date(today);d.setDate(today.getDate()-i);if(daysCompleted.has(d.toISOString().slice(0,10)))streak++;else break;}
+  return streak;
+}
+function renderChallenge(){
+  const today=new Date().toISOString().slice(0,10);
+  const todayC=_todayChallenge();
+  const streak=_challengeStreak();
+  document.getElementById('dc-streak').textContent=streak>0?'🔥 '+streak+' day streak':'';
+  // Today card
+  if(todayC){
+    const col=CAT_COLORS[todayC.cat]||'var(--accent)';
+    document.getElementById('dc-today').innerHTML=`
+      <div class="dc-card">
+        <div class="dc-badge">${CAT_ICONS[todayC.cat]||'⚡'} Today's Challenge</div>
+        <div class="dc-title">${todayC.title}</div>
+        ${todayC.why?`<div class="dc-why">${todayC.why}</div>`:''}
+        <div class="dc-meta">
+          <span class="dc-pill" style="background:rgba(${col==='var(--accent)'?'88,166,255':col.replace('#','').match(/../g).map(x=>parseInt(x,16)).join(',')},.12);color:${col};">${CAT_ICONS[todayC.cat]||'⚡'} ${todayC.cat}</span>
+          <span class="dc-pill">${DIFF_LABELS[todayC.diff]||'💪 Medium'}</span>
+          ${todayC.completed?'<span class="dc-pill" style="background:rgba(105,219,124,.15);color:#69db7c;">✅ Completed</span>':''}
+        </div>
+        ${!todayC.completed?`<div style="margin-top:12px;display:flex;gap:8px;">
+          <button class="btn bp" onclick="completeChallenge()">✅ Mark Complete</button>
+          <button class="btn bg sm" onclick="openAddChallenge()">🔄 Change</button>
+        </div>`:`<div style="margin-top:10px;font-size:12px;color:#69db7c;">✓ Well done. See you tomorrow.</div>`}
+      </div>`;
+  } else {
+    // Pick today's challenge — rotate through library by day-of-year
+    const dayOfYear=Math.floor((new Date()-new Date(new Date().getFullYear(),0,0))/(1000*60*60*24));
+    const suggested=DAILY_CHALLENGES[dayOfYear%DAILY_CHALLENGES.length];
+    const col=CAT_COLORS[suggested.cat]||'var(--accent)';
+    document.getElementById('dc-today').innerHTML=`
+      <div class="dc-card">
+        <div class="dc-badge">⚡ Today's Challenge</div>
+        <div class="dc-title">${suggested.title}</div>
+        <div class="dc-why">${suggested.why}</div>
+        <div class="dc-meta">
+          <span class="dc-pill">${CAT_ICONS[suggested.cat]} ${suggested.cat}</span>
+          <span class="dc-pill">${DIFF_LABELS[suggested.diff]}</span>
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn bp" onclick="acceptChallenge('${suggested.id}')">⚡ Accept This</button>
+          <button class="btn bg sm" onclick="skipChallenge('${suggested.id}')">→ Next</button>
+          <button class="btn bg sm" onclick="openAddChallenge()">✏️ Custom</button>
+          <button class="btn bg sm" onclick="genAIChallenge()">🤖 AI Pick</button>
+        </div>
+      </div>`;
+  }
+  // History
+  const history=(S.challengeLogs||[]).slice().reverse().slice(0,30);
+  document.getElementById('dc-history').innerHTML=history.length?history.map(c=>`
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:18px;">${c.completed?'✅':'⬜'}</span>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:500;">${c.title}</div>
+        <div style="font-size:11px;color:var(--muted);">${c.date} · ${CAT_ICONS[c.cat]||'⚡'} ${c.cat}</div>
+      </div>
+      <span style="font-size:11px;color:var(--muted);">${DIFF_LABELS[c.diff]||''}</span>
+    </div>`).join(''):'<div class="empty">No challenges yet. Accept one above!</div>';
+}
+function acceptChallenge(libId){
+  const c=DAILY_CHALLENGES.find(x=>x.id===libId);if(!c)return;
+  const today=new Date().toISOString().slice(0,10);
+  if(!S.challengeLogs)S.challengeLogs=[];
+  S.challengeLogs.push({id:uid(),date:today,title:c.title,why:c.why,cat:c.cat,diff:c.diff,completed:false,source:'library'});
+  save();renderChallenge();toast('⚡ Challenge accepted!');
+}
+function skipChallenge(curId){
+  const cur=DAILY_CHALLENGES.findIndex(x=>x.id===curId);
+  const next=DAILY_CHALLENGES[(cur+1)%DAILY_CHALLENGES.length];
+  // Temporarily show next by updating the today div inline
+  const col=CAT_COLORS[next.cat]||'var(--accent)';
+  document.getElementById('dc-today').innerHTML=`
+    <div class="dc-card">
+      <div class="dc-badge">⚡ Today's Challenge</div>
+      <div class="dc-title">${next.title}</div>
+      <div class="dc-why">${next.why}</div>
+      <div class="dc-meta">
+        <span class="dc-pill">${CAT_ICONS[next.cat]} ${next.cat}</span>
+        <span class="dc-pill">${DIFF_LABELS[next.diff]}</span>
+      </div>
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn bp" onclick="acceptChallenge('${next.id}')">⚡ Accept This</button>
+        <button class="btn bg sm" onclick="skipChallenge('${next.id}')">→ Next</button>
+        <button class="btn bg sm" onclick="openAddChallenge()">✏️ Custom</button>
+        <button class="btn bg sm" onclick="genAIChallenge()">🤖 AI Pick</button>
+      </div>
+    </div>`;
+}
+function completeChallenge(){
+  const today=new Date().toISOString().slice(0,10);
+  const c=(S.challengeLogs||[]).find(x=>x.date===today);
+  if(!c)return;
+  c.completed=true;c.completedAt=new Date().toISOString();
+  // Also auto-log as a win
+  if(!S.wins)S.wins=[];
+  S.wins.push({id:uid(),text:'⚡ Daily Challenge: '+c.title,date:today});
+  save();renderChallenge();
+  toast('🔥 Challenge complete! Win logged.');
+}
+function openAddChallenge(){
+  document.getElementById('dc-title').value='';
+  document.getElementById('dc-why').value='';
+  document.getElementById('dc-cat').value='givelink';
+  document.getElementById('dc-diff').value='2';
+  document.getElementById('dc-modal').classList.remove('hidden');
+}
+function saveChallenge(){
+  const title=document.getElementById('dc-title').value.trim();
+  if(!title)return toast('Challenge title required');
+  const today=new Date().toISOString().slice(0,10);
+  // Remove any existing today challenge
+  S.challengeLogs=(S.challengeLogs||[]).filter(c=>c.date!==today);
+  S.challengeLogs.push({id:uid(),date:today,title,why:document.getElementById('dc-why').value.trim(),cat:document.getElementById('dc-cat').value,diff:parseInt(document.getElementById('dc-diff').value)||2,completed:false,source:'custom'});
+  save();closeM('dc-modal');renderChallenge();toast('⚡ Challenge set!');
+}
+async function genAIChallenge(){
+  toast('⏳ Generating your challenge...');
+  const goals=S.goals.slice(0,5).map(g=>g.title).join(', ')||'Givelink growth, health, AI automations';
+  const habits=S.habits.slice(0,5).join(', ')||'none set';
+  const done=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>new Date(Date.now()-7*86400000)).slice(0,5).map(t=>t.title).join(', ')||'nothing recent';
+  const streak=_challengeStreak();
+  const prompt='I need a daily challenge. My goals: '+goals+'. My habits: '+habits+'. Last week I did: '+done+'. Current challenge streak: '+streak+' days. Pick ONE specific, actionable challenge for today. Make it slightly outside my comfort zone. Format: TITLE: [challenge max 10 words] WHY: [1 sentence connecting to purpose] CAT: [one of: givelink/health/discipline/relationships/growth/finance/deep-work] DIFF: [1, 2, or 3]';
+  const result=await callClaude(prompt,200);
+  if(!result){toast('AI error');return;}
+  const getLine=(key)=>{const m=result.match(new RegExp(key+':\s*(.+)'));return m?m[1].trim():'';};
+  const title=getLine('TITLE'),why=getLine('WHY'),cat=getLine('CAT'),diff=parseInt(getLine('DIFF'))||2;
+  if(!title){toast('Could not parse AI response');return;}
+  const today=new Date().toISOString().slice(0,10);
+  S.challengeLogs=(S.challengeLogs||[]).filter(c=>c.date!==today);
+  S.challengeLogs.push({id:uid(),date:today,title,why,cat:cat||'growth',diff,completed:false,source:'ai'});
+  save();renderChallenge();toast('🤖 AI challenge set!');
+}
+
 // ── RECURRING TASKS ───────────────────────────────────────────
 function resetRecurring(){
   const now=new Date();
@@ -2887,7 +3098,7 @@ function _renderEodStep(){
     const habits=S.habits||[];const log=S.habitLogs?.[today]||{};
     const doneH=habits.filter(h=>log[h]).length;
     body.innerHTML=`<h3 style="margin-bottom:10px;">✅ Habits — ${doneH}/${habits.length} done</h3>`+
-      (habits.length?habits.map(h=>`<div class="habit-row" style="padding:6px 0;"><div class="habit-ck ${log[h]?'on':''}" onclick="toggleHabit('${h.replace(/'/g,"\'")}');_renderEodStep()">${log[h]?'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':''}</div><span style="font-size:13px;">${h}</span></div>`).join(''):'<div style="color:var(--muted);font-size:13px;">No habits configured yet. <span style="color:var(--accent);cursor:pointer;" onclick="nav('habits')">Set up habits →</span></div>');
+      (habits.length?habits.map(h=>{const hs=h.replace(/'/g,'&#39;');return '<div class="habit-row" style="padding:6px 0;"><div class="habit-ck '+(log[h]?'on':'')+'" onclick="toggleHabit(\'' + hs + '\');_renderEodStep()">'+(log[h]?'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':'')+'</div><span style="font-size:13px;">'+h+'</span></div>';}).join(''):'<div style="color:var(--muted);font-size:13px;">No habits configured yet. Click &#34;Manage Habits&#34; to add some.</div>');
     nav.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="_eodNext()">Next →</button>`;
   } else if(_eodStep===2){
     const week=active().filter(t=>t.bucket==='this-week').slice(0,5);
@@ -2978,6 +3189,7 @@ function saveDecision(){
   renderDecisions();
   toast('Decision logged!');
 }
+
 </script>
 
 <!-- DECISION MODAL -->
@@ -3063,5 +3275,39 @@ function saveDecision(){
     <div class="mf"><button class="btn bp" onclick="closeM('batch-modal')">Got it</button></div>
   </div>
 </div>
+
+<!-- CHALLENGE MODAL -->
+<div class="mo hidden" id="dc-modal">
+  <div class="md" style="width:480px;">
+    <div class="mh"><h3>⚡ Set Daily Challenge</h3><button class="mc" onclick="closeM('dc-modal')">×</button></div>
+    <div class="fg"><label>Challenge Title *</label><input class="fc" id="dc-title" placeholder="e.g. Cold call 3 nonprofits today"></div>
+    <div class="fg"><label>Why it matters</label><input class="fc" id="dc-why" placeholder="Connect to your purpose or goal..."></div>
+    <div class="fr">
+      <div class="fg"><label>Category</label>
+        <select class="fc" id="dc-cat">
+          <option value="givelink">🟣 Givelink</option>
+          <option value="health">💪 Health</option>
+          <option value="discipline">🔥 Discipline</option>
+          <option value="relationships">🤝 Relationships</option>
+          <option value="growth">📈 Growth</option>
+          <option value="deep-work">🧠 Deep Work</option>
+          <option value="finance">💰 Finance</option>
+        </select>
+      </div>
+      <div class="fg"><label>Difficulty</label>
+        <select class="fc" id="dc-diff">
+          <option value="1">😌 Easy</option>
+          <option value="2">💪 Medium</option>
+          <option value="3">🔥 Hard</option>
+        </select>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('dc-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveChallenge()">Set Challenge</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

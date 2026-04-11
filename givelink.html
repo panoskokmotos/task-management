@@ -472,16 +472,17 @@ select.fc option{background:var(--s2);}
   <div class="md" style="width:480px;">
     <div class="mh"><h3>🔄 Close Sprint & Start New</h3><button class="mc" onclick="closeM('nsm')">×</button></div>
     <div class="ns-summary" id="ns-summary"></div>
-    <div class="ns-divider">RETROSPECTIVE (optional)</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+  <span class="ns-divider" style="margin:0;">RETROSPECTIVE (optional)</span>
+  <button class="btn bg sm" onclick="autoFillRetro()" id="retro-ai-btn">🤖 Auto-fill with AI</button>
+</div>
     <div class="fg"><label>🏆 What went well?</label><textarea class="fc" id="retro-well" style="min-height:56px;" placeholder="Top 3 wins..."></textarea></div>
     <div class="fg"><label>🚧 What was most blocked?</label><textarea class="fc" id="retro-blocked" style="min-height:44px;" placeholder="What slowed you down?"></textarea></div>
     <div class="fg"><label>🔄 One process change for next sprint</label><input class="fc" id="retro-change" placeholder="e.g. Limit WIP to 3 per pillar"></div>
     <div class="fg"><label>⚡ Energy level (1–5)</label>
       <select class="fc" id="retro-energy"><option value="">—</option><option value="1">1 — Burned out</option><option value="2">2 — Low</option><option value="3">3 — Average</option><option value="4">4 — Good</option><option value="5">5 — Peak</option></select>
     </div>
-    <div style="display:flex;justify-content:flex-end;margin:8px 0 4px;">
-  <button class="btn bg sm" onclick="autoFillRetro()" id="retro-ai-btn">🤖 Auto-fill with AI</button>
-</div>
+
     <div class="ns-divider">New Sprint</div>
     <div class="fg"><label>Sprint Name</label><input class="fc" id="ns-name" placeholder="Sprint 2 — ..."></div>
     <div class="fr">
@@ -2010,76 +2011,49 @@ function handleQC(e){
   document.getElementById('quick-capture').style.display='none';
 }
 
-// ── AI SPRINT CLOSER ──────────────────────────────────────────────
 async function autoFillRetro(){
-  const apiKey = localStorage.getItem('givelink_api_key') || getApiKey();
-  if(!apiKey) return;
-  localStorage.setItem('givelink_api_key', apiKey);
-  
-  const btn = document.getElementById('retro-ai-btn');
-  if(btn){ btn.textContent = '⏳ Thinking...'; btn.disabled = true; }
-  
-  const ct = curTasks();
-  const done = ct.filter(t => t.status === 'done');
-  const blocked = ct.filter(t => t.status === 'blocked');
-  const inprog = ct.filter(t => t.status === 'in-progress');
-  const total = ct.length;
-  const pct = total ? Math.round(done.length / total * 100) : 0;
-  const goals = ct.filter(t => t.isGoal);
-  const goalsDone = goals.filter(t => t.status === 'done');
-  
-  // Get the longest-blocked task (by createdAt)
-  const longestBlocked = blocked.sort((a,b) => new Date(a.createdAt) - new Date(b.createdAt))[0];
-  
-  const prompt = `Sprint retrospective for a B2B SaaS founder (Givelink, selling to nonprofits).
-Sprint stats:
-- ${done.length}/${total} tasks completed (${pct}%)
-- ${goalsDone.length}/${goals.length} goals achieved
-- ${blocked.length} tasks still blocked
-- ${inprog.length} tasks in progress
-- Done tasks: ${done.slice(0,6).map(t=>t.title).join(', ')||'none'}
-- Blocked tasks: ${blocked.map(t=>t.title).join(', ')||'none'}
-- Goals achieved: ${goalsDone.map(t=>t.title).join(', ')||'none'}
-${longestBlocked ? `- Longest blocked: "${longestBlocked.title}"` : ''}
+  const btn=document.getElementById('retro-ai-btn');
+  if(btn){btn.textContent='⏳ Thinking...';btn.disabled=true;}
+  const ct=curTasks();
+  const done=ct.filter(t=>t.status==='done');
+  const blocked=ct.filter(t=>t.status==='blocked');
+  const donePct=ct.length?Math.round(done.length/ct.length*100):0;
+  const topBlocked=blocked.slice(0,3).map(t=>t.title).join(', ')||'none';
+  const topWins=done.slice(0,5).map(t=>t.title).join(', ')||'none completed';
+  const goals=ct.filter(t=>t.isGoal);
+  const goalsD=goals.filter(t=>t.status==='done').length;
+  const prompt=`Sprint retrospective for a Givelink (B2B SaaS for nonprofits) founder sprint:
+- Completion rate: ${donePct}% (${done.length}/${ct.length} tasks)
+- Goals achieved: ${goalsD}/${goals.length}
+- Top completed: ${topWins}
+- Blocked tasks: ${topBlocked}
 
-Write a sprint retrospective with exactly these 3 parts, separated by "|||":
-1. What went well (2-3 bullet points, max 80 chars total)
-2. What was most blocked (1-2 sentences, max 80 chars)
-3. One process change for next sprint (1 sentence, max 60 chars, actionable)
+Write 4 short retrospective entries (1-2 sentences each):
+1. WENT_WELL: what went well this sprint
+2. BLOCKED: what was blocked or slowed things down
+3. CHANGE: one process improvement for next sprint
+4. ENERGY: just output a number 1-5 based on the sprint intensity (5=peak, 1=burnout)
 
-Format: [went_well]|||[blocked]|||[process_change]
-No extra text, just the 3 parts separated by |||`;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'x-api-key': apiKey,
-        'anthropic-version': '2023-06-01',
-        'anthropic-dangerous-direct-browser-access': 'true'
-      },
-      body: JSON.stringify({ model: 'claude-haiku-4-5-20251001', max_tokens: 300, messages: [{ role: 'user', content: prompt }] })
-    });
-    const data = await res.json();
-    const text = data.content?.[0]?.text || '';
-    const parts = text.split('|||');
-    if(parts.length >= 3){
-      const well = document.getElementById('retro-well');
-      const blk = document.getElementById('retro-blocked');
-      const chg = document.getElementById('retro-change');
-      if(well) well.value = parts[0].trim();
-      if(blk) blk.value = parts[1].trim();
-      if(chg) chg.value = parts[2].trim();
-      toast('✅ Retro auto-filled! Edit as needed.');
-    } else {
-      toast('Could not parse AI response. Try again.');
-    }
-  } catch(e) {
-    toast('Error: ' + e.message);
-  } finally {
-    if(btn){ btn.textContent = '🤖 Auto-fill with AI'; btn.disabled = false; }
-  }
+Format exactly as:
+WENT_WELL: ...
+BLOCKED: ...
+CHANGE: ...
+ENERGY: N`;
+  const apiKey=localStorage.getItem('givelink_api_key');
+  if(!apiKey){toast('Add API key first (⚙️ Settings)');if(btn){btn.textContent='🤖 Auto-fill with AI';btn.disabled=false;}return;}
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:300,messages:[{role:'user',content:prompt}]})});
+    const data=await res.json();
+    const text=data.content?.[0]?.text||'';
+    const get=(key)=>{const m=text.match(new RegExp(key+':\\s*(.+)'));return m?m[1].trim():'';};
+    const well=get('WENT_WELL'),blocked=get('BLOCKED'),change=get('CHANGE'),energy=get('ENERGY');
+    if(well)document.getElementById('retro-well').value=well;
+    if(blocked)document.getElementById('retro-blocked').value=blocked;
+    if(change)document.getElementById('retro-change').value=change;
+    if(energy&&['1','2','3','4','5'].includes(energy))document.getElementById('retro-energy').value=energy;
+    toast('✅ Retro auto-filled!');
+  }catch(e){toast('AI error: '+e.message);}
+  if(btn){btn.textContent='🤖 Auto-fill with AI';btn.disabled=false;}
 }
 
 // ── DAILY STANDUP GENERATOR ───────────────────────────────────────

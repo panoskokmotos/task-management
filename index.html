@@ -295,6 +295,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div class="ni" onclick="nav('deepwork')">🧠 Deep Work</div>
   <div class="ni" onclick="nav('habits')">✅ Habits</div>
   <div class="ni" onclick="nav('discomfort')">🔥 Discomfort</div>
+  <div class="ni" onclick="nav('ladder')">🪜 Ladder</div>
   <div style="margin-top:auto;padding:10px 6px 4px;border-top:1px solid var(--border);">
     <div class="ni" onclick="openSettings()" style="margin:0;">⚙️ Settings</div>
   </div>
@@ -322,6 +323,20 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
       <button class="btn bg sm" onclick="document.getElementById('morning-briefing').style.display='none'">×</button>
     </div>
     <div id="briefing-body" style="font-size:12px;line-height:1.7;"></div>
+  </div>
+  <!-- PRE-MORTEM WIDGET -->
+  <div id="premortem-widget" style="display:none;background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(251,191,36,.03));border:1px solid rgba(251,191,36,.25);border-radius:12px;padding:14px 16px;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <span style="font-size:13px;font-weight:700;color:#fbbf24;">🔮 Monday Pre-Mortem</span>
+      <button class="btn bg sm" onclick="document.getElementById('premortem-widget').style.display='none'">×</button>
+    </div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Think through this week's risks before they happen.</div>
+    <textarea class="fc" id="premortem-risks" style="min-height:52px;font-size:12px;" placeholder="What are the 2-3 biggest risks to your week?"></textarea>
+    <div style="display:flex;gap:8px;margin-top:8px;">
+      <button class="btn bg sm" onclick="aiPreMortem()">🤖 AI Risk Analysis</button>
+      <button class="btn bp sm" onclick="savePreMortem()">Save</button>
+    </div>
+    <div id="premortem-ai-out" style="display:none;margin-top:10px;font-size:12px;line-height:1.6;background:var(--surface2);border-radius:6px;padding:10px;white-space:pre-wrap;"></div>
   </div>
   <!-- STREAK ROW -->
   <div id="streak-row" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;"></div>
@@ -520,6 +535,25 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
     </div>
     <div id="dc-history"></div>
   </div>
+  <!-- CHALLENGE LEADERBOARD -->
+  <div class="los-card" style="margin-top:20px;" id="dc-leaderboard">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <h3 style="margin:0;">🏆 Past Self Leaderboard</h3>
+      <button class="btn bg sm" onclick="showChallengeDigest()">📊 Weekly Digest</button>
+    </div>
+    <div id="dc-leaderboard-body"></div>
+  </div>
+</div>
+
+
+<!-- DISCOMFORT LADDER VIEW -->
+<div id="v-ladder" class="view">
+  <div class="ph">
+    <div><h1>🪜 12-Week Discomfort Ladder</h1><p class="sub">Escalating weekly challenges. Week by week, edge by edge.</p></div>
+    <button class="btn bp" onclick="startOrResetLadder()">▶ Start / Reset</button>
+  </div>
+  <div id="ladder-progress" style="margin-bottom:16px;"></div>
+  <div id="ladder-body"></div>
 </div>
 
 </main>
@@ -728,6 +762,14 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
     <div class="ph" style="margin-bottom:10px;"><h2 style="margin:0">📋 Log Entries</h2></div>
     <div id="health-list"></div>
   </div>
+  <!-- PROGRESS PHOTOS -->
+  <div style="margin-top:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <h2 style="margin:0;">📸 Progress Log</h2>
+      <button class="btn bg sm" onclick="openAddPhoto()">+ Log Entry</button>
+    </div>
+    <div id="photo-log-body"></div>
+  </div>
 </div>
 
 <!-- FINANCE DASHBOARD -->
@@ -852,6 +894,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div class="ph">
     <div><h1>🔥 Voluntary Discomfort</h1><p class="sub">Intentional challenges that build resilience</p></div>
     <div class="row">
+      <button class="btn bg sm" onclick="nav('ladder')">🪜 12-Week Ladder</button>
       <button class="btn bp" onclick="openAddDiscomfort()">+ Log Challenge</button>
     </div>
   </div>
@@ -1046,7 +1089,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[]};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[]};
 let editT=null,editG=null,fCat='all';
 let profileName=localStorage.getItem('taskos_name')||'Panos';
 
@@ -1077,7 +1120,7 @@ function nav(v){
   document.getElementById('s-ov')?.classList.remove('open');
   document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
-function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort,eod:renderEod,decisions:renderDecisions})[v]?.();}
+function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort,eod:renderEod,decisions:renderDecisions,challenge:renderChallenge,ladder:renderLadder})[v]?.();}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
 
 // ── DASHBOARD ─────────────────────────────────────────────────
@@ -1101,6 +1144,11 @@ function renderDash(){
   const wt=a.filter(t=>t.bucket==='this-week').slice(0,6);
   document.getElementById('dash-week').innerHTML=wt.length?wt.map(t=>tcHTML(t,true)).join(''):'<div class="empty">No tasks this week. <span style="color:var(--accent);cursor:pointer;" onclick="nav(\'buckets\')">Add some →</span></div>';
   updIBadge();
+  renderMorningBriefing();
+  renderStreakRow();
+  renderAntiPatterns();
+  checkEatTheFrog();
+  checkPreMortem();
 }
 
 function renderTop3(){
@@ -2176,6 +2224,7 @@ function renderHealth(){
         <span style="font-size:11px;color:var(--muted);">${l.date} <button class="btn bd sm" onclick="deleteHealthLog('${l.id}')">×</button></span>
       </div>
     </div>`).join('')||'<div class="empty">No logs yet. Click + Log Entry.</div>';
+  renderPhotoLog();
 }
 function openAddHealth(id=null){
   document.getElementById('h-date').value=new Date().toISOString().slice(0,10);
@@ -2673,7 +2722,7 @@ function pinFrogTask(){
   const t=S.tasks.find(x=>x.id===_frogTaskId);
   if(t){
     // Set as Top 3 slot 1
-    S.tasks.forEach(x=>{if(x.t3s===1)x.isT3=false;x.t3s=null;});
+    S.tasks.forEach(x=>{if(x.t3s===1){x.isT3=false;x.t3s=null;}});
     t.isT3=true;t.t3s=1;t.bucket='this-week';save();
     toast('🐸 Frog pinned as Top Priority!');renderDash();
   }
@@ -2924,6 +2973,7 @@ function renderChallenge(){
       </div>
       <span style="font-size:11px;color:var(--muted);">${DIFF_LABELS[c.diff]||''}</span>
     </div>`).join(''):'<div class="empty">No challenges yet. Accept one above!</div>';
+  renderChallengeLeaderboard();
 }
 function acceptChallenge(libId){
   const c=DAILY_CHALLENGES.find(x=>x.id===libId);if(!c)return;
@@ -2997,6 +3047,234 @@ async function genAIChallenge(){
   S.challengeLogs=(S.challengeLogs||[]).filter(c=>c.date!==today);
   S.challengeLogs.push({id:uid(),date:today,title,why,cat:cat||'growth',diff,completed:false,source:'ai'});
   save();renderChallenge();toast('🤖 AI challenge set!');
+}
+
+
+// ── WEEKLY CHALLENGE DIGEST ───────────────────────────────────────
+function showChallengeDigest(){
+  const now=new Date();
+  const wAgo=new Date(now);wAgo.setDate(now.getDate()-7);
+  const mon=new Date(now);mon.setDate(now.getDate()-((now.getDay()+6)%7));
+  const weekLogs=(S.challengeLogs||[]).filter(c=>new Date(c.date)>=mon);
+  const thisWeekDone=weekLogs.filter(c=>c.completed).length;
+  const thisWeekTotal=weekLogs.length;
+  const hardest=weekLogs.filter(c=>c.completed).sort((a,b)=>b.diff-a.diff)[0];
+  // Last month
+  const lastMon=new Date(now);lastMon.setMonth(lastMon.getMonth()-1);
+  const thisMonStart=new Date(now.getFullYear(),now.getMonth(),1);
+  const lastMonStart=new Date(now.getFullYear(),now.getMonth()-1,1);
+  const thisMonLogs=(S.challengeLogs||[]).filter(c=>new Date(c.date)>=thisMonStart);
+  const lastMonLogs=(S.challengeLogs||[]).filter(c=>new Date(c.date)>=lastMonStart&&new Date(c.date)<thisMonStart);
+  const catCounts={};
+  (S.challengeLogs||[]).filter(c=>c.completed).forEach(c=>{catCounts[c.cat]=(catCounts[c.cat]||0)+1;});
+  const topCat=Object.entries(catCounts).sort((a,b)=>b[1]-a[1])[0];
+  const streak=_challengeStreak();
+  const digest=`📊 CHALLENGE DIGEST — Week of ${mon.toLocaleDateString('en-US',{month:'short',day:'numeric'})}
+${'─'.repeat(40)}
+
+THIS WEEK
+  ✅ Completed: ${thisWeekDone} / ${thisWeekTotal} accepted
+  🔥 Hardest completed: ${hardest?hardest.title+' (diff '+hardest.diff+'/3)':'—'}
+  🏆 Streak: ${streak} days
+
+THIS MONTH vs LAST MONTH
+  📅 This month: ${thisMonLogs.filter(c=>c.completed).length} / ${thisMonLogs.length}
+  📅 Last month: ${lastMonLogs.filter(c=>c.completed).length} / ${lastMonLogs.length}
+  ${thisMonLogs.filter(c=>c.completed).length>=lastMonLogs.filter(c=>c.completed).length?'📈 Improving! Keep going.':'📉 Last month was stronger. Raise the bar.'}
+
+TOP CATEGORY
+  ${topCat?CAT_ICONS[topCat[0]]+' '+topCat[0]+' ('+topCat[1]+' completions)':'—'}
+
+ALL TIME
+  ⚡ Total accepted: ${(S.challengeLogs||[]).length}
+  ✅ Total completed: ${(S.challengeLogs||[]).filter(c=>c.completed).length}
+  📊 Completion rate: ${(S.challengeLogs||[]).length?Math.round((S.challengeLogs||[]).filter(c=>c.completed).length/(S.challengeLogs||[]).length*100)+'%':'—'}
+${'─'.repeat(40)}`;
+  document.getElementById('cdigest-body').textContent=digest;
+  document.getElementById('cdigest-modal').classList.remove('hidden');
+}
+
+// ── CHALLENGE LEADERBOARD WITH PAST SELF ─────────────────────────
+function renderChallengeLeaderboard(){
+  const el=document.getElementById('dc-leaderboard-body');if(!el)return;
+  const now=new Date();
+  const months=[];
+  for(let i=0;i<6;i++){
+    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+    const start=d;
+    const end=new Date(d.getFullYear(),d.getMonth()+1,1);
+    const logs=(S.challengeLogs||[]).filter(c=>new Date(c.date)>=start&&new Date(c.date)<end);
+    const done=logs.filter(c=>c.completed).length;
+    months.push({label:d.toLocaleDateString('en-US',{month:'short',year:'numeric'}),done,total:logs.length,isCurrent:i===0});
+  }
+  const maxDone=Math.max(...months.map(m=>m.done),1);
+  el.innerHTML=months.map((m,i)=>{
+    const pct=Math.round(m.done/maxDone*100);
+    const isBest=m.done===maxDone&&m.done>0;
+    return`<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <span style="font-size:11px;color:var(--muted);min-width:64px;">${m.label}</span>
+      <div style="flex:1;background:var(--surface2);border-radius:4px;height:18px;overflow:hidden;">
+        <div style="height:100%;width:${pct}%;background:${m.isCurrent?'var(--accent)':isBest?'#69db7c':'var(--muted)'};border-radius:4px;transition:width .3s;"></div>
+      </div>
+      <span style="font-size:12px;font-weight:${m.isCurrent?700:400};color:${m.isCurrent?'var(--accent)':'var(--muted)'};">${m.done}${m.total?'/'+m.total:''} ${isBest&&!m.isCurrent?'🏆':m.isCurrent?'← now':''}</span>
+    </div>`;
+  }).join('');
+}
+
+// ── DISCOMFORT LADDER ─────────────────────────────────────────────
+const DISCOMFORT_LADDER=[
+  {week:1,title:'Cold finish',desc:'End every shower with 60 seconds of cold water',cat:'physical',hard:1},
+  {week:2,title:'Digital sunset',desc:'No screens after 9pm for the full week',cat:'mental',hard:1},
+  {week:3,title:'Full cold shower',desc:'5-minute fully cold shower, every day',cat:'physical',hard:2},
+  {week:4,title:'24-hour fast',desc:'One 24-hour water-only fast this week',cat:'physical',hard:3},
+  {week:5,title:'Rejection therapy',desc:'Ask for something unreasonable once a day — get rejected',cat:'social',hard:2},
+  {week:6,title:'No junk food week',desc:'Zero processed food, sugar, or alcohol for 7 days',cat:'physical',hard:2},
+  {week:7,title:'Radical honesty day',desc:'One full day of saying exactly what you think — no social filters',cat:'social',hard:3},
+  {week:8,title:'Public post',desc:'Post one vulnerable, honest reflection on LinkedIn or Twitter',cat:'social',hard:2},
+  {week:9,title:'Ice bath',desc:'3-minute ice bath (10°C or lower)',cat:'physical',hard:3},
+  {week:10,title:'Cold outreach blitz',desc:'Send 10 cold messages to strangers you admire — expect mostly silence',cat:'social',hard:2},
+  {week:11,title:'72-hour digital detox',desc:'No social media, news, or entertainment for 3 days straight',cat:'mental',hard:3},
+  {week:12,title:'The talk',desc:'Give a 5-minute talk or presentation to any audience',cat:'social',hard:3},
+];
+const LADDER_CAT_COLORS={physical:'#ff6b6b',mental:'#58a6ff',social:'#fbbf24'};
+
+function renderLadder(){
+  const ladder=S.discomfortLadder||{startWeek:null,completedWeeks:[]};
+  const prog=document.getElementById('ladder-progress');
+  const body=document.getElementById('ladder-body');
+  if(!prog||!body)return;
+  const currentWeekNum=ladder.startWeek?Math.ceil((Date.now()-new Date(ladder.startWeek))/(7*86400000)):0;
+  const completed=new Set(ladder.completedWeeks||[]);
+  const total=DISCOMFORT_LADDER.length;
+  const doneCount=completed.size;
+  if(ladder.startWeek){
+    prog.innerHTML=`<div class="los-card" style="display:flex;align-items:center;gap:12px;">
+      <div style="flex:1;"><div class="gp"><div class="gp-fill" style="width:${Math.round(doneCount/total*100)}%"></div></div></div>
+      <span style="font-size:12px;color:var(--muted);">${doneCount}/${total} weeks done</span>
+      <span style="font-size:12px;font-weight:600;color:var(--accent);">Week ${Math.min(currentWeekNum,12)} of 12</span>
+    </div>`;
+  } else {
+    prog.innerHTML='<div style="font-size:13px;color:var(--muted);margin-bottom:8px;">Click <strong>Start</strong> to begin your 12-week ladder. Each week you\'ll face a harder challenge.</div>';
+  }
+  body.innerHTML=DISCOMFORT_LADDER.map(w=>{
+    const isDone=completed.has(w.week);
+    const isCurrent=ladder.startWeek&&w.week===Math.min(currentWeekNum,12)&&!isDone;
+    const isLocked=ladder.startWeek&&w.week>currentWeekNum;
+    const col=LADDER_CAT_COLORS[w.cat]||'var(--muted)';
+    return`<div style="display:flex;gap:12px;padding:12px;border-radius:8px;margin-bottom:8px;border:1px solid ${isCurrent?'var(--accent)':isDone?'rgba(105,219,124,.3)':'var(--border)'};background:${isCurrent?'rgba(88,166,255,.05)':isDone?'rgba(105,219,124,.04)':'var(--surface)'};opacity:${isLocked?0.4:1};">
+      <div style="min-width:32px;height:32px;border-radius:50%;background:${isDone?'#69db7c':isCurrent?'var(--accent)':'var(--surface2)'};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:${isDone||isCurrent?'#000':'var(--muted)'};">${isDone?'✓':w.week}</div>
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
+          <span style="font-weight:600;font-size:13px;">${w.title}</span>
+          <span style="font-size:10px;padding:2px 6px;border-radius:8px;background:${col}22;color:${col};">${w.cat}</span>
+          <span style="font-size:10px;color:var(--muted);">${'🔥'.repeat(w.hard)}</span>
+          ${isCurrent?'<span style="font-size:10px;font-weight:700;color:var(--accent);">← THIS WEEK</span>':''}
+        </div>
+        <div style="font-size:12px;color:var(--muted);">${w.desc}</div>
+      </div>
+      ${!isLocked&&!isDone&&ladder.startWeek?`<button class="btn bp sm" onclick="completeLadderWeek(${w.week})" style="align-self:center;">✓ Done</button>`:''}
+    </div>`;
+  }).join('');
+}
+function startOrResetLadder(){
+  if(S.discomfortLadder?.startWeek&&!confirm('Reset the ladder? Your progress will be lost.'))return;
+  S.discomfortLadder={startWeek:new Date().toISOString(),completedWeeks:[]};
+  save();renderLadder();toast('🪜 Ladder started! Week 1: '+DISCOMFORT_LADDER[0].title);
+}
+function completeLadderWeek(week){
+  if(!S.discomfortLadder)S.discomfortLadder={startWeek:new Date().toISOString(),completedWeeks:[]};
+  if(!S.discomfortLadder.completedWeeks.includes(week)){
+    S.discomfortLadder.completedWeeks.push(week);
+    // Also log as discomfort entry
+    const w=DISCOMFORT_LADDER.find(x=>x.week===week);
+    if(w)S.discomfortLogs.push({id:uid(),date:new Date().toISOString().slice(0,10),title:'[Ladder W'+week+'] '+w.title,intensity:w.hard,notes:w.desc});
+    save();renderLadder();
+    toast('🔥 Week '+week+' complete! '+(week<12?'Next: '+DISCOMFORT_LADDER[week].title:'LADDER COMPLETE! 🏆'));
+  }
+}
+
+// ── WEEKLY PRE-MORTEM ─────────────────────────────────────────────
+function checkPreMortem(){
+  const day=new Date().getDay();
+  if(day!==1)return; // Monday only
+  const today=new Date().toISOString().slice(0,10);
+  const already=localStorage.getItem('taskos_premortem_'+today);
+  if(already)return;
+  document.getElementById('premortem-widget').style.display='';
+}
+function savePreMortem(){
+  const risks=document.getElementById('premortem-risks')?.value.trim();
+  if(!risks){toast('Add at least one risk');return;}
+  const today=new Date().toISOString().slice(0,10);
+  if(!S.reviews)S.reviews=[];
+  // Append to last review or create note
+  const last=S.reviews[S.reviews.length-1];
+  if(last&&last.weekOf===today){last.premortemRisks=risks;}
+  else{S.reviews.push({id:uid(),weekOf:today,premortemRisks:risks});}
+  save();
+  localStorage.setItem('taskos_premortem_'+today,'done');
+  toast('🔮 Pre-mortem saved!');
+  document.getElementById('premortem-widget').style.display='none';
+}
+async function aiPreMortem(){
+  const risks=document.getElementById('premortem-risks')?.value.trim();
+  const top3=S.tasks.filter(t=>t.isT3&&t.status!=='done').sort((a,b)=>a.t3s-b.t3s).map(t=>t.title);
+  const week=active().filter(t=>t.bucket==='this-week').slice(0,8).map(t=>t.title);
+  const goals=S.goals.slice(0,4).map(g=>g.title);
+  const prompt='I am a startup founder planning my week. My top priorities: '+top3.join(', ')+'. This week tasks: '+week.join(', ')+'. Goals: '+goals.join(', ')+'.'+(risks?'\nRisks I see: '+risks:'')
+    +'\n\nDo a pre-mortem: what are the 3 most likely things to derail this week? For each: (1) the risk, (2) early warning sign, (3) specific prevention action. Be direct. No fluff.';
+  const out=document.getElementById('premortem-ai-out');
+  if(out){out.textContent='⏳ Analyzing...';out.style.display='';}
+  const result=await callClaude(prompt,500);
+  if(out){out.textContent=result||'Could not generate analysis.';out.style.display='';}
+}
+
+// ── BODY PROGRESS PHOTOS LOG ──────────────────────────────────────
+function openAddPhoto(){
+  document.getElementById('ph-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('ph-weight').value='';
+  document.getElementById('ph-bf').value='';
+  document.getElementById('ph-note').value='';
+  document.getElementById('ph-yes').checked=true;
+  document.getElementById('photo-modal').classList.remove('hidden');
+}
+function savePhotoLog(){
+  const date=document.getElementById('ph-date').value;
+  if(!date){toast('Date required');return;}
+  const entry={id:uid(),date,weight:parseFloat(document.getElementById('ph-weight').value)||null,bf:parseFloat(document.getElementById('ph-bf').value)||null,note:document.getElementById('ph-note').value.trim(),photoTaken:document.getElementById('ph-yes').checked};
+  if(!S.photoLogs)S.photoLogs=[];
+  S.photoLogs.push(entry);
+  // Also log bf and weight to health logs for chart tracking
+  if(entry.bf)S.healthLogs.push({id:uid(),date,type:'bodyfat',value:entry.bf,notes:'From progress log'});
+  if(entry.weight)S.healthLogs.push({id:uid(),date,type:'weight',value:entry.weight,notes:'From progress log'});
+  save();closeM('photo-modal');renderPhotoLog();renderHealth();
+  toast('📸 Progress entry logged!');
+}
+function renderPhotoLog(){
+  const el=document.getElementById('photo-log-body');if(!el)return;
+  const logs=(S.photoLogs||[]).slice().sort((a,b)=>a.date>b.date?-1:1);
+  if(!logs.length){el.innerHTML='<div class="empty">No progress entries yet. Click "+ Log Entry" to start.</div>';return;}
+  el.innerHTML=logs.map((p,i)=>{
+    const prev=logs[i+1];
+    const bfDelta=prev&&p.bf&&prev.bf?p.bf-prev.bf:null;
+    const wDelta=prev&&p.weight&&prev.weight?p.weight-prev.weight:null;
+    return`<div style="display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--border);align-items:flex-start;">
+      <div style="min-width:32px;height:32px;border-radius:8px;background:${p.photoTaken?'rgba(105,219,124,.15)':'var(--surface2)'};display:flex;align-items:center;justify-content:center;font-size:16px;">${p.photoTaken?'📸':'📋'}</div>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:700;margin-bottom:3px;">${p.date}</div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:3px;">
+          ${p.weight?`<span style="font-size:12px;"><strong>${p.weight}kg</strong>${wDelta!==null?` <span style="color:${wDelta<0?'#69db7c':'#ff6b6b'};font-size:10px;">${wDelta>0?'+':''}${wDelta.toFixed(1)}</span>`:''}</span>`:''}
+          ${p.bf?`<span style="font-size:12px;"><strong>${p.bf}% BF</strong>${bfDelta!==null?` <span style="color:${bfDelta<0?'#69db7c':'#ff6b6b'};font-size:10px;">${bfDelta>0?'+':''}${bfDelta.toFixed(1)}%</span>`:''}</span>`:''}
+        </div>
+        ${p.note?`<div style="font-size:12px;color:var(--muted);">${p.note}</div>`:''}
+      </div>
+      <button class="btn bg sm" onclick="deletePhotoLog('${p.id}')">×</button>
+    </div>`;
+  }).join('');
+}
+function deletePhotoLog(id){
+  S.photoLogs=(S.photoLogs||[]).filter(p=>p.id!==id);
+  save();renderPhotoLog();
 }
 
 // ── RECURRING TASKS ───────────────────────────────────────────
@@ -3305,6 +3583,40 @@ function saveDecision(){
     <div class="mf">
       <button class="btn bg" onclick="closeM('dc-modal')">Cancel</button>
       <button class="btn bp" onclick="saveChallenge()">Set Challenge</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- PHOTO LOG MODAL -->
+<div class="mo hidden" id="photo-modal">
+  <div class="md" style="width:440px;">
+    <div class="mh"><h3>📸 Log Progress Entry</h3><button class="mc" onclick="closeM('photo-modal')">×</button></div>
+    <div class="fg"><label>Date</label><input class="fc" id="ph-date" type="date"></div>
+    <div class="fg"><label>Weight (kg)</label><input class="fc" id="ph-weight" type="number" step="0.1" placeholder="82.5"></div>
+    <div class="fg"><label>Body Fat %</label><input class="fc" id="ph-bf" type="number" step="0.1" placeholder="15.2"></div>
+    <div class="fg"><label>Note (angles, lighting, how you feel)</label><textarea class="fc" id="ph-note" style="min-height:52px;" placeholder="e.g. Front + side. Feeling leaner. Veins showing on forearms."></textarea></div>
+    <div class="fg"><label>Photo taken?</label>
+      <div style="display:flex;gap:12px;margin-top:4px;">
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;"><input type="radio" name="ph-taken" id="ph-yes" value="yes" checked> ✅ Yes, taken</label>
+        <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;"><input type="radio" name="ph-taken" id="ph-no" value="no"> ⬜ Skipped today</label>
+      </div>
+    </div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('photo-modal')">Cancel</button>
+      <button class="btn bp" onclick="savePhotoLog()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- CHALLENGE DIGEST MODAL -->
+<div class="mo hidden" id="cdigest-modal">
+  <div class="md" style="width:480px;">
+    <div class="mh"><h3>📊 Weekly Challenge Digest</h3><button class="mc" onclick="closeM('cdigest-modal')">×</button></div>
+    <div id="cdigest-body" style="font-size:13px;line-height:1.7;white-space:pre-wrap;font-family:monospace;background:var(--surface2);border-radius:8px;padding:14px;max-height:380px;overflow-y:auto;"></div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('cdigest-modal')">Close</button>
+      <button class="btn bp" onclick="navigator.clipboard.writeText(document.getElementById('cdigest-body').textContent);toast('Copied!')">📋 Copy</button>
     </div>
   </div>
 </div>

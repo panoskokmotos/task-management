@@ -1170,6 +1170,8 @@ function renderDash(){
   renderAntiPatterns();
   checkEatTheFrog();
   checkPreMortem();
+  renderMomentumScore();
+  renderOneThing();
 }
 
 function renderTop3(){
@@ -2247,6 +2249,7 @@ function renderHealth(){
       </div>
     </div>`).join('')||'<div class="empty">No logs yet. Click + Log Entry.</div>';
   renderPhotoLog();
+  renderSleepCorrelation();
 }
 function openAddHealth(id=null){
   document.getElementById('h-date').value=new Date().toISOString().slice(0,10);
@@ -2539,6 +2542,7 @@ function renderHabits(){
   document.getElementById('habits-heat').innerHTML=habits.length?habits.map(h=>`
     <div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${h}</div>
     <div class="heat-grid">${days.map(d=>{const done=(S.habitLogs?.[d]||{})[h];return`<div class="heat-cell ${done?'h4':''}" title="${d}"></div>`;}).join('')}</div></div>`).join(''):'';
+  renderHabitProjector();
 }
 function _habitStreak(){
   const habits=S.habits||[];if(!habits.length)return 0;
@@ -2719,6 +2723,8 @@ function renderAntiPatterns(){
   const stale=top3.filter(t=>t.createdAt&&new Date(t.createdAt)<new Date(Date.now()-7*86400000));
   if(stale.length>=2)patterns.push({icon:'🔄',color:'#ffa94d',msg:`Top 3 tasks unchanged for 7+ days — are you making progress or avoiding?`});
   el.innerHTML=patterns.length?`<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">${patterns.map(p=>`<div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-left:3px solid ${p.color};border-radius:6px;padding:8px 12px;font-size:12px;">${p.icon} ${p.msg}</div>`).join('')}</div>`:'';
+  checkCommitmentReview();
+  checkSomedayAudit();
 }
 
 // ── EAT THE FROG ──────────────────────────────────────────────
@@ -3297,6 +3303,545 @@ function renderPhotoLog(){
 function deletePhotoLog(id){
   S.photoLogs=(S.photoLogs||[]).filter(p=>p.id!==id);
   save();renderPhotoLog();
+}
+
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 1 — DAILY MOMENTUM SCORE
+// ════════════════════════════════════════════════════════════════
+function _calcMomentum(){
+  const today = new Date().toISOString().slice(0,10);
+  const now   = new Date();
+  let score   = 0;
+
+  // Habits (30 pts)
+  const habits    = S.habits || [];
+  const todayLog  = (S.habitLogs || {})[today] || {};
+  const habitDone = habits.filter(h => todayLog[h]).length;
+  const habitPts  = habits.length ? Math.round(habitDone / habits.length * 30) : 0;
+  score += habitPts;
+
+  // Deep work (20 pts) — any session started today
+  const dwToday = (S.deepWorkSessions || []).filter(s => s.date === today);
+  score += dwToday.length ? 20 : 0;
+
+  // Daily challenge (15 pts)
+  const chalDone = (S.challengeLogs || []).find(c => c.date === today && c.completed);
+  score += chalDone ? 15 : 0;
+
+  // Tasks completed today (20 pts — 4 pts each, max 5)
+  const doneTasks = S.tasks.filter(t =>
+    t.completedAt && new Date(t.completedAt).toDateString() === now.toDateString()
+  ).length;
+  score += Math.min(doneTasks, 5) * 4;
+
+  // Top 3 — at least one marked done today (15 pts)
+  const top3done = S.tasks.filter(t =>
+    t.isT3 && t.completedAt &&
+    new Date(t.completedAt).toDateString() === now.toDateString()
+  ).length;
+  score += top3done > 0 ? 15 : 0;
+
+  return { score, habitPts, habitDone, habits: habits.length, dwToday: dwToday.length, chalDone: !!chalDone, doneTasks, top3done };
+}
+
+function renderMomentumScore(){
+  const ring  = document.getElementById('momentum-ring');
+  const label = document.getElementById('momentum-label');
+  if (!ring) return;
+  const m = _calcMomentum();
+  const s = m.score;
+  const color = s >= 90 ? '#69db7c' : s >= 70 ? '#58a6ff' : s >= 40 ? '#fbbf24' : '#ff6b6b';
+  const emoji = s >= 90 ? '🔥' : s >= 70 ? '⚡' : s >= 40 ? '🔄' : '😴';
+  ring.style.background = `conic-gradient(${color} ${s * 3.6}deg, var(--surface2) 0deg)`;
+  ring.innerHTML = `<span style="font-size:15px;font-weight:800;color:${color};">${s}</span>`;
+  const desc = s >= 90 ? 'Elite day' : s >= 70 ? 'Strong day' : s >= 40 ? 'Decent' : 'Light day';
+  label.innerHTML = `<span style="color:${color};">${emoji} ${desc}</span>`;
+  // Tooltip on hover via title attr
+  ring.title = `Habits ${m.habitDone}/${m.habits} (+${m.habitPts}pts) · DW ${m.dwToday} sessions · Challenge ${m.chalDone?'✓':'—'} · Tasks ${m.doneTasks} done · Top3 ${m.top3done?'✓':'—'}`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 2 — THE ONE THING LOCK
+// ════════════════════════════════════════════════════════════════
+function renderOneThing(){
+  const el = document.getElementById('one-thing-display');
+  if (!el) return;
+  const today = new Date().toISOString().slice(0,10);
+  if (!S.oneThing) S.oneThing = [];
+  const entry = S.oneThing.find(x => x.date === today);
+  if (entry) {
+    el.innerHTML = `
+      <div style="display:flex;align-items:flex-start;gap:10px;">
+        <div class="ck ${entry.done ? 'on' : ''}" onclick="toggleOneThing('${entry.id}')" style="flex-shrink:0;margin-top:2px;">
+          ${entry.done ? '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>' : ''}
+        </div>
+        <span style="font-size:14px;font-weight:${entry.done ? 400 : 600};text-decoration:${entry.done ? 'line-through' : 'none'};color:${entry.done ? 'var(--muted)' : 'var(--text)'};">${entry.text}</span>
+      </div>
+      <button class="btn bg sm" onclick="clearOneThing('${entry.id}')" style="margin-top:8px;font-size:10px;">✏ Change</button>`;
+  } else {
+    el.innerHTML = `
+      <div style="display:flex;gap:6px;">
+        <input class="fc" id="ot-input" placeholder="What's the ONE thing that would make today a success?" style="flex:1;font-size:12px;" onkeydown="if(event.key==='Enter')saveOneThing()">
+        <button class="btn bp sm" onclick="saveOneThing()">Lock</button>
+      </div>`;
+  }
+}
+function saveOneThing(){
+  const inp = document.getElementById('ot-input');
+  const text = inp ? inp.value.trim() : '';
+  if (!text) return;
+  const today = new Date().toISOString().slice(0,10);
+  if (!S.oneThing) S.oneThing = [];
+  S.oneThing = S.oneThing.filter(x => x.date !== today);
+  S.oneThing.push({ id: uid(), date: today, text, done: false });
+  save(); renderOneThing(); renderMomentumScore();
+  toast('⚡ One Thing locked!');
+}
+function toggleOneThing(id){
+  const e = (S.oneThing || []).find(x => x.id === id);
+  if (e) { e.done = !e.done; save(); renderOneThing(); renderMomentumScore(); }
+}
+function clearOneThing(id){
+  S.oneThing = (S.oneThing || []).filter(x => x.id !== id);
+  save(); renderOneThing();
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 3 — WEEKLY COMMITMENT CONTRACT
+// ════════════════════════════════════════════════════════════════
+function showCommitments(){
+  const el = document.getElementById('commit-body');
+  const commits = (S.commitments || []).slice().reverse();
+  if (!commits.length) {
+    el.innerHTML = '<div class="empty" style="padding:20px;">No commitments yet. Make one in the Weekly Review.</div>';
+  } else {
+    el.innerHTML = commits.map(c => {
+      const daysAgo = Math.floor((Date.now() - new Date(c.weekOf)) / 86400000);
+      const isThisWeek = daysAgo < 7;
+      return `<div style="padding:12px 0;border-bottom:1px solid var(--border);">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px;">
+          <div>
+            <div style="font-size:13px;font-weight:600;">${c.commitment}</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:2px;">${c.weekOf} · ${daysAgo === 0 ? 'today' : daysAgo + 'd ago'}</div>
+            ${c.ifNot ? `<div style="font-size:11px;color:var(--muted);font-style:italic;margin-top:2px;">Predicted excuse: "${c.ifNot}"</div>` : ''}
+          </div>
+          ${!c.reviewed ? `<div style="display:flex;gap:5px;flex-shrink:0;">
+            <button class="btn bg sm" onclick="reviewCommit('${c.id}','broken')" style="color:#ff6b6b;">✗ Broken</button>
+            <button class="btn bp sm" onclick="reviewCommit('${c.id}','honored')">✓ Honored</button>
+          </div>` : `<span style="font-size:12px;font-weight:600;color:${c.outcome === 'honored' ? '#69db7c' : '#ff6b6b'};">${c.outcome === 'honored' ? '✓ Honored' : '✗ Broken'}</span>`}
+        </div>
+        ${c.outcomeNote ? `<div style="font-size:12px;color:var(--muted);margin-top:4px;">${c.outcomeNote}</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('commit-modal').classList.remove('hidden');
+}
+function reviewCommit(id, outcome){
+  const c = (S.commitments || []).find(x => x.id === id);
+  if (!c) return;
+  const note = prompt(outcome === 'honored' ? 'What made it happen? (optional)' : 'What actually happened? (be honest)');
+  c.reviewed = true;
+  c.outcome = outcome;
+  c.outcomeNote = note || '';
+  save(); showCommitments();
+  toast(outcome === 'honored' ? '✅ Commitment honored — respect.' : '📖 Logged. Prediction accurate?');
+}
+
+// Check if last week's commitment was reviewed (show nudge on dashboard)
+function checkCommitmentReview(){
+  const commits = (S.commitments || []);
+  const unreviewed = commits.filter(c => !c.reviewed && daysSinceDate(c.weekOf) > 6);
+  if (!unreviewed.length) return;
+  const el = document.getElementById('anti-pattern-alerts');
+  if (!el) return;
+  const existing = el.innerHTML;
+  el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-left:3px solid #fbbf24;border-radius:6px;padding:8px 12px;font-size:12px;margin-bottom:6px;">📜 You have ${unreviewed.length} unreviewed commitment${unreviewed.length > 1 ? 's' : ''} — <span style="color:var(--accent);cursor:pointer;" onclick="showCommitments()">review now →</span></div>` + existing;
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 4 — AI PRIORITY AUDIT
+// ════════════════════════════════════════════════════════════════
+async function runPriorityAudit(){
+  const modal = document.getElementById('priority-audit-modal');
+  const body  = document.getElementById('priority-audit-body');
+  modal.classList.remove('hidden');
+  body.textContent = '⏳ Auditing your priorities...';
+
+  const mon = new Date(); mon.setDate(mon.getDate() - ((mon.getDay() + 6) % 7));
+  const dwH = Math.round(
+    (S.deepWorkSessions || []).filter(s => new Date(s.date) >= mon)
+      .reduce((s, x) => s + x.duration, 0) / 3600 * 10
+  ) / 10;
+
+  // Category breakdown this week
+  const wAgo = new Date(); wAgo.setDate(wAgo.getDate() - 7);
+  const done  = S.tasks.filter(t => t.completedAt && new Date(t.completedAt) > wAgo);
+  const byCat = {};
+  done.forEach(t => { byCat[t.category] = (byCat[t.category] || 0) + 1; });
+  const catBreakdown = Object.entries(byCat).sort((a,b) => b[1]-a[1])
+    .map(([c,n]) => `${c}: ${n} tasks`).join(', ') || 'none';
+
+  const goals  = S.goals.slice(0, 5).map(g => g.title).join('; ') || 'none set';
+  const active_tasks = active().filter(t => t.bucket === 'this-week').slice(0, 10).map(t => `${t.title} [${t.category}]`).join('\n');
+  const top3   = S.tasks.filter(t => t.isT3 && t.status !== 'done').sort((a,b) => a.t3s - b.t3s).map(t => t.title).join('; ') || 'none set';
+  const inbox  = active().filter(t => t.bucket === 'inbox').length;
+  const someday = active().filter(t => t.bucket === 'someday').length;
+
+  const prompt = `You are a brutally honest productivity coach auditing a startup founder's week.
+
+GOALS: ${goals}
+TOP 3 THIS WEEK: ${top3}
+DEEP WORK THIS WEEK: ${dwH}h
+TASKS COMPLETED BY CATEGORY: ${catBreakdown}
+INBOX PENDING: ${inbox}
+SOMEDAY BUCKET: ${someday} items
+THIS WEEK TASKS:
+${active_tasks}
+
+Give a direct priority audit (5-7 bullet points). For each point: flag misalignment between effort and goals, identify highest-leverage tasks being ignored, call out low-value work. End with ONE specific recommendation for next week. Be direct, no fluff, max 300 words.`;
+
+  const result = await callClaude(prompt, 400);
+  body.textContent = result || 'Could not generate audit. Check your API key.';
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 5 — VALUE ALIGNMENT CHECK
+// ════════════════════════════════════════════════════════════════
+function showValueAlignment(){
+  const el = document.getElementById('values-body');
+  document.getElementById('values-modal').classList.remove('hidden');
+
+  // Map categories → values
+  const CAT_VALUE = {
+    givelink:      'Impact',
+    finance:       'Ownership',
+    learning:      'Growth',
+    brand:         'Growth',
+    health:        'Health',
+    automation:    'Deep Work',
+    relationships: 'Impact',
+    other:         'Ownership',
+  };
+
+  const wAgo = new Date(); wAgo.setDate(wAgo.getDate() - 7);
+  const done  = S.tasks.filter(t => t.completedAt && new Date(t.completedAt) > wAgo);
+  const totalDW = (S.deepWorkSessions || [])
+    .filter(s => new Date(s.date) > wAgo)
+    .reduce((s, x) => s + x.duration, 0) / 3600;
+
+  // Tally time proxy (tasks per value)
+  const tally = {};
+  S.values.forEach(v => { tally[v] = 0; });
+  done.forEach(t => {
+    const v = CAT_VALUE[t.category] || 'Ownership';
+    tally[v] = (tally[v] || 0) + 1;
+  });
+  // Deep Work counts toward the category of top-3 tasks
+  tally['Deep Work'] = (tally['Deep Work'] || 0) + Math.round(totalDW);
+
+  const total = Object.values(tally).reduce((s, n) => s + n, 0) || 1;
+  const maxVal = Math.max(...Object.values(tally), 1);
+
+  const rows = S.values.map(v => {
+    const n   = tally[v] || 0;
+    const pct = Math.round(n / total * 100);
+    const bar = Math.round(n / maxVal * 100);
+    const ideal = { Impact: 35, Ownership: 20, Growth: 20, Health: 15, 'Deep Work': 10 };
+    const idealPct = ideal[v] || 15;
+    const gap = pct - idealPct;
+    const gapColor = Math.abs(gap) < 8 ? '#69db7c' : gap > 0 ? '#58a6ff' : '#ff6b6b';
+    return `<div style="margin-bottom:14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+        <span style="font-size:13px;font-weight:600;">${v}</span>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:11px;color:var(--muted);">ideal ~${idealPct}%</span>
+          <span style="font-size:12px;font-weight:700;color:${gapColor};">${pct}% ${gap > 5 ? '▲' : gap < -5 ? '▼' : '✓'}</span>
+        </div>
+      </div>
+      <div style="background:var(--surface2);border-radius:4px;height:12px;overflow:hidden;">
+        <div style="height:100%;width:${bar}%;background:${gapColor};border-radius:4px;transition:width .3s;"></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  const unaligned = S.values.filter(v => {
+    const pct = Math.round((tally[v] || 0) / total * 100);
+    const ideal = { Impact: 35, Ownership: 20, Growth: 20, Health: 15, 'Deep Work': 10 };
+    return pct < (ideal[v] || 15) - 8;
+  });
+
+  el.innerHTML = `
+    <p style="font-size:12px;color:var(--muted);margin-bottom:16px;">Based on ${done.length} tasks completed + ${Math.round(totalDW * 10) / 10}h deep work this week.</p>
+    ${rows}
+    ${unaligned.length ? `<div style="margin-top:14px;padding:10px 12px;background:rgba(255,107,107,.07);border:1px solid rgba(255,107,107,.2);border-radius:8px;font-size:12px;">⚠️ Under-invested in: <strong>${unaligned.join(', ')}</strong></div>` : '<div style="margin-top:10px;font-size:12px;color:#69db7c;">✅ Good alignment this week.</div>'}`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 6 — SOMEDAY MONTHLY AUDIT
+// ════════════════════════════════════════════════════════════════
+function openSomedayAudit(){
+  const el = document.getElementById('someday-audit-body');
+  const thirtyAgo = new Date(); thirtyAgo.setDate(thirtyAgo.getDate() - 30);
+  const old = S.tasks.filter(t =>
+    t.bucket === 'someday' &&
+    t.status !== 'done' &&
+    t.createdAt &&
+    new Date(t.createdAt) < thirtyAgo
+  );
+  if (!old.length) {
+    el.innerHTML = '<div class="empty" style="padding:20px;">No Someday tasks older than 30 days. 🎉</div>';
+  } else {
+    el.innerHTML = old.map(t => {
+      const daysOld = Math.floor((Date.now() - new Date(t.createdAt)) / 86400000);
+      return `<div style="padding:10px 0;border-bottom:1px solid var(--border);">
+        <div style="font-size:13px;font-weight:500;margin-bottom:6px;">${t.title} <span style="font-size:10px;color:var(--muted);">(${daysOld}d old)</span></div>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <button class="btn bg sm" onclick="somedayPromote('${t.id}','this-week')" style="color:#58a6ff;">→ This Week</button>
+          <button class="btn bg sm" onclick="somedayPromote('${t.id}','this-month')" style="color:#fbbf24;">→ This Month</button>
+          <button class="btn bg sm" onclick="somedayPromote('${t.id}','backlog')" style="color:#69db7c;">→ Backlog</button>
+          <button class="btn bd sm" onclick="somedayDelete('${t.id}')" style="color:#ff6b6b;">Delete</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  document.getElementById('someday-modal').classList.remove('hidden');
+  // Show badge on nav if any
+  if (old.length) toast(`📋 ${old.length} Someday task${old.length > 1 ? 's' : ''} need review`);
+}
+function somedayPromote(id, bucket){
+  const t = S.tasks.find(x => x.id === id);
+  if (t) { t.bucket = bucket; save(); openSomedayAudit(); }
+}
+function somedayDelete(id){
+  S.tasks = S.tasks.filter(x => x.id !== id);
+  save(); openSomedayAudit();
+}
+// Auto-nudge for Someday audit (monthly)
+function checkSomedayAudit(){
+  const thirtyAgo = new Date(); thirtyAgo.setDate(thirtyAgo.getDate() - 30);
+  const old = S.tasks.filter(t => t.bucket === 'someday' && t.status !== 'done' && t.createdAt && new Date(t.createdAt) < thirtyAgo);
+  if (!old.length) return;
+  const lastAudit = localStorage.getItem('taskos_someday_audit');
+  const daysSince = lastAudit ? Math.floor((Date.now() - new Date(lastAudit)) / 86400000) : 999;
+  if (daysSince < 30) return;
+  localStorage.setItem('taskos_someday_audit', new Date().toISOString().slice(0, 10));
+  const el = document.getElementById('anti-pattern-alerts');
+  if (el) {
+    el.innerHTML = `<div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-left:3px solid #a78bfa;border-radius:6px;padding:8px 12px;font-size:12px;margin-bottom:6px;">📋 ${old.length} tasks rotting in Someday — <span style="color:var(--accent);cursor:pointer;" onclick="openSomedayAudit()">audit now →</span></div>` + el.innerHTML;
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 7 — CONTEXT SWITCH COUNTER
+// ════════════════════════════════════════════════════════════════
+function _logContextSwitch(category){
+  if (!S.contextLog) S.contextLog = [];
+  const today = new Date().toISOString().slice(0,10);
+  // Trim old entries (keep last 7 days)
+  S.contextLog = S.contextLog.filter(e => e.date >= new Date(Date.now() - 7*86400000).toISOString().slice(0,10));
+  S.contextLog.push({ date: today, cat: category, ts: Date.now() });
+}
+function _countContextSwitches(date){
+  const entries = (S.contextLog || [])
+    .filter(e => e.date === date)
+    .sort((a,b) => a.ts - b.ts);
+  let switches = 0;
+  for (let i = 1; i < entries.length; i++) {
+    if (entries[i].cat !== entries[i-1].cat) switches++;
+  }
+  return { switches, entries };
+}
+function showContextReport(){
+  const el = document.getElementById('context-body');
+  const today = new Date().toISOString().slice(0,10);
+  const { switches, entries } = _countContextSwitches(today);
+  const color = switches <= 2 ? '#69db7c' : switches <= 4 ? '#fbbf24' : '#ff6b6b';
+  const assessment = switches <= 2 ? 'Excellent focus — minimal context switching' :
+                     switches <= 4 ? 'Moderate switching — consider batching by category' :
+                     'High context switching — cognitive cost is real';
+
+  // Build timeline of today's completed tasks by cat
+  const timeline = entries.map((e, i) => {
+    const isSwitch = i > 0 && entries[i-1].cat !== e.cat;
+    const catInfo = CATS[e.cat] || CATS.other;
+    return `<div style="display:flex;align-items:center;gap:8px;padding:4px 0;">
+      ${isSwitch ? '<span style="color:#ff6b6b;font-size:16px;flex-shrink:0;" title="Context switch">⇄</span>' : '<span style="width:20px;flex-shrink:0;"></span>'}
+      <span class="badge c${e.cat[0]}" style="font-size:11px;">${catInfo.e} ${catInfo.l}</span>
+      <span style="font-size:11px;color:var(--muted);">${new Date(e.ts).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}</span>
+    </div>`;
+  }).join('') || '<div style="color:var(--muted);font-size:13px;padding:8px 0;">No tasks completed today yet.</div>';
+
+  // Last 7 days chart
+  const days7 = [];
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(); d.setDate(d.getDate() - i);
+    const dk = d.toISOString().slice(0,10);
+    days7.push({ d: dk, label: d.toLocaleDateString('en-US',{weekday:'short'}), sw: _countContextSwitches(dk).switches });
+  }
+  const maxSw = Math.max(...days7.map(x => x.sw), 1);
+  const chart = days7.map(x => {
+    const h = Math.round(x.sw / maxSw * 48);
+    const c = x.sw <= 2 ? '#69db7c' : x.sw <= 4 ? '#fbbf24' : '#ff6b6b';
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;">
+      <span style="font-size:10px;color:${c};font-weight:600;">${x.sw}</span>
+      <div style="width:100%;height:${h}px;background:${c};border-radius:2px;min-height:2px;"></div>
+      <span style="font-size:9px;color:var(--muted);">${x.label}</span>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="font-size:42px;font-weight:800;color:${color};">${switches}</div>
+      <div style="font-size:12px;color:${color};font-weight:600;">${assessment}</div>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:4px;height:60px;margin-bottom:16px;padding:0 4px;">${chart}</div>
+    <h4 style="font-size:12px;color:var(--muted);margin-bottom:8px;">TODAY'S WORK SEQUENCE</h4>
+    ${timeline}
+    <div style="margin-top:12px;font-size:11px;color:var(--muted);background:var(--surface2);border-radius:6px;padding:10px;">
+      💡 Research shows >4 context switches/day reduces deep work quality by ~40%. Batch similar tasks (e.g., all Givelink → all admin → all learning).
+    </div>`;
+  document.getElementById('context-modal').classList.remove('hidden');
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 8 — SLEEP → OUTPUT CORRELATION
+// ════════════════════════════════════════════════════════════════
+function renderSleepCorrelation(){
+  const el = document.getElementById('sleep-correlation');
+  if (!el) return;
+  const sleepLogs = (S.healthLogs || []).filter(l => l.type === 'sleep' && l.value);
+  if (sleepLogs.length < 7) {
+    el.innerHTML = `<div style="font-size:11px;color:var(--muted);margin-top:4px;">Log 7+ sleep scores to unlock correlation with productivity.</div>`;
+    return;
+  }
+  // Build day map: date -> { sleep, tasksCompleted }
+  const dayMap = {};
+  sleepLogs.forEach(l => {
+    if (!dayMap[l.date]) dayMap[l.date] = { sleep: 0, tasks: 0 };
+    dayMap[l.date].sleep = l.value;
+  });
+  S.tasks.filter(t => t.completedAt).forEach(t => {
+    const d = t.completedAt.slice(0,10);
+    if (dayMap[d]) dayMap[d].tasks++;
+  });
+  // Bucket: <70, 70-79, 80-89, 90+
+  const buckets = [
+    { label: '<70%', min: 0,  max: 70, days: [], color: '#ff6b6b' },
+    { label: '70–79%', min: 70, max: 80, days: [], color: '#fbbf24' },
+    { label: '80–89%', min: 80, max: 90, days: [], color: '#58a6ff' },
+    { label: '90%+',  min: 90, max: 101, days: [], color: '#69db7c' },
+  ];
+  Object.values(dayMap).forEach(d => {
+    const b = buckets.find(b => d.sleep >= b.min && d.sleep < b.max);
+    if (b) b.days.push(d.tasks);
+  });
+  const avg = arr => arr.length ? Math.round(arr.reduce((s,n) => s+n, 0) / arr.length * 10) / 10 : null;
+  const rows = buckets.filter(b => b.days.length > 0).map(b => {
+    const a = avg(b.days);
+    return { ...b, avg: a };
+  });
+  if (!rows.length) { el.innerHTML = ''; return; }
+  const maxAvg = Math.max(...rows.map(r => r.avg), 1);
+  // Find best bucket
+  const best = rows.reduce((a, b) => b.avg > a.avg ? b : a, rows[0]);
+  el.innerHTML = `
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">😴 Sleep → Output Correlation</div>
+    ${rows.map(r => `<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <span style="font-size:11px;min-width:48px;color:${r.color};font-weight:600;">${r.label}</span>
+      <div style="flex:1;background:var(--surface2);border-radius:3px;height:10px;overflow:hidden;">
+        <div style="height:100%;width:${Math.round(r.avg/maxAvg*100)}%;background:${r.color};border-radius:3px;"></div>
+      </div>
+      <span style="font-size:11px;color:var(--muted);">${r.avg} tasks/day (${r.days.length}d)</span>
+    </div>`).join('')}
+    <div style="font-size:11px;color:#69db7c;margin-top:6px;">⚡ Best output on <strong>${best.label}</strong> sleep — ${best.avg} tasks/day avg</div>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 9 — COMPOUND HABIT PROJECTOR
+// ════════════════════════════════════════════════════════════════
+const HABIT_UNIT_DEFAULTS = {
+  'Read 30 pages': { unit: 'pages', perDay: 30, milestone: 'book' , milestoneSize: 300 },
+  'Workout':       { unit: 'sessions', perDay: 1, milestone: null },
+  'Cold shower':   { unit: 'sessions', perDay: 1, milestone: null },
+  'Walk 10k steps':{ unit: 'steps', perDay: 10000, milestone: null },
+  'Meditate':      { unit: 'min', perDay: 10, milestone: null },
+};
+
+function renderHabitProjector(){
+  const el = document.getElementById('habit-projector');
+  if (!el) return;
+  const habits = S.habits || [];
+  if (!habits.length) { el.innerHTML = '<div class="empty">Add habits first.</div>'; return; }
+
+  // Actual completion rates
+  const today = new Date();
+  const days30 = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today); d.setDate(today.getDate() - i);
+    days30.push(d.toISOString().slice(0, 10));
+  }
+
+  el.innerHTML = habits.map(h => {
+    const doneCount = days30.filter(d => (S.habitLogs?.[d] || {})[h]).length;
+    const rate = Math.round(doneCount / 30 * 100);
+    const deft = Object.entries(HABIT_UNIT_DEFAULTS).find(([k]) => h.toLowerCase().includes(k.toLowerCase()));
+    const meta = (S.habitUnits || {})[h] || (deft ? deft[1] : { unit: 'times', perDay: 1, milestone: null });
+
+    const yr1  = Math.round(365 * (rate/100) * meta.perDay);
+    const yr5  = yr1 * 5;
+    const yr10 = yr1 * 10;
+
+    const milestone = meta.milestone && meta.milestoneSize
+      ? ` = ~${Math.floor(yr1 / meta.milestoneSize)} ${meta.milestone}s/yr`
+      : '';
+
+    const rateColor = rate >= 80 ? '#69db7c' : rate >= 50 ? '#fbbf24' : '#ff6b6b';
+
+    // Inline unit editor
+    const saved = (S.habitUnits || {})[h];
+    const unitVal  = saved?.unit  || meta.unit  || 'times';
+    const perDayVal = saved?.perDay || meta.perDay || 1;
+
+    return `<div class="los-card" style="margin-bottom:10px;padding:12px 14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <div style="font-weight:600;font-size:13px;">${h}</div>
+        <span style="font-size:12px;font-weight:700;color:${rateColor};">${rate}% last 30d</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px;">
+        <div style="background:var(--surface2);border-radius:6px;padding:6px 8px;text-align:center;">
+          <div style="font-size:15px;font-weight:700;color:var(--accent);">${yr1.toLocaleString()}</div>
+          <div style="font-size:9px;color:var(--muted);">1 year${milestone}</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:6px;padding:6px 8px;text-align:center;">
+          <div style="font-size:15px;font-weight:700;color:var(--accent);">${yr5.toLocaleString()}</div>
+          <div style="font-size:9px;color:var(--muted);">5 years</div>
+        </div>
+        <div style="background:var(--surface2);border-radius:6px;padding:6px 8px;text-align:center;">
+          <div style="font-size:15px;font-weight:700;color:var(--accent);">${yr10.toLocaleString()}</div>
+          <div style="font-size:9px;color:var(--muted);">10 years</div>
+        </div>
+      </div>
+      <details style="font-size:11px;">
+        <summary style="cursor:pointer;color:var(--muted);">⚙ Customize unit</summary>
+        <div style="display:flex;gap:6px;margin-top:6px;align-items:center;">
+          <input class="fc" id="hu-unit-${h.replace(/\s/g,'_')}" value="${unitVal}" placeholder="unit" style="width:80px;font-size:11px;">
+          <span style="color:var(--muted);font-size:11px;">per day:</span>
+          <input class="fc" id="hu-per-${h.replace(/\s/g,'_')}" type="number" value="${perDayVal}" style="width:60px;font-size:11px;">
+          <button class="btn bg sm" onclick="saveHabitUnit('${h.replace(/'/g,"\\'")}')">Save</button>
+        </div>
+      </details>
+    </div>`;
+  }).join('');
+}
+function saveHabitUnit(h){
+  const key = h.replace(/\s/g,'_');
+  const unit   = document.getElementById('hu-unit-'+key)?.value.trim() || 'times';
+  const perDay = parseFloat(document.getElementById('hu-per-'+key)?.value) || 1;
+  if (!S.habitUnits) S.habitUnits = {};
+  S.habitUnits[h] = { unit, perDay };
+  save(); renderHabitProjector();
+  toast('Unit saved!');
 }
 
 // ── RECURRING TASKS ───────────────────────────────────────────

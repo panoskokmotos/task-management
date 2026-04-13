@@ -311,9 +311,25 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
       <button class="btn bg sm" onclick="openCmdK()" title="⌘K">⌘K</button>
       <button class="btn bg sm" onclick="showWeeklyDigest()">📊 Digest</button>
       <button class="btn bg sm" onclick="openTweetGenerator()">🐦 Post</button>
-      <button class="btn bg sm" onclick="showBatchSuggestions()">🔗 Batch</button>
+      <button class="btn bg sm" onclick="runPriorityAudit()">🤖 Audit</button>
+      <button class="btn bg sm" onclick="showValueAlignment()">🎯 Values</button>
+      <button class="btn bg sm" onclick="showCommitments()">📜 Commits</button>
+      <button class="btn bg sm" onclick="showContextReport()">🔀</button>
       <button class="btn bg sm" onclick="nav('eod')">🌙 EOD</button>
       <button class="btn bp" onclick="openAdd()">+ Add Task</button>
+    </div>
+  </div>
+  <!-- MOMENTUM SCORE + ONE THING ROW -->
+  <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;" id="momentum-row">
+    <!-- MOMENTUM SCORE -->
+    <div id="momentum-card" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:14px;min-width:180px;">
+      <div id="momentum-ring" style="width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:800;flex-shrink:0;"></div>
+      <div><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Momentum</div><div id="momentum-label" style="font-size:12px;color:var(--muted);margin-top:2px;"></div></div>
+    </div>
+    <!-- ONE THING -->
+    <div id="one-thing-card" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;flex:1;min-width:220px;">
+      <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">⚡ The One Thing</div>
+      <div id="one-thing-display"></div>
     </div>
   </div>
   <!-- MORNING BRIEFING -->
@@ -756,6 +772,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
     <div class="los-card">
       <h3>😴 Sleep Score Trend</h3>
       <div id="sleep-trend" style="font-size:12px;color:var(--muted);">Log sleep scores to see trend</div>
+      <div id="sleep-correlation" style="margin-top:12px;"></div>
     </div>
   </div>
   <div style="margin-top:16px;">
@@ -886,6 +903,10 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div>
     <h2 style="margin-bottom:10px;">📅 Last 28 Days</h2>
     <div id="habits-heat"></div>
+  </div>
+  <div style="margin-top:20px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><h2 style="margin:0;">📈 Habit Compound Projector</h2><span style="font-size:11px;color:var(--muted);">What consistency builds</span></div>
+    <div id="habit-projector"></div>
   </div>
 </div>
 
@@ -1089,7 +1110,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[]};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[]};
 let editT=null,editG=null,fCat='all';
 let profileName=localStorage.getItem('taskos_name')||'Panos';
 
@@ -1374,6 +1395,8 @@ function renderWizPanel(){
       <div class="fg"><label>✅ What went well?</label><textarea class="fc" id="rw" placeholder="3 wins from this week..."></textarea></div>
       <div class="fg"><label>📈 What to improve?</label><textarea class="fc" id="ri" placeholder="1-2 things to do differently..."></textarea></div>
       <div class="fg"><label>🎯 Focus for next week?</label><textarea class="fc" id="rf" placeholder="The single most important thing..."></textarea></div>
+      <div class="fg" style="margin-top:4px;border-top:1px solid var(--border);padding-top:10px;"><label style="color:var(--accent);font-weight:700;">📜 This Week I Commit To</label><input class="fc" id="rcommit" placeholder="e.g. Book 2 demo calls. No excuses."></div>
+      <div class="fg"><label>If I don't follow through, it's because</label><input class="fc" id="rifnot" placeholder="Name your most likely excuse in advance..."></div>
     </div>
     ${rev.length?`<h3 style="margin:14px 0 8px;font-size:13px;color:var(--muted);">Past Reviews</h3>${rev.map(r=>`<div class="card" style="margin-bottom:8px;"><div style="font-weight:600;margin-bottom:4px;font-size:13px;">📅 ${fd(r.weekOf)}</div>${r.focus?`<div style="font-size:12px;color:var(--muted);">🎯 ${r.focus}</div>`:''}</div>`).join('')}`:''}
     <div class="wiz-nav"><button class="btn bg" onclick="goStep(3)">← Back</button><button class="btn bp" onclick="finishReview()">✅ Save & Finish</button></div>`;
@@ -1382,17 +1405,16 @@ function renderWizPanel(){
 function finishReview(){
   const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
   const done=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>wAgo);
+  const byCategory=Object.keys(CATS).reduce((acc,c)=>{acc[c]=done.filter(t=>t.category===c).length;return acc;},{});
+  const commit=(document.getElementById('rcommit')?.value||'').trim();
+  const ifNot=(document.getElementById('rifnot')?.value||'').trim();
+  if(commit){if(!S.commitments)S.commitments=[];S.commitments.push({id:uid(),weekOf:new Date().toISOString().slice(0,10),commitment:commit,ifNot,reviewed:false,outcome:''});}
   const review={
     id:uid(),weekOf:new Date().toISOString(),
     wentWell:document.getElementById('rw')?.value||'',
     improve:document.getElementById('ri')?.value||'',
     focus:document.getElementById('rf')?.value||'',
-    snapshot:{
-      tasksCompleted:done.length,
-      totalActive:active().length,
-      goalsCount:S.goals.length,
-      byCategory:Object.keys(CATS).reduce((acc,c)=>{acc[c]=done.filter(t=>t.category===c).length;return acc;},{})
-    }
+    snapshot:{tasksCompleted:done.length,totalActive:active().length,goalsCount:S.goals.length,byCategory}
   };
   S.reviews.push(review);
   // also persist to external history for the history view
@@ -1480,7 +1502,7 @@ function toggleDone(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
   t.status=t.status==='done'?'todo':'done';
   t.completedAt=t.status==='done'?new Date().toISOString():null;
-  if(t.status==='done'){t.isT3=false;t.t3s=null;}
+  if(t.status==='done'){t.isT3=false;t.t3s=null;_logContextSwitch(t.category);}
   save();refresh();
 }
 
@@ -3618,6 +3640,49 @@ function saveDecision(){
       <button class="btn bg" onclick="closeM('cdigest-modal')">Close</button>
       <button class="btn bp" onclick="navigator.clipboard.writeText(document.getElementById('cdigest-body').textContent);toast('Copied!')">📋 Copy</button>
     </div>
+  </div>
+</div>
+
+
+<!-- COMMITMENT REVIEW MODAL -->
+<div class="mo hidden" id="commit-modal">
+  <div class="md" style="width:500px;">
+    <div class="mh"><h3>📜 Weekly Commitments</h3><button class="mc" onclick="closeM('commit-modal')">×</button></div>
+    <div id="commit-body" style="max-height:420px;overflow-y:auto;"></div>
+    <div class="mf"><button class="btn bp" onclick="closeM('commit-modal')">Done</button></div>
+  </div>
+</div>
+<!-- VALUE ALIGNMENT MODAL -->
+<div class="mo hidden" id="values-modal">
+  <div class="md" style="width:540px;">
+    <div class="mh"><h3>🎯 Value Alignment Check</h3><button class="mc" onclick="closeM('values-modal')">×</button></div>
+    <div id="values-body"></div>
+    <div class="mf"><button class="btn bp" onclick="closeM('values-modal')">Done</button></div>
+  </div>
+</div>
+<!-- SOMEDAY AUDIT MODAL -->
+<div class="mo hidden" id="someday-modal">
+  <div class="md" style="width:560px;">
+    <div class="mh"><h3>📋 Someday Audit</h3><button class="mc" onclick="closeM('someday-modal')">×</button></div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Tasks in Someday for 30+ days. Promote, schedule, or delete each one.</p>
+    <div id="someday-audit-body" style="max-height:380px;overflow-y:auto;"></div>
+    <div class="mf"><button class="btn bg" onclick="closeM('someday-modal')">Close</button><button class="btn bp" onclick="save();closeM('someday-modal');refresh();toast('Audit saved!')">Save Changes</button></div>
+  </div>
+</div>
+<!-- AI PRIORITY AUDIT MODAL -->
+<div class="mo hidden" id="priority-audit-modal">
+  <div class="md" style="width:560px;">
+    <div class="mh"><h3>🤖 AI Priority Audit</h3><button class="mc" onclick="closeM('priority-audit-modal')">×</button></div>
+    <div id="priority-audit-body" style="font-size:13px;line-height:1.7;white-space:pre-wrap;min-height:120px;max-height:420px;overflow-y:auto;background:var(--surface2);border-radius:8px;padding:14px;"></div>
+    <div class="mf"><button class="btn bg" onclick="closeM('priority-audit-modal')">Close</button></div>
+  </div>
+</div>
+<!-- CONTEXT SWITCH MODAL -->
+<div class="mo hidden" id="context-modal">
+  <div class="md" style="width:440px;">
+    <div class="mh"><h3>🔀 Context Switches Today</h3><button class="mc" onclick="closeM('context-modal')">×</button></div>
+    <div id="context-body"></div>
+    <div class="mf"><button class="btn bp" onclick="closeM('context-modal')">Got it</button></div>
   </div>
 </div>
 

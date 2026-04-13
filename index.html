@@ -265,11 +265,10 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 <nav class="sidebar">
   <div class="logo">Task <span>OS</span></div>
   <!-- WORKSPACE SWITCHER -->
-  <div style="padding:8px 10px;border-bottom:1px solid var(--border);">
-    <div style="font-size:9px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px;">Workspace</div>
-    <div style="display:flex;gap:4px;">
-      <button style="flex:1;padding:5px 4px;border-radius:6px;border:none;cursor:pointer;font-size:10px;font-weight:700;background:var(--accent);color:#000;">🏠 Personal</button>
-      <a href="givelink.html" style="flex:1;padding:5px 4px;border-radius:6px;border:1px solid var(--border);cursor:pointer;font-size:10px;font-weight:700;background:transparent;color:var(--muted);text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center;">🟣 Givelink</a>
+  <div style="padding:8px 10px 10px;border-bottom:1px solid var(--border);margin-bottom:4px;">
+    <div style="display:flex;gap:5px;">
+      <button style="flex:1;padding:7px 6px;border-radius:8px;border:none;cursor:pointer;font-size:11px;font-weight:700;background:var(--accent);color:#000;letter-spacing:.2px;">🏠 Personal</button>
+      <a href="givelink.html" style="flex:1;padding:7px 6px;border-radius:8px;border:1px solid rgba(167,139,250,.4);cursor:pointer;font-size:11px;font-weight:700;background:rgba(167,139,250,.1);color:#a78bfa;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center;gap:4px;letter-spacing:.2px;" title="Switch to Givelink Sprint Board (⌘2)">🟣 Givelink</a>
     </div>
   </div>
   <div class="ns">Main</div>
@@ -327,8 +326,11 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
       <div><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Momentum</div><div id="momentum-label" style="font-size:12px;color:var(--muted);margin-top:2px;"></div></div>
     </div>
     <!-- ONE THING -->
-    <div id="one-thing-card" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;flex:1;min-width:220px;">
-      <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">⚡ The One Thing</div>
+    <div id="one-thing-card" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;flex:1;min-width:220px;transition:border-color .2s;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <span style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;">⚡ The One Thing</span>
+        <span style="font-size:10px;color:var(--muted);">What makes today a success?</span>
+      </div>
       <div id="one-thing-display"></div>
     </div>
   </div>
@@ -1230,6 +1232,13 @@ function inboxHTML(t){
 
 // ── BUCKETS ───────────────────────────────────────────────────
 function renderBuckets(){
+  // Auto-nudge someday audit once a month
+  const thirtyAgo=new Date();thirtyAgo.setDate(thirtyAgo.getDate()-30);
+  const oldSomeday=S.tasks.filter(t=>t.bucket==='someday'&&t.status!=='done'&&t.createdAt&&new Date(t.createdAt)<thirtyAgo);
+  const lastAudit=localStorage.getItem('taskos_someday_audit');
+  if(oldSomeday.length>=3&&(!lastAudit||Math.floor((Date.now()-new Date(lastAudit))/86400000)>29)){
+    setTimeout(()=>toast(`📋 ${oldSomeday.length} Someday items need review — click Someday Audit`,3000),800);
+  }
   const a=active();
   document.getElementById('bgrid').innerHTML=['this-week','this-month','backlog','someday'].map(bid=>{
     const b=BKTS[bid],tasks=a.filter(t=>t.bucket===bid);
@@ -2665,15 +2674,18 @@ function renderStreakRow(){
   const disS=_discomfortStreak();
   const revS=_reviewStreak();
   const chalS=_challengeStreak();
+  const today=new Date().toISOString().slice(0,10);
+  const ctxSw=_countContextSwitches(today).switches;
   const items=[
     {icon:'🧠',label:'Deep Work',val:dwS,unit:'d',color:'#58a6ff'},
     {icon:'✅',label:'Habits',val:habS,unit:'d',color:'#69db7c'},
     {icon:'⚡',label:'Challenges',val:chalS,unit:'d',color:'#ff6b6b'},
     {icon:'🔥',label:'Discomfort',val:disS,unit:'d',color:'#fbbf24'},
     {icon:'📅',label:'Reviews',val:revS,unit:'wk',color:'#a78bfa'},
+    ...(ctxSw>0?[{icon:'🔀',label:'Ctx switches',val:ctxSw,unit:'',color:ctxSw<=2?'#69db7c':ctxSw<=4?'#fbbf24':'#ff6b6b',onclick:'showContextReport()'}]:[]),
   ];
   el.innerHTML=items.filter(i=>i.val>0).map(i=>`
-    <div style="display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px;">
+    <div style="display:flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 10px;${i.onclick?'cursor:pointer;':''}" ${i.onclick?`onclick="${i.onclick}" title="Click for details"`:''}  >
       <span>${i.icon}</span>
       <span style="font-size:12px;font-weight:700;color:${i.color};">${i.val}${i.unit}</span>
       <span style="font-size:11px;color:var(--muted);">${i.label}</span>
@@ -2722,7 +2734,10 @@ function renderAntiPatterns(){
   const top3=S.tasks.filter(t=>t.isT3&&t.status!=='done');
   const stale=top3.filter(t=>t.createdAt&&new Date(t.createdAt)<new Date(Date.now()-7*86400000));
   if(stale.length>=2)patterns.push({icon:'🔄',color:'#ffa94d',msg:`Top 3 tasks unchanged for 7+ days — are you making progress or avoiding?`});
-  el.innerHTML=patterns.length?`<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:14px;">${patterns.map(p=>`<div style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-left:3px solid ${p.color};border-radius:6px;padding:8px 12px;font-size:12px;">${p.icon} ${p.msg}</div>`).join('')}</div>`:'';
+  const wrapper=document.createElement('div');wrapper.style.cssText='display:flex;flex-direction:column;gap:6px;margin-bottom:14px;';
+  el.innerHTML='';el.appendChild(wrapper);
+  patterns.forEach(p=>{const d=document.createElement('div');d.style.cssText=`display:flex;align-items:center;gap:8px;background:rgba(255,255,255,.03);border:1px solid var(--border);border-left:3px solid ${p.color};border-radius:6px;padding:8px 12px;font-size:12px;`;d.textContent=p.icon+' '+p.msg;wrapper.appendChild(d);});
+  if(!patterns.length)el.innerHTML='';
   checkCommitmentReview();
   checkSomedayAudit();
 }
@@ -3353,12 +3368,18 @@ function renderMomentumScore(){
   const s = m.score;
   const color = s >= 90 ? '#69db7c' : s >= 70 ? '#58a6ff' : s >= 40 ? '#fbbf24' : '#ff6b6b';
   const emoji = s >= 90 ? '🔥' : s >= 70 ? '⚡' : s >= 40 ? '🔄' : '😴';
-  ring.style.background = `conic-gradient(${color} ${s * 3.6}deg, var(--surface2) 0deg)`;
-  ring.innerHTML = `<span style="font-size:15px;font-weight:800;color:${color};">${s}</span>`;
-  const desc = s >= 90 ? 'Elite day' : s >= 70 ? 'Strong day' : s >= 40 ? 'Decent' : 'Light day';
-  label.innerHTML = `<span style="color:${color};">${emoji} ${desc}</span>`;
-  // Tooltip on hover via title attr
-  ring.title = `Habits ${m.habitDone}/${m.habits} (+${m.habitPts}pts) · DW ${m.dwToday} sessions · Challenge ${m.chalDone?'✓':'—'} · Tasks ${m.doneTasks} done · Top3 ${m.top3done?'✓':'—'}`;
+  const desc  = s >= 90 ? 'Elite day' : s >= 70 ? 'Strong day' : s >= 40 ? 'Decent' : 'Light day';
+  const r=22, circ=2*Math.PI*r, dash=circ*(s/100);
+  ring.style.background='none';
+  ring.innerHTML = `<svg width="52" height="52" style="position:absolute;top:0;left:0;" viewBox="0 0 52 52">
+    <circle cx="26" cy="26" r="${r}" fill="none" stroke="var(--surface2)" stroke-width="4"/>
+    <circle cx="26" cy="26" r="${r}" fill="none" stroke="${color}" stroke-width="4"
+      stroke-dasharray="${dash} ${circ}" stroke-dashoffset="${circ*0.25}"
+      stroke-linecap="round" style="transition:stroke-dasharray .4s ease;"/>
+  </svg><span style="position:relative;font-size:14px;font-weight:800;color:${color};">${s}</span>`;
+  ring.style.cssText='width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;';
+  label.innerHTML = `<span style="color:${color};font-weight:600;">${emoji} ${desc}</span>`;
+  ring.title = `Habits ${m.habitDone}/${m.habits} · DW ${m.dwToday} sessions · Challenge ${m.chalDone?'✓':'—'} · Tasks ${m.doneTasks} · Top3 ${m.top3done?'✓':'—'}`;
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -3922,14 +3943,16 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 let _eodStep=0;
 const EOD_STEPS=['🏆 Win','✅ Habits','🎯 MIT Tomorrow','⚡ Energy','🌙 Done'];
 function renderEod(){
-  _eodStep=0;_renderEodStep();
+  // Don't reset step if mid-flow (step > 0 and < done)
+  if(_eodStep<=0||_eodStep>=EOD_STEPS.length)_eodStep=0;
+  _renderEodStep();
 }
 function _renderEodStep(){
   const dots=document.getElementById('eod-prog-dots');
   const lbl=document.getElementById('eod-step-label');
   const body=document.getElementById('eod-step-body');
-  const nav=document.getElementById('eod-nav');
-  if(!dots)return;
+  const navEl=document.getElementById('eod-nav');
+  if(!dots||!body||!navEl)return;
   dots.innerHTML=EOD_STEPS.map((_,i)=>`<div style="width:8px;height:8px;border-radius:50%;background:${i<=_eodStep?'var(--accent)':'var(--border)'}"></div>`).join('');
   lbl.textContent=`${_eodStep+1} / ${EOD_STEPS.length} — ${EOD_STEPS[_eodStep]}`;
   const today=new Date().toISOString().slice(0,10);
@@ -3938,32 +3961,32 @@ function _renderEodStep(){
     body.innerHTML=`<h3 style="margin-bottom:10px;">🏆 Log today's biggest win</h3>
       <textarea class="fc" id="eod-win" style="min-height:72px;" placeholder="What moved the needle today?"></textarea>
       ${done.length?`<div style="font-size:12px;color:var(--muted);margin-top:8px;">Completed today: ${done.map(t=>t.title).join(' · ')}</div>`:''}`;
-    nav.innerHTML=`<span></span><button class="btn bp" onclick="_eodNext()">Next →</button>`;
+    navEl.innerHTML=`<span></span><button class="btn bp" onclick="_eodNext()">Next →</button>`;
   } else if(_eodStep===1){
     const habits=S.habits||[];const log=S.habitLogs?.[today]||{};
     const doneH=habits.filter(h=>log[h]).length;
     body.innerHTML=`<h3 style="margin-bottom:10px;">✅ Habits — ${doneH}/${habits.length} done</h3>`+
       (habits.length?habits.map(h=>{const hs=h.replace(/'/g,'&#39;');return '<div class="habit-row" style="padding:6px 0;"><div class="habit-ck '+(log[h]?'on':'')+'" onclick="toggleHabit(\'' + hs + '\');_renderEodStep()">'+(log[h]?'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':'')+'</div><span style="font-size:13px;">'+h+'</span></div>';}).join(''):'<div style="color:var(--muted);font-size:13px;">No habits configured yet. Click &#34;Manage Habits&#34; to add some.</div>');
-    nav.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="_eodNext()">Next →</button>`;
+    navEl.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="_eodNext()">Next →</button>`;
   } else if(_eodStep===2){
     const week=active().filter(t=>t.bucket==='this-week').slice(0,5);
     body.innerHTML=`<h3 style="margin-bottom:10px;">🎯 Most Important Task for tomorrow</h3>
       <input class="fc" id="eod-mit" placeholder="The one thing that matters most tomorrow..." style="margin-bottom:10px;">
       ${week.length?`<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Quick pick:</div>${week.map(t=>`<div onclick="document.getElementById('eod-mit').value='${t.title.replace(/'/g,"\'")}';" style="cursor:pointer;font-size:12px;padding:5px 8px;border-radius:5px;border:1px solid var(--border);margin-bottom:4px;transition:background .1s;" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">${t.title}</div>`).join('')}`:''}`;
-    nav.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="_eodNext()">Next →</button>`;
+    navEl.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="_eodNext()">Next →</button>`;
   } else if(_eodStep===3){
     body.innerHTML=`<h3 style="margin-bottom:10px;">⚡ Energy level today?</h3>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         ${['1 — Burned out','2 — Low','3 — Average','4 — Good','5 — Peak'].map((l,i)=>`<button class="btn bg" id="eod-e${i+1}" onclick="_eodSelEnergy(${i+1})" style="flex:1;">${l}</button>`).join('')}
       </div>`;
-    nav.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="_eodNext()">Finish →</button>`;
+    navEl.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="_eodNext()">Finish →</button>`;
   } else if(_eodStep===4){
     body.innerHTML=`<div style="text-align:center;padding:20px 0;">
       <div style="font-size:48px;margin-bottom:12px;">🌙</div>
       <div style="font-size:18px;font-weight:700;margin-bottom:8px;">Day complete.</div>
       <div style="font-size:13px;color:var(--muted);">Well done. Rest, recover, repeat.</div>
     </div>`;
-    nav.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="nav('dashboard')">Go to Dashboard</button>`;
+    navEl.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="nav('dashboard')">Go to Dashboard</button>`;
   }
 }
 let _eodEnergy=null;

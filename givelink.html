@@ -230,6 +230,12 @@ select.fc option{background:var(--s2);}
     <div class="logo-main">Givelink</div>
     <div class="logo-sub">Sprint Board</div>
   </div>
+  <div style="padding:8px 10px 10px;border-bottom:1px solid var(--border);margin-bottom:4px;">
+    <div style="display:flex;gap:5px;">
+      <a href="index.html" style="flex:1;padding:7px 6px;border-radius:8px;border:1px solid rgba(88,166,255,.35);background:rgba(88,166,255,.08);color:#58a6ff;text-decoration:none;text-align:center;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:4px;" title="Switch to Life OS (⌘1)">🏠 Life OS</a>
+      <button style="flex:1;padding:7px 6px;border-radius:8px;border:none;cursor:pointer;font-size:11px;font-weight:700;background:var(--accent);color:#000;">🟣 Givelink</button>
+    </div>
+  </div>
   <div class="sprint-banner">
     <div class="sprint-name" id="sb-name">Sprint 1</div>
     <div class="sprint-meta" id="sb-dates"></div>
@@ -1286,6 +1292,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='b')nav('backlog');
   if(e.key==='p')nav('past');
   if(e.key==='1')nav('growth');
+  if((e.metaKey||e.ctrlKey)&&e.key==='1'){e.preventDefault();window.location.href='index.html';}
   if(e.key==='2')nav('nonprofits');
   if(e.key==='3')nav('product');
   if(e.key==='4')nav('execution');

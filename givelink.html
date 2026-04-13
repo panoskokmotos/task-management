@@ -346,9 +346,8 @@ select.fc option{background:var(--s2);}
   <button class="bni active" data-v="overview" onclick="nav('overview')"><span class="bni-ic">📊</span>Overview</button>
   <button class="bni" data-v="growth" onclick="nav('growth')"><span class="bni-ic">🚀</span>Growth</button>
   <button class="bni" data-v="product" onclick="nav('product')"><span class="bni-ic">🏗️</span>Product</button>
-  <button class="bni" data-v="execution" onclick="nav('execution')"><span class="bni-ic">⚡</span>Execute</button>
-  <button class="bni" data-v="focus" onclick="nav('focus')"><span class="bni-ic">🎯</span>Focus</button>
   <button class="bni" data-v="backlog" onclick="nav('backlog')"><span class="bni-ic">📋</span>Backlog</button>
+  <button class="bni" data-v="past" onclick="nav('past')"><span class="bni-ic">📚</span>History</button>
 </nav>
 
 <!-- GOAL METRIC MODAL -->
@@ -632,6 +631,13 @@ function renderSprintBar(){
   const done=doneCount(),total=curTasks().length;
   const taskPct=total?Math.round(done/total*100):0;
   document.getElementById('bar-pct').innerHTML=`<strong style="color:${taskPct>=70?'var(--done)':taskPct>=40?'#fbbf24':'var(--text)'}">${taskPct}%</strong>&nbsp;<span style="color:var(--muted);font-size:11px;">${done}/${total} tasks</span>&nbsp;<span class="spb"><span class="spb-f" style="width:${taskPct}%"></span></span>`;
+  // Rule 3: Sprint overdue banner
+  const overdueDays=Math.floor((new Date()-new Date(sp.end))/(1000*60*60*24));
+  let ob=document.getElementById('overdue-bar');
+  if(overdueDays>0){
+    if(!ob){ob=document.createElement('div');ob.id='overdue-bar';ob.style.cssText='background:rgba(239,68,68,.12);border-bottom:1px solid rgba(239,68,68,.25);padding:6px 24px;font-size:12px;color:#ef4444;display:flex;align-items:center;gap:10px;';document.querySelector('.main').insertBefore(ob,document.querySelector('.content'));}
+    ob.innerHTML=`⚠️ Sprint ended ${overdueDays} day${overdueDays!==1?'s':''} ago &nbsp;<button class="btn sm" onclick="openCloseSprint()" style="background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4);color:#ef4444;font-size:11px;">Close Sprint →</button><button onclick="document.getElementById('overdue-bar').remove()" style="margin-left:auto;background:none;border:none;color:#ef4444;cursor:pointer;font-size:16px;">×</button>`;
+  }else if(ob){ob.remove();}
 }
 
 // ── SIDEBAR COUNTS ────────────────────────────────────────────────
@@ -1088,7 +1094,7 @@ function saveTask(){
     target:parseInt(document.getElementById('t-target').value)||null,
     current:parseInt(document.getElementById('t-current').value)||0,
     assignee:document.getElementById('t-assignee').value,
-    dueDate:document.getElementById('t-due').value||null,
+    dueDate:document.getElementById('t-due').value.trim()||null,
     isGoal:isGoalVal,
     goalId:document.getElementById('t-goalid').value||null,
     role:document.getElementById('t-role').value||'owner',
@@ -1096,7 +1102,7 @@ function saveTask(){
   };
   if((d.current??0)<0||(d.target??0)<0){toast('Values must be 0 or greater.');return;}
   if(d.target&&d.current>d.target){toast('Current progress cannot exceed target.');return;}
-  if(editId){const i=S.tasks.findIndex(t=>t.id===editId);S.tasks[i]={...S.tasks[i],...d};}
+  if(editId){const i=S.tasks.findIndex(t=>t.id===editId);S.tasks[i]={...S.tasks[i],...d};runAutomations(S.tasks[i]);}
   else S.tasks.push({id:uid(),...d,createdAt:new Date().toISOString(),completedAt:null});
   save();closeM('tm');refresh();
 }
@@ -1105,7 +1111,7 @@ function toggleDone(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
   t.status=t.status==='done'?'todo':'done';
   t.completedAt=t.status==='done'?new Date().toISOString():null;
-  save();refresh();
+  save();runAutomations(t);refresh();
 }
 function moveSprint(id,sprint){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
@@ -1196,13 +1202,16 @@ function confirmNewSprint(){
   };
   if(!S.pastSprints)S.pastSprints=[];
   S.pastSprints.unshift(archive);
-  // Move tasks: done → archived, incomplete → backlog
+  // Move tasks: done → archived, blocked → carry into new sprint, other incomplete → backlog
+  const blockedCarried=[];
   S.tasks.forEach(t=>{
     if(t.sprint==='current'){
       if(t.status==='done'){t.sprint='archived';t.archivedSprintId=archive.id;}
+      else if(t.status==='blocked'){blockedCarried.push(t.title.slice(0,30));}  // stays current for new sprint
       else{t.sprint='backlog';}
     }
   });
+  if(blockedCarried.length) setTimeout(()=>toast(`⚡ ${blockedCarried.length} blocked task${blockedCarried.length!==1?'s':''} carried into new sprint`,3500),500);
   // Start new sprint
   S.sprint={name,start,end};
   save();closeM('nsm');nav('overview');
@@ -1242,7 +1251,7 @@ function renderPastSprints(){
     }).join(' ');
     trendHTML=`<div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;">Trend (last ${trendSprints.length} sprints):</span>${trendStr}</div>`;
   }
-  el.innerHTML=`<div class="ph"><div><h1>📚 Past Sprints</h1><p class="sub">${past.length} sprint${past.length!==1?'s':''} completed</p></div><div class="row"><button class="btn bg" onclick="exportCSV()">📥 Export CSV</button><button class="btn bp" onclick="openCloseSprint()">🔄 Close Sprint →</button></div></div>`+velChart+trendHTML+
+  el.innerHTML=`<div class="ph"><div><h1>📚 Past Sprints</h1><p class="sub">${past.length} sprint${past.length!==1?'s':''} completed</p></div><div class="row"><button class="btn bg" onclick="exportPastCSV()">📥 Export All CSV</button><button class="btn bp" onclick="openCloseSprint()">🔄 Close Sprint →</button></div></div>`+velChart+trendHTML+
     past.map(s=>{
       const rate=s.stats.total?Math.round(s.stats.done/s.stats.total*100):0;
       const rateColor=rate>=70?'var(--done)':rate>=40?'#fbbf24':'var(--block)';
@@ -1345,6 +1354,45 @@ function exportCSV(){
   a.href=URL.createObjectURL(blob);
   a.download=`givelink-${S.sprint.name.replace(/[^a-z0-9]/gi,'-').toLowerCase()}.csv`;
   a.click();URL.revokeObjectURL(a.href);
+}
+function exportPastCSV(){
+  const archived=S.tasks.filter(t=>t.sprint==='archived');
+  const escC=v=>`"${(v||'').toString().replace(/"/g,'""')}"`;
+  const rows=[['Sprint','Title','Pillar','Status','Priority','Assignee','Due Date','Is Goal','Notes']];
+  const past=S.pastSprints||[];
+  archived.forEach(t=>{
+    const sp=past.find(s=>s.id===t.archivedSprintId);
+    rows.push([escC(sp?.name||''),escC(t.title),escC(PILLARS[t.pillar]?.l||t.pillar),escC(t.status),escC(t.priority),escC(t.assignee),escC(t.dueDate||''),escC(t.isGoal?'Yes':'No'),escC(t.notes)]);
+  });
+  if(rows.length===1){toast('No archived sprint data yet.');return;}
+  const csv=rows.map(r=>r.join(',')).join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download=`givelink-past-sprints.csv`;
+  a.click();URL.revokeObjectURL(a.href);
+}
+
+// ── AUTOMATIONS ───────────────────────────────────────────────────
+// Run after every task status change to fire smart rules
+function runAutomations(changedTask){
+  // Rule 1: Auto-complete goal when all linked tasks are done
+  if(changedTask.goalId&&changedTask.status==='done'){
+    const goal=S.tasks.find(t=>t.id===changedTask.goalId);
+    if(goal&&goal.status!=='done'){
+      const linked=S.tasks.filter(t=>t.goalId===goal.id&&!t.isGoal&&t.sprint==='current');
+      if(linked.length>0&&linked.every(t=>t.status==='done')){
+        goal.status='done';
+        goal.completedAt=new Date().toISOString();
+        toast(`🎯 Goal auto-completed: "${goal.title.slice(0,40)}…" ✅`,3000);
+      }
+    }
+  }
+  // Rule 2: Alert when a task becomes blocked
+  if(changedTask.status==='blocked'){
+    const blocked=curTasks().filter(t=>t.status==='blocked').length;
+    toast(`🔴 ${blocked} task${blocked!==1?'s':''} blocked in this sprint`,2500);
+  }
 }
 
 // ── SEED ─────────────────────────────────────────────────────────
@@ -1669,7 +1717,7 @@ function addSuggestedSprintTasks(){
       S.tasks.push({
         id:uid(),title:t.title,notes:'',pillar:t.pillar||'execution',
         sprint:'backlog',status:'todo',priority:t.priority||'medium',
-        target:null,current:0,assignee:'',isGoal:false,
+        target:null,current:0,assignee:'',isGoal:false,dueDate:null,goalId:null,
         createdAt:new Date().toISOString(),completedAt:null
       });
       added++;
@@ -1755,7 +1803,7 @@ function addGoalBreakdownTasks(goalId){
       S.tasks.push({
         id:uid(),title:t.title,notes:t.notes||'',pillar:goal.pillar,
         sprint:'current',status:'todo',priority:t.priority||'medium',
-        target:null,current:0,assignee:'',isGoal:false,goalId:goalId,
+        target:null,current:0,assignee:'',isGoal:false,dueDate:null,goalId:goalId,
         createdAt:new Date().toISOString(),completedAt:null
       });
       added++;

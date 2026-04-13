@@ -216,10 +216,28 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 }
 
 /* ── LIFE OS ─────────────────────────────────────────────────── */
-.los-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
-.los-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;}
-.los-card h3{font-size:13px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px;}
-.los-stat{text-align:center;padding:10px;}
+.los-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:20px;}
+.los-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;transition:border-color .15s;}
+.los-card:hover{border-color:rgba(88,166,255,.35);}
+.los-card h3{font-size:13px;font-weight:700;margin-bottom:12px;display:flex;align-items:center;gap:7px;color:var(--text);}
+.los-stat{text-align:center;padding:14px 10px;background:var(--surface);border:1px solid var(--border);border-radius:10px;transition:border-color .12s;}
+.los-stat:hover{border-color:var(--accent);}
+.los-stat-n{font-size:26px;font-weight:800;line-height:1.1;}
+.los-stat-l{font-size:11px;color:var(--muted);margin-top:3px;}
+.los-section{margin-bottom:24px;}
+.los-section-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+.los-section-hdr h2{margin:0;font-size:15px;}
+.los-row{display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:7px;transition:border-color .12s;}
+.los-row:hover{border-color:rgba(88,166,255,.3);}
+.los-empty{text-align:center;padding:32px 16px;color:var(--muted);}
+.los-empty-icon{font-size:32px;margin-bottom:8px;}
+.los-badge{font-size:10px;padding:2px 8px;border-radius:8px;font-weight:600;}
+.los-accent{color:var(--accent);background:rgba(88,166,255,.1);}
+.los-green{color:#22c55e;background:rgba(34,197,94,.1);}
+.los-yellow{color:#fbbf24;background:rgba(251,191,36,.1);}
+.los-red{color:#ef4444;background:rgba(239,68,68,.1);}
+.ai-suggestion-box{background:rgba(88,166,255,.06);border:1px solid rgba(88,166,255,.2);border-radius:10px;padding:14px 16px;margin-bottom:16px;}
+.ai-suggestion-box .ai-hdr{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between;}
 .los-stat-n{font-size:28px;font-weight:700;}
 .los-stat-l{font-size:11px;color:var(--muted);margin-top:2px;}
 .heat-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-top:8px;}
@@ -280,7 +298,9 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div class="ni" onclick="nav('all')">✅ All Tasks</div>
   <div class="ns">Planning</div>
   <div class="ni" onclick="nav('goals')">🏆 Goals</div>
-  <div class="ni" onclick="nav('review')">📅 Weekly Review</div>
+  <div class="ni" onclick="nav('weekly-plan')">📅 Weekly Plan</div>
+  <div class="ni" onclick="nav('monthly-plan')">🗓 Monthly Plan</div>
+  <div class="ni" onclick="nav('review')">📋 Weekly Review</div>
   <div class="ni" onclick="nav('focus')">🧠 Focus Now</div>
   <div class="ni" onclick="nav('history')">📚 Review History</div>
   <div class="ni" onclick="nav('eod')">🌙 End-of-Day</div>
@@ -498,6 +518,32 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div class="ph"><div><h1>📅 Weekly Review</h1><p class="sub" id="wiz-sub">Every Sunday · 20 min · non-negotiable.</p></div><span id="wiz-prog" style="font-size:12px;color:var(--muted);"></span></div>
   <div class="wiz-bar" id="wiz-bar"></div>
   <div id="wiz-body"></div>
+</div>
+
+<!-- WEEKLY PLAN -->
+<div id="v-weekly-plan" class="view">
+  <div class="ph">
+    <div><h1>📅 Weekly Plan</h1><p class="sub" id="wplan-sub"></p></div>
+    <div class="row">
+      <button class="btn bg sm" onclick="aiSuggestWeek()" id="wplan-ai-btn">🤖 Suggest My Week</button>
+      <button class="btn bp sm" onclick="openAddTaskToWeek()">+ Add Task</button>
+    </div>
+  </div>
+  <div id="wplan-ai-result" style="display:none;margin-bottom:16px;"></div>
+  <div id="wplan-body"></div>
+</div>
+
+<!-- MONTHLY PLAN -->
+<div id="v-monthly-plan" class="view">
+  <div class="ph">
+    <div><h1>🗓 Monthly Plan</h1><p class="sub" id="mplan-sub"></p></div>
+    <div class="row">
+      <button class="btn bg sm" onclick="aiSuggestMonth()" id="mplan-ai-btn">🤖 Suggest My Month</button>
+      <button class="btn bp sm" onclick="openAddTaskToMonth()">+ Add Task</button>
+    </div>
+  </div>
+  <div id="mplan-ai-result" style="display:none;margin-bottom:16px;"></div>
+  <div id="mplan-body"></div>
 </div>
 
 <!-- REVIEW HISTORY -->
@@ -739,17 +785,48 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 
 <!-- SETTINGS MODAL -->
 <div class="mo hidden" id="set-m">
-  <div class="md" style="width:400px;">
+  <div class="md" style="width:480px;">
     <div class="mh"><h3>⚙️ Settings</h3><button class="mc" onclick="closeM('set-m')">×</button></div>
+
+    <!-- Profile -->
+    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">👤 Profile</div>
     <div class="fg">
-      <label>Your Name (used in greeting)</label>
+      <label>Your Name</label>
       <input class="fc" id="set-name" placeholder="e.g. Panos">
     </div>
-    <div class="fg"><label>Claude API Key (for AI features)</label><input class="fc" id="set-claude-key" type="password" placeholder="sk-ant-api03-..."></div>
+
+    <!-- AI -->
+    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px;">🤖 AI (Claude)</div>
+    <div class="fg" style="margin-bottom:6px;">
+      <label>API Key</label>
+      <div style="display:flex;gap:6px;align-items:center;">
+        <input class="fc" id="set-claude-key" type="password" placeholder="sk-ant-api03-..." style="flex:1;">
+        <button class="btn bg sm" onclick="document.getElementById('set-claude-key').type=document.getElementById('set-claude-key').type==='password'?'text':'password'" style="flex-shrink:0;padding:7px 10px;">👁</button>
+        <button class="btn bg sm" onclick="testClaudeKey()" style="flex-shrink:0;">Test</button>
+      </div>
+    </div>
+    <div id="set-key-status" style="font-size:11px;margin-bottom:4px;"></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Used for AI Lab, weekly/monthly suggestions, goal breakdowns, and auto-fill features.</div>
+
+    <!-- Data -->
+    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px;">💾 Data</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button class="btn bg sm" onclick="exportData()">📥 Export JSON</button>
+      <button class="btn bg sm" onclick="document.getElementById('import-file').click()">📤 Import JSON</button>
+      <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importData(this)">
+    </div>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px;">Export saves all tasks, goals, logs & settings. Import merges or replaces data.</div>
+
+    <!-- Keyboard -->
+    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin:16px 0 8px;">⌨️ Shortcuts</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:11px;color:var(--muted);">
+      <span><kbd style="background:var(--surface2);padding:1px 5px;border-radius:3px;">⌘K</kbd> Command palette</span>
+      <span><kbd style="background:var(--surface2);padding:1px 5px;border-radius:3px;">⌘2</kbd> Switch to Givelink</span>
+    </div>
+
     <hr>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Switch workspace at any time from the sidebar or with <kbd style="background:var(--surface2);padding:2px 6px;border-radius:3px;font-size:11px;">⌘2</kbd></p>
     <div class="mf">
-      <button class="btn bd sm" style="margin-right:auto;" onclick="if(confirm('Reset ALL personal task data? This cannot be undone.')){localStorage.removeItem('taskos');location.reload();}">🗑 Reset Data</button>
+      <button class="btn bd sm" style="margin-right:auto;" onclick="if(confirm('Reset ALL task data? Cannot be undone.')){localStorage.removeItem('taskos');location.reload();}">🗑 Reset All Data</button>
       <button class="btn bg" onclick="closeM('set-m')">Cancel</button>
       <button class="btn bp" onclick="saveSettings()">Save</button>
     </div>
@@ -1143,7 +1220,7 @@ function nav(v){
   document.getElementById('s-ov')?.classList.remove('open');
   document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
-function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort,eod:renderEod,decisions:renderDecisions,challenge:renderChallenge,ladder:renderLadder})[v]?.();}
+function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,'weekly-plan':renderWeeklyPlan,'monthly-plan':renderMonthlyPlan,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort,eod:renderEod,decisions:renderDecisions,challenge:renderChallenge,ladder:renderLadder})[v]?.();}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
 
 // ── DASHBOARD ─────────────────────────────────────────────────
@@ -3905,10 +3982,216 @@ function renderHistoryView(){
   }).join('');
 }
 
+// ── WEEKLY PLAN ───────────────────────────────────────────────
+function renderWeeklyPlan(){
+  const now=new Date();
+  const dow=now.getDay();
+  const monday=new Date(now);monday.setDate(now.getDate()-(dow===0?6:dow-1));monday.setHours(0,0,0,0);
+  const days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  document.getElementById('wplan-sub').textContent=
+    'Week of '+monday.toLocaleDateString('en-US',{month:'short',day:'numeric'})+' — '+
+    new Date(monday.getTime()+6*86400000).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const weekTasks=active().filter(t=>t.bucket==='this-week');
+  const doneTasks=S.tasks.filter(t=>t.status==='done'&&t.completedAt&&new Date(t.completedAt)>=monday);
+  const totalWeek=weekTasks.length+doneTasks.length;
+  const pct=totalWeek?Math.round(doneTasks.length/totalWeek*100):0;
+  const pctColor=pct>=70?'#22c55e':pct>=40?'#fbbf24':'#ef4444';
+  let html=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 18px;margin-bottom:18px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;">
+    <div style="flex:1;min-width:160px;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:6px;font-weight:600;text-transform:uppercase;letter-spacing:.4px;">Week Progress</div>
+      <div style="height:8px;background:var(--border);border-radius:4px;overflow:hidden;"><div style="height:100%;border-radius:4px;background:${pctColor};width:${pct}%;transition:width .4s;"></div></div>
+      <div style="font-size:12px;color:var(--muted);margin-top:5px;">${doneTasks.length} done · ${weekTasks.length} remaining</div>
+    </div>
+    <div style="text-align:center;"><div style="font-size:26px;font-weight:800;color:${pctColor};">${pct}%</div><div style="font-size:10px;color:var(--muted);">complete</div></div>
+  </div>`;
+  html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;">';
+  days.forEach((day,i)=>{
+    const dayDate=new Date(monday.getTime()+i*86400000);
+    const dateStr=dayDate.toISOString().slice(0,10);
+    const isToday=dayDate.toDateString()===now.toDateString();
+    const isPast=dayDate<now&&!isToday;
+    const dayTasks=weekTasks.filter(t=>t.dueDay===dateStr);
+    const dayDone=doneTasks.filter(t=>t.completedAt?.slice(0,10)===dateStr);
+    html+=`<div style="background:var(--surface);border:1px solid ${isToday?'var(--accent)':isPast?'rgba(48,54,61,.5)':'var(--border)'};border-radius:10px;padding:12px;${isPast?'opacity:.65':''}">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div><div style="font-size:13px;font-weight:700;color:${isToday?'var(--accent)':'var(--text)'};">${day}${isToday?' <span style="font-size:10px;background:var(--accent);color:#000;padding:1px 6px;border-radius:8px;vertical-align:middle;margin-left:4px;">Today</span>':''}</div>
+        <div style="font-size:11px;color:var(--muted);">${dayDate.toLocaleDateString('en-US',{month:'short',day:'numeric'})}</div></div>
+        <button class="btn bg sm" style="font-size:10px;padding:2px 7px;" onclick="openAddTaskDay('${dateStr}')">+</button>
+      </div>
+      ${dayTasks.map(t=>`<div style="display:flex;align-items:center;gap:7px;padding:4px 0;border-bottom:1px solid rgba(48,54,61,.4);">
+        <div class="ck ${t.status==='done'?'on':''}" onclick="toggleDone('${t.id}');renderWeeklyPlan()" style="flex-shrink:0;width:15px;height:15px;"></div>
+        <span style="flex:1;font-size:12px;${t.status==='done'?'text-decoration:line-through;color:var(--muted);':''}">${esc(t.title)}</span>
+      </div>`).join('')}
+      ${dayDone.length?`<div style="margin-top:6px;">${dayDone.map(t=>`<div style="font-size:11px;color:var(--muted);text-decoration:line-through;padding:2px 0;opacity:.6;">✓ ${esc(t.title)}</div>`).join('')}</div>`:''}
+      ${!dayTasks.length&&!dayDone.length?`<div style="font-size:11px;color:var(--muted);text-align:center;padding:10px 0;opacity:.5;">Free</div>`:''}
+    </div>`;
+  });
+  html+='</div>';
+  const unscheduled=weekTasks.filter(t=>!t.dueDay);
+  if(unscheduled.length){
+    html+=`<div style="margin-top:18px;"><div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;">📋 Unscheduled (${unscheduled.length})</div>`;
+    html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;">${unscheduled.map(t=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:9px 12px;display:flex;align-items:center;gap:8px;">
+      <div class="ck ${t.status==='done'?'on':''}" onclick="toggleDone('${t.id}');renderWeeklyPlan()" style="flex-shrink:0;width:15px;height:15px;"></div>
+      <span style="flex:1;font-size:12px;">${esc(t.title)}</span>
+      <select style="font-size:10px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--muted);padding:2px 4px;" onchange="scheduleTaskDay('${t.id}',this.value);renderWeeklyPlan()">
+        <option value="">Day...</option>
+        ${days.map((d,i)=>{const dd=new Date(monday.getTime()+i*86400000).toISOString().slice(0,10);return`<option value="${dd}">${d}</option>`;}).join('')}
+      </select>
+    </div>`).join('')}</div>`;
+    html+='</div>';
+  }
+  document.getElementById('wplan-body').innerHTML=html;
+}
+function scheduleTaskDay(id,dateStr){const t=S.tasks.find(x=>x.id===id);if(!t)return;t.dueDay=dateStr||null;save();}
+function openAddTaskToWeek(){nav('capture');setTimeout(()=>{const el=document.getElementById('ci');if(el){el.value='#week ';el.focus();}},100);}
+function openAddTaskDay(dateStr){
+  const title=prompt('Task for '+dateStr+':');if(!title?.trim())return;
+  S.tasks.push({id:uid(),title:title.trim(),notes:'',bucket:'this-week',category:'other',urgency:'high',importance:'high',energy:'medium',status:'todo',isT3:false,t3s:null,dueDay:dateStr,createdAt:new Date().toISOString(),completedAt:null,goalId:null});
+  save();renderWeeklyPlan();
+}
+function addAISuggestedTask(title,bucket){
+  S.tasks.push({id:uid(),title,notes:'',bucket,category:'other',urgency:'high',importance:'high',energy:'medium',status:'todo',isT3:false,t3s:null,createdAt:new Date().toISOString(),completedAt:null,goalId:null});
+  save();toast('✅ Added: '+title.slice(0,40));
+  if(curView==='weekly-plan')renderWeeklyPlan();
+  else if(curView==='monthly-plan')renderMonthlyPlan();
+}
+async function aiSuggestWeek(){
+  const btn=document.getElementById('wplan-ai-btn');
+  if(!S.claudeKey){toast('Add Claude API key in ⚙️ Settings first');return;}
+  btn.textContent='⏳ Thinking...';btn.disabled=true;
+  const weekTasks=active().filter(t=>t.bucket==='this-week').map(t=>t.title).join(', ')||'none';
+  const goals=S.goals.filter(g=>!g.completedAt).slice(0,5).map(g=>g.title).join(', ')||'none';
+  const inbox=active().filter(t=>t.bucket==='inbox').length;
+  const p=`You are a productivity coach. Suggest a focused weekly plan.
+Current "This Week" tasks: ${weekTasks}
+Active goals: ${goals}
+Inbox items: ${inbox}
+Today: ${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}
+Reply ONLY in this exact format, no other text:
+MONDAY: [1-2 tasks]
+TUESDAY: [1-2 tasks]
+WEDNESDAY: [1-2 tasks]
+THURSDAY: [1-2 tasks]
+FRIDAY: [1-2 tasks]
+WEEKEND: [rest or light task]
+FOCUS_THEME: [one sentence what this week is about]`;
+  const result=await callClaude(p,500);
+  btn.textContent='🤖 Suggest My Week';btn.disabled=false;
+  if(!result)return;
+  const lines=result.split('\n').filter(l=>l.trim());
+  const theme=lines.find(l=>l.startsWith('FOCUS_THEME:'))?.replace('FOCUS_THEME:','').trim()||'';
+  const dayLines=lines.filter(l=>!l.startsWith('FOCUS_THEME:'));
+  const el=document.getElementById('wplan-ai-result');el.style.display='block';
+  el.innerHTML=`<div style="background:rgba(88,166,255,.07);border:1px solid rgba(88,166,255,.25);border-radius:10px;padding:14px 16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <span style="font-size:13px;font-weight:700;color:var(--accent);">🤖 AI Week Suggestion</span>
+      <button class="btn bg sm" style="font-size:10px;" onclick="this.closest('div[style]').parentElement.style.display='none'">✕</button>
+    </div>
+    ${theme?`<div style="font-size:12px;color:var(--muted);margin-bottom:10px;padding:7px 10px;background:rgba(88,166,255,.08);border-radius:6px;">🎯 <em>${esc(theme)}</em></div>`:''}
+    ${dayLines.map(line=>{const [k,...r]=line.split(':');const v=r.join(':').trim();
+      return`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid rgba(48,54,61,.5);">
+        <span style="font-size:11px;font-weight:700;color:var(--muted);width:76px;flex-shrink:0;">${k}</span>
+        <span style="flex:1;font-size:12px;">${esc(v)}</span>
+        <button class="btn bg sm" style="font-size:10px;padding:2px 6px;" onclick="addAISuggestedTask(${JSON.stringify(v)},'this-week')">+ Add</button>
+      </div>`;}).join('')}
+  </div>`;
+}
+
+// ── MONTHLY PLAN ───────────────────────────────────────────────
+function renderMonthlyPlan(){
+  const now=new Date();
+  const monthStart=new Date(now.getFullYear(),now.getMonth(),1);
+  const monthEnd=new Date(now.getFullYear(),now.getMonth()+1,0);
+  document.getElementById('mplan-sub').textContent=
+    now.toLocaleDateString('en-US',{month:'long',year:'numeric'})+' · '+monthEnd.getDate()+' days · '+(monthEnd.getDate()-now.getDate())+' remaining';
+  const monthTasks=active().filter(t=>t.bucket==='this-month');
+  const doneTasks=S.tasks.filter(t=>t.status==='done'&&t.completedAt&&new Date(t.completedAt)>=monthStart);
+  const goals=S.goals.filter(g=>!g.completedAt);
+  const totalMonth=monthTasks.length+doneTasks.length;
+  const pct=totalMonth?Math.round(doneTasks.length/totalMonth*100):0;
+  const pctColor=pct>=70?'#22c55e':pct>=40?'#fbbf24':'#ef4444';
+  let html=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;margin-bottom:20px;">
+    <div class="sc" style="border-top:2px solid var(--accent);"><div class="sn" style="color:var(--accent);">${monthTasks.length}</div><div class="sl">This Month</div></div>
+    <div class="sc" style="border-top:2px solid #22c55e;"><div class="sn" style="color:#22c55e;">${doneTasks.length}</div><div class="sl">Done</div></div>
+    <div class="sc" style="border-top:2px solid #fbbf24;"><div class="sn" style="color:#fbbf24;">${monthEnd.getDate()-now.getDate()}</div><div class="sl">Days Left</div></div>
+    <div class="sc" style="border-top:2px solid var(--muted);"><div class="sn" style="color:${pctColor};">${pct}%</div><div class="sl">Complete</div></div>
+  </div>`;
+  if(goals.length){
+    html+=`<div style="margin-bottom:20px;"><h2>🏆 Goals Progress</h2>`;
+    html+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px;">`;
+    html+=goals.map(g=>{
+      const linked=S.tasks.filter(t=>t.goalId===g.id);
+      const ldone=linked.filter(t=>t.status==='done').length;
+      const gpct=linked.length?Math.round(ldone/linked.length*100):0;
+      const gc=gpct>=70?'#22c55e':gpct>=40?'#fbbf24':'var(--muted)';
+      return`<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;" onclick="nav('goals')">
+        <div style="font-size:13px;font-weight:600;margin-bottom:6px;">${esc(g.title)}</div>
+        <div style="height:5px;background:var(--border);border-radius:3px;margin-bottom:5px;"><div style="height:100%;border-radius:3px;background:${gc};width:${gpct}%;transition:width .4s;"></div></div>
+        <div style="font-size:11px;color:var(--muted);">${ldone}/${linked.length} tasks · ${gpct}%</div>
+      </div>`;
+    }).join('');
+    html+=`</div></div>`;
+  }
+  html+=`<div><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;"><h2 style="margin:0;">📋 Monthly Tasks</h2><span style="font-size:12px;color:var(--muted);">${monthTasks.length} active</span></div>`;
+  if(monthTasks.length){
+    html+=monthTasks.map(t=>`<div style="display:flex;align-items:center;gap:9px;padding:9px 12px;background:var(--surface);border:1px solid var(--border);border-radius:8px;margin-bottom:7px;">
+      <div class="ck ${t.status==='done'?'on':''}" onclick="toggleDone('${t.id}');renderMonthlyPlan()" style="flex-shrink:0;"></div>
+      <span style="flex:1;font-size:13px;${t.status==='done'?'text-decoration:line-through;color:var(--muted);':''}">${esc(t.title)}</span>
+      ${t.goalId?`<span style="font-size:10px;color:var(--accent);background:rgba(88,166,255,.1);padding:2px 7px;border-radius:4px;">🏆 Goal</span>`:''}
+      <button class="btn bg sm" style="font-size:10px;padding:2px 7px;" onclick="promoteToWeek('${t.id}')">→ Week</button>
+    </div>`).join('');
+  } else {
+    html+=`<div style="text-align:center;padding:28px;color:var(--muted);"><div style="font-size:28px;margin-bottom:8px;">🗓</div><div style="font-size:13px;">No monthly tasks yet.</div><button class="btn bg sm" style="margin-top:10px;" onclick="openAddTaskToMonth()">+ Add Task</button></div>`;
+  }
+  html+='</div>';
+  document.getElementById('mplan-body').innerHTML=html;
+}
+function openAddTaskToMonth(){nav('capture');setTimeout(()=>{const el=document.getElementById('ci');if(el){el.value='#month ';el.focus();}},100);}
+function promoteToWeek(id){const t=S.tasks.find(x=>x.id===id);if(!t)return;t.bucket='this-week';save();renderMonthlyPlan();toast('→ Moved to This Week');}
+async function aiSuggestMonth(){
+  const btn=document.getElementById('mplan-ai-btn');
+  if(!S.claudeKey){toast('Add Claude API key in ⚙️ Settings first');return;}
+  btn.textContent='⏳ Thinking...';btn.disabled=true;
+  const goals=S.goals.filter(g=>!g.completedAt).slice(0,5).map(g=>g.title).join(', ')||'none';
+  const monthTasks=active().filter(t=>t.bucket==='this-month').map(t=>t.title).join(', ')||'none';
+  const now=new Date();
+  const p=`You are a strategic planning coach. Create a monthly plan for ${now.toLocaleDateString('en-US',{month:'long',year:'numeric'})}.
+Active goals: ${goals}
+Current monthly tasks: ${monthTasks}
+Days remaining: ${new Date(now.getFullYear(),now.getMonth()+1,0).getDate()-now.getDate()}
+Reply ONLY in this exact format:
+MONTH_THEME: [one sentence what this month is about]
+WEEK1: [2-3 focus areas]
+WEEK2: [2-3 focus areas]
+WEEK3: [2-3 focus areas]
+WEEK4: [2-3 focus areas]
+KEY_MILESTONE: [the one most important thing to achieve]`;
+  const result=await callClaude(p,600);
+  btn.textContent='🤖 Suggest My Month';btn.disabled=false;
+  if(!result)return;
+  const lines=result.split('\n').filter(l=>l.trim());
+  const el=document.getElementById('mplan-ai-result');el.style.display='block';
+  el.innerHTML=`<div style="background:rgba(88,166,255,.07);border:1px solid rgba(88,166,255,.25);border-radius:10px;padding:14px 16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <span style="font-size:13px;font-weight:700;color:var(--accent);">🤖 AI Month Suggestion</span>
+      <button class="btn bg sm" style="font-size:10px;" onclick="this.closest('div[style]').parentElement.style.display='none'">✕</button>
+    </div>
+    ${lines.map(line=>{const [k,...r]=line.split(':');const v=r.join(':').trim();const hi=k==='MONTH_THEME'||k==='KEY_MILESTONE';
+      return`<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid rgba(48,54,61,.5);">
+        <span style="font-size:11px;font-weight:700;color:${hi?'var(--accent)':'var(--muted)'};width:110px;flex-shrink:0;padding-top:1px;">${k.replace(/_/g,' ')}</span>
+        <span style="flex:1;font-size:12px;${hi?'font-weight:600;':''}">${esc(v)}</span>
+        ${!hi?`<button class="btn bg sm" style="font-size:10px;padding:2px 6px;" onclick="addAISuggestedTask(${JSON.stringify(v)},'this-month')">+ Add</button>`:''}
+      </div>`;}).join('')}
+  </div>`;
+}
+
 // ── SETTINGS ──────────────────────────────────────────────────
 function openSettings(){
   document.getElementById('set-name').value=profileName;
   document.getElementById('set-claude-key').value=S.claudeKey||'';
+  const st=document.getElementById('set-key-status');
+  if(S.claudeKey){st.textContent='✅ API key is saved';st.style.color='#22c55e';}
+  else{st.textContent='⚠️ No API key — AI features disabled';st.style.color='#fbbf24';}
   document.getElementById('set-m').classList.remove('hidden');
 }
 function saveSettings(){
@@ -3918,6 +4201,44 @@ function saveSettings(){
   S.claudeKey=k;save();
   closeM('set-m');
   renderDash();
+}
+async function testClaudeKey(){
+  const k=document.getElementById('set-claude-key').value.trim();
+  const st=document.getElementById('set-key-status');
+  if(!k){st.textContent='⚠️ Enter a key first.';st.style.color='#fbbf24';return;}
+  st.textContent='⏳ Testing...';st.style.color='var(--muted)';
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:10,messages:[{role:'user',content:'Hi'}]})
+    });
+    if(res.ok){st.textContent='✅ Key is valid and working!';st.style.color='#22c55e';}
+    else{const d=await res.json();st.textContent='❌ Invalid key: '+(d.error?.message||res.status);st.style.color='#ef4444';}
+  }catch(e){st.textContent='❌ Error: '+e.message;st.style.color='#ef4444';}
+}
+function exportData(){
+  const blob=new Blob([JSON.stringify({S,profileName,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='taskos-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();URL.revokeObjectURL(a.href);
+  toast('📥 Data exported!');
+}
+function importData(input){
+  const file=input.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    try{
+      const data=JSON.parse(e.target.result);
+      if(!data.S){toast('❌ Invalid backup file.');return;}
+      if(!confirm('Import will replace your current data. Continue?'))return;
+      Object.assign(S,data.S);
+      if(data.profileName)profileName=data.profileName;
+      save();location.reload();
+    }catch(err){toast('❌ Failed to parse file.');}
+  };
+  reader.readAsText(file);
+  input.value='';
 }
 
 // ── KEYBOARD ──────────────────────────────────────────────────
@@ -3943,8 +4264,7 @@ if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
 let _eodStep=0;
 const EOD_STEPS=['🏆 Win','✅ Habits','🎯 MIT Tomorrow','⚡ Energy','🌙 Done'];
 function renderEod(){
-  // Don't reset step if mid-flow (step > 0 and < done)
-  if(_eodStep<=0||_eodStep>=EOD_STEPS.length)_eodStep=0;
+  _eodStep=0;_eodEnergy=null;
   _renderEodStep();
 }
 function _renderEodStep(){
@@ -4002,10 +4322,15 @@ function _eodNext(){
   if(_eodStep===2){
     const mit=document.getElementById('eod-mit')?.value.trim();
     if(mit){
-      // Prepend MIT to this-week bucket
       S.tasks.unshift({id:uid(),title:'🎯 '+mit,notes:'',bucket:'this-week',category:'other',urgency:'high',importance:'high',energy:'high',status:'todo',isT3:false,t3s:null,createdAt:new Date().toISOString(),completedAt:null,goalId:null});
       save();toast('MIT added to This Week!');
     }
+  }
+  if(_eodStep===3){
+    if(!_eodEnergy){toast('Select your energy level first!');return;}
+    if(!S.eodLogs)S.eodLogs=[];
+    S.eodLogs.push({date:new Date().toISOString().slice(0,10),energy:_eodEnergy,ts:new Date().toISOString()});
+    save();toast('⚡ Energy logged!');
   }
   _eodStep=Math.min(_eodStep+1,EOD_STEPS.length-1);
   _renderEodStep();

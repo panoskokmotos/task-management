@@ -193,6 +193,24 @@ select.fc option{background:var(--s2);}
 .ns-goal-row{display:flex;align-items:center;gap:7px;font-size:12px;padding:3px 0;}
 .ns-divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--muted);font-size:12px;font-weight:700;}
 .ns-divider::before,.ns-divider::after{content:'';flex:1;border-top:1px solid var(--border);}
+/* ── CRM ─────────────────────────────────────────────────── */
+.crm-kanban{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;overflow-x:auto;padding-bottom:8px;}
+.crm-col{background:var(--s2);border-radius:8px;padding:10px;min-width:160px;}
+.crm-col-hdr{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.crm-card{background:var(--sf);border:1px solid var(--border);border-radius:7px;padding:10px;margin-bottom:7px;cursor:pointer;transition:border-color .15s;}
+.crm-card:hover{border-color:var(--accent);}
+.crm-card.overdue{border-left:3px solid #ef4444;}
+.crm-card-name{font-size:13px;font-weight:700;margin-bottom:3px;}
+.crm-card-sub{font-size:11px;color:var(--muted);}
+.crm-card-age{font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;margin-top:5px;display:inline-block;}
+.crm-stat-bar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+.crm-stat{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;text-align:center;}
+.crm-stat .sn{font-size:20px;font-weight:800;}
+.crm-stat .sl{font-size:10px;color:var(--muted);margin-top:1px;}
+.impact-widget{background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(16,185,129,.04));border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:14px 18px;margin-bottom:16px;}
+.impact-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin:8px 0;}
+.impact-bar-fill{height:100%;background:linear-gradient(90deg,#22c55e,#10b981);border-radius:3px;transition:width .5s ease;}
+.vel-chip{display:inline-flex;align-items:center;gap:5px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:11px;}
 </style>
 </head>
 <body>
@@ -219,6 +237,7 @@ select.fc option{background:var(--s2);}
   <div class="ni" onclick="nav('execution')"><span class="pip" style="background:var(--ex)"></span>Execution <span class="bcnt2" id="cnt-execution"></span></div>
   <div class="ni" onclick="nav('ops')"><span class="pip" style="background:var(--op)"></span>Smooth Ops <span class="bcnt2" id="cnt-ops"></span></div>
   <div class="ns">More</div>
+  <div class="ni" onclick="nav('crm')">🏢 Nonprofit CRM <span class="bcnt2" id="cnt-crm"></span></div>
   <div class="ni" onclick="nav('backlog')">📋 Backlog <span class="bcnt2" id="cnt-backlog"></span></div>
   <div class="ni" onclick="nav('past')">📚 Past Sprints <span class="bcnt2" id="cnt-past"></span></div>
   <div class="ni" onclick="openSprintSettings()">⚙️ Sprint Settings</div>
@@ -230,6 +249,7 @@ select.fc option{background:var(--s2);}
     <span class="sprint-bar-dates" id="bar-dates"></span>
     <span class="sprint-bar-pct" id="bar-pct" style="display:flex;align-items:center;gap:6px;"></span>
     <button class="btn bg" onclick="openAiSprintPlanner()" style="font-size:11px;padding:4px 10px;flex-shrink:0;">🤖 AI Sprint Planner</button>
+    <button class="btn bg" onclick="openStandup()" style="font-size:11px;padding:4px 10px;flex-shrink:0;">📋 Standup</button>
     <button class="btn bg" onclick="syncToTaskOS()" style="font-size:11px;padding:4px 10px;flex-shrink:0;">🔗 Sync to Task OS</button>
   </div>
 
@@ -239,11 +259,15 @@ select.fc option{background:var(--s2);}
   <div id="v-overview" class="view active">
     <div class="ph"><div><h1>Sprint Overview 📊</h1><p class="sub" id="ov-sub"></p></div><button class="btn bp" onclick="openAdd()">+ Add Task</button></div>
     <div class="stats2" id="ov-stats"></div>
+    <div id="impact-widget"></div>
     <div class="pcards" id="ov-pillars"></div>
     <hr>
     <h2>🎯 Sprint Goals</h2>
     <div id="ov-goals"></div>
   </div>
+
+  <!-- CRM VIEW -->
+  <div id="v-crm" class="view"></div>
 
   <!-- PILLAR VIEWS (generated) -->
   <div id="v-growth" class="view"></div>
@@ -409,7 +433,8 @@ let S={
   sprint:{name:'Sprint 1 — US Growth Push',start:'2026-03-28',end:'2026-04-11'},
   tasks:[],
   blFilter:'all',
-  pastSprints:[]
+  pastSprints:[],
+  nonprofits:[]
 };
 let editId=null;
 
@@ -448,6 +473,7 @@ function renderView(v){
   else if(PILLARS[v])renderPillar(v);
   else if(v==='backlog')renderBacklog();
   else if(v==='past')renderPastSprints();
+  else if(v==='crm')renderCRM();
 }
 function refresh(){renderView(curView);updateSidebar();}
 
@@ -473,6 +499,7 @@ function updateSidebar(){
   });
   document.getElementById('cnt-backlog').textContent=blTasks().length||'';
   document.getElementById('cnt-past').textContent=(S.pastSprints||[]).length||'';
+  updateCRMSidebarCount();
 }
 
 // ── OVERVIEW ─────────────────────────────────────────────────────
@@ -509,6 +536,8 @@ function renderOverview(){
   }).join('');
   const goals=ct.filter(t=>t.isGoal);
   document.getElementById('ov-goals').innerHTML=goals.length?goals.map(t=>goalHTML(t)).join(''):'<div class="empty">No sprint goals yet. Add one!</div>';
+  renderVelocityStats();
+  renderImpactWidget();
 }
 
 // ── PILLAR VIEW ───────────────────────────────────────────────────
@@ -613,6 +642,7 @@ function goalHTML(t){
       </div>
     </div>`:''}
     ${t.assignee?`<div style="font-size:11px;color:var(--muted);margin-top:6px;">👤 ${esc(t.assignee)}</div>`:''}
+    ${t.isGoal&&t.target>0?`<div style="margin-top:6px;">${goalEtaChip(t)}</div>`:''}
   </div>`;
 }
 
@@ -1179,6 +1209,422 @@ function syncToTaskOS(){
 
   localStorage.setItem('taskos_data_'+profile.id,JSON.stringify(tosData));
   toast(`Synced ${synced} task${synced!==1?'s':''} to Task OS${profile.name?' ('+profile.name+')':''} 🔗`,3000);
+}
+
+// ════════════════════════════════════════════════════════════════
+// SHARED AI UTILITY
+// ════════════════════════════════════════════════════════════════
+async function callClaudeGL(prompt,maxTokens=800,model='claude-haiku-4-5-20251001'){
+  let k=localStorage.getItem('taskos_api_key');
+  if(!k){
+    try{const p=JSON.parse(localStorage.getItem('taskos')||'{}');k=p.claudeKey||'';}catch(e){}
+  }
+  if(!k){k=window.prompt('Enter Anthropic API key:');if(k)localStorage.setItem('taskos_api_key',k);}
+  if(!k){toast('API key required');return null;}
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model,max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await res.json();
+    return data.content?.[0]?.text||null;
+  }catch(e){toast('AI error: '+e.message);return null;}
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 1 — NONPROFIT CRM
+// ════════════════════════════════════════════════════════════════
+const CRM_STAGES=['lead','contacted','meeting','proposal','won','lost'];
+const CRM_STAGE_LABEL={lead:'Lead',contacted:'Contacted',meeting:'Meeting',proposal:'Proposal',won:'Won ✅',lost:'Lost'};
+const CRM_STAGE_COLOR={lead:'#64748b',contacted:'#60a5fa',meeting:'#fbbf24',proposal:'#a78bfa',won:'#22c55e',lost:'#ef4444'};
+
+function seedNonprofits(){
+  if((S.nonprofits||[]).length)return;
+  S.nonprofits=[
+    {id:uid(),name:"St. Anthony Foundation",contactName:"Development Team",contactTitle:"",contactEmail:"",city:"San Francisco, CA",mission:"Providing food, shelter and services to those in need in San Francisco",estimatedPeople:2000,stage:'won',lastActivityAt:new Date(Date.now()-3*86400000).toISOString(),lastActivityNote:"Materials sent, onboarded",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()},
+    {id:uid(),name:"SF Safehouse",contactName:"Programs Director",contactTitle:"Director",contactEmail:"",city:"San Francisco, CA",mission:"Supporting survivors of domestic violence in San Francisco",estimatedPeople:500,stage:'won',lastActivityAt:new Date(Date.now()-5*86400000).toISOString(),lastActivityNote:"Social media coordination active",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()},
+    {id:uid(),name:"Edgewood",contactName:"Development Lead",contactTitle:"",contactEmail:"",city:"San Francisco, CA",mission:"Supporting children and families with mental health and education services",estimatedPeople:1200,stage:'meeting',lastActivityAt:new Date(Date.now()-8*86400000).toISOString(),lastActivityNote:"Products to add, follow-up needed",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()},
+    {id:uid(),name:"Swords to Plowshares",contactName:"Executive Director",contactTitle:"Executive Director",contactEmail:"",city:"San Francisco, CA",mission:"Providing legal services and support to veterans",estimatedPeople:800,stage:'contacted',lastActivityAt:new Date(Date.now()-12*86400000).toISOString(),lastActivityNote:"Materials sent",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()},
+    {id:uid(),name:"Quo",contactName:"Contact",contactTitle:"",contactEmail:"",city:"US",mission:"Nonprofit community platform",estimatedPeople:300,stage:'meeting',lastActivityAt:new Date(Date.now()-2*86400000).toISOString(),lastActivityNote:"Apollo onboarding in progress",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()},
+    {id:uid(),name:"Exelixi Zois",contactName:"Team",contactTitle:"",contactEmail:"",city:"Greece",mission:"Life development and empowerment programs",estimatedPeople:400,stage:'won',lastActivityAt:new Date(Date.now()-6*86400000).toISOString(),lastActivityNote:"Social media photos coordinated",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()}
+  ];
+  save();
+}
+
+function daysSinceCRM(np){
+  if(!np.lastActivityAt)return 999;
+  return Math.floor((Date.now()-new Date(np.lastActivityAt))/86400000);
+}
+
+function renderCRM(){
+  if(!S.nonprofits)S.nonprofits=[];
+  seedNonprofits();
+  const el=document.getElementById('v-crm');if(!el)return;
+  const nps=S.nonprofits;
+  const won=nps.filter(n=>n.stage==='won');
+  const active=nps.filter(n=>n.stage!=='lost'&&n.stage!=='won');
+  const overdue=nps.filter(n=>daysSinceCRM(n)>7&&n.stage!=='lost');
+  const totalPeople=won.reduce((s,n)=>s+(n.estimatedPeople||500),0);
+
+  const statBar=`<div class="crm-stat-bar">
+    <div class="crm-stat"><div class="sn">${nps.length}</div><div class="sl">Tracked</div></div>
+    <div class="crm-stat"><div class="sn" style="color:#22c55e;">${won.length}</div><div class="sl">Won</div></div>
+    <div class="crm-stat"><div class="sn" style="color:#fbbf24;">${active.length}</div><div class="sl">In Pipeline</div></div>
+    <div class="crm-stat"><div class="sn" style="color:#ef4444;">${overdue.length}</div><div class="sl">Need Follow-up</div></div>
+    <div class="crm-stat"><div class="sn" style="color:#22c55e;">${totalPeople.toLocaleString()}</div><div class="sl">Est. People</div></div>
+  </div>`;
+
+  const kanban=`<div class="crm-kanban">${CRM_STAGES.map(stage=>{
+    const cards=nps.filter(n=>n.stage===stage);
+    const stageColor=CRM_STAGE_COLOR[stage];
+    return`<div class="crm-col">
+      <div class="crm-col-hdr"><span style="color:${stageColor};">${CRM_STAGE_LABEL[stage]}</span><span style="background:${stageColor}22;color:${stageColor};border-radius:10px;padding:1px 6px;">${cards.length}</span></div>
+      ${cards.map(np=>{
+        const d=daysSinceCRM(np);
+        const isOverdue=d>7&&stage!=='won'&&stage!=='lost';
+        const ageColor=d<=3?'#22c55e':d<=7?'#fbbf24':'#ef4444';
+        return`<div class="crm-card${isOverdue?' overdue':''}" onclick="openEditNP('${np.id}')">
+          <div class="crm-card-name">${esc(np.name)}</div>
+          <div class="crm-card-sub">${esc(np.city||'')}</div>
+          ${np.contactName?`<div class="crm-card-sub">👤 ${esc(np.contactName)}</div>`:''}
+          <div style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap;">
+            <span class="crm-card-age" style="background:${ageColor}22;color:${ageColor};">${d<999?d+'d ago':'new'}</span>
+            ${stage!=='won'&&stage!=='lost'?`<button class="btn bg" style="font-size:9px;padding:2px 6px;" onclick="event.stopPropagation();openOutreachGenerator('${np.id}')">✉️ Draft</button>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('')}</div>`;
+
+  el.innerHTML=`<div class="ph">
+    <div><h1>🏢 Nonprofit CRM</h1><p class="sub">${nps.length} organizations tracked</p></div>
+    <button class="btn bp" onclick="openAddNP()">+ Add Org</button>
+  </div>
+  ${statBar}
+  ${kanban}`;
+  updateCRMSidebarCount();
+}
+
+let editNpId=null;
+function openAddNP(){
+  editNpId=null;
+  _showNPModal({name:'',contactName:'',contactTitle:'',contactEmail:'',city:'',mission:'',stage:'lead',estimatedPeople:0,lastActivityNote:''});
+}
+function openEditNP(id){
+  editNpId=id;
+  const np=S.nonprofits.find(n=>n.id===id);if(!np)return;
+  _showNPModal(np);
+}
+function _showNPModal(np){
+  let m=document.getElementById('np-modal');
+  if(!m){
+    m=document.createElement('div');m.id='np-modal';m.className='mo hidden';
+    m.innerHTML=`<div class="md" style="max-width:520px;">
+      <div class="mh"><h3 id="npm-title">Add Nonprofit</h3><button class="mc" onclick="closeM('np-modal')">×</button></div>
+      <div class="fg"><label>Organization Name *</label><input class="fc" id="np-name" placeholder="St. Anthony Foundation"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="fg"><label>Contact Name</label><input class="fc" id="np-contact" placeholder="Jane Smith"></div>
+        <div class="fg"><label>Title</label><input class="fc" id="np-title-field" placeholder="Executive Director"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="fg"><label>Email</label><input class="fc" id="np-email" placeholder="jane@org.org" type="email"></div>
+        <div class="fg"><label>City</label><input class="fc" id="np-city" placeholder="San Francisco, CA"></div>
+      </div>
+      <div class="fg"><label>Mission (1 sentence)</label><textarea class="fc" id="np-mission" rows="2" placeholder="What does this org do?"></textarea></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="fg"><label>Pipeline Stage</label><select class="fc" id="np-stage">${CRM_STAGES.map(s=>`<option value="${s}">${CRM_STAGE_LABEL[s]}</option>`).join('')}</select></div>
+        <div class="fg"><label>Est. People Served</label><input class="fc" id="np-people" type="number" placeholder="500" min="0"></div>
+      </div>
+      <div class="fg"><label>Latest Activity Note</label><input class="fc" id="np-note" placeholder="e.g. Sent intro email, awaiting reply"></div>
+      <div class="mf" style="display:flex;gap:8px;justify-content:space-between;">
+        <div>${editNpId?`<button class="btn bd" onclick="deleteNP()">Delete</button>`:''}</div>
+        <div style="display:flex;gap:8px;">
+          ${editNpId?`<button class="btn bg" onclick="logActivityNP()">📝 Log Activity</button>
+          <button class="btn bg" onclick="advanceStageNP()">→ Next Stage</button>`:''}
+          <button class="btn bp" onclick="saveNP()">Save</button>
+        </div>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+  }
+  document.getElementById('npm-title').textContent=editNpId?'Edit Nonprofit':'Add Nonprofit';
+  document.getElementById('np-name').value=np.name||'';
+  document.getElementById('np-contact').value=np.contactName||'';
+  document.getElementById('np-title-field').value=np.contactTitle||'';
+  document.getElementById('np-email').value=np.contactEmail||'';
+  document.getElementById('np-city').value=np.city||'';
+  document.getElementById('np-mission').value=np.mission||'';
+  document.getElementById('np-stage').value=np.stage||'lead';
+  document.getElementById('np-people').value=np.estimatedPeople||'';
+  document.getElementById('np-note').value=np.lastActivityNote||'';
+  m.classList.remove('hidden');
+}
+function saveNP(){
+  const name=document.getElementById('np-name').value.trim();
+  if(!name){toast('Name required');return;}
+  const d={
+    name,contactName:document.getElementById('np-contact').value.trim(),
+    contactTitle:document.getElementById('np-title-field').value.trim(),
+    contactEmail:document.getElementById('np-email').value.trim(),
+    city:document.getElementById('np-city').value.trim(),
+    mission:document.getElementById('np-mission').value.trim(),
+    stage:document.getElementById('np-stage').value,
+    estimatedPeople:parseInt(document.getElementById('np-people').value)||0,
+    lastActivityNote:document.getElementById('np-note').value.trim(),
+    lastActivityAt:new Date().toISOString()
+  };
+  if(editNpId){
+    const i=S.nonprofits.findIndex(n=>n.id===editNpId);
+    if(i>=0)S.nonprofits[i]={...S.nonprofits[i],...d};
+  } else {
+    S.nonprofits.push({id:uid(),...d,activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()});
+  }
+  save();closeM('np-modal');renderCRM();renderImpactWidget();toast('✅ Saved!');
+}
+function deleteNP(){
+  if(!editNpId||!confirm('Delete this org?'))return;
+  S.nonprofits=S.nonprofits.filter(n=>n.id!==editNpId);
+  save();closeM('np-modal');renderCRM();renderImpactWidget();
+}
+function logActivityNP(){
+  if(!editNpId)return;
+  const note=window.prompt('Log activity (what happened?):');
+  if(!note)return;
+  const np=S.nonprofits.find(n=>n.id===editNpId);if(!np)return;
+  np.lastActivityNote=note;
+  np.lastActivityAt=new Date().toISOString();
+  if(!np.activityLog)np.activityLog=[];
+  np.activityLog.push({date:new Date().toISOString(),note});
+  document.getElementById('np-note').value=note;
+  save();toast('📝 Activity logged');
+}
+function advanceStageNP(){
+  if(!editNpId)return;
+  const np=S.nonprofits.find(n=>n.id===editNpId);if(!np)return;
+  const i=CRM_STAGES.indexOf(np.stage);
+  if(i<CRM_STAGES.length-1){
+    const prevPeople=calcTotalImpact();
+    np.stage=CRM_STAGES[i+1];
+    np.lastActivityAt=new Date().toISOString();
+    if(!np.activityLog)np.activityLog=[];
+    np.activityLog.push({date:new Date().toISOString(),note:`Moved to ${CRM_STAGE_LABEL[np.stage]}`});
+    save();
+    const newPeople=calcTotalImpact();
+    checkImpactMilestone(prevPeople,newPeople);
+    document.getElementById('np-stage').value=np.stage;
+    toast(`→ Moved to ${CRM_STAGE_LABEL[np.stage]}`);
+  } else {toast('Already at final stage');}
+}
+function updateCRMSidebarCount(){
+  const overdue=(S.nonprofits||[]).filter(n=>daysSinceCRM(n)>7&&n.stage!=='lost'&&n.stage!=='won').length;
+  const el=document.getElementById('cnt-crm');
+  if(el)el.textContent=overdue||'';
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 2 — DAILY STANDUP GENERATOR
+// ════════════════════════════════════════════════════════════════
+function openStandup(){
+  let m=document.getElementById('standup-modal');
+  if(!m){
+    m=document.createElement('div');m.id='standup-modal';m.className='mo hidden';
+    m.innerHTML=`<div class="md" style="max-width:500px;">
+      <div class="mh"><h3>📋 Daily Standup</h3><button class="mc" onclick="closeM('standup-modal')">×</button></div>
+      <div id="standup-body" style="background:var(--s2);border-radius:8px;padding:14px;font-size:13px;line-height:1.7;min-height:100px;white-space:pre-wrap;">⏳ Generating...</div>
+      <div class="mf" style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">
+        <button class="btn bg" onclick="generateStandup()">↺ Regenerate</button>
+        <button class="btn bp" onclick="copyStandup()">📋 Copy</button>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+  }
+  m.classList.remove('hidden');
+  generateStandup();
+}
+async function generateStandup(){
+  const body=document.getElementById('standup-body');
+  body.textContent='⏳ Generating...';
+  const now=new Date();
+  const yesterday=new Date(now);yesterday.setDate(now.getDate()-2);yesterday.setHours(6,0,0,0);
+  const doneYest=curTasks().filter(t=>t.status==='done'&&t.completedAt&&new Date(t.completedAt)>=yesterday);
+  const todayPlan=curTasks().filter(t=>t.status==='in-progress'||t.status==='todo').sort((a,b)=>(b.priority==='high'?1:-1)-(a.priority==='high'?1:-1)).slice(0,5);
+  const blocked=curTasks().filter(t=>t.status==='blocked');
+  const prompt=`Generate a daily standup for Panos, founder of Givelink (B2B SaaS helping nonprofits manage Amazon wishlist donations + donor matching).
+
+YESTERDAY COMPLETED:
+${doneYest.length?doneYest.map(t=>`- [${t.pillar}] ${t.title}`).join('\n'):'- Nothing completed yet'}
+
+TODAY PLANNED:
+${todayPlan.map(t=>`- [${t.pillar}] ${t.title} (${t.status})`).join('\n')||'- No active tasks'}
+
+BLOCKED:
+${blocked.length?blocked.map(t=>`- ${t.title}${t.notes?': '+t.notes.slice(0,60):''}`).join('\n'):'- No blockers'}
+
+Write a standup in EXACTLY this format:
+Yesterday: [2-3 sentence summary of what was accomplished]
+Today: [2-3 sentence summary of today's focus]
+Blockers: [1 sentence or "None"]
+
+Be specific, reference task names. Max 100 words total. Human tone.`;
+  const text=await callClaudeGL(prompt,200);
+  if(text){
+    body.textContent=text;
+    body._text=text;
+  } else {
+    body.textContent='Could not generate. Check your API key.';
+  }
+}
+function copyStandup(){
+  const body=document.getElementById('standup-body');
+  const text=body._text||body.textContent;
+  navigator.clipboard.writeText(text).then(()=>toast('📋 Copied to clipboard!')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('📋 Copied!');
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 3 — SPRINT VELOCITY MONITOR + GOAL ETA
+// ════════════════════════════════════════════════════════════════
+function calcSprintVelocity(){
+  const start=new Date(S.sprint.start);
+  const end=new Date(S.sprint.end);
+  const now=new Date();
+  const daysTotal=Math.max(1,Math.ceil((end-start)/86400000));
+  const daysElapsed=Math.max(1,Math.ceil((Math.min(now,end)-start)/86400000));
+  const daysLeft=Math.max(0,Math.ceil((end-now)/86400000));
+  const ct=curTasks();
+  const done=ct.filter(t=>t.status==='done').length;
+  const total=ct.length||1;
+  const tasksPerDay=done/daysElapsed;
+  const projectedDone=Math.round(tasksPerDay*daysTotal);
+  const onTrack=projectedDone>=total*0.75;
+  const etaDays=tasksPerDay>0?Math.ceil((total-done)/tasksPerDay):null;
+  return{daysElapsed,daysLeft,daysTotal,done,total,tasksPerDay,projectedDone,onTrack,etaDays};
+}
+function renderVelocityStats(){
+  const el=document.getElementById('ov-stats');if(!el)return;
+  const v=calcSprintVelocity();
+  const pctDone=Math.round(v.done/v.total*100);
+  const trackColor=v.onTrack?'#22c55e':'#ef4444';
+  const trackLabel=v.onTrack?'On Track':'Behind';
+  const etaLabel=v.etaDays!=null?`~${v.etaDays}d to clear`:'Sprint complete';
+  el.innerHTML+=`<div class="sc2"><div class="sn2" style="color:${v.tasksPerDay>=1?'#22c55e':'#fbbf24'}">${v.tasksPerDay.toFixed(1)}</div><div class="sl2">tasks/day</div></div>
+  <div class="sc2"><div class="sn2" style="color:${trackColor}">${trackLabel}</div><div class="sl2">${etaLabel}</div></div>`;
+}
+function goalEtaChip(t){
+  if(!t.target||!t.current||t.current<=0)return t.current===0?'<span style="font-size:10px;color:var(--muted);">⏸ No progress yet</span>':'';
+  const v=calcSprintVelocity();
+  const daysElapsed=v.daysElapsed;
+  const ratePerDay=t.current/daysElapsed;
+  const remaining=t.target-t.current;
+  if(ratePerDay<=0)return'<span style="font-size:10px;color:#ef4444;">⏸ Stalled</span>';
+  const etaDays=Math.ceil(remaining/ratePerDay);
+  const color=etaDays<=v.daysLeft?'#22c55e':'#ef4444';
+  return`<span style="font-size:10px;color:${color};font-weight:600;">🏁 ~${etaDays}d at current pace</span>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 4 — IMPACT COUNTER WIDGET
+// ════════════════════════════════════════════════════════════════
+const IMPACT_MILESTONES=[10000,50000,100000,500000,1000000];
+function calcTotalImpact(){
+  return(S.nonprofits||[]).filter(n=>n.stage==='won').reduce((s,n)=>s+(n.estimatedPeople||500),0);
+}
+function renderImpactWidget(){
+  const el=document.getElementById('impact-widget');if(!el)return;
+  if(!S.nonprofits||!S.nonprofits.length){el.innerHTML='';return;}
+  const total=calcTotalImpact();
+  const goal=1000000;
+  const pct=Math.min(100,total/goal*100);
+  const nextMilestone=IMPACT_MILESTONES.find(m=>m>total)||goal;
+  const toNext=nextMilestone-total;
+  el.innerHTML=`<div class="impact-widget">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <span style="font-size:13px;font-weight:700;color:#22c55e;">🌍 People Impacted</span>
+      <span style="font-size:11px;color:var(--muted);">${toNext.toLocaleString()} to next milestone (${nextMilestone.toLocaleString()})</span>
+    </div>
+    <div style="font-size:28px;font-weight:800;color:#22c55e;line-height:1;">${total.toLocaleString()}</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">estimated people reached through won nonprofits · goal: 1,000,000</div>
+    <div class="impact-bar"><div class="impact-bar-fill" style="width:${Math.max(pct,0.5)}%;"></div></div>
+    <div style="font-size:10px;color:var(--muted);">${pct.toFixed(2)}% of 1M mission</div>
+  </div>`;
+}
+function checkImpactMilestone(prev,next){
+  const crossed=IMPACT_MILESTONES.filter(m=>m>prev&&m<=next);
+  crossed.forEach(m=>toast(`🎉 Milestone: ${m.toLocaleString()} people impacted! Keep going.`,5000));
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 5 — AI OUTREACH EMAIL GENERATOR
+// ════════════════════════════════════════════════════════════════
+function openOutreachGenerator(npId){
+  const np=S.nonprofits.find(n=>n.id===npId);if(!np)return;
+  let m=document.getElementById('outreach-modal');
+  if(!m){
+    m=document.createElement('div');m.id='outreach-modal';m.className='mo hidden';
+    m.innerHTML=`<div class="md" style="max-width:520px;">
+      <div class="mh"><h3 id="out-title">✉️ Outreach Draft</h3><button class="mc" onclick="closeM('outreach-modal')">×</button></div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;" id="out-meta"></div>
+      <div id="out-body" style="background:var(--s2);border-radius:8px;padding:14px;font-size:13px;line-height:1.7;min-height:120px;white-space:pre-wrap;">⏳ Generating email...</div>
+      <div class="mf" style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">
+        <button class="btn bg" id="out-regen" onclick="">↺ Regenerate</button>
+        <button class="btn bp" id="out-copy" onclick="">📋 Copy</button>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+  }
+  document.getElementById('out-title').textContent=`✉️ Outreach — ${np.name}`;
+  document.getElementById('out-meta').textContent=`${np.contactName||'Contact'}${np.contactTitle?' · '+np.contactTitle:''} · ${np.city||''}`;
+  document.getElementById('out-regen').onclick=()=>generateOutreach(npId);
+  document.getElementById('out-copy').onclick=()=>{
+    const t=document.getElementById('out-body')._text||document.getElementById('out-body').textContent;
+    navigator.clipboard.writeText(t).then(()=>toast('📋 Copied!')).catch(()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('📋 Copied!');});
+    const np2=S.nonprofits.find(n=>n.id===npId);if(np2){np2.outreachDraft=t;np2.outreachDraftAt=new Date().toISOString();save();}
+  };
+  m.classList.remove('hidden');
+  if(np.outreachDraft){
+    document.getElementById('out-body').textContent=np.outreachDraft;
+    document.getElementById('out-body')._text=np.outreachDraft;
+  } else {
+    generateOutreach(npId);
+  }
+}
+async function generateOutreach(npId){
+  const np=S.nonprofits.find(n=>n.id===npId);if(!np)return;
+  const body=document.getElementById('out-body');
+  body.textContent='⏳ Generating email...';
+  const isCold=np.stage==='lead'||np.stage==='contacted';
+  const prompt=`Write a ${isCold?'cold outreach':'follow-up'} email from Panos Evangelou, co-founder of Givelink (givelink.io).
+
+Givelink helps nonprofits create Amazon wishlists that donors can fund directly — free for nonprofits, with 60% donor retention. Already partnering with St. Anthony Foundation in San Francisco.
+
+TARGET:
+- Organization: ${np.name}
+- Contact: ${np.contactName||'Team'}${np.contactTitle?', '+np.contactTitle:''}
+- City: ${np.city||'US'}
+- Mission: ${np.mission||'nonprofit organization'}
+- Pipeline stage: ${CRM_STAGE_LABEL[np.stage]||np.stage}
+- Previous interaction: ${np.lastActivityNote||'first contact'}
+
+Rules:
+1. Open with one specific, genuine reference to their mission (not generic praise)
+2. Explain Givelink value in ONE sentence
+3. Single CTA: 20-minute discovery call
+4. Under 150 words
+5. Human, warm, founder-to-founder tone — no corporate language
+
+Format:
+Subject: [subject line]
+
+[email body]`;
+  const text=await callClaudeGL(prompt,350,'claude-haiku-4-5-20251001');
+  if(text){
+    body.textContent=text;
+    body._text=text;
+    np.outreachDraft=text;np.outreachDraftAt=new Date().toISOString();
+    save();
+  } else {body.textContent='Could not generate. Check your API key.';}
 }
 
 // ── MOBILE ────────────────────────────────────────────────────────

@@ -341,6 +341,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
       <button class="btn bg sm" onclick="document.getElementById('morning-briefing').style.display='none'">×</button>
     </div>
     <div id="briefing-body" style="font-size:12px;line-height:1.7;"></div>
+    <button id="briefing-accept" class="btn bp sm" style="margin-top:8px;display:none;">⚡ Set as One Thing</button>
   </div>
   <!-- PRE-MORTEM WIDGET -->
   <div id="premortem-widget" style="display:none;background:linear-gradient(135deg,rgba(251,191,36,.08),rgba(251,191,36,.03));border:1px solid rgba(251,191,36,.25);border-radius:12px;padding:14px 16px;margin-bottom:16px;">
@@ -395,7 +396,10 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   </div>
   <div class="rb" style="margin-bottom:10px;">
     <h2 style="margin:0">📥 Inbox <span id="icl" style="color:var(--muted);font-size:13px;font-weight:400;"></span></h2>
-    <button class="btn bg sm" id="proc-toggle" onclick="toggleProc()">⚡ Process Mode</button>
+    <div style="display:flex;gap:6px;">
+      <button class="btn bg sm" onclick="autoProcessInbox()">🤖 AI Triage</button>
+      <button class="btn bg sm" id="proc-toggle" onclick="toggleProc()">⚡ Process Mode</button>
+    </div>
   </div>
   <div id="proc-area" style="display:none;"></div>
   <div id="inbox-list"></div>
@@ -480,7 +484,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 
 <!-- GOALS -->
 <div id="v-goals" class="view">
-  <div class="ph"><div><h1>🏆 Goals & Progress</h1><p class="sub">Every task should serve a goal.</p></div><button class="btn bp" onclick="openAddGoal()">+ Add Goal</button></div>
+  <div class="ph"><div><h1>🏆 Goals & Progress</h1><p class="sub">Every task should serve a goal.</p></div><div style="display:flex;gap:6px;"><button class="btn bg sm" onclick="showGoalDigest()">🤖 How am I doing?</button><button class="btn bp" onclick="openAddGoal()">+ Add Goal</button></div></div>
   <h2>📊 Progress Dashboard</h2>
   <div class="goal-dash" id="goal-dash"></div>
   <hr>
@@ -1712,6 +1716,7 @@ function procDelete(id){delTask(id);if(procMode)renderProcCard();}
 document.addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openCmdK();return;}
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
+  if(e.key==='q'||e.key==='Q'){e.preventDefault();openQuickCapture();return;}
   if(e.key==='n')openAdd();
   if(e.key==='c')nav('capture');
   if(e.key==='Escape'){
@@ -2415,6 +2420,7 @@ function renderRelationships(){
         <div style="font-size:11px;color:${overdue?'#ff6b6b':'var(--muted)'};">${overdue?'⚠️ ':''}Last contact: ${p.lastContact||'never'} (${days===999?'never':days+'d ago'})</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:5px;">
+        ${overdue?`<button class="btn bg sm" onclick="draftRelationshipMessage('${p.id}')">✍️ Draft</button>`:''}
         <button class="btn bg sm" onclick="logRelContact('${p.id}')">📞 Logged</button>
         <button class="btn bg sm" onclick="openAddPerson('${p.id}')">✏️</button>
         <button class="btn bd sm" onclick="deletePerson('${p.id}')">×</button>
@@ -2633,29 +2639,6 @@ function deleteDiscomfort(id){
 }
 
 
-// ── MORNING BRIEFING ──────────────────────────────────────────
-function renderMorningBriefing(){
-  const h=new Date().getHours();
-  if(h>=12){document.getElementById('morning-briefing').style.display='none';return;}
-  const habits=S.habits||[];
-  const today=new Date().toISOString().slice(0,10);
-  const todayLog=S.habitLogs?.[today]||{};
-  const habitsDone=habits.filter(h=>todayLog[h]).length;
-  const habitsPending=habits.length-habitsDone;
-  const overduePeople=(S.people||[]).filter(p=>daysSinceDate(p.lastContact)>(p.interval||30)).slice(0,2);
-  const top3=S.tasks.filter(t=>t.isT3&&t.status!=='done').sort((a,b)=>a.t3s-b.t3s);
-  const dwStreak=_dwStreakDays();
-  const lines=[];
-  if(top3[0])lines.push(`🎯 Top priority: <strong>${top3[0].title}</strong>`);
-  if(habitsPending>0)lines.push(`✅ ${habitsPending} habit${habitsPending!==1?'s':''} pending`);
-  if(dwStreak>0)lines.push(`🧠 Deep work streak: <strong>${dwStreak}d</strong>`);
-  if(overduePeople.length)lines.push(`🤝 Overdue: ${overduePeople.map(p=>`${p.name} (${daysSinceDate(p.lastContact)}d)`).join(', ')}`);
-  const thisWeekSess=(S.deepWorkSessions||[]).filter(s=>{const d=new Date(s.date);const now=new Date();const mon=new Date(now);mon.setDate(now.getDate()-((now.getDay()+6)%7));return d>=mon;}).length;
-  if(thisWeekSess<3)lines.push(`⏱ ${thisWeekSess}/3 deep work sessions this week`);
-  if(!lines.length){document.getElementById('morning-briefing').style.display='none';return;}
-  document.getElementById('briefing-body').innerHTML=lines.join(' &nbsp;·&nbsp; ');
-  document.getElementById('morning-briefing').style.display='';
-}
 function _dwStreakDays(){
   const sessions=S.deepWorkSessions||[];if(!sessions.length)return 0;
   const daySet=new Set(sessions.map(s=>s.date));
@@ -3943,6 +3926,329 @@ document.title='Task OS — '+profileName;
 const _lastP=localStorage.getItem('taskos_lastview');
 if(_lastP&&_lastP!=='dashboard'){nav(_lastP);}else{renderDash();}
 if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+initQuickCapture();
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 10 — QUICK CAPTURE (Q HOTKEY)
+// ════════════════════════════════════════════════════════════════
+function initQuickCapture(){} // bar already in HTML, no extra setup needed
+function openQuickCapture(){
+  const bar=document.getElementById('qcapture');
+  if(!bar)return;
+  const anyModalOpen=document.querySelector('.mo:not(.hidden)');
+  if(anyModalOpen)return;
+  bar.style.transform='translateY(0)';
+  setTimeout(()=>document.getElementById('qc-input')?.focus(),50);
+}
+function closeQuickCapture(){
+  const bar=document.getElementById('qcapture');
+  if(bar)bar.style.transform='translateY(100%)';
+  const inp=document.getElementById('qc-input');
+  if(inp)inp.value='';
+}
+function handleQC(e){
+  if(e.key==='Escape'){closeQuickCapture();return;}
+  if(e.key!=='Enter')return;
+  const inp=document.getElementById('qc-input');
+  const raw=(inp?.value||'').trim();
+  if(!raw){closeQuickCapture();return;}
+  const TAG_MAP={givelink:'givelink',health:'health',finance:'finance',automation:'automation',brand:'brand',learning:'learning',relationships:'relationships',rel:'relationships',fit:'health'};
+  const tags=(raw.match(/@\w+/g)||[]).map(t=>t.slice(1).toLowerCase());
+  const cat=tags.map(t=>TAG_MAP[t]).find(Boolean)||'other';
+  const title=raw.replace(/@\w+/g,'').trim();
+  if(!title){closeQuickCapture();return;}
+  S.tasks.push({id:uid(),title,notes:'',bucket:'inbox',category:cat,urgency:'low',importance:'high',energy:'high',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,createdAt:new Date().toISOString(),completedAt:null});
+  save();updIBadge();
+  inp.value='✓ Captured!';inp.style.color='var(--accent)';
+  setTimeout(()=>{inp.style.color='';closeQuickCapture();},900);
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 6 — PROACTIVE AI MORNING BRIEFING
+// ════════════════════════════════════════════════════════════════
+function _getMorningContext(){
+  const today=new Date().toISOString().slice(0,10);
+  const habits=S.habits||[];
+  const todayLog=(S.habitLogs||{})[today]||{};
+  const habitsDone=habits.filter(h=>todayLog[h]).length;
+  const top3=S.tasks.filter(t=>t.isT3&&t.status!=='done').sort((a,b)=>a.t3s-b.t3s);
+  const overduePeople=(S.people||[]).filter(p=>daysSinceDate(p.lastContact)>(p.interval||30));
+  const mon=new Date();mon.setDate(mon.getDate()-((mon.getDay()+6)%7));
+  const dwThisWeek=(S.deepWorkSessions||[]).filter(s=>new Date(s.date)>=mon).length;
+  const inboxCount=active().filter(t=>t.bucket==='inbox').length;
+  const stalledGoals=S.goals.filter(g=>{
+    const linked=S.tasks.filter(t=>t.goalId===g.id&&t.status==='done');
+    if(!linked.length)return false;
+    const lastDone=linked.sort((a,b)=>b.completedAt>a.completedAt?1:-1)[0];
+    return daysSinceDate(lastDone.completedAt)>7;
+  }).slice(0,2);
+  const dueSoon=S.tasks.filter(t=>t.dueDate&&t.status!=='done'&&daysSinceDate(t.dueDate)>=-2&&daysSinceDate(t.dueDate)<=0);
+  return{today,habits,habitsDone,habitsTotal:habits.length,top3,overduePeople,dwThisWeek,inboxCount,stalledGoals,dueSoon};
+}
+function renderMorningBriefing(){
+  const h=new Date().getHours();
+  const el=document.getElementById('morning-briefing');
+  if(!el)return;
+  if(h>=12){el.style.display='none';return;}
+  const today=new Date().toISOString().slice(0,10);
+  const ctx=_getMorningContext();
+  const lines=[];
+  if(ctx.top3[0])lines.push(`🎯 Top priority: <strong>${ctx.top3[0].title}</strong>`);
+  if(ctx.habitsDone<ctx.habitsTotal)lines.push(`✅ ${ctx.habitsTotal-ctx.habitsDone} habit${ctx.habitsTotal-ctx.habitsDone!==1?'s':''} pending`);
+  if(ctx.dwThisWeek<3)lines.push(`⏱ ${ctx.dwThisWeek}/3 deep work this week`);
+  if(ctx.overduePeople.length)lines.push(`🤝 Overdue: ${ctx.overduePeople.slice(0,2).map(p=>`${p.name} (${daysSinceDate(p.lastContact)}d)`).join(', ')}`);
+  if(ctx.inboxCount>5)lines.push(`📥 ${ctx.inboxCount} items in inbox`);
+  if(!lines.length){el.style.display='none';return;}
+  document.getElementById('briefing-body').innerHTML=lines.join(' &nbsp;·&nbsp; ');
+  el.style.display='';
+  const cacheKey='taskos_briefing_'+today;
+  const cached=localStorage.getItem(cacheKey);
+  if(cached){
+    try{const d=JSON.parse(cached);_renderAIBriefing(d,el);}catch(e){}
+    return;
+  }
+  _fetchAIBriefing(ctx,el,cacheKey);
+}
+async function _fetchAIBriefing(ctx,el,cacheKey){
+  if(!S.claudeKey&&!localStorage.getItem('taskos_api_key'))return;
+  const dayLabel=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  const prompt=`You are the personal chief-of-staff for Panos, founder of Givelink (B2B SaaS for nonprofits). Today is ${dayLabel}.
+
+CONTEXT:
+- Top 3 tasks: ${ctx.top3.map(t=>t.title).join('; ')||'none set'}
+- Inbox items: ${ctx.inboxCount}
+- Habits done today: ${ctx.habitsDone}/${ctx.habitsTotal}
+- Stalled goals (no task completion >7d): ${ctx.stalledGoals.map(g=>g.title).join('; ')||'none'}
+- Overdue relationship: ${ctx.overduePeople[0]?`${ctx.overduePeople[0].name} (${daysSinceDate(ctx.overduePeople[0].lastContact)}d since contact)`:'none'}
+- Deep work sessions this week: ${ctx.dwThisWeek}
+- Due today/overdue: ${ctx.dueSoon.map(t=>t.title).join('; ')||'none'}
+
+Respond in EXACTLY this format (no extra text, no markdown):
+PRIORITY_1: [single most important task title — pick from top 3 or due tasks]
+PRIORITIES: [2-3 sentence paragraph on today's focus and why]
+RELATIONSHIP: [if overdue person: one sentence on who to contact and a specific opener. else: none]
+WARNING: [if stalled goal: one sentence naming the goal and the risk. else: none]`;
+  const text=await callClaude(prompt,250);
+  if(!text)return;
+  const d={};
+  text.split('\n').forEach(line=>{const m=line.match(/^(\w+(?:_\d+)?): (.+)/);if(m)d[m[1]]=m[2].trim();});
+  if(!d.PRIORITY_1&&!d.PRIORITIES)return;
+  localStorage.setItem(cacheKey,JSON.stringify(d));
+  _renderAIBriefing(d,el);
+}
+function _renderAIBriefing(d,el){
+  const lines=[];
+  if(d.PRIORITY_1)lines.push(`🎯 <strong>${d.PRIORITY_1}</strong>`);
+  if(d.PRIORITIES&&d.PRIORITIES!=='none')lines.push(d.PRIORITIES);
+  if(d.RELATIONSHIP&&d.RELATIONSHIP!=='none')lines.push(`🤝 ${d.RELATIONSHIP}`);
+  if(d.WARNING&&d.WARNING!=='none')lines.push(`⚠️ ${d.WARNING}`);
+  if(!lines.length)return;
+  const body=document.getElementById('briefing-body');
+  if(body)body.innerHTML=lines.join('<br><br>');
+  if(d.PRIORITY_1){
+    const acceptBtn=document.getElementById('briefing-accept');
+    if(acceptBtn){acceptBtn.style.display='';acceptBtn.onclick=()=>{
+      if(!S.oneThing)S.oneThing=[];
+      const today=new Date().toISOString().slice(0,10);
+      S.oneThing=S.oneThing.filter(x=>x.date!==today);
+      S.oneThing.push({id:uid(),date:today,text:d.PRIORITY_1,done:false});
+      save();renderOneThing();renderMomentumScore();
+      acceptBtn.style.display='none';toast('⚡ One Thing set from briefing!');
+    };}
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 7 — INBOX AUTO-PROCESSOR (AI TRIAGE)
+// ════════════════════════════════════════════════════════════════
+let _inboxSuggestions=[];
+async function autoProcessInbox(){
+  const inbox=active().filter(t=>t.bucket==='inbox');
+  if(!inbox.length){toast('📥 Inbox is empty!');return;}
+  const modal=document.getElementById('inbox-ai-modal');
+  const body=document.getElementById('inbox-ai-body');
+  const footer=document.getElementById('inbox-ai-footer');
+  modal.classList.remove('hidden');
+  body.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);">⏳ Analyzing '+inbox.length+' inbox items...</div>';
+  footer.innerHTML='';
+  const goals=S.goals.slice(0,5).map(g=>g.title).join('; ')||'none set';
+  const prompt=`Triage these inbox tasks for Panos, a startup founder (Givelink — B2B SaaS for nonprofits).
+
+ACTIVE GOALS: ${goals}
+
+TASKS TO TRIAGE:
+${inbox.map((t,i)=>`${i}: "${t.title}" [category: ${t.category}]`).join('\n')}
+
+For each task by index, decide:
+- bucket: "this-week" | "this-month" | "backlog" | "someday"
+- urgency: "high" | "low"
+- importance: "high" | "low"
+- reason: one short phrase (max 7 words)
+
+Respond ONLY with valid JSON array, no markdown:
+[{"i":0,"bucket":"this-week","urgency":"high","importance":"high","reason":"Givelink revenue critical"},...]`;
+  const text=await callClaude(prompt,600);
+  if(!text){body.innerHTML='<div style="padding:20px;color:#ef4444;">Could not analyze. Check your API key.</div>';return;}
+  let suggestions=[];
+  try{
+    const json=text.match(/\[[\s\S]*\]/)?.[0];
+    suggestions=json?JSON.parse(json):[];
+  }catch(e){body.innerHTML='<div style="padding:20px;color:#ef4444;">Parse error. Try again.</div>';return;}
+  _inboxSuggestions=suggestions;
+  const BUCKET_LABEL={'this-week':'This Week','this-month':'This Month','backlog':'Backlog','someday':'Someday'};
+  const BUCKET_COLOR={'this-week':'#ef4444','this-month':'#fbbf24','backlog':'#58a6ff','someday':'#94a3b8'};
+  body.innerHTML=`<div style="display:flex;flex-direction:column;gap:6px;">`+suggestions.map((s,si)=>{
+    const t=inbox[s.i];if(!t)return'';
+    const bc=BUCKET_COLOR[s.bucket]||'#94a3b8';
+    return`<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface2);border-radius:7px;border:1px solid var(--border);">
+      <input type="checkbox" id="iai-${si}" checked style="width:16px;height:16px;cursor:pointer;flex-shrink:0;">
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(t.title)}</div>
+        <div style="font-size:11px;color:var(--muted);">${s.reason}</div>
+      </div>
+      <span style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:10px;background:${bc}22;color:${bc};white-space:nowrap;flex-shrink:0;">${BUCKET_LABEL[s.bucket]||s.bucket}</span>
+    </div>`;
+  }).join('')+'</div>';
+  footer.innerHTML=`<button class="btn bg" onclick="closeM('inbox-ai-modal')">Cancel</button>
+    <button class="btn bg" onclick="applyInboxSuggestions(false)">Apply Selected</button>
+    <button class="btn bp" onclick="applyInboxSuggestions(true)">Apply All (${suggestions.length})</button>`;
+}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function applyInboxSuggestions(all){
+  const inbox=active().filter(t=>t.bucket==='inbox');
+  let count=0;
+  _inboxSuggestions.forEach((s,si)=>{
+    if(!all&&!document.getElementById('iai-'+si)?.checked)return;
+    const t=inbox[s.i];if(!t)return;
+    t.bucket=s.bucket;t.urgency=s.urgency;t.importance=s.importance;
+    count++;
+  });
+  save();closeM('inbox-ai-modal');refresh();
+  toast(`✅ Applied ${count} triage suggestion${count!==1?'s':''}`);
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 8 — RELATIONSHIP OUTREACH DRAFT
+// ════════════════════════════════════════════════════════════════
+let _relDraftPersonId=null;
+function draftRelationshipMessage(personId){
+  _relDraftPersonId=personId;
+  const p=S.people.find(x=>x.id===personId);if(!p)return;
+  const sheet=document.getElementById('rel-draft-sheet');
+  const nameEl=document.getElementById('rel-draft-name');
+  const textEl=document.getElementById('rel-draft-text');
+  const logBtn=document.getElementById('rel-draft-log-btn');
+  nameEl.textContent=`✍️ Message for ${p.name}`;
+  textEl.value='⏳ Generating...';
+  logBtn.onclick=()=>{logRelContact(personId);closeRelDraft();toast('✓ Contact logged!');};
+  sheet.style.transform='translateY(0)';
+  _generateRelDraft(p);
+}
+async function _generateRelDraft(p){
+  const textEl=document.getElementById('rel-draft-text');
+  const days=daysSinceDate(p.lastContact);
+  const prompt=`Write a SHORT, warm, casual message (WhatsApp/iMessage style, max 60 words) for Panos to send to ${p.name}, a ${p.type} he hasn't contacted in ${days<999?days+' days':'a long time'}.
+
+About ${p.name}: ${p.notes||'No notes.'}
+Last contact: ${p.lastContact||'not recorded'}
+
+Rules:
+1. Acknowledge the time naturally (don't be awkward about it)
+2. Reference one specific thing from the notes if available
+3. One loose question or soft call-to-action
+4. Casual, warm, human — like texting a friend
+
+Just the message body. No greeting prefix, no sign-off, no subject line.`;
+  const text=await callClaude(prompt,120);
+  if(textEl)textEl.value=text||'Could not generate. Check your API key.';
+}
+function regenRelDraft(){
+  if(!_relDraftPersonId)return;
+  const p=S.people.find(x=>x.id===_relDraftPersonId);
+  if(p)_generateRelDraft(p);
+}
+function copyRelDraft(){
+  const text=document.getElementById('rel-draft-text')?.value||'';
+  navigator.clipboard.writeText(text).then(()=>toast('📋 Copied!')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('📋 Copied!');
+  });
+}
+function closeRelDraft(){
+  const sheet=document.getElementById('rel-draft-sheet');
+  if(sheet)sheet.style.transform='translateY(100%)';
+  _relDraftPersonId=null;
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 9 — GOAL PROGRESS AI DIGEST
+// ════════════════════════════════════════════════════════════════
+function lastTaskCompletionDaysAgo(goalId){
+  const linked=S.tasks.filter(t=>t.goalId===goalId&&t.completedAt);
+  if(!linked.length)return 999;
+  const latest=linked.sort((a,b)=>b.completedAt>a.completedAt?1:-1)[0];
+  return daysSinceDate(latest.completedAt);
+}
+async function showGoalDigest(){
+  const modal=document.getElementById('goal-digest-modal');
+  const body=document.getElementById('goal-digest-body');
+  modal.classList.remove('hidden');
+  body.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);">⏳ Analyzing your goals...</div>';
+  const now=new Date();
+  const yearStart=new Date(now.getFullYear(),0,1);
+  const weeksElapsed=Math.floor((now-yearStart)/(7*86400000));
+  const expectedPct=Math.round(weeksElapsed/52*100);
+  const goals=S.goals.slice(0,12);
+  const goalsCtx=goals.map(g=>{
+    const s=goalStats(g.id);
+    const stalled=lastTaskCompletionDaysAgo(g.id);
+    return`- ${g.title} [${g.category}]: ${s.pct}% tasks complete, last activity ${stalled<999?stalled+'d ago':'never'}`;
+  }).join('\n');
+  const mon=new Date(now);mon.setDate(now.getDate()-((now.getDay()+6)%7));
+  const dwH=Math.round((S.deepWorkSessions||[]).filter(s=>new Date(s.date)>=mon).reduce((s,x)=>s+x.duration,0)/3600*10)/10;
+  const habS=_habitStreak();
+  const prompt=`You are an honest progress advisor reviewing goals. No cheerleading. Be direct.
+
+GOALS AND STATUS:
+${goalsCtx}
+
+OVERALL CONTEXT:
+- Weeks into the year: ${weeksElapsed}/52 (expected progress: ${expectedPct}%)
+- Habit streak: ${habS} days
+- Deep work this week: ${dwH}h
+
+For each goal listed, respond with this exact format:
+[Goal title] → STATUS: On Track | At Risk | Stalled | REC: [one specific action, or "Keep momentum"]
+
+Then end with:
+SUMMARY: [2-3 honest sentences about overall trajectory]
+
+Max 350 words. Be specific. Name actual gaps.`;
+  const text=await callClaude(prompt,500);
+  if(!text){body.innerHTML='<div style="padding:20px;color:#ef4444;">Could not generate. Check your API key.</div>';return;}
+  _renderGoalDigest(text,body);
+}
+function _renderGoalDigest(text,body){
+  const lines=text.split('\n').filter(l=>l.trim());
+  let html='<div style="display:flex;flex-direction:column;gap:8px;">';
+  lines.forEach(line=>{
+    const m=line.match(/^(.+?)\s*→\s*STATUS:\s*(On Track|At Risk|Stalled)\s*\|\s*REC:\s*(.+)/i);
+    if(m){
+      const[,title,status,rec]=m;
+      const color=status==='On Track'?'#22c55e':status==='At Risk'?'#fbbf24':'#ef4444';
+      html+=`<div style="padding:10px 12px;background:var(--surface2);border-radius:8px;border-left:3px solid ${color};">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <span style="font-size:12px;font-weight:600;flex:1;">${esc(title)}</span>
+          <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:10px;background:${color}22;color:${color};">${status}</span>
+        </div>
+        <div style="font-size:11px;color:var(--muted);">💡 ${esc(rec)}</div>
+      </div>`;
+    } else if(line.startsWith('SUMMARY:')){
+      html+=`<div style="margin-top:8px;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-size:13px;line-height:1.6;">${esc(line.replace('SUMMARY:','').trim())}</div>`;
+    }
+  });
+  html+='</div>';
+  body.innerHTML=html;
+}
 
 // ── EOD RITUAL ────────────────────────────────────────────────────
 let _eodStep=0;
@@ -4120,6 +4426,7 @@ function saveDecision(){
     <div id="digest-body" style="font-size:13px;line-height:1.7;white-space:pre-wrap;font-family:monospace;background:var(--surface2);border-radius:8px;padding:14px;max-height:420px;overflow-y:auto;"></div>
     <div class="mf">
       <button class="btn bg" onclick="closeM('digest-modal')">Close</button>
+      <button class="btn bg" onclick="showGoalDigest()">🤖 AI Goal Analysis</button>
       <button class="btn bp" onclick="navigator.clipboard.writeText(document.getElementById('digest-body').textContent);toast('Copied!')">📋 Copy</button>
     </div>
   </div>
@@ -4256,6 +4563,46 @@ function saveDecision(){
     <div class="mh"><h3>🔀 Context Switches Today</h3><button class="mc" onclick="closeM('context-modal')">×</button></div>
     <div id="context-body"></div>
     <div class="mf"><button class="btn bp" onclick="closeM('context-modal')">Got it</button></div>
+  </div>
+</div>
+
+<!-- INBOX AI TRIAGE MODAL -->
+<div class="mo hidden" id="inbox-ai-modal">
+  <div class="md" style="width:580px;">
+    <div class="mh"><h3>🤖 AI Inbox Triage</h3><button class="mc" onclick="closeM('inbox-ai-modal')">×</button></div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Review AI suggestions. Uncheck any you want to skip, then Apply.</div>
+    <div id="inbox-ai-body" style="max-height:420px;overflow-y:auto;"></div>
+    <div class="mf" id="inbox-ai-footer" style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;"></div>
+  </div>
+</div>
+
+<!-- GOAL DIGEST MODAL -->
+<div class="mo hidden" id="goal-digest-modal">
+  <div class="md" style="width:560px;">
+    <div class="mh"><h3>🤖 AI Goal Analysis</h3><button class="mc" onclick="closeM('goal-digest-modal')">×</button></div>
+    <div id="goal-digest-body" style="font-size:13px;line-height:1.7;max-height:440px;overflow-y:auto;min-height:80px;"></div>
+    <div class="mf"><button class="btn bg" onclick="closeM('goal-digest-modal')">Close</button></div>
+  </div>
+</div>
+
+<!-- QUICK CAPTURE BAR -->
+<div id="qcapture" style="position:fixed;bottom:0;left:0;right:0;transform:translateY(100%);transition:transform .22s cubic-bezier(.4,0,.2,1);background:var(--surface);border-top:2px solid var(--accent);padding:12px 20px;z-index:1500;display:flex;align-items:center;gap:10px;box-shadow:0 -4px 24px rgba(0,0,0,.3);">
+  <span style="color:var(--accent);font-size:18px;flex-shrink:0;">⚡</span>
+  <input id="qc-input" placeholder="Capture task... @givelink @health @finance @automation @brand @learning" style="flex:1;font-size:14px;background:transparent;border:none;outline:none;color:var(--text);" onkeydown="handleQC(event)">
+  <span style="font-size:11px;color:var(--muted);white-space:nowrap;">Enter to save · Esc to close</span>
+</div>
+
+<!-- RELATIONSHIP DRAFT SHEET -->
+<div id="rel-draft-sheet" style="position:fixed;bottom:0;left:0;right:0;transform:translateY(100%);transition:transform .25s ease;background:var(--surface);border-top:1px solid var(--border);padding:20px;z-index:1400;max-height:50vh;overflow-y:auto;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+    <span id="rel-draft-name" style="font-size:14px;font-weight:700;"></span>
+    <button class="mc" onclick="closeRelDraft()">×</button>
+  </div>
+  <textarea id="rel-draft-text" style="width:100%;min-height:100px;font-size:13px;line-height:1.6;resize:vertical;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:inherit;"></textarea>
+  <div style="display:flex;gap:8px;margin-top:10px;">
+    <button class="btn bg sm" onclick="regenRelDraft()">↺ Regenerate</button>
+    <button class="btn bp" onclick="copyRelDraft()">📋 Copy</button>
+    <button class="btn bg sm" id="rel-draft-log-btn">✓ Log Contact</button>
   </div>
 </div>
 

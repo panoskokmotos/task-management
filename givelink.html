@@ -102,7 +102,7 @@ hr{border:none;border-top:1px solid var(--border);margin:16px 0;}
 .pcard-stats{font-size:22px;font-weight:700;margin-bottom:6px;}
 .pcard-sub{font-size:11px;color:var(--muted);}
 /* STAT CARDS */
-.stats2{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:18px;}
+.stats2{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;}
 .sc2{background:var(--sf);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;}
 .sn2{font-size:24px;font-weight:700;}.sl2{font-size:11px;color:var(--muted);margin-top:2px;}
 /* BUTTONS */
@@ -146,7 +146,7 @@ select.fc option{background:var(--s2);}
 @keyframes fi{from{opacity:0;transform:translateY(5px);}to{opacity:1;transform:translateY(0);}}
 .fi{animation:fi .15s ease;}
 @media(max-width:1100px){.pcards{grid-template-columns:repeat(3,1fr);}}
-@media(max-width:800px){.pcards{grid-template-columns:1fr 1fr;}.stats2{grid-template-columns:repeat(3,1fr);}}
+@media(max-width:800px){.pcards{grid-template-columns:1fr 1fr;}.stats2{grid-template-columns:1fr 1fr;}}
 /* ── MOBILE ─────────────────────────────────────────────────── */
 .ham-btn{display:none;position:fixed;top:11px;left:11px;z-index:200;background:var(--sf);border:1px solid var(--border);border-radius:8px;width:38px;height:38px;cursor:pointer;align-items:center;justify-content:center;flex-direction:column;gap:5px;padding:0;}
 .ham-btn span{display:block;width:18px;height:2px;background:var(--text);border-radius:2px;transition:all .2s;}
@@ -193,34 +193,24 @@ select.fc option{background:var(--s2);}
 .ns-goal-row{display:flex;align-items:center;gap:7px;font-size:12px;padding:3px 0;}
 .ns-divider{display:flex;align-items:center;gap:10px;margin:18px 0;color:var(--muted);font-size:12px;font-weight:700;}
 .ns-divider::before,.ns-divider::after{content:'';flex:1;border-top:1px solid var(--border);}
-/* ── GOAL BADGE ON TASK CARDS ────────────────────────────────── */
-.task-goal-badge{font-size:10px;padding:1px 6px;border-radius:4px;background:rgba(59,130,246,.1);color:var(--accent);cursor:pointer;white-space:nowrap;transition:background .12s;}
-.task-goal-badge:hover{background:rgba(59,130,246,.22);}
-/* ── PRIORITY BORDERS ────────────────────────────────────────── */
-.tc2.pbi-high{border-left-width:3px;border-left-color:#ef4444;}
-.tc2.pbi-med{border-left-width:3px;border-left-color:#fbbf24;}
-.tc2.pbi-low{border-left-width:3px;border-left-color:#64748b;}
-/* ── VELOCITY CHART ──────────────────────────────────────────── */
-.vel-chart{background:var(--sf);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:18px;}
-.vel-title{font-size:13px;font-weight:700;margin-bottom:12px;color:var(--text);}
-.vel-row{display:flex;align-items:center;gap:10px;margin-bottom:8px;}
-.vel-label{font-size:11px;color:var(--muted);width:150px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex-shrink:0;}
-.vel-bar{flex:1;height:8px;background:var(--border);border-radius:4px;overflow:hidden;}
-.vel-fill{height:100%;border-radius:4px;transition:width .4s;}
-.vel-pct{font-size:11px;font-weight:700;width:36px;text-align:right;flex-shrink:0;}
-/* ── SEARCH MODAL ────────────────────────────────────────────── */
-.srch-wrap{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:flex-start;justify-content:center;padding-top:80px;z-index:1100;backdrop-filter:blur(4px);}
-.srch-wrap.hidden{display:none;}
-.srch-box{background:var(--sf);border:1px solid var(--accent);border-radius:12px;width:560px;max-width:95vw;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.5);}
-.srch-inp-wrap{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--border);}
-.srch-inp{flex:1;background:transparent;border:none;outline:none;font-size:15px;color:var(--text);caret-color:var(--accent);}
-.srch-inp::placeholder{color:var(--muted);}
-.srch-hint{font-size:11px;color:var(--muted);white-space:nowrap;}
-.srch-results{max-height:360px;overflow-y:auto;}
-.srch-item{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .1s;}
-.srch-item:hover{background:var(--s2);}
-.srch-item:last-child{border-bottom:none;}
-.srch-empty{padding:24px;text-align:center;color:var(--muted);font-size:12px;}
+/* ── CRM ─────────────────────────────────────────────────── */
+.crm-kanban{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;overflow-x:auto;padding-bottom:8px;}
+.crm-col{background:var(--s2);border-radius:8px;padding:10px;min-width:160px;}
+.crm-col-hdr{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;}
+.crm-card{background:var(--sf);border:1px solid var(--border);border-radius:7px;padding:10px;margin-bottom:7px;cursor:pointer;transition:border-color .15s;}
+.crm-card:hover{border-color:var(--accent);}
+.crm-card.overdue{border-left:3px solid #ef4444;}
+.crm-card-name{font-size:13px;font-weight:700;margin-bottom:3px;}
+.crm-card-sub{font-size:11px;color:var(--muted);}
+.crm-card-age{font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;margin-top:5px;display:inline-block;}
+.crm-stat-bar{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;}
+.crm-stat{background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:8px 14px;text-align:center;}
+.crm-stat .sn{font-size:20px;font-weight:800;}
+.crm-stat .sl{font-size:10px;color:var(--muted);margin-top:1px;}
+.impact-widget{background:linear-gradient(135deg,rgba(34,197,94,.08),rgba(16,185,129,.04));border:1px solid rgba(34,197,94,.2);border-radius:12px;padding:14px 18px;margin-bottom:16px;}
+.impact-bar{height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin:8px 0;}
+.impact-bar-fill{height:100%;background:linear-gradient(90deg,#22c55e,#10b981);border-radius:3px;transition:width .5s ease;}
+.vel-chip{display:inline-flex;align-items:center;gap:5px;background:var(--s2);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-size:11px;}
 </style>
 </head>
 <body>
@@ -232,12 +222,6 @@ select.fc option{background:var(--s2);}
   <div class="logo">
     <div class="logo-main">Givelink</div>
     <div class="logo-sub">Sprint Board</div>
-  </div>
-  <div style="padding:8px 10px 10px;border-bottom:1px solid var(--border);margin-bottom:4px;">
-    <div style="display:flex;gap:5px;">
-      <a href="index.html" style="flex:1;padding:7px 6px;border-radius:8px;border:1px solid rgba(88,166,255,.35);background:rgba(88,166,255,.08);color:#58a6ff;text-decoration:none;text-align:center;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:4px;" title="Switch to Life OS (⌘1)">🏠 Life OS</a>
-      <button style="flex:1;padding:7px 6px;border-radius:8px;border:none;cursor:pointer;font-size:11px;font-weight:700;background:var(--accent);color:#000;">🟣 Givelink</button>
-    </div>
   </div>
   <div class="sprint-banner">
     <div class="sprint-name" id="sb-name">Sprint 1</div>
@@ -252,8 +236,8 @@ select.fc option{background:var(--s2);}
   <div class="ni" onclick="nav('product')"><span class="pip" style="background:var(--pr)"></span>Product <span class="bcnt2" id="cnt-product"></span></div>
   <div class="ni" onclick="nav('execution')"><span class="pip" style="background:var(--ex)"></span>Execution <span class="bcnt2" id="cnt-execution"></span></div>
   <div class="ni" onclick="nav('ops')"><span class="pip" style="background:var(--op)"></span>Smooth Ops <span class="bcnt2" id="cnt-ops"></span></div>
-  <div class="ni" onclick="nav('focus')">🎯 Daily Focus</div>
   <div class="ns">More</div>
+  <div class="ni" onclick="nav('crm')">🏢 Nonprofit CRM <span class="bcnt2" id="cnt-crm"></span></div>
   <div class="ni" onclick="nav('backlog')">📋 Backlog <span class="bcnt2" id="cnt-backlog"></span></div>
   <div class="ni" onclick="nav('past')">📚 Past Sprints <span class="bcnt2" id="cnt-past"></span></div>
   <div class="ni" onclick="openSprintSettings()">⚙️ Sprint Settings</div>
@@ -263,11 +247,9 @@ select.fc option{background:var(--s2);}
   <div class="sprint-bar">
     <span class="sprint-bar-name" id="bar-name">Sprint 1</span>
     <span class="sprint-bar-dates" id="bar-dates"></span>
-    <button class="btn bg sm" onclick="openSearch()" title="Search tasks (⌘K)" style="padding:4px 8px;margin-left:8px;">🔍</button>
     <span class="sprint-bar-pct" id="bar-pct" style="display:flex;align-items:center;gap:6px;"></span>
     <button class="btn bg" onclick="openAiSprintPlanner()" style="font-size:11px;padding:4px 10px;flex-shrink:0;">🤖 AI Sprint Planner</button>
-    <button class="btn bg" onclick="generateStandup()" style="font-size:11px;padding:4px 10px;flex-shrink:0;">📋 Standup</button>
-    <button class="btn bg" onclick="document.getElementById('shortcut-help').classList.remove('hidden')" style="font-size:11px;padding:4px 10px;flex-shrink:0;" title="Keyboard shortcuts (?)">⌨️</button>
+    <button class="btn bg" onclick="openStandup()" style="font-size:11px;padding:4px 10px;flex-shrink:0;">📋 Standup</button>
     <button class="btn bg" onclick="syncToTaskOS()" style="font-size:11px;padding:4px 10px;flex-shrink:0;">🔗 Sync to Task OS</button>
   </div>
 
@@ -275,19 +257,17 @@ select.fc option{background:var(--s2);}
 
   <!-- OVERVIEW -->
   <div id="v-overview" class="view active">
-    <div class="ph"><div><h1>Sprint Overview 📊</h1><p class="sub" id="ov-sub"></p></div><div class="row"><button class="btn bg sm" onclick="nav('focus')" title="Daily Focus (T)">🎯 Focus</button><button class="btn bg sm" onclick="openWinInput()" title="Log a win">🏆 Win</button><button class="btn bp" onclick="openAdd()">+ Add Task</button></div></div>
-    <div id="ov-velocity"></div>
+    <div class="ph"><div><h1>Sprint Overview 📊</h1><p class="sub" id="ov-sub"></p></div><button class="btn bp" onclick="openAdd()">+ Add Task</button></div>
     <div class="stats2" id="ov-stats"></div>
-    <div id="ov-blocked"></div>
+    <div id="impact-widget"></div>
     <div class="pcards" id="ov-pillars"></div>
     <hr>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <h2 style="margin:0;">🎯 Sprint Goals</h2>
-      <span style="font-size:12px;color:var(--muted);" id="ov-goals-count"></span>
-    </div>
+    <h2>🎯 Sprint Goals</h2>
     <div id="ov-goals"></div>
-    <div id="ov-wins" style="margin-top:8px;"></div>
   </div>
+
+  <!-- CRM VIEW -->
+  <div id="v-crm" class="view"></div>
 
   <!-- PILLAR VIEWS (generated) -->
   <div id="v-growth" class="view"></div>
@@ -313,32 +293,6 @@ select.fc option{background:var(--s2);}
     <div id="backlog-list"></div>
   </div>
 
-  <!-- FOCUS VIEW -->
-  <div id="v-focus" class="view">
-    <div class="ph">
-      <div><h1>🎯 Daily Focus</h1><p class="sub" id="focus-sub">Pin your 3 most important tasks for today</p></div>
-      <button class="btn bg sm" onclick="nav('overview')">← Overview</button>
-    </div>
-    <div id="focus-win-row" style="background:linear-gradient(135deg,rgba(59,130,246,.08),rgba(16,185,129,.06));border:1px solid rgba(59,130,246,.2);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
-      <span style="font-size:16px;">🏆</span>
-      <input class="fc" id="focus-win-inp" placeholder="What's your win for today? (press Enter to log)" style="background:transparent;border:none;flex:1;padding:0;font-size:13px;" onkeydown="if(event.key==='Enter'){logWin();event.preventDefault();}">
-      <button class="btn bg sm" onclick="logWin()">Log Win</button>
-    </div>
-    <h3 style="margin-bottom:10px;font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;">📌 Today's Focus (max 3)</h3>
-    <div id="focus-pinned" style="margin-bottom:18px;"></div>
-    <h3 style="margin-bottom:10px;font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;">🔴 Suggested — High Priority Active Tasks</h3>
-    <div id="focus-suggestions"></div>
-    <h3 style="margin-bottom:10px;margin-top:18px;font-size:13px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;">🏆 Recent Wins</h3>
-    <div id="focus-wins-list"></div>
-  </div>
-
-  <!-- QUICK CAPTURE -->
-  <div id="quick-capture" style="display:none;position:fixed;bottom:80px;left:50%;transform:translateX(-50%);width:min(500px,90vw);background:var(--sf);border:1px solid var(--accent);border-radius:12px;padding:10px 14px;box-shadow:0 8px 32px rgba(0,0,0,.4);z-index:500;flex;gap:8px;align-items:center;">
-    <span style="font-size:16px;">⚡</span>
-    <input id="qc-inp" class="fc" placeholder="Quick capture... @growth @np @product @exec @ops #high" style="background:transparent;border:none;flex:1;font-size:14px;" onkeydown="handleQC(event)">
-    <span style="font-size:11px;color:var(--muted);">Esc to cancel</span>
-  </div>
-
   </div><!-- /content -->
 </div><!-- /main -->
 
@@ -349,35 +303,15 @@ select.fc option{background:var(--s2);}
   <button class="bni active" data-v="overview" onclick="nav('overview')"><span class="bni-ic">📊</span>Overview</button>
   <button class="bni" data-v="growth" onclick="nav('growth')"><span class="bni-ic">🚀</span>Growth</button>
   <button class="bni" data-v="product" onclick="nav('product')"><span class="bni-ic">🏗️</span>Product</button>
+  <button class="bni" data-v="execution" onclick="nav('execution')"><span class="bni-ic">⚡</span>Execute</button>
   <button class="bni" data-v="backlog" onclick="nav('backlog')"><span class="bni-ic">📋</span>Backlog</button>
-  <button class="bni" data-v="past" onclick="nav('past')"><span class="bni-ic">📚</span>History</button>
 </nav>
-
-<!-- GOAL METRIC MODAL -->
-<div class="mo hidden" id="goal-metric-modal">
-  <div class="md" style="max-width:420px;">
-    <div class="mh"><h3 id="gm-goal-title">📊 Goal Metric</h3><button class="mc" onclick="closeM('goal-metric-modal')">×</button></div>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Set one measurable metric and log weekly progress. The system will flag trends automatically.</p>
-    <div class="fr">
-      <div class="fg"><label>Metric Name</label><input class="fc" id="gm-name" placeholder="e.g. Nonprofits contacted"></div>
-      <div class="fg"><label>Unit</label><input class="fc" id="gm-unit" placeholder="e.g. orgs, %, €"></div>
-    </div>
-    <div class="fg"><label>Target</label><input class="fc" id="gm-target" type="number" step="any" placeholder="e.g. 20"></div>
-    <hr>
-    <div class="fg"><label>Log This Week's Value</label><input class="fc" id="gm-value" type="number" step="any" placeholder="e.g. 7"></div>
-    <div id="gm-history" style="margin-top:8px;font-size:12px;color:var(--muted);max-height:100px;overflow-y:auto;"></div>
-    <div class="mf">
-      <button class="btn bg" onclick="closeM('goal-metric-modal')">Cancel</button>
-      <button class="btn bp" onclick="saveGoalMetric()">Save</button>
-    </div>
-  </div>
-</div>
 
 <!-- ADD/EDIT TASK MODAL -->
 <div class="mo hidden" id="tm">
   <div class="md">
     <div class="mh"><h3 id="tm-title">Add Task</h3><button class="mc" onclick="closeM('tm')">×</button></div>
-    <div class="fg"><label>Title *</label><input class="fc" id="t-title" placeholder="What needs to be done?" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();saveTask();}"></div>
+    <div class="fg"><label>Title *</label><input class="fc" id="t-title" placeholder="What needs to be done?"></div>
     <div class="fg"><label>Notes</label><textarea class="fc" id="t-notes" placeholder="Details, context, links..."></textarea></div>
     <div class="fr">
       <div class="fg"><label>Pillar</label>
@@ -418,71 +352,26 @@ select.fc option{background:var(--s2);}
       <div class="fg"><label>Current # (optional)</label><input class="fc" id="t-current" type="number" placeholder="e.g. 5" min="0"></div>
     </div>
     <div class="fr">
-      <div class="fg"><label>Assignee</label>
-        <select class="fc" id="t-assignee">
-          <option value="">Unassigned</option>
-          <option value="Panos">Panos</option>
-          <option value="Antonis">Antonis</option>
-          <option value="Nick">Nick</option>
-          <option value="Alex">Alex</option>
-        </select>
-      </div>
-      <div class="fg"><label>Due Date (optional)</label><input class="fc" id="t-due" type="date"></div>
-    </div>
-    <div class="fr">
-      <div class="fg"><label>Sprint Goal?</label><select class="fc" id="t-isgoal" onchange="(function(v){document.getElementById('t-role-row').style.display=v==='true'?'':'none';document.getElementById('t-depends-row').style.display=v==='true'?'':'none';})(this.value)"><option value="false">No — regular task</option><option value="true">Yes — sprint goal</option></select></div>
-    </div>
-    <div class="fg" id="t-role-row" style="display:none;">
-      <label>My Role on this Goal</label>
-      <select class="fc" id="t-role">
-        <option value="owner">🎯 Owner — I lead this</option>
-        <option value="collaborator">🤝 Collaborator — I support</option>
-      </select>
-    </div>
-    <div class="fg" id="t-depends-row" style="display:none;">
-      <label>Depends on Goal (optional)</label>
-      <select class="fc" id="t-depends">
-        <option value="">— None —</option>
-      </select>
-    </div>
-    <input type="hidden" id="t-goalid" value="">
-    <div id="t-goal-crumb" style="display:none;align-items:center;gap:6px;padding:7px 10px;margin-bottom:8px;background:rgba(59,130,246,.07);border:1px solid rgba(59,130,246,.2);border-radius:7px;font-size:11px;">
-      <span style="color:var(--muted);">Part of goal:</span>
-      <span id="t-goal-crumb-title" style="color:var(--accent);font-weight:600;flex:1;"></span>
-      <button class="btn bg sm" style="font-size:10px;padding:2px 7px;" id="t-goal-crumb-btn">↗ View goal</button>
+      <div class="fg"><label>Assignee</label><input class="fc" id="t-assignee" placeholder="e.g. Panos, Fanos..."></div>
+      <div class="fg"><label>Sprint Goal?</label><select class="fc" id="t-isgoal"><option value="false">No — regular task</option><option value="true">Yes — sprint goal</option></select></div>
     </div>
     <div class="mf">
       <button class="btn bd sm" id="del-btn" style="margin-right:auto;display:none;" onclick="delCur()">🗑 Delete</button>
       <button class="btn bg" onclick="closeM('tm')">Cancel</button>
-      <button class="btn bp" onclick="saveTask()" id="save-task-btn">Save</button>
+      <button class="btn bp" onclick="saveTask()">Save</button>
     </div>
   </div>
 </div>
 
 <!-- SPRINT SETTINGS MODAL -->
 <div class="mo hidden" id="sm">
-  <div class="md" style="width:460px;">
+  <div class="md" style="width:420px;">
     <div class="mh"><h3>⚙️ Sprint Settings</h3><button class="mc" onclick="closeM('sm')">×</button></div>
     <div class="fg"><label>Sprint Name</label><input class="fc" id="s-name" placeholder="Sprint 1"></div>
     <div class="fr">
       <div class="fg"><label>Start Date</label><input class="fc" id="s-start" type="date"></div>
       <div class="fg"><label>End Date</label><input class="fc" id="s-end" type="date"></div>
     </div>
-    <div class="fg">
-      <label>Sprint Commitments (goals/tasks you publicly commit to)</label>
-      <div id="commitment-list" style="max-height:160px;overflow-y:auto;margin-top:6px;"></div>
-    </div>
-    <hr style="border-color:var(--border);margin:14px 0;">
-    <div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">🤖 AI Settings</div>
-    <div class="fg" style="margin-bottom:4px;">
-      <label>Anthropic API Key</label>
-      <div style="display:flex;gap:6px;">
-        <input class="fc" id="s-api-key" type="password" placeholder="sk-ant-api03-..." style="flex:1;">
-        <button class="btn bg sm" onclick="document.getElementById('s-api-key').type=document.getElementById('s-api-key').type==='password'?'text':'password'" style="padding:7px 10px;">👁</button>
-      </div>
-    </div>
-    <div id="s-key-status" style="font-size:11px;margin-bottom:2px;"></div>
-    <div style="font-size:11px;color:var(--muted);">Required for AI Sprint Planner, goal breakdown, standup, and retro auto-fill.</div>
     <div class="mf">
       <button class="btn bg" onclick="closeM('sm')">Cancel</button>
       <button class="btn bg" onclick="closeM('sm');openCloseSprint()" style="margin-right:auto;">🔄 Close Sprint →</button>
@@ -496,17 +385,6 @@ select.fc option{background:var(--s2);}
   <div class="md" style="width:480px;">
     <div class="mh"><h3>🔄 Close Sprint & Start New</h3><button class="mc" onclick="closeM('nsm')">×</button></div>
     <div class="ns-summary" id="ns-summary"></div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-  <span class="ns-divider" style="margin:0;">RETROSPECTIVE (optional)</span>
-  <button class="btn bg sm" onclick="autoFillRetro()" id="retro-ai-btn">🤖 Auto-fill with AI</button>
-</div>
-    <div class="fg"><label>🏆 What went well?</label><textarea class="fc" id="retro-well" style="min-height:56px;" placeholder="Top 3 wins..."></textarea></div>
-    <div class="fg"><label>🚧 What was most blocked?</label><textarea class="fc" id="retro-blocked" style="min-height:44px;" placeholder="What slowed you down?"></textarea></div>
-    <div class="fg"><label>🔄 One process change for next sprint</label><input class="fc" id="retro-change" placeholder="e.g. Limit WIP to 3 per pillar"></div>
-    <div class="fg"><label>⚡ Energy level (1–5)</label>
-      <select class="fc" id="retro-energy"><option value="">—</option><option value="1">1 — Burned out</option><option value="2">2 — Low</option><option value="3">3 — Average</option><option value="4">4 — Good</option><option value="5">5 — Peak</option></select>
-    </div>
-
     <div class="ns-divider">New Sprint</div>
     <div class="fg"><label>Sprint Name</label><input class="fc" id="ns-name" placeholder="Sprint 2 — ..."></div>
     <div class="fr">
@@ -534,43 +412,6 @@ select.fc option{background:var(--s2);}
   </div>
 </div>
 
-<!-- SEARCH MODAL -->
-<div class="srch-wrap hidden" id="search-modal" onclick="if(event.target===this)closeSearch()">
-  <div class="srch-box">
-    <div class="srch-inp-wrap">
-      <span style="color:var(--muted);font-size:16px;">🔍</span>
-      <input class="srch-inp" id="srch-inp" placeholder="Search tasks…" oninput="renderSearchResults(this.value)" autocomplete="off">
-      <span class="srch-hint">Esc to close</span>
-    </div>
-    <div class="srch-results" id="srch-results"><div class="srch-empty">Start typing to search all tasks</div></div>
-  </div>
-</div>
-
-<!-- SHORTCUT HELP MODAL -->
-<div class="mo hidden" id="shortcut-help">
-  <div class="md" style="max-width:400px;">
-    <div class="mh"><h3>⌨️ Keyboard Shortcuts</h3><button class="mc" onclick="closeM('shortcut-help')">×</button></div>
-    <div style="display:flex;flex-direction:column;gap:8px;padding:4px 0;">
-      <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;"><span>Add Task</span><kbd style="background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;font-family:monospace;">N</kbd></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;"><span>Add Goal (current pillar)</span><kbd style="background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;font-family:monospace;">G</kbd></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;"><span>Daily Focus</span><kbd style="background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;font-family:monospace;">T</kbd></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;"><span>Backlog</span><kbd style="background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;font-family:monospace;">B</kbd></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;"><span>Past Sprints</span><kbd style="background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;font-family:monospace;">P</kbd></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;"><span>US Growth</span><kbd style="background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;font-family:monospace;">1</kbd></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;"><span>Nonprofits</span><kbd style="background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;font-family:monospace;">2</kbd></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;"><span>Product</span><kbd style="background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;font-family:monospace;">3</kbd></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;"><span>Execution</span><kbd style="background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;font-family:monospace;">4</kbd></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;"><span>Ops</span><kbd style="background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;font-family:monospace;">5</kbd></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;"><span>Quick Capture</span><kbd style="background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;font-family:monospace;">Q</kbd></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;"><span>Shortcuts help</span><kbd style="background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;font-family:monospace;">?</kbd></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;"><span>Close modal</span><kbd style="background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;font-family:monospace;">Esc</kbd></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;"><span>Search</span><kbd style="background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;font-family:monospace;">Cmd+K</kbd></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;font-size:13px;"><span>Submit modal</span><kbd style="background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;font-family:monospace;">Cmd+Enter</kbd></div>
-    </div>
-    <div class="mf"><button class="btn bp" onclick="closeM('shortcut-help')">Got it</button></div>
-  </div>
-</div>
-
 <script>
 // ── DATA ────────────────────────────────────────────────────────
 const PILLARS={
@@ -593,9 +434,7 @@ let S={
   tasks:[],
   blFilter:'all',
   pastSprints:[],
-  wins:[],
-  focusTasks:[],
-  outreach:[]
+  nonprofits:[]
 };
 let editId=null;
 
@@ -631,10 +470,10 @@ function nav(v){
 }
 function renderView(v){
   if(v==='overview')renderOverview();
-  else if(v==='focus')renderFocus();
   else if(PILLARS[v])renderPillar(v);
   else if(v==='backlog')renderBacklog();
   else if(v==='past')renderPastSprints();
+  else if(v==='crm')renderCRM();
 }
 function refresh(){renderView(curView);updateSidebar();}
 
@@ -648,15 +487,7 @@ function renderSprintBar(){
   document.getElementById('bar-dates').textContent=fd(sp.start)+' – '+fd(sp.end);
   const pct=sprintPct();
   const done=doneCount(),total=curTasks().length;
-  const taskPct=total?Math.round(done/total*100):0;
-  document.getElementById('bar-pct').innerHTML=`<strong style="color:${taskPct>=70?'var(--done)':taskPct>=40?'#fbbf24':'var(--text)'}">${taskPct}%</strong>&nbsp;<span style="color:var(--muted);font-size:11px;">${done}/${total} tasks</span>&nbsp;<span class="spb"><span class="spb-f" style="width:${taskPct}%"></span></span>`;
-  // Rule 3: Sprint overdue banner
-  const overdueDays=Math.floor((new Date()-new Date(sp.end))/(1000*60*60*24));
-  let ob=document.getElementById('overdue-bar');
-  if(overdueDays>0){
-    if(!ob){ob=document.createElement('div');ob.id='overdue-bar';ob.style.cssText='background:rgba(239,68,68,.12);border-bottom:1px solid rgba(239,68,68,.25);padding:6px 24px;font-size:12px;color:#ef4444;display:flex;align-items:center;gap:10px;';document.querySelector('.main').insertBefore(ob,document.querySelector('.content'));}
-    ob.innerHTML=`⚠️ Sprint ended ${overdueDays} day${overdueDays!==1?'s':''} ago &nbsp;<button class="btn sm" onclick="openCloseSprint()" style="background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4);color:#ef4444;font-size:11px;">Close Sprint →</button><button onclick="document.getElementById('overdue-bar').remove()" style="margin-left:auto;background:none;border:none;color:#ef4444;cursor:pointer;font-size:16px;">×</button>`;
-  }else if(ob){ob.remove();}
+  document.getElementById('bar-pct').innerHTML=`<strong>${done}/${total}</strong> tasks done&nbsp;<span class="spb"><span class="spb-f" style="width:${total?Math.round(done/total*100):0}%"></span></span>`;
 }
 
 // ── SIDEBAR COUNTS ────────────────────────────────────────────────
@@ -668,6 +499,7 @@ function updateSidebar(){
   });
   document.getElementById('cnt-backlog').textContent=blTasks().length||'';
   document.getElementById('cnt-past').textContent=(S.pastSprints||[]).length||'';
+  updateCRMSidebarCount();
 }
 
 // ── OVERVIEW ─────────────────────────────────────────────────────
@@ -678,16 +510,11 @@ function renderOverview(){
   const blocked=ct.filter(t=>t.status==='blocked').length;
   const todo=ct.filter(t=>t.status==='todo').length;
   document.getElementById('ov-sub').textContent=`${ct.length} sprint tasks · ${blTasks().length} in backlog`;
-  const active=ct.filter(t=>t.status!=='done');
-  const highPri=active.filter(t=>t.priority==='high').length;
-  const avgAge=Math.round(active.reduce((s,t)=>s+Math.max(0,Math.floor((Date.now()-new Date(t.createdAt))/(86400000))),0)/Math.max(1,active.length));
   document.getElementById('ov-stats').innerHTML=`
-    <div class="sc2" style="border-top:2px solid var(--done)"><div class="sn2" style="color:var(--done)">${done}</div><div class="sl2">Done</div></div>
-    <div class="sc2" style="border-top:2px solid var(--prog)"><div class="sn2" style="color:var(--prog)">${inprog}</div><div class="sl2">In Progress</div></div>
-    <div class="sc2" style="border-top:2px solid #fbbf24"><div class="sn2" style="color:#fbbf24">${todo}</div><div class="sl2">Todo</div></div>
-    <div class="sc2" style="border-top:2px solid var(--block)"><div class="sn2" style="color:var(--block)">${blocked}</div><div class="sl2">Blocked</div></div>
-    <div class="sc2" style="border-top:2px solid #ef4444"><div class="sn2" style="color:#ef4444">${highPri}</div><div class="sl2">High Priority</div></div>
-    <div class="sc2" style="border-top:2px solid var(--muted)"><div class="sn2" style="color:var(--text)">${avgAge}d</div><div class="sl2">Avg Age</div></div>`;
+    <div class="sc2"><div class="sn2" style="color:var(--done)">${done}</div><div class="sl2">Done</div></div>
+    <div class="sc2"><div class="sn2" style="color:var(--prog)">${inprog}</div><div class="sl2">In Progress</div></div>
+    <div class="sc2"><div class="sn2" style="color:#fbbf24">${todo}</div><div class="sl2">Todo</div></div>
+    <div class="sc2"><div class="sn2" style="color:var(--block)">${blocked}</div><div class="sl2">Blocked</div></div>`;
   document.getElementById('ov-pillars').innerHTML=Object.entries(PILLARS).map(([k,p])=>{
     const tasks=ct.filter(t=>t.pillar===k);
     const d=tasks.filter(t=>t.status==='done').length;
@@ -701,200 +528,52 @@ function renderOverview(){
       </div>
       <div class="pcard-label">${p.l}</div>
       <div class="pcard-stats" style="color:${p.hex}">${d}<span style="font-size:13px;font-weight:400;color:var(--muted)">/${tasks.length}</span></div>
-      <div style="height:6px;background:var(--border);border-radius:3px;margin:6px 0 4px;">
-        <div style="height:100%;border-radius:3px;background:${p.hex};width:${pct}%;transition:width .3s;"></div>
+      <div style="height:3px;background:var(--border);border-radius:2px;margin:6px 0 4px;">
+        <div style="height:100%;border-radius:2px;background:${p.hex};width:${pct}%;transition:width .3s;"></div>
       </div>
-      <div class="pcard-sub">${pct}% · ${tasks.filter(t=>t.status==='in-progress').length} active${tasks.filter(t=>t.status==='blocked').length?` · <span style="color:var(--block)">${tasks.filter(t=>t.status==='blocked').length} blocked</span>`:''}</div>
+      <div class="pcard-sub">${pct}% complete</div>
     </div>`;
   }).join('');
   const goals=ct.filter(t=>t.isGoal);
-  const goalsAchieved=goals.filter(t=>t.status==='done').length;
-  // Sprint velocity — tasks completed per day
-  const sprintStart=new Date(S.sprint.start);
-  const today=new Date();
-  const daysElapsed=Math.max(1,Math.ceil((today-sprintStart)/(1000*60*60*24)));
-  const sprintTotalDays=Math.max(1,Math.ceil((new Date(S.sprint.end)-sprintStart)/(1000*60*60*24)));
-  const projectedPct=ct.length?Math.min(100,Math.round((done/daysElapsed)*sprintTotalDays/ct.length*100)):0;
-  const velocityColor=projectedPct>=70?'#22c55e':projectedPct>=40?'#fbbf24':'#ef4444';
-  // Velocity sparkline — done per day for last 14 days
-  const doneDates={};
-  ct.filter(t=>t.status==='done'&&t.completedAt).forEach(t=>{const d=t.completedAt.slice(0,10);doneDates[d]=(doneDates[d]||0)+1;});
-  const sparkDays=7;
-  let sparkHTML='';
-  for(let i=sparkDays-1;i>=0;i--){
-    const d=new Date(today);d.setDate(d.getDate()-i);
-    const k=d.toISOString().slice(0,10);
-    const cnt=doneDates[k]||0;
-    const h=Math.min(20,cnt*5+2);
-    sparkHTML+=`<div style="width:10px;height:${h}px;background:${cnt>0?'#22c55e':'var(--border)'};border-radius:2px;flex-shrink:0;" title="${k}: ${cnt} done"></div>`;
-  }
-  // Blocked tasks
-  const blockedTasks=ct.filter(t=>t.status==='blocked'&&!t.isGoal);
-  const blockedHTML=blockedTasks.length?`<div id="blocked-escalation" style="background:rgba(239,68,68,.06);border:1px solid rgba(239,68,68,.2);border-radius:10px;padding:12px 14px;margin-bottom:16px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="toggleBlockedPanel()">
-      <span style="font-size:13px;font-weight:700;color:#ef4444;">🚧 ${blockedTasks.length} Blocked Task${blockedTasks.length!==1?'s':''}</span>
-      <span id="blocked-toggle-icon" style="font-size:11px;color:var(--muted);">▼ expand</span>
-    </div>
-    <div id="blocked-panel" style="display:none;margin-top:10px;">${blockedTasks.map(t=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;border-top:1px solid rgba(239,68,68,.15);">
-      <span style="font-size:11px;flex:1;">${esc(t.title)}</span>
-      <span style="font-size:10px;color:var(--muted);">${PILLARS[t.pillar]?.e||''}</span>
-      <button class="btn bg sm" style="font-size:10px;padding:2px 6px;" onclick="unblockTask('${t.id}')">Unblock</button>
-    </div>`).join('')}</div>
-  </div>`:'';
-  // Sprint velocity bar
-  const velHTML=`<div style="background:var(--sf);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-    <div style="flex:1;min-width:160px;">
-      <div style="font-size:11px;color:var(--muted);margin-bottom:4px;font-weight:600;">SPRINT VELOCITY</div>
-      <div style="display:flex;align-items:flex-end;gap:3px;height:22px;">${sparkHTML}</div>
-    </div>
-    <div style="text-align:center;">
-      <div style="font-size:22px;font-weight:800;color:${velocityColor};">${projectedPct}%</div>
-      <div style="font-size:10px;color:var(--muted);">projected completion</div>
-      ${projectedPct>=70?`<div style="font-size:10px;color:#22c55e;">✅ On track</div>`:projectedPct>=40?`<div style="font-size:10px;color:#fbbf24;">⚠️ At risk</div>`:`<div style="font-size:10px;color:#ef4444;">🔴 Sprint at risk</div>`}
-    </div>
-    <div style="text-align:center;">
-      <div style="font-size:18px;font-weight:800;color:var(--accent);">${goalsAchieved}/${goals.length}</div>
-      <div style="font-size:10px;color:var(--muted);">goals achieved</div>
-    </div>
-    <div style="text-align:center;">
-      <div style="font-size:18px;font-weight:800;color:var(--text);">${daysLeft()}</div>
-      <div style="font-size:10px;color:var(--muted);">days left</div>
-    </div>
-  </div>`;
-  document.getElementById('ov-velocity').innerHTML=velHTML;
-  // Confidence and dependency alerts
-  const redGoals=goals.filter(g=>g.confidence==='red').length;
-  const yellowGoals=goals.filter(g=>g.confidence==='yellow').length;
-  const depsUnmet=goals.filter(g=>g.dependsOn&&g.dependsOn.length&&g.dependsOn.some(depId=>{const dep=S.tasks.find(x=>x.id===depId);return dep&&dep.status!=='done';})).length;
-  let alertsHTML='';
-  if(redGoals||yellowGoals||depsUnmet){
-    alertsHTML=`<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">`;
-    if(redGoals)alertsHTML+=`<span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:8px;background:rgba(239,68,68,.1);color:#ef4444;border:1px solid rgba(239,68,68,.25);">🔴 ${redGoals} goal${redGoals!==1?'s':''} at risk (self-reported)</span>`;
-    if(yellowGoals)alertsHTML+=`<span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:8px;background:rgba(251,191,36,.1);color:#fbbf24;border:1px solid rgba(251,191,36,.25);">🟡 ${yellowGoals} goal${yellowGoals!==1?'s':''} uncertain</span>`;
-    if(depsUnmet)alertsHTML+=`<span style="font-size:12px;font-weight:700;padding:4px 10px;border-radius:8px;background:rgba(71,85,105,.15);color:var(--muted);border:1px solid var(--border);">🔒 ${depsUnmet} goal${depsUnmet!==1?'s':''} waiting on unfinished dependencies</span>`;
-    alertsHTML+=`</div>`;
-  }
-  document.getElementById('ov-blocked').innerHTML=blockedHTML+alertsHTML;
-  // Split goals by role
-  const ownedGoals=goals.filter(g=>g.role!=='collaborator');
-  const collabGoals=goals.filter(g=>g.role==='collaborator');
-  let goalsHTML='';
-  if(ownedGoals.length){
-    goalsHTML+=`<div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;">🎯 Goals I Own</div>`;
-    goalsHTML+=ownedGoals.map(t=>goalHTML(t)).join('');
-  }
-  if(collabGoals.length){
-    goalsHTML+=`<div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:12px;margin-bottom:8px;padding-top:12px;border-top:1px solid var(--border);">🤝 Goals I Support</div>`;
-    goalsHTML+=collabGoals.map(t=>goalHTML(t)).join('');
-  }
-  document.getElementById('ov-goals').innerHTML=goals.length?goalsHTML:'<div class="empty">No sprint goals yet. Add one!</div>';
-  // Recent wins
-  const recentWins=(S.wins||[]).slice(-3).reverse();
-  document.getElementById('ov-wins').innerHTML=recentWins.length?recentWins.map(w=>`<div style="font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center;"><span style="color:#fbbf24;">🏆</span><span style="flex:1;">${esc(w.text)}</span><span style="font-size:10px;color:var(--muted);">${w.date}</span></div>`).join(''):'<div style="font-size:12px;color:var(--muted);">No wins logged yet. Click 🏆 to add one!</div>';
-  _updateGoalsCount();
+  document.getElementById('ov-goals').innerHTML=goals.length?goals.map(t=>goalHTML(t)).join(''):'<div class="empty">No sprint goals yet. Add one!</div>';
+  renderVelocityStats();
+  renderImpactWidget();
 }
 
 // ── PILLAR VIEW ───────────────────────────────────────────────────
-function _goalTasksHTML(goal, showDone){
-  const linked=curTasks().filter(t=>t.goalId===goal.id&&!t.isGoal);
-  const active=linked.filter(t=>t.status!=='done');
-  const done=linked.filter(t=>t.status==='done');
-  if(!linked.length){
-    return`<div style="margin:2px 0 10px 20px;padding:8px 12px;border-left:2px dashed var(--border);border-radius:0 6px 6px 0;background:rgba(59,130,246,.03);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-      <span style="font-size:11px;color:var(--muted);flex:1;">No tasks linked to this goal yet.</span>
-      <button class="btn bg sm" style="font-size:10px;padding:2px 8px;" onclick="event.stopPropagation();aiGoalBreakdown('${goal.id}')">🤖 Suggest tasks</button>
-      <button class="btn bg sm" style="font-size:10px;padding:2px 8px;" onclick="event.stopPropagation();openAdd('${goal.pillar}','current',false,'${goal.id}')">⊕ Add task</button>
-    </div>`;
-  }
-  let html=`<div id="gtasks-${goal.id}" style="margin:4px 0 8px 20px;border-left:2px solid var(--border);padding-left:10px;">`;
-  html+=active.map(t=>taskHTML(t)).join('');
-  if(done.length){
-    if(showDone){
-      html+=done.map(t=>taskHTML(t)).join('');
-    }
-  }
-  html+='</div>';
-  return html;
-}
-function _ungroupedTasksHTML(pillar, showDone){
-  const tasks=curTasks().filter(t=>t.pillar===pillar&&!t.isGoal&&!t.goalId);
-  const active=tasks.filter(t=>t.status!=='done');
-  const done=tasks.filter(t=>t.status==='done');
-  let html='';
-  html+=active.length?active.map(t=>taskHTML(t)).join(''):'';
-  if(showDone&&done.length) html+=done.map(t=>taskHTML(t)).join('');
-  return html||'<div class="empty">No active tasks.</div>';
-}
 function renderPillar(p){
   const P=PILLARS[p]||{hex:'var(--muted)',e:'',l:p};
   const tasks=curTasks().filter(t=>t.pillar===p);
   const goals=tasks.filter(t=>t.isGoal);
   const subtasks=tasks.filter(t=>!t.isGoal);
-  const activeCt=subtasks.filter(t=>t.status!=='done').length;
-  const doneCt=subtasks.filter(t=>t.status==='done').length;
-  const totalDone=tasks.filter(t=>t.status==='done').length;
-  const ownedGoals=goals.filter(g=>g.role!=='collaborator');
-  const collabGoals=goals.filter(g=>g.role==='collaborator');
-  let goalsHTML='';
-  if(ownedGoals.length){
-    goalsHTML+=`<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px;">🎯 Goals I Own</div>`;
-    goalsHTML+=ownedGoals.map(g=>`${goalHTML(g)}${_goalTasksHTML(g,false)}`).join('');
-  }
-  if(collabGoals.length){
-    goalsHTML+=`<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-top:10px;margin-bottom:6px;padding-top:10px;border-top:1px dashed var(--border);">🤝 Goals I Support</div>`;
-    goalsHTML+=collabGoals.map(g=>`${goalHTML(g)}${_goalTasksHTML(g,false)}`).join('');
-  }
-  const ungroupedActive=subtasks.filter(t=>!t.goalId&&t.status!=='done');
-  const ungroupedDone=subtasks.filter(t=>!t.goalId&&t.status==='done');
-  const noTasksEmpty=goals.length
-    ?`<div class="empty" style="padding:14px;text-align:center;color:var(--muted);">All tasks are linked to goals above.<br><button class="btn bg sm" style="margin-top:8px;font-size:11px;" onclick="openAdd('${p}')">+ Add standalone task</button></div>`
-    :`<div style="text-align:center;padding:28px 16px;color:var(--muted);"><div style="font-size:28px;margin-bottom:8px;">🎯</div><div style="font-size:13px;font-weight:600;margin-bottom:4px;">Nothing here yet</div><div style="font-size:12px;margin-bottom:14px;">Start with a goal, then break it into tasks.</div><div style="display:flex;gap:8px;justify-content:center;"><button class="btn bg" onclick="openAdd('${p}','current',true)">+ Add Goal</button><button class="btn bp" onclick="openAdd('${p}')">+ Add Task</button></div></div>`;
-  const ungroupedHTML=ungroupedActive.length?ungroupedActive.map(t=>taskHTML(t)).join(''):noTasksEmpty;
-  const completedToggle=(doneCt>0)?`<div class="done-toggle" id="dtog-${p}" onclick="toggleDoneSection('${p}')" style="cursor:pointer;font-size:12px;color:var(--muted);padding:8px 4px;user-select:none;">▶ ${doneCt} completed task${doneCt!==1?'s':''}</div><div id="dsec-${p}" style="display:none;">${subtasks.filter(t=>t.status==='done').map(t=>taskHTML(t)).join('')}</div>`:'';
-  const blockedCt=subtasks.filter(t=>t.status==='blocked').length;
-  const activeProgCt=subtasks.filter(t=>t.status==='in-progress').length;
-  const goalsDoneCt=goals.filter(g=>g.status==='done').length;
+  const done=tasks.filter(t=>t.status==='done').length;
   document.getElementById('v-'+p).innerHTML=`
     <div class="ph">
-      <div><h1>${P.e} ${P.l}</h1><p class="sub">${totalDone}/${tasks.length} done · ${blockedCt} blocked · ${activeProgCt} in progress · ${goalsDoneCt}/${goals.length} goals</p></div>
+      <div><h1>${P.e} ${P.l}</h1><p class="sub">${done}/${tasks.length} done · Sprint</p></div>
       <div class="row">
         <button class="btn bg" onclick="openAdd('${p}','current',true)">+ Goal</button>
         <button class="btn bp" onclick="openAdd('${p}')">+ Task</button>
       </div>
     </div>
-    ${goals.length?`<div class="sh"><div class="sh-left"><span style="font-size:12px;font-weight:700;color:${P.hex};">Sprint Goals</span></div></div>${goalsHTML}<hr>`:``}
+    ${goals.length?`<div class="sh"><div class="sh-left"><span style="font-size:12px;font-weight:700;color:${P.hex};">Sprint Goals</span></div></div>${goals.map(t=>goalHTML(t)).join('')}<hr>`:``}
     <div class="sh">
-      <div class="sh-left"><span style="font-size:12px;font-weight:700;color:var(--muted);">Tasks (${activeCt} active)</span></div>
+      <div class="sh-left"><span style="font-size:12px;font-weight:700;color:var(--muted);">Tasks (${subtasks.filter(t=>t.status!=='done').length} active)</span></div>
       <div class="row">
-        <button class="ftab active" id="pf-active-${p}" onclick="setPFilter('active','${p}',this)" style="padding:3px 8px;font-size:10px;">Active</button>
-        <button class="ftab" onclick="setPFilter('all','${p}',this)" style="padding:3px 8px;font-size:10px;">All</button>
+        <button class="ftab active" id="pf-all-${p}" onclick="setPFilter('all','${p}',this)" style="padding:3px 8px;font-size:10px;">All</button>
         <button class="ftab" onclick="setPFilter('todo','${p}',this)" style="padding:3px 8px;font-size:10px;">Todo</button>
         <button class="ftab" onclick="setPFilter('in-progress','${p}',this)" style="padding:3px 8px;font-size:10px;">In Progress</button>
-        <button class="ftab" onclick="setPFilter('blocked','${p}',this)" style="padding:3px 8px;font-size:10px;">Blocked</button>
         <button class="ftab" onclick="setPFilter('done','${p}',this)" style="padding:3px 8px;font-size:10px;">Done</button>
+        <button class="ftab" onclick="setPFilter('blocked','${p}',this)" style="padding:3px 8px;font-size:10px;">Blocked</button>
       </div>
     </div>
-    <div id="plist-${p}">${ungroupedHTML}</div>
-    ${completedToggle}
+    <div id="plist-${p}">${subtasks.length?subtasks.map(t=>taskHTML(t)).join(''):'<div class="empty">No tasks yet for this pillar.</div>'}</div>
   `;
-}
-function toggleDoneSection(p){
-  const sec=document.getElementById('dsec-'+p);
-  const tog=document.getElementById('dtog-'+p);
-  if(!sec)return;
-  const isHidden=sec.style.display==='none';
-  sec.style.display=isHidden?'':'none';
-  const doneCt=curTasks().filter(t=>t.pillar===p&&!t.isGoal&&t.status==='done').length;
-  tog.textContent=(isHidden?'▼':'▶')+` ${doneCt} completed task${doneCt!==1?'s':''}`;
 }
 function setPFilter(status,pillar,el){
   el.closest('.sh').querySelectorAll('.ftab').forEach(x=>x.classList.remove('active'));
   el.classList.add('active');
-  const allTasks=curTasks().filter(t=>t.pillar===pillar&&!t.isGoal&&!t.goalId);
-  let filtered;
-  if(status==='active') filtered=allTasks.filter(t=>t.status!=='done');
-  else if(status==='all') filtered=allTasks;
-  else filtered=allTasks.filter(t=>t.status===status);
+  const tasks=curTasks().filter(t=>t.pillar===pillar&&!t.isGoal);
+  const filtered=status==='all'?tasks:tasks.filter(t=>t.status===status);
   document.getElementById('plist-'+pillar).innerHTML=filtered.length?filtered.map(t=>taskHTML(t)).join(''):'<div class="empty">No tasks matching this filter.</div>';
 }
 
@@ -938,86 +617,32 @@ function renderBacklog(){
 function goalHTML(t){
   const P=PILLARS[t.pillar]||{hex:'var(--muted)',e:'',l:t.pillar||''};
   const isDone=t.status==='done';
-  // Dynamic progress from linked tasks
-  const linked=S.tasks.filter(x=>x.goalId===t.id&&!x.isGoal);
-  const linkedDone=linked.filter(x=>x.status==='done').length;
-  const hasDynProg=linked.length>0;
-  const dynPct=hasDynProg?Math.round(linkedDone/linked.length*100):0;
-  // Fallback to manual target/current if no linked tasks
-  const hasManualProg=!hasDynProg&&t.target&&t.target>0;
-  const manualPct=hasManualProg?Math.min(100,Math.round((t.current||0)/t.target*100)):0;
-  // Dependency badge
-  const depBadge=t.dependsOn&&t.dependsOn.length?(()=>{
-    const dep=S.tasks.find(x=>x.id===t.dependsOn[0]);
-    return dep&&dep.status!=='done'?`<div style="font-size:11px;color:var(--muted);margin-top:4px;">🔒 Waiting on: ${esc(dep.title)}</div>`:'';
-  })():'';
-  const depLock=t.dependsOn&&t.dependsOn.length&&S.tasks.find(x=>x.id===t.dependsOn[0])&&S.tasks.find(x=>x.id===t.dependsOn[0]).status!=='done'?'🔒 ':'';
-  // Role badge
-  const roleBadge=t.role==='collaborator'
-    ?`<span style="font-size:9px;padding:1px 5px;border-radius:4px;background:rgba(148,163,184,.15);color:#94a3b8;font-weight:700;">🤝 Collab</span>`
-    :`<span style="font-size:9px;padding:1px 5px;border-radius:4px;background:rgba(251,191,36,.15);color:#fbbf24;font-weight:700;">🎯 Owner</span>`;
-  // ETA calculation
-  let etaHTML='';
-  if(hasDynProg){
-    const daysElapsed=Math.max(1,Math.ceil((Date.now()-new Date(S.sprint.start))/(86400000)));
-    const velocity=linkedDone/daysElapsed;
-    const remaining=linked.length-linkedDone;
-    if(velocity>0){
-      const etaDays=Math.ceil(remaining/velocity);
-      const dl=daysLeft();
-      const etaColor=etaDays<=dl?'#22c55e':'#fbbf24';
-      etaHTML=`<div style="font-size:11px;color:${etaColor};margin-top:4px;">🏁 ~${etaDays}d at current pace</div>`;
-    } else if(remaining>0){
-      etaHTML=`<div style="font-size:11px;color:var(--muted);margin-top:4px;">⏸ No progress this sprint</div>`;
-    }
-  }
-  // Confidence toggle
-  const confHTML=`<div style="display:flex;align-items:center;gap:4px;margin-top:8px;" onclick="event.stopPropagation();">
-    <span style="font-size:11px;color:var(--muted);margin-right:2px;">Confidence:</span>
-    <button onclick="setGoalConfidence('${t.id}','green')" style="background:${t.confidence==='green'?'rgba(34,197,94,.3)':'transparent'};border:1px solid ${t.confidence==='green'?'#22c55e':'var(--border)'};border-radius:4px;cursor:pointer;padding:1px 5px;font-size:12px;">🟢</button>
-    <button onclick="setGoalConfidence('${t.id}','yellow')" style="background:${t.confidence==='yellow'?'rgba(251,191,36,.3)':'transparent'};border:1px solid ${t.confidence==='yellow'?'#fbbf24':'var(--border)'};border-radius:4px;cursor:pointer;padding:1px 5px;font-size:12px;">🟡</button>
-    <button onclick="setGoalConfidence('${t.id}','red')" style="background:${t.confidence==='red'?'rgba(239,68,68,.3)':'transparent'};border:1px solid ${t.confidence==='red'?'#ef4444':'var(--border)'};border-radius:4px;cursor:pointer;padding:1px 5px;font-size:12px;">🔴</button>
-  </div>`;
+  const hasProg=t.target&&t.target>0;
+  const pct=hasProg?Math.min(100,Math.round((t.current||0)/t.target*100)):0;
   return`<div class="gc2 ${isDone?'done-g':''} fi" onclick="openEdit('${t.id}')">
     <div class="gc2-header">
       <div class="gcheck ${isDone?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${isDone?'<span style="color:#fff;font-size:10px;">✓</span>':''}</div>
       <div style="flex:1;">
-        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
           <span style="font-size:11px;color:${P.hex};font-weight:700;">${P.e} ${P.l}</span>
           <span class="goal-tag">Goal</span>
-          ${roleBadge}
           <span class="badge ${STATUS[t.status]?.cls||'st-todo'}" style="margin-left:auto;">${STATUS[t.status]?.l||'Todo'}</span>
-          <button class="btn bg sm" style="font-size:10px;padding:2px 8px;" onclick="event.stopPropagation();openAdd('${t.pillar}','current',false,'${t.id}')">⊕ Task</button>
-          <button class="btn bg sm" style="font-size:10px;padding:2px 8px;" onclick="event.stopPropagation();aiGoalBreakdown('${t.id}')">🤖</button>
-          <button class="btn bg sm" style="font-size:10px;padding:2px 8px;" onclick="event.stopPropagation();openGoalMetric('${t.id}')">${_goalMetricBadge(t)}</button>
         </div>
-        <div class="gc2-title">${depLock}${esc(t.title)}</div>
+        <div class="gc2-title">${esc(t.title)}</div>
         ${t.notes?`<div style="font-size:11px;color:var(--muted);margin-top:4px;">${esc(t.notes)}</div>`:''}
-        ${depBadge}
       </div>
     </div>
-    ${hasDynProg?`<div class="gc2-prog">
-      <div class="prog-row">
-        <span class="prog-label">Tasks</span>
-        <span class="prog-num" style="color:${P.hex}">${linkedDone}</span>
-        <span class="prog-label">/ ${linked.length}</span>
-        <div class="prog-bar"><div class="prog-fill" style="width:${dynPct}%;background:${P.hex}"></div></div>
-        <span class="prog-pct">${dynPct}%</span>
-      </div>
-      ${etaHTML}
-    </div>`:hasManualProg?`<div class="gc2-prog">
+    ${hasProg?`<div class="gc2-prog">
       <div class="prog-row">
         <span class="prog-label">Progress</span>
         <span class="prog-num" style="color:${P.hex}">${t.current||0}</span>
         <span class="prog-label">/ ${t.target}</span>
-        <div class="prog-bar"><div class="prog-fill" style="width:${manualPct}%;background:${P.hex}"></div></div>
-        <span class="prog-pct">${manualPct}%</span>
+        <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${P.hex}"></div></div>
+        <span class="prog-pct">${pct}%</span>
       </div>
-    </div>`:`<div style="font-size:11px;color:var(--muted);margin-top:6px;">⊕ Add tasks to track progress</div>`}
+    </div>`:''}
     ${t.assignee?`<div style="font-size:11px;color:var(--muted);margin-top:6px;">👤 ${esc(t.assignee)}</div>`:''}
-    ${_goalMetricRow(t)}
-    ${confHTML}
-    <div id="ai-breakdown-${t.id}" style="display:none;margin-top:8px;"></div>
+    ${t.isGoal&&t.target>0?`<div style="margin-top:6px;">${goalEtaChip(t)}</div>`:''}
   </div>`;
 }
 
@@ -1026,29 +651,15 @@ function taskHTML(t){
   const P=PILLARS[t.pillar]||{hex:'var(--muted)',e:'',l:t.pillar||''};
   const hasProg=t.target&&t.target>0;
   const pct=hasProg?Math.min(100,Math.round((t.current||0)/t.target*100)):0;
-  const priCls=t.priority==='high'?'pbi-high':t.priority==='low'?'pbi-low':'pbi-med';
-  const today=new Date();today.setHours(0,0,0,0);
-  const dueHTML=t.dueDate&&t.status!=='done'?(()=>{
-    const d=new Date(t.dueDate+'T00:00:00');
-    const overdue=d<today;
-    return`<span class="badge" style="color:${overdue?'#ef4444':'var(--muted)'};background:${overdue?'rgba(239,68,68,.1)':'transparent'};padding-left:0;">⏰ ${fd(t.dueDate)}${overdue?' overdue':''}</span>`;
-  })():'';
-  const goalBadge=t.goalId?(()=>{
-    const g=S.tasks.find(x=>x.id===t.goalId&&x.isGoal);
-    return g?`<span class="task-goal-badge" onclick="event.stopPropagation();openEdit('${g.id}')">🎯 ${esc(g.title.length>24?g.title.slice(0,24)+'…':g.title)}</span>`:'';
-  })():'';
-  const isCommitted=S.sprint.commitments&&S.sprint.commitments.includes(t.id);
-  return`<div class="tc2 fi ${t.status==='done'?'done-t':''} ${priCls}" onclick="openEdit('${t.id}')">
+  return`<div class="tc2 fi ${t.status==='done'?'done-t':''}" onclick="openEdit('${t.id}')">
     <div class="ck2 ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${t.status==='done'?'<span style="color:#fff;font-size:9px;">✓</span>':''}</div>
     <div class="tb2">
-      <div class="tt2">${esc(t.title)}${isCommitted?' <span title="Committed" style="font-size:11px;">🤝</span>':''}</div>
+      <div class="tt2">${esc(t.title)}</div>
       <div class="tm2">
         <span class="badge ${STATUS[t.status]?.cls||'st-todo'}">${STATUS[t.status]?.l||'Todo'}</span>
         <span class="badge ${PRI[t.priority]?.cls||'pri-med'}">${t.priority||'medium'}</span>
         ${hasProg?`<span style="font-size:11px;color:${P.hex};font-weight:600;">${t.current||0}/${t.target}</span>`:''}
         ${t.assignee?`<span style="font-size:11px;color:var(--muted);">👤 ${esc(t.assignee)}</span>`:''}
-        ${dueHTML}
-        ${goalBadge}
       </div>
       ${hasProg?`<div style="height:3px;background:var(--border);border-radius:2px;margin-top:5px;"><div style="height:100%;border-radius:2px;background:${P.hex};width:${pct}%;transition:width .3s;"></div></div>`:''}
     </div>
@@ -1056,16 +667,9 @@ function taskHTML(t){
 }
 
 // ── TASK CRUD ─────────────────────────────────────────────────────
-function _populateDependsSelect(excludeId){
-  const sel=document.getElementById('t-depends');
-  const goals=S.tasks.filter(x=>x.isGoal&&x.id!==excludeId);
-  sel.innerHTML='<option value="">— None —</option>'+goals.map(g=>`<option value="${g.id}">${esc(g.title.slice(0,60))}</option>`).join('');
-}
-function openAdd(pillar='growth',sprint='current',isGoal=false,goalId=null){
+function openAdd(pillar='growth',sprint='current',isGoal=false){
   editId=null;
-  // If linking to a goal, inherit pillar from the goal
-  if(goalId){const g=S.tasks.find(x=>x.id===goalId);if(g)pillar=g.pillar;}
-  document.getElementById('tm-title').textContent=goalId?'Add Task (linked to goal)':'Add Task';
+  document.getElementById('tm-title').textContent='Add Task';
   document.getElementById('t-title').value='';
   document.getElementById('t-notes').value='';
   document.getElementById('t-pillar').value=pillar||'growth';
@@ -1075,25 +679,8 @@ function openAdd(pillar='growth',sprint='current',isGoal=false,goalId=null){
   document.getElementById('t-target').value='';
   document.getElementById('t-current').value='';
   document.getElementById('t-assignee').value='';
-  document.getElementById('t-due').value='';
   document.getElementById('t-isgoal').value=isGoal?'true':'false';
-  document.getElementById('t-goalid').value=goalId||'';
-  document.getElementById('t-role').value='owner';
-  document.getElementById('t-role-row').style.display=isGoal?'':'none';
-  _populateDependsSelect(null);
-  document.getElementById('t-depends').value='';
-  document.getElementById('t-depends-row').style.display=isGoal?'':'none';
   document.getElementById('del-btn').style.display='none';
-  // Show goal breadcrumb when linking to a goal
-  const crumb=document.getElementById('t-goal-crumb');
-  if(goalId&&crumb){
-    const parentGoal=S.tasks.find(x=>x.id===goalId&&x.isGoal);
-    if(parentGoal){
-      crumb.style.display='flex';
-      document.getElementById('t-goal-crumb-title').textContent=parentGoal.title;
-      document.getElementById('t-goal-crumb-btn').onclick=()=>{closeM('tm');openEdit(parentGoal.id);};
-    }
-  } else if(crumb){crumb.style.display='none';}
   document.getElementById('tm').classList.remove('hidden');
   document.getElementById('t-title').focus();
 }
@@ -1110,33 +697,14 @@ function openEdit(id){
   document.getElementById('t-target').value=t.target||'';
   document.getElementById('t-current').value=t.current||'';
   document.getElementById('t-assignee').value=t.assignee||'';
-  document.getElementById('t-due').value=t.dueDate||'';
   document.getElementById('t-isgoal').value=t.isGoal?'true':'false';
-  document.getElementById('t-goalid').value=t.goalId||'';
-  document.getElementById('t-role').value=t.role||'owner';
-  document.getElementById('t-role-row').style.display=t.isGoal?'':'none';
-  _populateDependsSelect(id);
-  document.getElementById('t-depends').value=(t.dependsOn&&t.dependsOn[0])||'';
-  document.getElementById('t-depends-row').style.display=t.isGoal?'':'none';
   document.getElementById('del-btn').style.display='block';
-  // Goal breadcrumb
-  const crumb=document.getElementById('t-goal-crumb');
-  if(t.goalId&&!t.isGoal){
-    const parentGoal=S.tasks.find(x=>x.id===t.goalId&&x.isGoal);
-    if(parentGoal&&crumb){
-      crumb.style.display='flex';
-      document.getElementById('t-goal-crumb-title').textContent=parentGoal.title;
-      document.getElementById('t-goal-crumb-btn').onclick=()=>{closeM('tm');openEdit(parentGoal.id);};
-    }
-  } else if(crumb){crumb.style.display='none';}
   document.getElementById('tm').classList.remove('hidden');
   document.getElementById('t-title').focus();
 }
 function saveTask(){
   const title=document.getElementById('t-title').value.trim();
   if(!title){toast('Enter a task title.');return;}
-  const isGoalVal=document.getElementById('t-isgoal').value==='true';
-  const depVal=document.getElementById('t-depends').value;
   const d={
     title,
     notes:document.getElementById('t-notes').value,
@@ -1147,15 +715,11 @@ function saveTask(){
     target:parseInt(document.getElementById('t-target').value)||null,
     current:parseInt(document.getElementById('t-current').value)||0,
     assignee:document.getElementById('t-assignee').value,
-    dueDate:document.getElementById('t-due').value.trim()||null,
-    isGoal:isGoalVal,
-    goalId:document.getElementById('t-goalid').value||null,
-    role:document.getElementById('t-role').value||'owner',
-    dependsOn:depVal?[depVal]:[]
+    isGoal:document.getElementById('t-isgoal').value==='true'
   };
   if((d.current??0)<0||(d.target??0)<0){toast('Values must be 0 or greater.');return;}
   if(d.target&&d.current>d.target){toast('Current progress cannot exceed target.');return;}
-  if(editId){const i=S.tasks.findIndex(t=>t.id===editId);S.tasks[i]={...S.tasks[i],...d};runAutomations(S.tasks[i]);}
+  if(editId){const i=S.tasks.findIndex(t=>t.id===editId);S.tasks[i]={...S.tasks[i],...d};}
   else S.tasks.push({id:uid(),...d,createdAt:new Date().toISOString(),completedAt:null});
   save();closeM('tm');refresh();
 }
@@ -1164,20 +728,7 @@ function toggleDone(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
   t.status=t.status==='done'?'todo':'done';
   t.completedAt=t.status==='done'?new Date().toISOString():null;
-  // Cascade: marking a GOAL done → mark all linked tasks done too
-  if(t.isGoal&&t.status==='done'){
-    const linked=S.tasks.filter(x=>x.goalId===t.id&&!x.isGoal);
-    if(linked.length){
-      linked.forEach(lt=>{lt.status='done';lt.completedAt=new Date().toISOString();});
-      toast(`✅ Marked ${linked.length} linked task${linked.length!==1?'s':''} done`,2500);
-    }
-  }
-  // Sync: un-marking any task whose parent goal was auto-completed → revert goal
-  if(t.status!=='done'&&t.goalId){
-    const goal=S.tasks.find(x=>x.id===t.goalId);
-    if(goal&&goal.status==='done'){goal.status='in-progress';goal.completedAt=null;}
-  }
-  save();runAutomations(t);refresh();
+  save();refresh();
 }
 function moveSprint(id,sprint){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
@@ -1189,20 +740,6 @@ function openSprintSettings(){
   document.getElementById('s-name').value=S.sprint.name;
   document.getElementById('s-start').value=S.sprint.start;
   document.getElementById('s-end').value=S.sprint.end;
-  if(!S.sprint.commitments)S.sprint.commitments=[];
-  const commitItems=curTasks().filter(t=>t.isGoal||t.priority==='high');
-  document.getElementById('commitment-list').innerHTML=commitItems.length?
-    commitItems.map(t=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 4px;cursor:pointer;font-size:12px;">
-      <input type="checkbox" id="cmt-${t.id}" ${S.sprint.commitments.includes(t.id)?'checked':''} style="accent-color:var(--accent);">
-      <span>${t.isGoal?'🎯 ':''}<span style="flex:1;">${esc(t.title.slice(0,55))}</span></span>
-    </label>`).join('')
-    :'<div style="font-size:12px;color:var(--muted);">No goals or high-priority tasks in sprint.</div>';
-  // API key field
-  const existingKey=localStorage.getItem('givelink_api_key')||'';
-  document.getElementById('s-api-key').value=existingKey;
-  const kst=document.getElementById('s-key-status');
-  if(existingKey){kst.textContent='✅ API key saved';kst.style.color='#22c55e';}
-  else{kst.textContent='⚠️ No key — AI features will prompt on first use';kst.style.color='#fbbf24';}
   document.getElementById('sm').classList.remove('hidden');
 }
 function saveSprint(){
@@ -1214,14 +751,7 @@ function saveSprint(){
   S.sprint.name=name;
   S.sprint.start=start;
   S.sprint.end=end;
-  // Save API key
-  const apiKey=document.getElementById('s-api-key').value.trim();
-  if(apiKey)localStorage.setItem('givelink_api_key',apiKey);
-  // Save commitments
-  const commitItems=curTasks().filter(t=>t.isGoal||t.priority==='high');
-  S.sprint.commitments=commitItems.filter(t=>{const cb=document.getElementById('cmt-'+t.id);return cb&&cb.checked;}).map(t=>t.id);
   save();closeM('sm');renderSprintBar();updateSidebar();
-  toast('⚙️ Sprint settings saved');
 }
 
 // ── CLOSE SPRINT / NEW SPRINT ─────────────────────────────────────
@@ -1231,13 +761,6 @@ function openCloseSprint(){
   const goals=ct.filter(t=>t.isGoal);
   const rate=ct.length?Math.round(done/ct.length*100):0;
   const rateColor=rate>=70?'var(--done)':rate>=40?'#fbbf24':'var(--block)';
-  // Commitment summary
-  const commitments=S.sprint.commitments||[];
-  const committedTasks=ct.filter(t=>commitments.includes(t.id));
-  const committedDone=committedTasks.filter(t=>t.status==='done').length;
-  const cPct=committedTasks.length?Math.round(committedDone/committedTasks.length*100):0;
-  const cColor=cPct>=70?'var(--done)':cPct>=40?'#fbbf24':'var(--block)';
-  const commitHTML=committedTasks.length?`<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:12px;"><span style="color:var(--muted);">Commitments: </span><span style="font-weight:700;color:${cColor};">${committedDone}/${committedTasks.length} completed (${cPct}%)</span></div>`:'';
   document.getElementById('ns-summary').innerHTML=`
     <div class="ns-summary-title">${esc(S.sprint.name)}</div>
     <div class="ns-summary-sub">${fd(S.sprint.start)} – ${fd(S.sprint.end)}</div>
@@ -1245,8 +768,7 @@ function openCloseSprint(){
       <div><span style="font-size:22px;font-weight:800;color:${rateColor};">${rate}%</span><span style="font-size:11px;color:var(--muted);margin-left:5px;">complete</span></div>
       <div style="font-size:12px;color:var(--muted);">${done} / ${ct.length} tasks done</div>
     </div>
-    ${goals.length?`<div style="border-top:1px solid var(--border);padding-top:10px;">${goals.map(g=>`<div class="ns-goal-row"><span>${g.status==='done'?'✅':'⬜'}</span><span style="flex:1;">${esc(g.title)}</span><span>${PILLARS[g.pillar]?.e||''}</span></div>`).join('')}</div>`:''}
-    ${commitHTML}`;
+    ${goals.length?`<div style="border-top:1px solid var(--border);padding-top:10px;">${goals.map(g=>`<div class="ns-goal-row"><span>${g.status==='done'?'✅':'⬜'}</span><span style="flex:1;">${esc(g.title)}</span><span>${PILLARS[g.pillar]?.e||''}</span></div>`).join('')}</div>`:''}`;
   // Pre-fill new sprint defaults
   const n=(S.pastSprints||[]).length+2;
   document.getElementById('ns-name').value=`Sprint ${n}`;
@@ -1265,29 +787,21 @@ function confirmNewSprint(){
   // Archive current sprint
   const ct=curTasks();
   const done=ct.filter(t=>t.status==='done').length;
-  const retroWell=(document.getElementById('retro-well')?.value||'').trim();
-  const retroBlocked=(document.getElementById('retro-blocked')?.value||'').trim();
-  const retroChange=(document.getElementById('retro-change')?.value||'').trim();
-  const retroEnergy=document.getElementById('retro-energy')?.value||'';
   const archive={
     id:uid(),name:S.sprint.name,start:S.sprint.start,end:S.sprint.end,
     closedAt:new Date().toISOString(),
     stats:{total:ct.length,done},
-    goals:ct.filter(t=>t.isGoal).map(t=>({id:t.id,title:t.title,pillar:t.pillar,status:t.status})),
-    retro:{well:retroWell,blocked:retroBlocked,change:retroChange,energy:retroEnergy}
+    goals:ct.filter(t=>t.isGoal).map(t=>({id:t.id,title:t.title,pillar:t.pillar,status:t.status}))
   };
   if(!S.pastSprints)S.pastSprints=[];
   S.pastSprints.unshift(archive);
-  // Move tasks: done → archived, blocked → carry into new sprint, other incomplete → backlog
-  const blockedCarried=[];
+  // Move tasks: done → archived, incomplete → backlog
   S.tasks.forEach(t=>{
     if(t.sprint==='current'){
       if(t.status==='done'){t.sprint='archived';t.archivedSprintId=archive.id;}
-      else if(t.status==='blocked'){blockedCarried.push(t.title.slice(0,30));}  // stays current for new sprint
       else{t.sprint='backlog';}
     }
   });
-  if(blockedCarried.length) setTimeout(()=>toast(`⚡ ${blockedCarried.length} blocked task${blockedCarried.length!==1?'s':''} carried into new sprint`,3500),500);
   // Start new sprint
   S.sprint={name,start,end};
   save();closeM('nsm');nav('overview');
@@ -1301,48 +815,19 @@ function renderPastSprints(){
     el.innerHTML=`<div class="ph"><div><h1>📚 Past Sprints</h1><p class="sub">Your sprint history will appear here.</p></div></div><div class="empty" style="padding:44px 0;text-align:center;"><div style="font-size:42px;margin-bottom:12px;">🏁</div><div style="font-size:15px;font-weight:700;color:var(--text);margin-bottom:6px;">No past sprints yet</div><p style="font-size:13px;color:var(--muted);">Close your current sprint to archive it and start a new one.</p><button class="btn bp" style="margin-top:14px;" onclick="openCloseSprint()">🔄 Close Current Sprint →</button></div>`;
     return;
   }
-  const velChart=`<div class="vel-chart">
-    <div class="vel-title">📈 Sprint Velocity</div>
-    ${past.map(s=>{
-      const pct=s.stats.total?Math.round(s.stats.done/s.stats.total*100):0;
-      const col=pct>=70?'var(--done)':pct>=40?'#fbbf24':'var(--block)';
-      return`<div class="vel-row">
-        <div class="vel-label" title="${esc(s.name)}">${esc(s.name)}</div>
-        <div class="vel-bar"><div class="vel-fill" style="width:${pct}%;background:${col}"></div></div>
-        <div class="vel-pct" style="color:${col}">${pct}%</div>
-      </div>`;
-    }).join('')}
-  </div>`;
-  // Trend row
-  let trendHTML='';
-  if(past.length>=2){
-    const trendSprints=past.slice(0,Math.min(3,past.length)).reverse();
-    const rates=trendSprints.map(s=>Math.round(s.stats.total?s.stats.done/s.stats.total*100:0)||0);
-    const trendStr=rates.map((r,i)=>{
-      if(i===0)return`<span style="color:${r>=70?'var(--done)':r>=40?'#fbbf24':'var(--block)'};font-weight:700;">${r}%</span>`;
-      const prev=rates[i-1];
-      const arrow=r>prev?'↑':r<prev?'↓':'→';
-      const col=r>prev?'#22c55e':r<prev?'#ef4444':'#fbbf24';
-      return`<span style="color:var(--muted);font-size:12px;">→</span><span style="color:${col};font-weight:700;">${r}% ${arrow}</span>`;
-    }).join(' ');
-    trendHTML=`<div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;"><span style="font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.4px;">Trend (last ${trendSprints.length} sprints):</span>${trendStr}</div>`;
-  }
-  el.innerHTML=`<div class="ph"><div><h1>📚 Past Sprints</h1><p class="sub">${past.length} sprint${past.length!==1?'s':''} completed</p></div><div class="row"><button class="btn bg" onclick="exportPastCSV()">📥 Export All CSV</button><button class="btn bp" onclick="openCloseSprint()">🔄 Close Sprint →</button></div></div>`+velChart+trendHTML+
+  el.innerHTML=`<div class="ph"><div><h1>📚 Past Sprints</h1><p class="sub">${past.length} sprint${past.length!==1?'s':''} completed</p></div><button class="btn bp" onclick="openCloseSprint()">🔄 Close Sprint →</button></div>`+
     past.map(s=>{
       const rate=s.stats.total?Math.round(s.stats.done/s.stats.total*100):0;
       const rateColor=rate>=70?'var(--done)':rate>=40?'#fbbf24':'var(--block)';
       const goals=s.goals||[];
       const doneGoals=goals.filter(g=>g.status==='done').length;
-      const retro=s.retro;
-      const retroHTML=retro&&(retro.well||retro.change||retro.energy)?`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:6px;">${retro.well?`<span>🏆 ${esc(retro.well.slice(0,60))}</span>`:''}${retro.change?`<span>· 🔄 ${esc(retro.change.slice(0,50))}</span>`:''}${retro.energy?`<span>· ⚡ ${retro.energy}/5</span>`:''}</div>`:'';
       return`<div class="psp-card">
         <div class="psp-header">
           <div><div class="psp-name">${esc(s.name)}</div><div class="psp-dates">${fd(s.start)} – ${fd(s.end)} · archived ${fd(s.closedAt)}</div></div>
           <div class="psp-rate" style="color:${rateColor};">${rate}%</div>
         </div>
         <div class="psp-stats">${s.stats.done}/${s.stats.total} tasks done${goals.length?` · ${doneGoals}/${goals.length} goals completed`:''}</div>
-        ${goals.length?`<div class="psp-goals">${goals.map(g=>`<div class="psp-goal"><span>${g.status==='done'?'✅':'⬜'}</span><span class="psp-goal-txt">${esc(g.title)}</span><span class="psp-goal-pillar">${PILLARS[g.pillar]?.e||''}</span></div>`).join('')}</div>`:''}
-        ${retroHTML}</div>`;
+        ${goals.length?`<div class="psp-goals">${goals.map(g=>`<div class="psp-goal"><span>${g.status==='done'?'✅':'⬜'}</span><span class="psp-goal-txt">${esc(g.title)}</span><span class="psp-goal-pillar">${PILLARS[g.pillar]?.e||''}</span></div>`).join('')}</div>`:''}</div>`;
     }).join('');
 }
 
@@ -1350,126 +835,10 @@ function renderPastSprints(){
 function closeM(id){document.getElementById(id).classList.add('hidden');editId=null;}
 document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',function(e){if(e.target===this){this.classList.add('hidden');editId=null;}}));
 document.addEventListener('keydown',e=>{
-  // Cmd/Ctrl+Enter: submit the open modal
-  if((e.metaKey||e.ctrlKey)&&e.key==='Enter'){
-    const openModal=document.querySelector('.mo:not(.hidden)');
-    if(openModal){
-      e.preventDefault();
-      const id=openModal.id;
-      if(id==='tm')saveTask();
-      else if(id==='sm')saveSprint();
-      else if(id==='nsm')confirmNewSprint();
-    }
-    return;
-  }
-  if(e.key==='Escape'){
-    document.querySelectorAll('.mo:not(.hidden)').forEach(m=>m.classList.add('hidden'));
-    editId=null;
-    closeSearch();
-    return;
-  }
-  if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openSearch();return;}
-  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA'||e.target.tagName==='SELECT')return;
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
   if(e.key==='n')openAdd();
-  if(e.key==='g')openAdd(PILLARS[curView]?curView:'growth','current',true);
-  if(e.key==='t')nav('focus');
-  if(e.key==='?')document.getElementById('shortcut-help').classList.remove('hidden');
-  if(e.key==='b')nav('backlog');
-  if(e.key==='p')nav('past');
-  if(e.key==='1')nav('growth');
-  if((e.metaKey||e.ctrlKey)&&e.key==='1'){e.preventDefault();window.location.href='index.html';}
-  if(e.key==='2')nav('nonprofits');
-  if(e.key==='3')nav('product');
-  if(e.key==='4')nav('execution');
-  if(e.key==='5')nav('ops');
-  if(e.key==='q')openQuickCapture();
+  if(e.key==='Escape'){document.querySelectorAll('.mo:not(.hidden)').forEach(m=>m.classList.add('hidden'));editId=null;}
 });
-
-// ── SEARCH ────────────────────────────────────────────────────────
-function openSearch(){
-  document.getElementById('search-modal').classList.remove('hidden');
-  const inp=document.getElementById('srch-inp');
-  inp.value='';
-  document.getElementById('srch-results').innerHTML='<div class="srch-empty">Start typing to search all tasks</div>';
-  inp.focus();
-}
-function closeSearch(){
-  document.getElementById('search-modal').classList.add('hidden');
-}
-function renderSearchResults(q){
-  const query=q.trim().toLowerCase();
-  if(!query){document.getElementById('srch-results').innerHTML='<div class="srch-empty">Start typing to search all tasks</div>';return;}
-  const results=S.tasks.filter(t=>t.title.toLowerCase().includes(query)||(t.notes||'').toLowerCase().includes(query));
-  if(!results.length){document.getElementById('srch-results').innerHTML='<div class="srch-empty">No tasks found</div>';return;}
-  document.getElementById('srch-results').innerHTML=results.slice(0,20).map(t=>{
-    const P=PILLARS[t.pillar]||{e:'',l:t.pillar};
-    const sprintLabel=t.sprint==='current'?`<span style="font-size:10px;color:var(--accent);">Sprint</span>`:`<span style="font-size:10px;color:var(--muted);">Backlog</span>`;
-    return`<div class="srch-item" onclick="openEdit('${t.id}')">
-      <span style="font-size:16px;">${P.e}</span>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(t.title)}</div>
-        <div style="display:flex;gap:6px;align-items:center;margin-top:2px;">
-          ${sprintLabel}
-          <span class="badge ${STATUS[t.status]?.cls||'st-todo'}" style="font-size:9px;">${STATUS[t.status]?.l||'Todo'}</span>
-          <span style="font-size:10px;color:${P.hex||'var(--muted)'};">${P.l}</span>
-        </div>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-// ── CSV EXPORT ────────────────────────────────────────────────────
-function exportCSV(){
-  const ct=curTasks();
-  const escC=v=>`"${(v||'').toString().replace(/"/g,'""')}"`;
-  const rows=[['Title','Pillar','Status','Priority','Assignee','Due Date','Is Goal','Notes']];
-  ct.forEach(t=>rows.push([escC(t.title),escC(PILLARS[t.pillar]?.l||t.pillar),escC(t.status),escC(t.priority),escC(t.assignee),escC(t.dueDate||''),escC(t.isGoal?'Yes':'No'),escC(t.notes)]));
-  const csv=rows.map(r=>r.join(',')).join('\n');
-  const blob=new Blob([csv],{type:'text/csv'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=`givelink-${S.sprint.name.replace(/[^a-z0-9]/gi,'-').toLowerCase()}.csv`;
-  a.click();URL.revokeObjectURL(a.href);
-}
-function exportPastCSV(){
-  const archived=S.tasks.filter(t=>t.sprint==='archived');
-  const escC=v=>`"${(v||'').toString().replace(/"/g,'""')}"`;
-  const rows=[['Sprint','Title','Pillar','Status','Priority','Assignee','Due Date','Is Goal','Notes']];
-  const past=S.pastSprints||[];
-  archived.forEach(t=>{
-    const sp=past.find(s=>s.id===t.archivedSprintId);
-    rows.push([escC(sp?.name||''),escC(t.title),escC(PILLARS[t.pillar]?.l||t.pillar),escC(t.status),escC(t.priority),escC(t.assignee),escC(t.dueDate||''),escC(t.isGoal?'Yes':'No'),escC(t.notes)]);
-  });
-  if(rows.length===1){toast('No archived sprint data yet.');return;}
-  const csv=rows.map(r=>r.join(',')).join('\n');
-  const blob=new Blob([csv],{type:'text/csv'});
-  const a=document.createElement('a');
-  a.href=URL.createObjectURL(blob);
-  a.download=`givelink-past-sprints.csv`;
-  a.click();URL.revokeObjectURL(a.href);
-}
-
-// ── AUTOMATIONS ───────────────────────────────────────────────────
-// Run after every task status change to fire smart rules
-function runAutomations(changedTask){
-  // Rule 1: Auto-complete goal when all linked tasks are done
-  if(changedTask.goalId&&changedTask.status==='done'){
-    const goal=S.tasks.find(t=>t.id===changedTask.goalId);
-    if(goal&&goal.status!=='done'){
-      const linked=S.tasks.filter(t=>t.goalId===goal.id&&!t.isGoal&&t.sprint==='current');
-      if(linked.length>0&&linked.every(t=>t.status==='done')){
-        goal.status='done';
-        goal.completedAt=new Date().toISOString();
-        toast(`🎯 Goal auto-completed: "${goal.title.slice(0,40)}…" ✅`,3000);
-      }
-    }
-  }
-  // Rule 2: Alert when a task becomes blocked
-  if(changedTask.status==='blocked'){
-    const blocked=curTasks().filter(t=>t.status==='blocked').length;
-    toast(`🔴 ${blocked} task${blocked!==1?'s':''} blocked in this sprint`,2500);
-  }
-}
 
 // ── SEED ─────────────────────────────────────────────────────────
 function seed(){
@@ -1477,7 +846,7 @@ function seed(){
   const now=new Date().toISOString();
   const mk=(title,pillar,sprint,status,pri,isGoal,target,current,notes,assignee)=>({
     id:uid(),title,notes:notes||'',pillar,sprint,status,priority:pri,
-    target:target||null,current:current||0,assignee:assignee||'',isGoal:!!isGoal,goalId:null,
+    target:target||null,current:current||0,assignee:assignee||'',isGoal:!!isGoal,
     createdAt:now,completedAt:status==='done'?now:null
   });
   S.tasks=[
@@ -1665,26 +1034,17 @@ function seed(){
 
 // ── AI SPRINT PLANNER ─────────────────────────────────────────────
 function getApiKey(){
-  // 1. Key saved directly in Givelink sprint settings
-  const direct=localStorage.getItem('givelink_api_key');
-  if(direct)return direct;
-  // 2. Key saved in Task OS state (claudeKey field)
-  try{const tos=JSON.parse(localStorage.getItem('taskos')||'null');if(tos?.claudeKey)return tos.claudeKey;}catch(e){}
-  // 3. Key from a Task OS profile
+  // Try to find key from a Task OS profile's data
   try{
     const profiles=JSON.parse(localStorage.getItem('taskos_profiles')||'[]');
     for(const p of profiles){
       const d=JSON.parse(localStorage.getItem('taskos_data_'+p.id)||'null');
-      if(d?.claudeKey)return d.claudeKey;
-      if(d?.apiKey)return d.apiKey;
+      if(d&&d.apiKey)return d.apiKey;
     }
   }catch(e){}
-  // 4. Shared fallback key
-  const shared=localStorage.getItem('taskos_api_key');
-  if(shared)return shared;
-  // 5. Prompt as last resort
-  const k=prompt('Enter your Anthropic API key (or save it in Sprint Settings):');
-  if(k){localStorage.setItem('givelink_api_key',k);}
+  // Fall back to shared key
+  let k=localStorage.getItem('taskos_api_key');
+  if(!k){k=prompt('Enter your Anthropic API key:');if(k)localStorage.setItem('taskos_api_key',k);}
   return k||null;
 }
 
@@ -1711,25 +1071,17 @@ async function runAiSprintPlanner(){
     return `${PILLARS[k].l}: ${d}/${tasks.length} done`;
   }).join(', ');
   const blSample=bl.slice(0,40).map(t=>`[${t.pillar}] ${t.title}`).join('\n');
-  const stalledGoals=ct.filter(t=>t.isGoal&&t.status!=='done').filter(g=>!ct.some(t=>t.goalId===g.id&&!t.isGoal));
-  const blockedTasks=ct.filter(t=>t.status==='blocked'&&!t.isGoal);
-  const stalledStr=stalledGoals.length?`\nStalled goals (no linked tasks yet):\n${stalledGoals.map(g=>`- ${g.title} [${g.pillar}]`).join('\n')}`:'';
-  const blockedStr=blockedTasks.length?`\nBlocked tasks needing unblocking:\n${blockedTasks.map(t=>`- ${t.title} [${t.pillar}]`).join('\n')}`:'';
 
   const prompt=`You are a sprint planning assistant for Givelink, a platform connecting donors to nonprofits.
 
 Current sprint: "${S.sprint.name}" (${S.sprint.start} to ${S.sprint.end})
 Sprint completion: ${done}/${ct.length} tasks done
-Pillar breakdown: ${pillarStats}${stalledStr}${blockedStr}
+Pillar breakdown: ${pillarStats}
 
 Backlog tasks (top ${Math.min(bl.length,40)} of ${bl.length}):
 ${blSample}
 
-Based on the data above, suggest exactly 10 high-impact tasks for the next sprint. PRIORITIZE tasks that:
-1. Are linked to in-progress goals with 0 linked tasks (those goals are stalled)
-2. Unblock blocked tasks
-3. Move the lowest-completion pillars forward
-Balance across pillars (growth, nonprofits, product, execution, ops). For each task, provide:
+Based on the current sprint completion and backlog, suggest exactly 10 high-impact tasks for the next sprint, balanced across pillars (growth, nonprofits, product, execution, ops). For each task, provide:
 - A clear, actionable title (max 80 chars)
 - The pillar it belongs to (one of: growth, nonprofits, product, execution, ops)
 - Priority (high, medium, or low)
@@ -1770,7 +1122,6 @@ Respond ONLY with a JSON array of 10 objects, each with keys: title, pillar, pri
 }
 
 let _aiSuggestions=[];
-let _goalBreakdowns={};
 function renderAiSuggestions(suggestions){
   _aiSuggestions=suggestions;
   document.getElementById('ai-sprint-body').innerHTML=`
@@ -1802,7 +1153,7 @@ function addSuggestedSprintTasks(){
       S.tasks.push({
         id:uid(),title:t.title,notes:'',pillar:t.pillar||'execution',
         sprint:'backlog',status:'todo',priority:t.priority||'medium',
-        target:null,current:0,assignee:'',isGoal:false,dueDate:null,goalId:null,
+        target:null,current:0,assignee:'',isGoal:false,
         createdAt:new Date().toISOString(),completedAt:null
       });
       added++;
@@ -1810,92 +1161,6 @@ function addSuggestedSprintTasks(){
   });
   if(added){save();refresh();toast(`Added ${added} task${added!==1?'s':''} to Backlog ✅`);}
   closeM('ai-sprint-modal');
-}
-
-// ── AI GOAL BREAKDOWN ─────────────────────────────────────────────
-async function aiGoalBreakdown(goalId){
-  const goal=S.tasks.find(t=>t.id===goalId);
-  if(!goal)return;
-  const apiKey=getApiKey();
-  if(!apiKey){toast('API key required for AI breakdown.');return;}
-  const container=document.getElementById('ai-breakdown-'+goalId);
-  if(!container)return;
-  // Toggle off if already open and not loading
-  if(container.style.display!=='none'&&!container.dataset.loading){
-    container.style.display='none';
-    return;
-  }
-  container.dataset.loading='1';
-  container.style.display='block';
-  container.innerHTML=`<div style="text-align:center;padding:14px 0;color:var(--muted);font-size:12px;">🤖 Breaking down goal into tasks...</div>`;
-  const existing=S.tasks.filter(t=>t.goalId===goalId&&!t.isGoal).map(t=>t.title);
-  const prompt=`You are a task breakdown specialist. Break this goal into 5–8 concrete, actionable tasks.
-
-Goal: "${goal.title}"
-${goal.notes?`Context: "${goal.notes}"`:''}
-${existing.length?`Already linked tasks: ${existing.join(', ')}`:''}
-
-Respond ONLY with a JSON array of objects, each with keys: "title" (string, max 80 chars), "priority" ("high", "medium", or "low"), "notes" (string, optional short context). No markdown, no explanation, just the JSON array.`;
-  try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-opus-4-5',max_tokens:1024,messages:[{role:'user',content:prompt}]})
-    });
-    if(!res.ok){const err=await res.text();throw new Error(err);}
-    const data=await res.json();
-    const raw=data.content[0].text.trim();
-    let suggestions;
-    try{suggestions=JSON.parse(raw);}
-    catch(e){const m=raw.match(/\[[\s\S]*\]/);if(m)suggestions=JSON.parse(m[0]);else throw new Error('Could not parse response');}
-    delete container.dataset.loading;
-    _goalBreakdowns[goalId]=suggestions;
-    container.innerHTML=`
-      <div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px;margin-top:4px;">
-        <div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px;">🤖 AI Suggested Tasks (select to add)</div>
-        <div style="display:flex;flex-direction:column;gap:5px;">
-          ${suggestions.map((t,i)=>{
-            const priCls=t.priority==='high'?'pri-high':t.priority==='low'?'pri-low':'pri-med';
-            return`<label style="display:flex;align-items:flex-start;gap:8px;padding:7px 8px;background:var(--bg);border:1px solid var(--border);border-radius:6px;cursor:pointer;">
-              <input type="checkbox" id="aig-${goalId}-${i}" checked style="margin-top:2px;accent-color:var(--accent);">
-              <div style="flex:1;">
-                <div style="font-size:12px;font-weight:500;">${esc(t.title)}</div>
-                ${t.notes?`<div style="font-size:11px;color:var(--muted);margin-top:2px;">${esc(t.notes)}</div>`:''}
-                <span class="badge ${priCls}" style="font-size:10px;margin-top:3px;">${t.priority||'medium'}</span>
-              </div>
-            </label>`;
-          }).join('')}
-        </div>
-        <div style="display:flex;gap:6px;margin-top:8px;">
-          <button class="btn bp sm" onclick="addGoalBreakdownTasks('${goalId}')">+ Add Selected</button>
-          <button class="btn sm" onclick="document.getElementById('ai-breakdown-${goalId}').style.display='none'" style="background:var(--s2);border:1px solid var(--border);">✕ Close</button>
-        </div>
-      </div>`;
-  }catch(e){
-    delete container.dataset.loading;
-    container.innerHTML=`<div style="color:#ef4444;font-size:12px;padding:8px;">Error: ${esc(e.message||'Unknown error')}</div>`;
-  }
-}
-function addGoalBreakdownTasks(goalId){
-  const goal=S.tasks.find(t=>t.id===goalId);
-  if(!goal)return;
-  const suggestions=_goalBreakdowns[goalId]||[];
-  if(!suggestions.length){toast('No suggestions available.');return;}
-  let added=0;
-  suggestions.forEach((t,i)=>{
-    const cb=document.getElementById('aig-'+goalId+'-'+i);
-    if(cb&&cb.checked){
-      S.tasks.push({
-        id:uid(),title:t.title,notes:t.notes||'',pillar:goal.pillar,
-        sprint:'current',status:'todo',priority:t.priority||'medium',
-        target:null,current:0,assignee:'',isGoal:false,dueDate:null,goalId:goalId,
-        createdAt:new Date().toISOString(),completedAt:null
-      });
-      added++;
-    }
-  });
-  if(added){save();refresh();toast(`Added ${added} task${added!==1?'s':''} linked to goal ✅`);}
-  else toast('No tasks selected.');
 }
 
 // ── TASK OS SYNC ──────────────────────────────────────────────────
@@ -1946,296 +1211,506 @@ function syncToTaskOS(){
   toast(`Synced ${synced} task${synced!==1?'s':''} to Task OS${profile.name?' ('+profile.name+')':''} 🔗`,3000);
 }
 
+// ════════════════════════════════════════════════════════════════
+// SHARED AI UTILITY
+// ════════════════════════════════════════════════════════════════
+async function callClaudeGL(prompt,maxTokens=800,model='claude-haiku-4-5-20251001'){
+  let k=localStorage.getItem('taskos_api_key');
+  if(!k){
+    try{const p=JSON.parse(localStorage.getItem('taskos')||'{}');k=p.claudeKey||'';}catch(e){}
+  }
+  if(!k){k=window.prompt('Enter Anthropic API key:');if(k)localStorage.setItem('taskos_api_key',k);}
+  if(!k){toast('API key required');return null;}
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      body:JSON.stringify({model,max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await res.json();
+    return data.content?.[0]?.text||null;
+  }catch(e){toast('AI error: '+e.message);return null;}
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 1 — NONPROFIT CRM
+// ════════════════════════════════════════════════════════════════
+const CRM_STAGES=['lead','contacted','meeting','proposal','won','lost'];
+const CRM_STAGE_LABEL={lead:'Lead',contacted:'Contacted',meeting:'Meeting',proposal:'Proposal',won:'Won ✅',lost:'Lost'};
+const CRM_STAGE_COLOR={lead:'#64748b',contacted:'#60a5fa',meeting:'#fbbf24',proposal:'#a78bfa',won:'#22c55e',lost:'#ef4444'};
+
+function seedNonprofits(){
+  if((S.nonprofits||[]).length)return;
+  S.nonprofits=[
+    {id:uid(),name:"St. Anthony Foundation",contactName:"Development Team",contactTitle:"",contactEmail:"",city:"San Francisco, CA",mission:"Providing food, shelter and services to those in need in San Francisco",estimatedPeople:2000,stage:'won',lastActivityAt:new Date(Date.now()-3*86400000).toISOString(),lastActivityNote:"Materials sent, onboarded",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()},
+    {id:uid(),name:"SF Safehouse",contactName:"Programs Director",contactTitle:"Director",contactEmail:"",city:"San Francisco, CA",mission:"Supporting survivors of domestic violence in San Francisco",estimatedPeople:500,stage:'won',lastActivityAt:new Date(Date.now()-5*86400000).toISOString(),lastActivityNote:"Social media coordination active",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()},
+    {id:uid(),name:"Edgewood",contactName:"Development Lead",contactTitle:"",contactEmail:"",city:"San Francisco, CA",mission:"Supporting children and families with mental health and education services",estimatedPeople:1200,stage:'meeting',lastActivityAt:new Date(Date.now()-8*86400000).toISOString(),lastActivityNote:"Products to add, follow-up needed",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()},
+    {id:uid(),name:"Swords to Plowshares",contactName:"Executive Director",contactTitle:"Executive Director",contactEmail:"",city:"San Francisco, CA",mission:"Providing legal services and support to veterans",estimatedPeople:800,stage:'contacted',lastActivityAt:new Date(Date.now()-12*86400000).toISOString(),lastActivityNote:"Materials sent",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()},
+    {id:uid(),name:"Quo",contactName:"Contact",contactTitle:"",contactEmail:"",city:"US",mission:"Nonprofit community platform",estimatedPeople:300,stage:'meeting',lastActivityAt:new Date(Date.now()-2*86400000).toISOString(),lastActivityNote:"Apollo onboarding in progress",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()},
+    {id:uid(),name:"Exelixi Zois",contactName:"Team",contactTitle:"",contactEmail:"",city:"Greece",mission:"Life development and empowerment programs",estimatedPeople:400,stage:'won',lastActivityAt:new Date(Date.now()-6*86400000).toISOString(),lastActivityNote:"Social media photos coordinated",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()}
+  ];
+  save();
+}
+
+function daysSinceCRM(np){
+  if(!np.lastActivityAt)return 999;
+  return Math.floor((Date.now()-new Date(np.lastActivityAt))/86400000);
+}
+
+function renderCRM(){
+  if(!S.nonprofits)S.nonprofits=[];
+  seedNonprofits();
+  const el=document.getElementById('v-crm');if(!el)return;
+  const nps=S.nonprofits;
+  const won=nps.filter(n=>n.stage==='won');
+  const active=nps.filter(n=>n.stage!=='lost'&&n.stage!=='won');
+  const overdue=nps.filter(n=>daysSinceCRM(n)>7&&n.stage!=='lost');
+  const totalPeople=won.reduce((s,n)=>s+(n.estimatedPeople||500),0);
+
+  const statBar=`<div class="crm-stat-bar">
+    <div class="crm-stat"><div class="sn">${nps.length}</div><div class="sl">Tracked</div></div>
+    <div class="crm-stat"><div class="sn" style="color:#22c55e;">${won.length}</div><div class="sl">Won</div></div>
+    <div class="crm-stat"><div class="sn" style="color:#fbbf24;">${active.length}</div><div class="sl">In Pipeline</div></div>
+    <div class="crm-stat"><div class="sn" style="color:#ef4444;">${overdue.length}</div><div class="sl">Need Follow-up</div></div>
+    <div class="crm-stat"><div class="sn" style="color:#22c55e;">${totalPeople.toLocaleString()}</div><div class="sl">Est. People</div></div>
+  </div>`;
+
+  const kanban=`<div class="crm-kanban">${CRM_STAGES.map(stage=>{
+    const cards=nps.filter(n=>n.stage===stage);
+    const stageColor=CRM_STAGE_COLOR[stage];
+    return`<div class="crm-col">
+      <div class="crm-col-hdr"><span style="color:${stageColor};">${CRM_STAGE_LABEL[stage]}</span><span style="background:${stageColor}22;color:${stageColor};border-radius:10px;padding:1px 6px;">${cards.length}</span></div>
+      ${cards.map(np=>{
+        const d=daysSinceCRM(np);
+        const isOverdue=d>7&&stage!=='won'&&stage!=='lost';
+        const ageColor=d<=3?'#22c55e':d<=7?'#fbbf24':'#ef4444';
+        return`<div class="crm-card${isOverdue?' overdue':''}" onclick="openEditNP('${np.id}')">
+          <div class="crm-card-name">${esc(np.name)}</div>
+          <div class="crm-card-sub">${esc(np.city||'')}</div>
+          ${np.contactName?`<div class="crm-card-sub">👤 ${esc(np.contactName)}</div>`:''}
+          <div style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap;">
+            <span class="crm-card-age" style="background:${ageColor}22;color:${ageColor};">${d<999?d+'d ago':'new'}</span>
+            ${stage!=='won'&&stage!=='lost'?`<button class="btn bg" style="font-size:9px;padding:2px 6px;" onclick="event.stopPropagation();openOutreachGenerator('${np.id}')">✉️ Draft</button>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }).join('')}</div>`;
+
+  el.innerHTML=`<div class="ph">
+    <div><h1>🏢 Nonprofit CRM</h1><p class="sub">${nps.length} organizations tracked</p></div>
+    <button class="btn bp" onclick="openAddNP()">+ Add Org</button>
+  </div>
+  ${statBar}
+  ${kanban}`;
+  updateCRMSidebarCount();
+}
+
+let editNpId=null;
+function openAddNP(){
+  editNpId=null;
+  _showNPModal({name:'',contactName:'',contactTitle:'',contactEmail:'',city:'',mission:'',stage:'lead',estimatedPeople:0,lastActivityNote:''});
+}
+function openEditNP(id){
+  editNpId=id;
+  const np=S.nonprofits.find(n=>n.id===id);if(!np)return;
+  _showNPModal(np);
+}
+function _showNPModal(np){
+  let m=document.getElementById('np-modal');
+  if(!m){
+    m=document.createElement('div');m.id='np-modal';m.className='mo hidden';
+    m.innerHTML=`<div class="md" style="max-width:520px;">
+      <div class="mh"><h3 id="npm-title">Add Nonprofit</h3><button class="mc" onclick="closeM('np-modal')">×</button></div>
+      <div class="fg"><label>Organization Name *</label><input class="fc" id="np-name" placeholder="St. Anthony Foundation"></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="fg"><label>Contact Name</label><input class="fc" id="np-contact" placeholder="Jane Smith"></div>
+        <div class="fg"><label>Title</label><input class="fc" id="np-title-field" placeholder="Executive Director"></div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="fg"><label>Email</label><input class="fc" id="np-email" placeholder="jane@org.org" type="email"></div>
+        <div class="fg"><label>City</label><input class="fc" id="np-city" placeholder="San Francisco, CA"></div>
+      </div>
+      <div class="fg"><label>Mission (1 sentence)</label><textarea class="fc" id="np-mission" rows="2" placeholder="What does this org do?"></textarea></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <div class="fg"><label>Pipeline Stage</label><select class="fc" id="np-stage">${CRM_STAGES.map(s=>`<option value="${s}">${CRM_STAGE_LABEL[s]}</option>`).join('')}</select></div>
+        <div class="fg"><label>Est. People Served</label><input class="fc" id="np-people" type="number" placeholder="500" min="0"></div>
+      </div>
+      <div class="fg"><label>Latest Activity Note</label><input class="fc" id="np-note" placeholder="e.g. Sent intro email, awaiting reply"></div>
+      <div class="mf" style="display:flex;gap:8px;justify-content:space-between;">
+        <div>${editNpId?`<button class="btn bd" onclick="deleteNP()">Delete</button>`:''}</div>
+        <div style="display:flex;gap:8px;">
+          ${editNpId?`<button class="btn bg" onclick="logActivityNP()">📝 Log Activity</button>
+          <button class="btn bg" onclick="advanceStageNP()">→ Next Stage</button>`:''}
+          <button class="btn bp" onclick="saveNP()">Save</button>
+        </div>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+  }
+  document.getElementById('npm-title').textContent=editNpId?'Edit Nonprofit':'Add Nonprofit';
+  document.getElementById('np-name').value=np.name||'';
+  document.getElementById('np-contact').value=np.contactName||'';
+  document.getElementById('np-title-field').value=np.contactTitle||'';
+  document.getElementById('np-email').value=np.contactEmail||'';
+  document.getElementById('np-city').value=np.city||'';
+  document.getElementById('np-mission').value=np.mission||'';
+  document.getElementById('np-stage').value=np.stage||'lead';
+  document.getElementById('np-people').value=np.estimatedPeople||'';
+  document.getElementById('np-note').value=np.lastActivityNote||'';
+  m.classList.remove('hidden');
+}
+function saveNP(){
+  const name=document.getElementById('np-name').value.trim();
+  if(!name){toast('Name required');return;}
+  const d={
+    name,contactName:document.getElementById('np-contact').value.trim(),
+    contactTitle:document.getElementById('np-title-field').value.trim(),
+    contactEmail:document.getElementById('np-email').value.trim(),
+    city:document.getElementById('np-city').value.trim(),
+    mission:document.getElementById('np-mission').value.trim(),
+    stage:document.getElementById('np-stage').value,
+    estimatedPeople:parseInt(document.getElementById('np-people').value)||0,
+    lastActivityNote:document.getElementById('np-note').value.trim(),
+    lastActivityAt:new Date().toISOString()
+  };
+  if(editNpId){
+    const i=S.nonprofits.findIndex(n=>n.id===editNpId);
+    if(i>=0)S.nonprofits[i]={...S.nonprofits[i],...d};
+  } else {
+    S.nonprofits.push({id:uid(),...d,activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()});
+  }
+  save();closeM('np-modal');renderCRM();renderImpactWidget();toast('✅ Saved!');
+}
+function deleteNP(){
+  if(!editNpId||!confirm('Delete this org?'))return;
+  S.nonprofits=S.nonprofits.filter(n=>n.id!==editNpId);
+  save();closeM('np-modal');renderCRM();renderImpactWidget();
+}
+function logActivityNP(){
+  if(!editNpId)return;
+  const note=window.prompt('Log activity (what happened?):');
+  if(!note)return;
+  const np=S.nonprofits.find(n=>n.id===editNpId);if(!np)return;
+  np.lastActivityNote=note;
+  np.lastActivityAt=new Date().toISOString();
+  if(!np.activityLog)np.activityLog=[];
+  np.activityLog.push({date:new Date().toISOString(),note});
+  document.getElementById('np-note').value=note;
+  save();toast('📝 Activity logged');
+}
+function advanceStageNP(){
+  if(!editNpId)return;
+  const np=S.nonprofits.find(n=>n.id===editNpId);if(!np)return;
+  const i=CRM_STAGES.indexOf(np.stage);
+  if(i<CRM_STAGES.length-1){
+    const prevPeople=calcTotalImpact();
+    np.stage=CRM_STAGES[i+1];
+    np.lastActivityAt=new Date().toISOString();
+    if(!np.activityLog)np.activityLog=[];
+    np.activityLog.push({date:new Date().toISOString(),note:`Moved to ${CRM_STAGE_LABEL[np.stage]}`});
+    save();
+    const newPeople=calcTotalImpact();
+    checkImpactMilestone(prevPeople,newPeople);
+    document.getElementById('np-stage').value=np.stage;
+    toast(`→ Moved to ${CRM_STAGE_LABEL[np.stage]}`);
+  } else {toast('Already at final stage');}
+}
+function updateCRMSidebarCount(){
+  const overdue=(S.nonprofits||[]).filter(n=>daysSinceCRM(n)>7&&n.stage!=='lost'&&n.stage!=='won').length;
+  const el=document.getElementById('cnt-crm');
+  if(el)el.textContent=overdue||'';
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 2 — DAILY STANDUP GENERATOR
+// ════════════════════════════════════════════════════════════════
+function openStandup(){
+  let m=document.getElementById('standup-modal');
+  if(!m){
+    m=document.createElement('div');m.id='standup-modal';m.className='mo hidden';
+    m.innerHTML=`<div class="md" style="max-width:500px;">
+      <div class="mh"><h3>📋 Daily Standup</h3><button class="mc" onclick="closeM('standup-modal')">×</button></div>
+      <div id="standup-body" style="background:var(--s2);border-radius:8px;padding:14px;font-size:13px;line-height:1.7;min-height:100px;white-space:pre-wrap;">⏳ Generating...</div>
+      <div class="mf" style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">
+        <button class="btn bg" onclick="generateStandup()">↺ Regenerate</button>
+        <button class="btn bp" onclick="copyStandup()">📋 Copy</button>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+  }
+  m.classList.remove('hidden');
+  generateStandup();
+}
+async function generateStandup(){
+  const body=document.getElementById('standup-body');
+  body.textContent='⏳ Generating...';
+  const now=new Date();
+  const yesterday=new Date(now);yesterday.setDate(now.getDate()-2);yesterday.setHours(6,0,0,0);
+  const doneYest=curTasks().filter(t=>t.status==='done'&&t.completedAt&&new Date(t.completedAt)>=yesterday);
+  const todayPlan=curTasks().filter(t=>t.status==='in-progress'||t.status==='todo').sort((a,b)=>(b.priority==='high'?1:-1)-(a.priority==='high'?1:-1)).slice(0,5);
+  const blocked=curTasks().filter(t=>t.status==='blocked');
+  const prompt=`Generate a daily standup for Panos, founder of Givelink (B2B SaaS helping nonprofits manage Amazon wishlist donations + donor matching).
+
+YESTERDAY COMPLETED:
+${doneYest.length?doneYest.map(t=>`- [${t.pillar}] ${t.title}`).join('\n'):'- Nothing completed yet'}
+
+TODAY PLANNED:
+${todayPlan.map(t=>`- [${t.pillar}] ${t.title} (${t.status})`).join('\n')||'- No active tasks'}
+
+BLOCKED:
+${blocked.length?blocked.map(t=>`- ${t.title}${t.notes?': '+t.notes.slice(0,60):''}`).join('\n'):'- No blockers'}
+
+Write a standup in EXACTLY this format:
+Yesterday: [2-3 sentence summary of what was accomplished]
+Today: [2-3 sentence summary of today's focus]
+Blockers: [1 sentence or "None"]
+
+Be specific, reference task names. Max 100 words total. Human tone.`;
+  const text=await callClaudeGL(prompt,200);
+  if(text){
+    body.textContent=text;
+    body._text=text;
+  } else {
+    body.textContent='Could not generate. Check your API key.';
+  }
+}
+function copyStandup(){
+  const body=document.getElementById('standup-body');
+  const text=body._text||body.textContent;
+  navigator.clipboard.writeText(text).then(()=>toast('📋 Copied to clipboard!')).catch(()=>{
+    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('📋 Copied!');
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 3 — SPRINT VELOCITY MONITOR + GOAL ETA
+// ════════════════════════════════════════════════════════════════
+function calcSprintVelocity(){
+  const start=new Date(S.sprint.start);
+  const end=new Date(S.sprint.end);
+  const now=new Date();
+  const daysTotal=Math.max(1,Math.ceil((end-start)/86400000));
+  const daysElapsed=Math.max(1,Math.ceil((Math.min(now,end)-start)/86400000));
+  const daysLeft=Math.max(0,Math.ceil((end-now)/86400000));
+  const ct=curTasks();
+  const done=ct.filter(t=>t.status==='done').length;
+  const total=ct.length||1;
+  const tasksPerDay=done/daysElapsed;
+  const projectedDone=Math.round(tasksPerDay*daysTotal);
+  const onTrack=projectedDone>=total*0.75;
+  const etaDays=tasksPerDay>0?Math.ceil((total-done)/tasksPerDay):null;
+  return{daysElapsed,daysLeft,daysTotal,done,total,tasksPerDay,projectedDone,onTrack,etaDays};
+}
+function renderVelocityStats(){
+  const el=document.getElementById('ov-stats');if(!el)return;
+  const v=calcSprintVelocity();
+  const pctDone=Math.round(v.done/v.total*100);
+  const trackColor=v.onTrack?'#22c55e':'#ef4444';
+  const trackLabel=v.onTrack?'On Track':'Behind';
+  const etaLabel=v.etaDays!=null?`~${v.etaDays}d to clear`:'Sprint complete';
+  el.innerHTML+=`<div class="sc2"><div class="sn2" style="color:${v.tasksPerDay>=1?'#22c55e':'#fbbf24'}">${v.tasksPerDay.toFixed(1)}</div><div class="sl2">tasks/day</div></div>
+  <div class="sc2"><div class="sn2" style="color:${trackColor}">${trackLabel}</div><div class="sl2">${etaLabel}</div></div>`;
+}
+function goalEtaChip(t){
+  if(!t.target||!t.current||t.current<=0)return t.current===0?'<span style="font-size:10px;color:var(--muted);">⏸ No progress yet</span>':'';
+  const v=calcSprintVelocity();
+  const daysElapsed=v.daysElapsed;
+  const ratePerDay=t.current/daysElapsed;
+  const remaining=t.target-t.current;
+  if(ratePerDay<=0)return'<span style="font-size:10px;color:#ef4444;">⏸ Stalled</span>';
+  const etaDays=Math.ceil(remaining/ratePerDay);
+  const color=etaDays<=v.daysLeft?'#22c55e':'#ef4444';
+  return`<span style="font-size:10px;color:${color};font-weight:600;">🏁 ~${etaDays}d at current pace</span>`;
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 4 — IMPACT COUNTER WIDGET
+// ════════════════════════════════════════════════════════════════
+const IMPACT_MILESTONES=[10000,50000,100000,500000,1000000];
+function calcTotalImpact(){
+  return(S.nonprofits||[]).filter(n=>n.stage==='won').reduce((s,n)=>s+(n.estimatedPeople||500),0);
+}
+function renderImpactWidget(){
+  const el=document.getElementById('impact-widget');if(!el)return;
+  if(!S.nonprofits||!S.nonprofits.length){el.innerHTML='';return;}
+  const total=calcTotalImpact();
+  const goal=1000000;
+  const pct=Math.min(100,total/goal*100);
+  const nextMilestone=IMPACT_MILESTONES.find(m=>m>total)||goal;
+  const toNext=nextMilestone-total;
+  el.innerHTML=`<div class="impact-widget">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <span style="font-size:13px;font-weight:700;color:#22c55e;">🌍 People Impacted</span>
+      <span style="font-size:11px;color:var(--muted);">${toNext.toLocaleString()} to next milestone (${nextMilestone.toLocaleString()})</span>
+    </div>
+    <div style="font-size:28px;font-weight:800;color:#22c55e;line-height:1;">${total.toLocaleString()}</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">estimated people reached through won nonprofits · goal: 1,000,000</div>
+    <div class="impact-bar"><div class="impact-bar-fill" style="width:${Math.max(pct,0.5)}%;"></div></div>
+    <div style="font-size:10px;color:var(--muted);">${pct.toFixed(2)}% of 1M mission</div>
+  </div>`;
+}
+function checkImpactMilestone(prev,next){
+  const crossed=IMPACT_MILESTONES.filter(m=>m>prev&&m<=next);
+  crossed.forEach(m=>toast(`🎉 Milestone: ${m.toLocaleString()} people impacted! Keep going.`,5000));
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 5 — AI OUTREACH EMAIL GENERATOR
+// ════════════════════════════════════════════════════════════════
+function openOutreachGenerator(npId){
+  const np=S.nonprofits.find(n=>n.id===npId);if(!np)return;
+  let m=document.getElementById('outreach-modal');
+  if(!m){
+    m=document.createElement('div');m.id='outreach-modal';m.className='mo hidden';
+    m.innerHTML=`<div class="md" style="max-width:520px;">
+      <div class="mh"><h3 id="out-title">✉️ Outreach Draft</h3><button class="mc" onclick="closeM('outreach-modal')">×</button></div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:10px;" id="out-meta"></div>
+      <div id="out-body" style="background:var(--s2);border-radius:8px;padding:14px;font-size:13px;line-height:1.7;min-height:120px;white-space:pre-wrap;">⏳ Generating email...</div>
+      <div class="mf" style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">
+        <button class="btn bg" id="out-regen" onclick="">↺ Regenerate</button>
+        <button class="btn bp" id="out-copy" onclick="">📋 Copy</button>
+      </div>
+    </div>`;
+    document.body.appendChild(m);
+  }
+  document.getElementById('out-title').textContent=`✉️ Outreach — ${np.name}`;
+  document.getElementById('out-meta').textContent=`${np.contactName||'Contact'}${np.contactTitle?' · '+np.contactTitle:''} · ${np.city||''}`;
+  document.getElementById('out-regen').onclick=()=>generateOutreach(npId);
+  document.getElementById('out-copy').onclick=()=>{
+    const t=document.getElementById('out-body')._text||document.getElementById('out-body').textContent;
+    navigator.clipboard.writeText(t).then(()=>toast('📋 Copied!')).catch(()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('📋 Copied!');});
+    const np2=S.nonprofits.find(n=>n.id===npId);if(np2){np2.outreachDraft=t;np2.outreachDraftAt=new Date().toISOString();save();}
+  };
+  m.classList.remove('hidden');
+  if(np.outreachDraft){
+    document.getElementById('out-body').textContent=np.outreachDraft;
+    document.getElementById('out-body')._text=np.outreachDraft;
+  } else {
+    generateOutreach(npId);
+  }
+}
+async function generateOutreach(npId){
+  const np=S.nonprofits.find(n=>n.id===npId);if(!np)return;
+  const body=document.getElementById('out-body');
+  body.textContent='⏳ Generating email...';
+  const isCold=np.stage==='lead'||np.stage==='contacted';
+  const prompt=`Write a ${isCold?'cold outreach':'follow-up'} email from Panos Evangelou, co-founder of Givelink (givelink.io).
+
+Givelink helps nonprofits create Amazon wishlists that donors can fund directly — free for nonprofits, with 60% donor retention. Already partnering with St. Anthony Foundation in San Francisco.
+
+TARGET:
+- Organization: ${np.name}
+- Contact: ${np.contactName||'Team'}${np.contactTitle?', '+np.contactTitle:''}
+- City: ${np.city||'US'}
+- Mission: ${np.mission||'nonprofit organization'}
+- Pipeline stage: ${CRM_STAGE_LABEL[np.stage]||np.stage}
+- Previous interaction: ${np.lastActivityNote||'first contact'}
+
+Rules:
+1. Open with one specific, genuine reference to their mission (not generic praise)
+2. Explain Givelink value in ONE sentence
+3. Single CTA: 20-minute discovery call
+4. Under 150 words
+5. Human, warm, founder-to-founder tone — no corporate language
+
+Format:
+Subject: [subject line]
+
+[email body]`;
+  const text=await callClaudeGL(prompt,350,'claude-haiku-4-5-20251001');
+  if(text){
+    body.textContent=text;
+    body._text=text;
+    np.outreachDraft=text;np.outreachDraftAt=new Date().toISOString();
+    save();
+  } else {body.textContent='Could not generate. Check your API key.';}
+}
+
+// ── PWA — INSTALL + UPDATE ────────────────────────────────────────
+let _installPrompt=null;
+function initPWA(){
+  if(localStorage.getItem('gl_pwa_dismissed'))return;
+  const isInstalled=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone;
+  if(isInstalled)return;
+  const isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent)&&!window.MSStream;
+  if(isIOS){
+    if(!localStorage.getItem('gl_ios_shown')){
+      setTimeout(()=>{
+        const b=document.getElementById('install-banner');
+        document.getElementById('install-ios-hint').style.display='';
+        b.style.display='block';
+        localStorage.setItem('gl_ios_shown','1');
+      },3000);
+    }
+    return;
+  }
+  window.addEventListener('beforeinstallprompt',e=>{
+    e.preventDefault();_installPrompt=e;
+    setTimeout(()=>{
+      const b=document.getElementById('install-banner');
+      document.getElementById('install-btn').style.display='block';
+      b.style.display='block';
+    },3000);
+  });
+}
+function triggerInstall(){
+  if(!_installPrompt)return;
+  _installPrompt.prompt();
+  _installPrompt.userChoice.then(()=>{
+    _installPrompt=null;
+    document.getElementById('install-banner').style.display='none';
+    localStorage.setItem('gl_pwa_dismissed','1');
+  });
+}
+function showUpdateBanner(){
+  const b=document.getElementById('update-banner');
+  if(b)b.style.display='flex';
+}
+
 // ── MOBILE ────────────────────────────────────────────────────────
 function toggleSB(){
   document.querySelector('.sb').classList.toggle('open');
   document.getElementById('sb-ov').classList.toggle('open');
 }
 
-// ── GOAL METRIC PULSE ────────────────────────────────────────────
-let _gmGoalId=null;
-function _goalMetricBadge(t){
-  const m=t.metric;
-  if(!m||!m.name)return'📊';
-  const entries=m.entries||[];
-  if(entries.length<2)return'📊 '+esc(m.name);
-  const last=entries[entries.length-1].value;
-  const prev=entries[entries.length-2].value;
-  const tgt=m.target||0;
-  let arrow='→';
-  if(tgt>0){
-    const lastDist=Math.abs(tgt-last),prevDist=Math.abs(tgt-prev);
-    if(lastDist<prevDist)arrow='↑';
-    else if(lastDist>prevDist)arrow='↓';
-  } else {
-    if(last>prev)arrow='↑';
-    else if(last<prev)arrow='↓';
-  }
-  const color=arrow==='↑'?'color:#22c55e':arrow==='↓'?'color:#ef4444':'color:#fbbf24';
-  return`📊 <span style="${color};font-weight:700;">${arrow}</span>`;
-}
-function _goalMetricRow(t){
-  const m=t.metric;
-  if(!m||!m.name)return'';
-  const entries=m.entries||[];
-  const latest=entries.length?entries[entries.length-1].value:null;
-  const tgt=m.target;
-  const pct=tgt&&latest!=null?Math.min(100,Math.round(latest/tgt*100)):null;
-  const P=PILLARS[t.pillar]||{hex:'var(--accent)'};
-  if(latest==null)return`<div style="font-size:11px;color:var(--muted);margin-top:6px;">📊 ${esc(m.name)} — no data yet</div>`;
-  return`<div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
-      <span style="font-size:11px;font-weight:700;">📊 ${esc(m.name)}</span>
-      <span style="font-size:11px;color:var(--muted);">${latest}${m.unit?' '+m.unit:''}${tgt?' / '+tgt+(m.unit?' '+m.unit:''):''}</span>
-    </div>
-    ${pct!=null?`<div style="height:4px;background:var(--border);border-radius:2px;"><div style="height:100%;border-radius:2px;background:${P.hex};width:${pct}%;transition:width .3s;"></div></div>`:''}
-  </div>`;
-}
-function openGoalMetric(id){
-  const t=S.tasks.find(x=>x.id===id);if(!t)return;
-  _gmGoalId=id;
-  const m=t.metric||{};
-  document.getElementById('gm-goal-title').textContent='📊 '+t.title;
-  document.getElementById('gm-name').value=m.name||'';
-  document.getElementById('gm-unit').value=m.unit||'';
-  document.getElementById('gm-target').value=m.target||'';
-  document.getElementById('gm-value').value='';
-  const entries=m.entries||[];
-  document.getElementById('gm-history').innerHTML=entries.length?
-    '<div style="font-weight:600;margin-bottom:4px;">History:</div>'+
-    entries.slice(-5).reverse().map(e=>`<div style="display:flex;justify-content:space-between;padding:2px 0;"><span>${e.date}</span><span style="font-weight:600;">${e.value}${m.unit?' '+m.unit:''}</span></div>`).join('')
-    :'No entries yet.';
-  document.getElementById('goal-metric-modal').classList.remove('hidden');
-}
-function saveGoalMetric(){
-  const t=S.tasks.find(x=>x.id===_gmGoalId);if(!t)return;
-  const name=document.getElementById('gm-name').value.trim();
-  const unit=document.getElementById('gm-unit').value.trim();
-  const target=parseFloat(document.getElementById('gm-target').value)||null;
-  const val=document.getElementById('gm-value').value;
-  if(!name){toast('Enter a metric name.');return;}
-  if(!t.metric)t.metric={name,unit,target,entries:[]};
-  t.metric.name=name;t.metric.unit=unit;t.metric.target=target;
-  if(val!==''){
-    const today=new Date().toISOString().slice(0,10);
-    // Replace today's entry if exists, else push
-    const idx=t.metric.entries.findIndex(e=>e.date===today);
-    if(idx>=0)t.metric.entries[idx].value=parseFloat(val);
-    else t.metric.entries.push({date:today,value:parseFloat(val)});
-  }
-  save();closeM('goal-metric-modal');refresh();
-  toast('Metric saved ✅');
-}
-
-// ── DAILY FOCUS ────────────────────────────────────────────────
-function renderFocus(){
-  if(!S.focusTasks)S.focusTasks=[];
-  const pinned=S.focusTasks.map(id=>S.tasks.find(t=>t.id===id)).filter(Boolean);
-  const suggestions=curTasks().filter(t=>
-    !t.isGoal&&t.status!=='done'&&t.priority==='high'&&!S.focusTasks.includes(t.id)
-  ).slice(0,8);
-  const today=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
-  document.getElementById('focus-sub').textContent=today+' · '+pinned.length+'/3 tasks pinned';
-  document.getElementById('focus-pinned').innerHTML=pinned.length?
-    pinned.map(t=>_focusTaskHTML(t,true)).join('')+
-    '<div style="font-size:11px;color:var(--muted);margin-top:6px;">Click ✕ to unpin. Click task to edit.</div>'
-    :'<div class="empty" style="padding:16px;">No tasks pinned yet — pin from suggestions below or from any pillar view.</div>';
-  document.getElementById('focus-suggestions').innerHTML=suggestions.length?
-    suggestions.map(t=>_focusTaskHTML(t,false)).join('')
-    :'<div class="empty" style="padding:16px;">No high-priority active tasks found.</div>';
-  // Wins
-  const wins=(S.wins||[]).slice(-5).reverse();
-  document.getElementById('focus-wins-list').innerHTML=wins.length?
-    wins.map(w=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);"><span style="color:#fbbf24;">🏆</span><span style="flex:1;font-size:12px;">${esc(w.text)}</span><span style="font-size:10px;color:var(--muted);">${w.date}</span></div>`).join('')
-    :'<div class="empty" style="padding:12px;">Log your first win above!</div>';
-}
-function _focusTaskHTML(t,pinned){
-  const P=PILLARS[t.pillar]||{hex:'var(--muted)',e:''};
-  const priColor=t.priority==='high'?'#ef4444':t.priority==='low'?'#64748b':'#fbbf24';
-  return`<div class="tc2" style="border-left:3px solid ${priColor};margin-bottom:6px;">
-    <div class="ck2 ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')"></div>
-    <div class="tb2" style="cursor:pointer;" onclick="openEdit('${t.id}')">
-      <div class="tt2 ${t.status==='done'?'done-t':''}">${esc(t.title)}</div>
-      <div class="tm2"><span style="font-size:10px;color:${P.hex};">${P.e} ${P.l}</span></div>
-    </div>
-    ${pinned
-      ?`<button style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:2px 4px;" onclick="unpinFocus('${t.id}')" title="Unpin">✕</button>`
-      :`<button class="btn bg sm" style="font-size:10px;padding:2px 6px;" onclick="pinFocus('${t.id}')" ${S.focusTasks?.length>=3?'disabled title="Max 3"':''}>Pin</button>`
-    }
-  </div>`;
-}
-function pinFocus(id){
-  if(!S.focusTasks)S.focusTasks=[];
-  if(S.focusTasks.length>=3){toast('Max 3 focus tasks.');return;}
-  if(!S.focusTasks.includes(id))S.focusTasks.push(id);
-  save();if(curView==='focus')renderFocus();
-  toast('Pinned to Focus ✅');
-}
-function unpinFocus(id){
-  if(!S.focusTasks)return;
-  S.focusTasks=S.focusTasks.filter(x=>x!==id);
-  save();if(curView==='focus')renderFocus();
-}
-
-// ── WIN LOG ────────────────────────────────────────────────────
-function logWin(){
-  const inp=document.getElementById('focus-win-inp');
-  const text=(inp?.value||'').trim();
-  if(!text){toast('Type your win first!');return;}
-  if(!S.wins)S.wins=[];
-  S.wins.push({date:new Date().toISOString().slice(0,10),text});
-  inp.value='';
-  save();
-  if(curView==='focus')renderFocus();
-  if(curView==='overview')refresh();
-  toast('🏆 Win logged!');
-}
-function openWinInput(){
-  nav('focus');
-  setTimeout(()=>{const i=document.getElementById('focus-win-inp');if(i){i.focus();}},100);
-}
-
-// ── BLOCKED HELPERS ────────────────────────────────────────────
-function toggleBlockedPanel(){
-  const p=document.getElementById('blocked-panel');
-  const ic=document.getElementById('blocked-toggle-icon');
-  if(!p)return;
-  const hidden=p.style.display==='none';
-  p.style.display=hidden?'block':'none';
-  if(ic)ic.textContent=hidden?'▲ collapse':'▼ expand';
-}
-function unblockTask(id){
-  const t=S.tasks.find(x=>x.id===id);if(!t)return;
-  t.status='in-progress';
-  save();refresh();toast('Task unblocked → In Progress');
-}
-
-// ── OVERVIEW GOALS COUNT ────────────────────────────────────────
-function _updateGoalsCount(){
-  const el=document.getElementById('ov-goals-count');
-  if(!el)return;
-  const goals=curTasks().filter(t=>t.isGoal);
-  const done=goals.filter(t=>t.status==='done').length;
-  el.textContent=goals.length?done+'/'+goals.length+' goals achieved':'';
-}
-
-// ── GOAL CONFIDENCE ──────────────────────────────────────────────
-function setGoalConfidence(id,level){
-  const t=S.tasks.find(x=>x.id===id);
-  if(!t)return;
-  t.confidence=t.confidence===level?null:level;
-  save();refresh();
-}
-
-// ── QUICK CAPTURE ─────────────────────────────────────────────────
-function openQuickCapture(){
-  const el=document.getElementById('quick-capture');
-  el.style.display='flex';
-  document.getElementById('qc-inp').value='';
-  document.getElementById('qc-inp').focus();
-}
-function handleQC(e){
-  if(e.key==='Escape'){document.getElementById('quick-capture').style.display='none';return;}
-  if(e.key!=='Enter')return;
-  e.preventDefault();
-  const val=document.getElementById('qc-inp').value.trim();
-  if(!val)return;
-  const pillarMap={'@growth':'growth','@np':'nonprofits','@product':'product','@exec':'execution','@ops':'ops'};
-  let pillar='growth',title=val,priority='medium';
-  Object.entries(pillarMap).forEach(([tag,p])=>{if(title.includes(tag)){pillar=p;title=title.replace(tag,'').trim();}});
-  if(title.includes('#high')){priority='high';title=title.replace('#high','').trim();}
-  if(title.includes('#low')){priority='low';title=title.replace('#low','').trim();}
-  S.tasks.push({id:uid(),title,notes:'',pillar,sprint:'backlog',status:'todo',priority,target:null,current:0,assignee:'',isGoal:false,goalId:null,role:'owner',dependsOn:[],createdAt:new Date().toISOString(),completedAt:null});
-  save();refresh();
-  toast(`⚡ "${title}" → ${pillar} backlog`);
-  document.getElementById('quick-capture').style.display='none';
-}
-
-async function autoFillRetro(){
-  const btn=document.getElementById('retro-ai-btn');
-  if(btn){btn.textContent='⏳ Thinking...';btn.disabled=true;}
-  const ct=curTasks();
-  const done=ct.filter(t=>t.status==='done');
-  const blocked=ct.filter(t=>t.status==='blocked');
-  const donePct=ct.length?Math.round(done.length/ct.length*100):0;
-  const topBlocked=blocked.slice(0,3).map(t=>t.title).join(', ')||'none';
-  const topWins=done.slice(0,5).map(t=>t.title).join(', ')||'none completed';
-  const goals=ct.filter(t=>t.isGoal);
-  const goalsD=goals.filter(t=>t.status==='done').length;
-  const prompt=`Sprint retrospective for a Givelink (B2B SaaS for nonprofits) founder sprint:
-- Completion rate: ${donePct}% (${done.length}/${ct.length} tasks)
-- Goals achieved: ${goalsD}/${goals.length}
-- Top completed: ${topWins}
-- Blocked tasks: ${topBlocked}
-
-Write 4 short retrospective entries (1-2 sentences each):
-1. WENT_WELL: what went well this sprint
-2. BLOCKED: what was blocked or slowed things down
-3. CHANGE: one process improvement for next sprint
-4. ENERGY: just output a number 1-5 based on the sprint intensity (5=peak, 1=burnout)
-
-Format exactly as:
-WENT_WELL: ...
-BLOCKED: ...
-CHANGE: ...
-ENERGY: N`;
-  const apiKey=getApiKey();
-  if(!apiKey){if(btn){btn.textContent='🤖 Auto-fill with AI';btn.disabled=false;}return;}
-  try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:300,messages:[{role:'user',content:prompt}]})});
-    const data=await res.json();
-    const text=data.content?.[0]?.text||'';
-    const get=(key)=>{const m=text.match(new RegExp(key+':\\s*(.+)'));return m?m[1].trim():'';};
-    const well=get('WENT_WELL'),blocked=get('BLOCKED'),change=get('CHANGE'),energy=get('ENERGY');
-    if(well)document.getElementById('retro-well').value=well;
-    if(blocked)document.getElementById('retro-blocked').value=blocked;
-    if(change)document.getElementById('retro-change').value=change;
-    if(energy&&['1','2','3','4','5'].includes(energy))document.getElementById('retro-energy').value=energy;
-    toast('✅ Retro auto-filled!');
-  }catch(e){toast('AI error: '+e.message);}
-  if(btn){btn.textContent='🤖 Auto-fill with AI';btn.disabled=false;}
-}
-
-// ── DAILY STANDUP GENERATOR ───────────────────────────────────────
-async function generateStandup(){
-  const apiKey=getApiKey();
-  if(!apiKey)return;
-  const ct=curTasks();
-  const today=new Date().toISOString().slice(0,10);
-  const doneToday=ct.filter(t=>t.completedAt?.slice(0,10)===today).map(t=>t.title);
-  const inProg=ct.filter(t=>t.status==='in-progress'&&!t.isGoal).map(t=>t.title).slice(0,5);
-  const blocked=ct.filter(t=>t.status==='blocked').map(t=>t.title);
-  const p=`Generate a brief async standup message for a startup founder:\nYesterday completed: ${doneToday.join(', ')||'nothing marked done today'}\nCurrently working on: ${inProg.join(', ')}\nBlockers: ${blocked.join(', ')||'none'}\n\nWrite 3 bullet points: Yesterday / Today / Blockers. Keep it under 80 words total. Be specific and action-oriented. No filler words.`;
-  toast('⏳ Generating standup...');
-  try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:300,messages:[{role:'user',content:p}]})
-    });
-    const data=await res.json();
-    const text=data.content?.[0]?.text||'Could not generate.';
-    showStandupModal(text);
-  }catch(e){toast('Error: '+e.message);}
-}
-function showStandupModal(text){
-  let m=document.getElementById('standup-modal');
-  if(!m){
-    m=document.createElement('div');
-    m.className='mo';
-    m.id='standup-modal';
-    m.innerHTML=`<div class="md" style="max-width:480px;"><div class="mh"><h3>📋 Daily Standup</h3><button class="mc" onclick="closeM('standup-modal')">×</button></div><div id="standup-body" style="background:var(--s2);border-radius:8px;padding:14px;font-size:13px;line-height:1.7;white-space:pre-wrap;min-height:80px;"></div><div class="mf"><button class="btn bg" onclick="closeM('standup-modal')">Close</button><button class="btn bp" onclick="navigator.clipboard.writeText(document.getElementById('standup-body').textContent);toast('Copied!')">📋 Copy</button></div></div>`;
-    document.body.appendChild(m);
-  }
-  document.getElementById('standup-body').textContent=text;
-  m.classList.remove('hidden');
-}
-
 // ── INIT ─────────────────────────────────────────────────────────
 load();seed();
 renderSprintBar();updateSidebar();
 renderOverview();
-if('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('./sw.js').then(reg=>{
+    reg.addEventListener('updatefound',()=>{
+      const nw=reg.installing;
+      nw.addEventListener('statechange',()=>{
+        if(nw.state==='activated')showUpdateBanner();
+      });
+    });
+  });
+  let _swRefreshing=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(_swRefreshing)return;_swRefreshing=true;showUpdateBanner();
+  });
+}
+initPWA();
 </script>
+
+<!-- UPDATE BANNER -->
+<div id="update-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:9999;background:#22c55e;color:#000;padding:10px 16px;align-items:center;justify-content:center;gap:12px;font-size:13px;font-weight:700;box-shadow:0 2px 12px rgba(0,0,0,.3);">
+  ✨ App updated!
+  <button onclick="window.location.reload()" style="background:#000;color:#22c55e;border:none;border-radius:6px;padding:4px 12px;font-size:12px;font-weight:700;cursor:pointer;">Reload now</button>
+  <button onclick="this.parentElement.style.display='none'" style="background:none;border:none;color:#000;font-size:18px;cursor:pointer;line-height:1;margin-left:4px;">×</button>
+</div>
+
+<!-- INSTALL BANNER -->
+<div id="install-banner" style="display:none;position:fixed;bottom:70px;right:16px;z-index:1200;background:var(--sf);border:1px solid var(--accent);border-radius:12px;padding:14px 16px;max-width:260px;box-shadow:0 4px 24px rgba(0,0,0,.4);">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+    <span style="font-size:13px;font-weight:700;">📱 Install as App</span>
+    <button onclick="document.getElementById('install-banner').style.display='none';localStorage.setItem('gl_pwa_dismissed','1')" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;">×</button>
+  </div>
+  <div id="install-ios-hint" style="display:none;font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px;">Tap the <strong>Share</strong> button (⬆️) then <strong>"Add to Home Screen"</strong></div>
+  <button id="install-btn" style="display:none;width:100%;background:var(--accent);color:#0d1117;border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;" onclick="triggerInstall()">Add to Home Screen</button>
+</div>
+
 </body>
 </html>

@@ -1,4 +1,4 @@
-const CACHE = 'task-os-20260413-174350';
+const CACHE = 'task-os-20260419-190847';
 const STATIC = [
   './manifest.json',
   './manifest-givelink.json',

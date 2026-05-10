@@ -19,6 +19,13 @@
   --q1:#ff6b6b;--q2:#69db7c;--q3:#ffa94d;--q4:#868e96;
   --cg:#cc5de8;--cf:#ffa94d;--ca:#22d3ee;--ch:#ff6b6b;--cr:#69db7c;--cl:#74c0fc;--cb:#f783ac;--co:#868e96;
 }
+body.light{
+  --bg:#f5f5f0;--surface:#ffffff;--surface2:#f0f0eb;--border:#e0ddd8;
+  --text:#1a1a1a;--muted:#6b7280;--accent:#2563eb;
+  --bw:#dc2626;--bm:#d97706;--bb:#16a34a;--bs:#2563eb;--bi:#9333ea;
+  --q1:#dc2626;--q2:#16a34a;--q3:#d97706;--q4:#6b7280;
+  --cg:#9333ea;--cf:#d97706;--ca:#0891b2;--ch:#dc2626;--cr:#16a34a;--cl:#2563eb;--cb:#db2777;--co:#6b7280;
+}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden;}
 /* SIDEBAR */
 .sidebar{width:210px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 0;flex-shrink:0;}
@@ -1125,6 +1132,10 @@ Read 50 books this year"></textarea>
       <label>Your Name (used in greeting)</label>
       <input class="fc" id="set-name" placeholder="e.g. Panos">
     </div>
+    <div class="fg" style="display:flex;align-items:center;justify-content:space-between;">
+      <label style="margin:0;">Theme</label>
+      <button id="theme-toggle-btn" onclick="toggleTheme()" style="display:flex;align-items:center;gap:7px;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:13px;font-weight:500;transition:all .15s;"></button>
+    </div>
     <div class="fg"><label>Claude API Key (for AI features)</label><input class="fc" id="set-claude-key" type="password" placeholder="sk-ant-api03-..."></div>
     <div class="fg">
       <label>About Me <span style="font-weight:400;color:var(--muted);">— used to personalize AI suggestions</span></label>
@@ -1528,6 +1539,23 @@ const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c',
 let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[]};
 let editT=null,editG=null,fCat='all';
 let profileName=localStorage.getItem('taskos_name')||'Panos';
+
+// ── THEME ─────────────────────────────────────────────────────
+function applyTheme(light){
+  document.body.classList.toggle('light',light);
+  const mc=document.querySelector('meta[name="theme-color"]');
+  if(mc)mc.content=light?'#f5f5f0':'#58a6ff';
+  const sb=document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+  if(sb)sb.content=light?'default':'black-translucent';
+  const btn=document.getElementById('theme-toggle-btn');
+  if(btn)btn.innerHTML=light?'🌙 Switch to Dark':'☀️ Switch to Light';
+}
+function toggleTheme(){
+  const next=!document.body.classList.contains('light');
+  localStorage.setItem('taskos_theme',next?'light':'dark');
+  applyTheme(next);
+}
+(function initTheme(){applyTheme(localStorage.getItem('taskos_theme')==='light');})();
 
 // ── PERSIST ───────────────────────────────────────────────────
 function save(){localStorage.setItem('taskos',JSON.stringify(S));}
@@ -4525,6 +4553,7 @@ function openSettings(){
   document.getElementById('set-readwise-key').value=localStorage.getItem('taskos_readwise_key')||'';
   document.getElementById('set-notion-key').value=localStorage.getItem('taskos_notion_key')||'';
   document.getElementById('set-notion-page').value=localStorage.getItem('taskos_notion_page')||'';
+  applyTheme(document.body.classList.contains('light'));
   document.getElementById('set-m').classList.remove('hidden');
 }
 function saveSettings(){

@@ -693,6 +693,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div class="ph" style="margin-bottom:16px;">
     <div><h1>🏅 Wins</h1><p class="sub">Every victory worth remembering</p></div>
     <div class="row" style="gap:6px;">
+      <button class="btn bg sm" onclick="openPasteImport('wins')">📋 Paste</button>
       <button class="btn bg sm" onclick="aiSuggestWins()">✨ AI Reflect</button>
       <button class="btn bp" onclick="openAddWin()">+ Log Win</button>
     </div>
@@ -707,6 +708,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div class="ph" style="margin-bottom:16px;">
     <div><h1>🌍 Bucket List</h1><p class="sub">Things to do before you die</p></div>
     <div class="row" style="gap:6px;">
+      <button class="btn bg sm" onclick="openPasteImport('bucketlist')">📋 Paste</button>
       <button class="btn bg sm" onclick="aiSuggestBucket()">✨ AI Suggest</button>
       <button class="btn bp" onclick="openAddBucket()">+ Add Item</button>
     </div>
@@ -729,6 +731,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div class="ph" style="margin-bottom:16px;">
     <div><h1>🛒 Wishlist</h1><p class="sub">Tools, gear & things worth buying</p></div>
     <div class="row" style="gap:6px;">
+      <button class="btn bg sm" onclick="openPasteImport('wishlist')">📋 Paste</button>
       <button class="btn bg sm" onclick="aiSuggestWishlist()">✨ AI Suggest</button>
       <button class="btn bp" onclick="openAddWish()">+ Add Item</button>
     </div>
@@ -751,6 +754,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div class="ph" style="margin-bottom:16px;">
     <div><h1>🚀 Projects</h1><p class="sub">Things you've built or want to build</p></div>
     <div class="row" style="gap:6px;">
+      <button class="btn bg sm" onclick="openPasteImport('projects')">📋 Paste</button>
       <button class="btn bg sm" onclick="aiSuggestProjects()">✨ AI Suggest</button>
       <button class="btn bp" onclick="openAddProject()">+ Add Project</button>
     </div>
@@ -766,6 +770,39 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
     <div id="proj-ai-list" class="ai-sugg-list" style="width:100%;"></div>
   </div>
   <div id="proj-list"></div>
+</div>
+
+<!-- ── PASTE IMPORT MODAL ─────────────────────────────────────── -->
+<div id="paste-import-modal" class="mo hidden">
+  <div class="md" style="max-width:520px;">
+    <div class="mh">
+      <div>
+        <span style="font-size:16px;font-weight:700;" id="paste-import-title">📋 Paste Import</span>
+        <div style="font-size:11px;color:var(--muted);margin-top:2px;">One item per line. Claude will auto-categorize if you have an API key.</div>
+      </div>
+      <button class="mc" onclick="closeModal('paste-import-modal')">×</button>
+    </div>
+    <div class="fg">
+      <label>Paste your list</label>
+      <textarea class="fc" id="paste-import-text" rows="10" placeholder="e.g.
+Hike the Camino de Santiago
+Learn to surf
+Build a profitable SaaS
+See the Northern Lights
+Read 50 books this year"></textarea>
+    </div>
+    <div id="paste-import-preview" style="margin-bottom:12px;display:none;">
+      <div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">Preview (<span id="paste-count">0</span> items)</div>
+      <div id="paste-preview-list" style="max-height:180px;overflow-y:auto;"></div>
+    </div>
+    <input type="hidden" id="paste-import-target">
+    <div class="mf" style="flex-wrap:wrap;gap:6px;">
+      <button class="btn bg" onclick="closeModal('paste-import-modal')" style="margin-right:auto;">Cancel</button>
+      <button class="btn bg sm" onclick="previewPasteImport()" id="paste-parse-btn">👁 Preview</button>
+      <button class="btn bg sm" onclick="aiCategorizePaste()" id="paste-ai-btn">✨ AI Categorize</button>
+      <button class="btn bp" onclick="confirmPasteImport()" id="paste-confirm-btn" style="display:none;">+ Import All</button>
+    </div>
+  </div>
 </div>
 
 <!-- ── WIN MODAL ─────────────────────────────────────────────── -->
@@ -1089,6 +1126,10 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
       <input class="fc" id="set-name" placeholder="e.g. Panos">
     </div>
     <div class="fg"><label>Claude API Key (for AI features)</label><input class="fc" id="set-claude-key" type="password" placeholder="sk-ant-api03-..."></div>
+    <div class="fg">
+      <label>About Me <span style="font-weight:400;color:var(--muted);">— used to personalize AI suggestions</span></label>
+      <textarea class="fc" id="set-about" rows="3" placeholder="e.g. I'm a software engineer interested in productivity, startups, and fitness. I like building tools and learning new skills. I value deep work and long-term thinking."></textarea>
+    </div>
     <hr>
     <p style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">🔌 Integrations</p>
     <div class="fg"><label>Readwise Token <a href="https://readwise.io/access_token" target="_blank" style="color:var(--accent);font-size:10px;margin-left:4px;">get token ↗</a></label><input class="fc" id="set-readwise-key" type="password" placeholder="Paste your Readwise access token"></div>
@@ -4480,6 +4521,7 @@ function renderHistoryView(){
 function openSettings(){
   document.getElementById('set-name').value=profileName;
   document.getElementById('set-claude-key').value=S.claudeKey||'';
+  document.getElementById('set-about').value=localStorage.getItem('taskos_about')||'';
   document.getElementById('set-readwise-key').value=localStorage.getItem('taskos_readwise_key')||'';
   document.getElementById('set-notion-key').value=localStorage.getItem('taskos_notion_key')||'';
   document.getElementById('set-notion-page').value=localStorage.getItem('taskos_notion_page')||'';
@@ -4490,6 +4532,8 @@ function saveSettings(){
   if(n){profileName=n;localStorage.setItem('taskos_name',n);document.title='Task OS — '+n;}
   const k=document.getElementById('set-claude-key').value.trim();
   S.claudeKey=k;save();
+  const ab=document.getElementById('set-about').value.trim();
+  if(ab)localStorage.setItem('taskos_about',ab); else localStorage.removeItem('taskos_about');
   const rw=document.getElementById('set-readwise-key').value.trim();
   if(rw)localStorage.setItem('taskos_readwise_key',rw); else localStorage.removeItem('taskos_readwise_key');
   const nk=document.getElementById('set-notion-key').value.trim();
@@ -4499,6 +4543,7 @@ function saveSettings(){
   closeM('set-m');renderDash();
   toast('Settings saved!');
 }
+function getAboutMe(){return localStorage.getItem('taskos_about')||'';}
 
 // ── KEYBOARD ──────────────────────────────────────────────────
 document.addEventListener('keydown',e=>{
@@ -5883,7 +5928,8 @@ function deleteWin(id){if(!confirm('Delete this win?'))return;S.wins=(S.wins||[]
 async function aiSuggestWins(){
   const wins=(S.wins||[]).slice(-10).map(w=>w.title).join(', ');
   const goals=(S.goals||[]).slice(0,5).map(g=>g.title).join(', ');
-  const prompt=`Based on these recent wins: ${wins||'none yet'}\nAnd these goals: ${goals||'none set'}\n\nWrite a short, motivating reflection (3-4 sentences) on the progress and patterns you see. Be specific and personal. Then suggest 2 areas where the user might look for their next win.`;
+  const about=getAboutMe();
+  const prompt=`${about?`About this person: ${about}\n\n`:''}Based on these recent wins: ${wins||'none yet'}\nAnd these goals: ${goals||'none set'}\n\nWrite a short, motivating reflection (3-4 sentences) on the progress and patterns you see. Be specific and personal. Then suggest 2 areas where the user might look for their next win.`;
   const txt=await callClaude(prompt,600);
   if(txt)showAiOut('Your Win Reflection ✨',txt);
 }
@@ -5971,7 +6017,8 @@ async function aiSuggestBucket(){
   const existing=(S.bucketlist||[]).map(x=>x.title).join(', ');
   const goals=(S.goals||[]).map(g=>g.title).join(', ');
   const vals=(S.values||[]).join(', ');
-  const prompt=`Generate 6 bucket list items for someone with these values: ${vals||'growth, impact, experiences'}\nTheir current goals: ${goals||'none listed'}\nThey already have: ${existing||'nothing yet'}\n\nReturn ONLY a JSON array of objects with fields: title (string), cat (one of: travel,experience,skill,relationship,achievement,health,creative), why (one sentence why it matters). No markdown, no extra text.`;
+  const about=getAboutMe();
+  const prompt=`${about?`About this person: ${about}\n\n`:''}Generate 6 bucket list items for someone with these values: ${vals||'growth, impact, experiences'}\nTheir current goals: ${goals||'none listed'}\nThey already have: ${existing||'nothing yet'}\n\nMake suggestions feel personal and specific to who this person is — not generic travel clichés. Return ONLY a JSON array of objects with fields: title (string), cat (one of: travel,experience,skill,relationship,achievement,health,creative), why (one sentence why it matters). No markdown, no extra text.`;
   const txt=await callClaude(prompt,800);
   if(!txt)return;
   let items=[];
@@ -6068,7 +6115,8 @@ async function aiSuggestWishlist(){
   const projs=(S.projects||[]).map(p=>p.title).join(', ');
   const goals=(S.goals||[]).map(g=>g.title).join(', ');
   const existing=(S.wishlist||[]).map(x=>x.title).join(', ');
-  const prompt=`Suggest 6 useful things to buy for someone who:\n- Is working on projects: ${projs||'software/apps'}\n- Has goals: ${goals||'productivity and growth'}\n- Already wants: ${existing||'nothing listed'}\n\nFocus on tools, gear, or resources that genuinely improve productivity or quality of life. Return ONLY a JSON array with fields: title, cat (one of: tech,books,gear,home,health,clothing,other), why (one sentence), approxPrice (number in EUR, 0 if unknown). No markdown.`;
+  const about=getAboutMe();
+  const prompt=`${about?`About this person: ${about}\n\n`:''}Suggest 6 useful things to buy for someone who:\n- Is working on projects: ${projs||'software/apps'}\n- Has goals: ${goals||'productivity and growth'}\n- Already wants: ${existing||'nothing listed'}\n\nBe specific and opinionated — name actual products when possible. Focus on things that would genuinely level up this specific person. Return ONLY a JSON array with fields: title, cat (one of: tech,books,gear,home,health,clothing,other), why (one sentence), approxPrice (number in EUR, 0 if unknown). No markdown.`;
   const txt=await callClaude(prompt,800);
   if(!txt)return;
   let items=[];
@@ -6159,7 +6207,8 @@ async function aiSuggestProjects(){
   const existing=(S.projects||[]).map(p=>p.title+' ('+p.cat+')').join(', ');
   const goals=(S.goals||[]).map(g=>g.title).join(', ');
   const vals=(S.values||[]).join(', ');
-  const prompt=`Suggest 5 project ideas for a developer with:\n- Values: ${vals||'impact, growth'}\n- Goals: ${goals||'build useful things'}\n- Already built: ${existing||'nothing listed'}\n\nFocus on impactful, buildable projects. Return ONLY a JSON array with fields: title, desc (1-2 sentences), cat (one of: web,mobile,tool,ai,api,design,other), stack (comma-separated tech suggestions). No markdown.`;
+  const about=getAboutMe();
+  const prompt=`${about?`About this person: ${about}\n\n`:''}Suggest 5 project ideas for someone with:\n- Values: ${vals||'impact, growth'}\n- Goals: ${goals||'build useful things'}\n- Already built: ${existing||'nothing listed'}\n\nSuggestions should feel personally tailored — not generic "todo app" ideas. Focus on projects they'd actually be excited to build given who they are. Return ONLY a JSON array with fields: title, desc (1-2 sentences), cat (one of: web,mobile,tool,ai,api,design,other), stack (comma-separated tech suggestions). No markdown.`;
   const txt=await callClaude(prompt,900);
   if(!txt)return;
   let items=[];
@@ -6168,6 +6217,94 @@ async function aiSuggestProjects(){
   const list=document.getElementById('proj-ai-list');
   list.innerHTML=items.map(it=>`<div class="ai-sugg-item"><div style="flex:1;"><strong>${esc(it.title)}</strong>${it.desc?`<div style="font-size:12px;color:var(--muted);margin-top:2px;">${esc(it.desc)}</div>`:''} ${it.stack?`<div style="font-size:11px;color:var(--accent);margin-top:3px;">${esc(it.stack)}</div>`:''}</div><button class="ai-sugg-add" onclick="openAddProject('${esc(it.title).replace(/'/g,"\\'")}')">+ Add</button></div>`).join('');
   strip.style.display='flex';strip.style.flexWrap='wrap';
+}
+
+// ── PASTE IMPORT ──────────────────────────────────────────────────
+const PASTE_TITLES={wins:'🏅 Paste Wins',bucketlist:'🌍 Paste Bucket List',wishlist:'🛒 Paste Wishlist',projects:'🚀 Paste Projects'};
+let _pasteItems=[];
+
+function openPasteImport(target){
+  _pasteItems=[];
+  document.getElementById('paste-import-target').value=target;
+  document.getElementById('paste-import-title').textContent=PASTE_TITLES[target]||'📋 Paste Import';
+  document.getElementById('paste-import-text').value='';
+  document.getElementById('paste-import-preview').style.display='none';
+  document.getElementById('paste-confirm-btn').style.display='none';
+  document.getElementById('paste-import-modal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('paste-import-text').focus(),80);
+}
+
+function previewPasteImport(){
+  const raw=document.getElementById('paste-import-text').value;
+  const lines=raw.split('\n').map(l=>l.replace(/^[-•*\d.]+\s*/,'').trim()).filter(Boolean);
+  if(!lines.length)return toast('Paste some items first');
+  const target=document.getElementById('paste-import-target').value;
+  _pasteItems=lines.map(title=>_defaultItem(target,title));
+  _showPastePreview();
+}
+
+function _defaultItem(target,title){
+  const id=uid();
+  if(target==='wins') return{id,title,desc:'',cat:'personal',emoji:'🏅',date:new Date().toISOString().slice(0,10)};
+  if(target==='bucketlist') return{id,title,desc:'',cat:'experience',priority:'medium',year:null,done:false,doneAt:null};
+  if(target==='wishlist') return{id,title,desc:'',cat:'other',priority:'want',price:null,url:null,bought:false};
+  if(target==='projects') return{id,title,desc:'',status:'idea',cat:'other',stack:'',url:null,repo:null};
+  return{id,title};
+}
+
+function _showPastePreview(){
+  document.getElementById('paste-count').textContent=_pasteItems.length;
+  document.getElementById('paste-preview-list').innerHTML=_pasteItems.map((it,i)=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--surface2);border-radius:6px;margin-bottom:4px;">
+      <span style="flex:1;font-size:13px;">${esc(it.title)}</span>
+      ${it.cat?`<span class="badge" style="background:rgba(88,166,255,.1);color:var(--muted);">${it.cat}</span>`:''}
+      <button onclick="_removePasteItem(${i})" style="background:none;border:none;color:var(--muted);cursor:pointer;font-size:14px;padding:0 2px;">×</button>
+    </div>`).join('');
+  document.getElementById('paste-import-preview').style.display='block';
+  document.getElementById('paste-confirm-btn').style.display='inline-flex';
+}
+
+function _removePasteItem(i){
+  _pasteItems.splice(i,1);
+  if(!_pasteItems.length){document.getElementById('paste-import-preview').style.display='none';document.getElementById('paste-confirm-btn').style.display='none';}
+  else _showPastePreview();
+}
+
+async function aiCategorizePaste(){
+  const raw=document.getElementById('paste-import-text').value;
+  const lines=raw.split('\n').map(l=>l.replace(/^[-•*\d.]+\s*/,'').trim()).filter(Boolean);
+  if(!lines.length)return toast('Paste some items first');
+  if(!S.claudeKey)return toast('Add Claude API key in Settings for AI categorization');
+  const target=document.getElementById('paste-import-target').value;
+  const about=getAboutMe();
+  const schemas={
+    wins:'Each item: {title, cat (one of: work,personal,health,finance,learning,relationship), emoji (1 relevant emoji)}',
+    bucketlist:'Each item: {title, cat (one of: travel,experience,skill,relationship,achievement,health,creative), priority (one of: dream,high,medium)}',
+    wishlist:'Each item: {title, cat (one of: tech,books,gear,home,health,clothing,other), priority (one of: need,want,dream)}',
+    projects:'Each item: {title, desc (1 sentence), cat (one of: web,mobile,tool,ai,api,design,other), status (one of: idea,in-progress,shipped,archived), stack (comma-separated or empty string)}'
+  };
+  toast('AI categorizing…');
+  const prompt=`${about?`About this person: ${about}\n\n`:''}Categorize these ${target} items:\n${lines.map((l,i)=>`${i+1}. ${l}`).join('\n')}\n\nReturn ONLY a JSON array. ${schemas[target]||'Each item: {title}'}. Keep titles exactly as given. No markdown.`;
+  const txt=await callClaude(prompt,1000);
+  if(!txt)return;
+  let parsed=[];
+  try{const s=txt.replace(/```[\w]*\n?/g,'').trim();const j=s.match(/\[[\s\S]*\]/)?.[0];if(j)parsed=JSON.parse(j);}catch(e){toast('Could not parse AI response, showing raw preview');previewPasteImport();return;}
+  _pasteItems=parsed.map(it=>({..._defaultItem(target,it.title||''),...it,id:uid()}));
+  _showPastePreview();
+  toast('AI categorized '+_pasteItems.length+' items!');
+}
+
+function confirmPasteImport(){
+  if(!_pasteItems.length)return;
+  const target=document.getElementById('paste-import-target').value;
+  if(!S[target])S[target]=[];
+  S[target].push(..._pasteItems);
+  save();
+  closeModal('paste-import-modal');
+  const renders={wins:renderWins,bucketlist:renderBucketList,wishlist:renderWishlist,projects:renderProjects};
+  renders[target]?.();
+  toast('Imported '+_pasteItems.length+' items!');
+  _pasteItems=[];
 }
 
 // shared close helper (some modals use closeModal, some closeM — unify)

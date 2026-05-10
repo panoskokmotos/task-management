@@ -755,6 +755,11 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
     </div>
     <div class="fg"><label>Claude API Key (for AI features)</label><input class="fc" id="set-claude-key" type="password" placeholder="sk-ant-api03-..."></div>
     <hr>
+    <p style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">🔌 Integrations</p>
+    <div class="fg"><label>Readwise Token <a href="https://readwise.io/access_token" target="_blank" style="color:var(--accent);font-size:10px;margin-left:4px;">get token ↗</a></label><input class="fc" id="set-readwise-key" type="password" placeholder="Paste your Readwise access token"></div>
+    <div class="fg"><label>Notion Integration Token <a href="https://www.notion.so/my-integrations" target="_blank" style="color:var(--accent);font-size:10px;margin-left:4px;">create integration ↗</a></label><input class="fc" id="set-notion-key" type="password" placeholder="secret_..."></div>
+    <div class="fg"><label>Notion Page/Database URL (for weekly notes)</label><input class="fc" id="set-notion-page" placeholder="https://notion.so/My-Weekly-Notes-abc123..."></div>
+    <hr>
     <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Switch workspace at any time from the sidebar or with <kbd style="background:var(--surface2);padding:2px 6px;border-radius:3px;font-size:11px;">⌘2</kbd></p>
     <div class="mf">
       <button class="btn bd sm" style="margin-right:auto;" onclick="if(confirm('Reset ALL personal task data? This cannot be undone.')){localStorage.removeItem('taskos');location.reload();}">🗑 Reset Data</button>
@@ -770,6 +775,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div class="ph">
     <div><h1>📚 Reading Tracker</h1><p class="sub">Track progress, highlights, and insights from every book</p></div>
     <div class="row">
+      <button class="btn bg sm" onclick="openReadwiseImport()">📖 Readwise</button>
       <button class="btn bg sm" onclick="openHighlightsImport()">📋 Highlights → Tasks</button>
       <button class="btn bp" onclick="openAddBook()">+ Add Book</button>
     </div>
@@ -3971,6 +3977,9 @@ function renderHistoryView(){
 function openSettings(){
   document.getElementById('set-name').value=profileName;
   document.getElementById('set-claude-key').value=S.claudeKey||'';
+  document.getElementById('set-readwise-key').value=localStorage.getItem('taskos_readwise_key')||'';
+  document.getElementById('set-notion-key').value=localStorage.getItem('taskos_notion_key')||'';
+  document.getElementById('set-notion-page').value=localStorage.getItem('taskos_notion_page')||'';
   document.getElementById('set-m').classList.remove('hidden');
 }
 function saveSettings(){
@@ -3978,8 +3987,14 @@ function saveSettings(){
   if(n){profileName=n;localStorage.setItem('taskos_name',n);document.title='Task OS — '+n;}
   const k=document.getElementById('set-claude-key').value.trim();
   S.claudeKey=k;save();
-  closeM('set-m');
-  renderDash();
+  const rw=document.getElementById('set-readwise-key').value.trim();
+  if(rw)localStorage.setItem('taskos_readwise_key',rw); else localStorage.removeItem('taskos_readwise_key');
+  const nk=document.getElementById('set-notion-key').value.trim();
+  if(nk)localStorage.setItem('taskos_notion_key',nk); else localStorage.removeItem('taskos_notion_key');
+  const np=document.getElementById('set-notion-page').value.trim();
+  if(np)localStorage.setItem('taskos_notion_page',np); else localStorage.removeItem('taskos_notion_page');
+  closeM('set-m');renderDash();
+  toast('Settings saved!');
 }
 
 // ── KEYBOARD ──────────────────────────────────────────────────
@@ -4095,6 +4110,164 @@ function handleQC(e){
   save();updIBadge();
   inp.value='✓ Captured!';inp.style.color='var(--accent)';
   setTimeout(()=>{inp.style.color='';closeQuickCapture();},900);
+}
+
+// ════════════════════════════════════════════════════════════════
+// INTEGRATIONS — READWISE + NOTION
+// ════════════════════════════════════════════════════════════════
+
+// ── READWISE ─────────────────────────────────────────────────
+async function _rwFetch(path){
+  const token=localStorage.getItem('taskos_readwise_key');
+  if(!token)throw new Error('no_token');
+  const res=await fetch('https://readwise.io/api/v2'+path,{
+    headers:{'Authorization':'Token '+token}
+  });
+  if(!res.ok)throw new Error('status_'+res.status);
+  return res.json();
+}
+async function openReadwiseImport(){
+  const token=localStorage.getItem('taskos_readwise_key');
+  const body=document.getElementById('readwise-body');
+  const footer=document.getElementById('readwise-footer');
+  document.getElementById('readwise-modal').classList.remove('hidden');
+  if(!token){
+    body.innerHTML=`<div style="padding:20px;text-align:center;">
+      <div style="font-size:14px;font-weight:600;margin-bottom:8px;">Connect Readwise</div>
+      <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">Add your Readwise token in ⚙️ Settings to pull book highlights directly.</div>
+      <button class="btn bp" onclick="closeM('readwise-modal');openSettings()">Open Settings →</button>
+    </div>`;
+    footer.innerHTML='';return;
+  }
+  body.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);">⏳ Loading your library...</div>';
+  footer.innerHTML='';
+  try{
+    const data=await _rwFetch('/books/?category=books&num_highlights__gt=0&page_size=100');
+    const books=(data.results||[]).sort((a,b)=>b.num_highlights-a.num_highlights);
+    if(!books.length){body.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);">No books with highlights found in Readwise.</div>';return;}
+    body.innerHTML=`
+      <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">${books.length} books found. Select one to import its highlights.</div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+      ${books.map(b=>`
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);cursor:pointer;" onclick="loadReadwiseHighlights(${b.id},'${esc(b.title)}','${esc(b.author||'')}')">
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:600;">${esc(b.title)}</div>
+            ${b.author?`<div style="font-size:11px;color:var(--muted);">${esc(b.author)}</div>`:''}
+          </div>
+          <span style="font-size:11px;font-weight:700;color:var(--accent);white-space:nowrap;">${b.num_highlights} highlights →</span>
+        </div>`).join('')}
+      </div>`;
+    footer.innerHTML=`<button class="btn bg" onclick="closeM('readwise-modal')">Close</button>`;
+  }catch(e){
+    const msg=e.message==='no_token'?'No Readwise token set.':e.message.includes('401')?'Invalid token — check Settings.':'Could not connect to Readwise.';
+    body.innerHTML=`<div style="padding:20px;text-align:center;color:#ef4444;">${msg}</div>`;
+    footer.innerHTML=`<button class="btn bg" onclick="closeM('readwise-modal')">Close</button>`;
+  }
+}
+async function loadReadwiseHighlights(bookId,title,author){
+  const body=document.getElementById('readwise-body');
+  const footer=document.getElementById('readwise-footer');
+  body.innerHTML=`<div style="padding:20px;text-align:center;color:var(--muted);">⏳ Loading highlights for "${title}"...</div>`;
+  footer.innerHTML='';
+  try{
+    let all=[];let url=`/highlights/?book_id=${bookId}&page_size=500`;
+    // fetch up to 2 pages (1000 highlights max)
+    for(let i=0;i<2;i++){
+      const data=await _rwFetch(url);
+      all=[...all,...(data.results||[])];
+      if(!data.next)break;
+      url='/highlights/?'+data.next.split('?')[1];
+    }
+    const text=all.map(h=>h.text.trim()).filter(Boolean).join('\n\n');
+    // auto-sync to matching book in S.books, or offer to create
+    const existing=(S.books||[]).find(b=>b.title.toLowerCase().includes(title.toLowerCase().slice(0,15)));
+    if(existing){existing.highlights=text;save();renderBooks();toast(`📖 ${all.length} highlights synced to "${existing.title}"`);}
+    // open highlights → tasks with this book pre-loaded
+    closeM('readwise-modal');
+    document.getElementById('hl-book-title').value=title+(author?' — '+author:'');
+    document.getElementById('hl-input').value=text;
+    document.getElementById('hl-result').innerHTML='';
+    document.getElementById('hl-footer').innerHTML=`<button class="btn bg" onclick="closeM('highlights-modal')">Cancel</button><button class="btn bg sm" onclick="addBookFromReadwise('${esc(title)}','${esc(author||'')}')">+ Add to Library</button><button class="btn bp" onclick="extractHighlightTasks()">🤖 Extract Tasks</button>`;
+    document.getElementById('highlights-modal').classList.remove('hidden');
+    toast(`✅ ${all.length} highlights loaded from Readwise`);
+  }catch(e){
+    body.innerHTML=`<div style="padding:20px;color:#ef4444;">Failed to load highlights: ${e.message}</div>`;
+    footer.innerHTML=`<button class="btn bg" onclick="openReadwiseImport()">← Back</button>`;
+  }
+}
+function addBookFromReadwise(title,author){
+  if(!S.books)S.books=[];
+  if(S.books.find(b=>b.title===title))return toast('Already in library');
+  const text=document.getElementById('hl-input').value||'';
+  S.books.push({id:uid(),title,author,totalPages:0,currentPage:0,startedAt:null,finishedAt:null,highlights:text,summary:''});
+  save();toast('📚 Added to Books library!');
+}
+
+// ── NOTION ───────────────────────────────────────────────────
+function _notionPageId(input){
+  // extract 32-char hex ID from URL or plain ID
+  const m=input.replace(/-/g,'').match(/([0-9a-f]{32})/i);
+  return m?m[1].replace(/(.{8})(.{4})(.{4})(.{4})(.{12})/,'$1-$2-$3-$4-$5'):null;
+}
+function _notionBlocksToText(blocks){
+  const textFromRich=arr=>(arr||[]).map(t=>t.plain_text||'').join('');
+  const lines=[];
+  for(const b of blocks){
+    const type=b.type;
+    if(!type)continue;
+    const block=b[type]||{};
+    const rt=block.rich_text||[];
+    const text=textFromRich(rt);
+    if(!text)continue;
+    if(type==='heading_1'||type==='heading_2'||type==='heading_3')lines.push('\n# '+text);
+    else if(type==='bulleted_list_item')lines.push('• '+text);
+    else if(type==='numbered_list_item')lines.push('- '+text);
+    else if(type==='to_do')lines.push((block.checked?'[x] ':'[ ] ')+text);
+    else if(type==='quote')lines.push('> '+text);
+    else lines.push(text);
+  }
+  return lines.join('\n').trim();
+}
+async function fetchFromNotion(){
+  const token=localStorage.getItem('taskos_notion_key');
+  const pageUrl=localStorage.getItem('taskos_notion_page');
+  const input=document.getElementById('notes-import-input');
+  if(!token||!pageUrl){
+    // show setup instructions inline
+    const msg=!token?'Add your Notion integration token in ⚙️ Settings.':'Add your Notion page URL in ⚙️ Settings.';
+    toast(msg);openSettings();return;
+  }
+  const pageId=_notionPageId(pageUrl);
+  if(!pageId){toast('Invalid Notion URL — paste the full page URL in Settings.');return;}
+  if(input)input.value='⏳ Fetching from Notion...';
+  try{
+    const res=await fetch(`https://api.notion.com/v1/blocks/${pageId}/children?page_size=100`,{
+      headers:{'Authorization':'Bearer '+token,'Notion-Version':'2022-06-28','Content-Type':'application/json'},
+    });
+    if(res.status===401){throw new Error('Invalid token. Check your Notion integration.');}
+    if(res.status===403){throw new Error('Page not shared with integration. Open the page in Notion → ··· → Connections → add your integration.');}
+    if(res.status===404){throw new Error('Page not found. Check the URL in Settings.');}
+    if(!res.ok){throw new Error('Notion API error '+res.status);}
+    const data=await res.json();
+    const text=_notionBlocksToText(data.results||[]);
+    if(!text){if(input)input.value='';toast('Page is empty or has no readable text.');return;}
+    if(input)input.value=text;
+    toast('✅ Pulled from Notion! Click Synthesize.');
+  }catch(e){
+    if(input)input.value='';
+    const isCors=e instanceof TypeError&&e.message.includes('fetch');
+    if(isCors){
+      toast('Notion blocked browser access (CORS). See instructions below.');
+      const result=document.getElementById('notes-import-result');
+      if(result)result.innerHTML=`<div style="background:var(--surface2);border-radius:8px;padding:12px;font-size:12px;line-height:1.7;">
+        <strong>Notion doesn't allow direct browser requests.</strong><br>
+        Workaround: Open your Notion page → <strong>···</strong> → <strong>Export</strong> → <strong>Markdown & CSV</strong> → paste the content here.<br>
+        Or share the page as a public web link and paste its URL.
+      </div>`;
+    }else{
+      toast('❌ '+e.message);
+    }
+  }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -5396,6 +5569,15 @@ function saveDecision(){
   </div>
 </div>
 
+<!-- READWISE IMPORT MODAL -->
+<div class="mo hidden" id="readwise-modal">
+  <div class="md" style="width:580px;">
+    <div class="mh"><h3>📖 Import from Readwise</h3><button class="mc" onclick="closeM('readwise-modal')">×</button></div>
+    <div id="readwise-body" style="max-height:460px;overflow-y:auto;min-height:80px;"></div>
+    <div class="mf" id="readwise-footer" style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;"></div>
+  </div>
+</div>
+
 <!-- REMINDERS SETTINGS MODAL -->
 <div class="mo hidden" id="remind-modal">
   <div class="md" style="width:500px;">
@@ -5409,7 +5591,10 @@ function saveDecision(){
 <div class="mo hidden" id="notes-import-modal">
   <div class="md" style="width:620px;">
     <div class="mh"><h3>📥 Weekly Notes Synthesis</h3><button class="mc" onclick="closeM('notes-import-modal')">×</button></div>
-    <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Paste your raw weekly notes from Apple Notes, Notion, or anywhere. Claude will extract wins, improvements, focus, and tasks.</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+      <span style="font-size:12px;color:var(--muted);flex:1;">Paste notes from Apple Notes, Notion, or anywhere — or pull directly.</span>
+      <button class="btn bg sm" onclick="fetchFromNotion()">📋 Pull from Notion</button>
+    </div>
     <textarea id="notes-import-input" style="width:100%;min-height:150px;max-height:200px;font-size:13px;line-height:1.6;resize:vertical;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:inherit;margin-bottom:12px;" placeholder="Paste your weekly notes here...&#10;&#10;e.g. Monday: Had a great Givelink demo with XYZ nonprofit...&#10;Wednesday: Workout done, skipped reading...&#10;Insights from Givelink calls: nonprofits want easier onboarding..."></textarea>
     <div id="notes-import-result" style="max-height:300px;overflow-y:auto;margin-bottom:4px;"></div>
     <div class="mf" id="notes-import-footer" style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;"></div>

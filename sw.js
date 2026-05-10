@@ -1,4 +1,4 @@
-const CACHE = 'task-os-20260419-190847';
+const CACHE = 'task-os-20260510-213122';
 const STATIC = [
   './manifest.json',
   './manifest-givelink.json',
@@ -25,6 +25,33 @@ self.addEventListener('activate', e => {
     )
   );
   self.clients.claim();
+});
+
+self.addEventListener('push', e => {
+  let data={};
+  try{data=e.data?.json()||{};}catch(_){data={message:e.data?.text()||''};}
+  const title=data.title||'Life OS';
+  const body=data.message||data.body||'';
+  e.waitUntil(
+    self.registration.showNotification(title,{
+      body,
+      icon:'./icons/icon-192.png',
+      badge:'./icons/icon-192.png',
+      tag:data.id||'taskos-reminder',
+      data:{url:self.location.origin+'/index.html'},
+    })
+  );
+});
+
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  const target=e.notification.data?.url||self.location.origin;
+  e.waitUntil(
+    clients.matchAll({type:'window',includeUncontrolled:true}).then(wcs=>{
+      const match=wcs.find(c=>c.url.includes('index.html')||c.url===self.location.origin+'/');
+      return match?match.focus():clients.openWindow(target);
+    })
+  );
 });
 
 self.addEventListener('fetch', e => {

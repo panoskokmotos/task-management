@@ -308,6 +308,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
     <div><h1 id="greeting">Good morning, Panos 👋</h1><p class="sub" id="ddate"></p></div>
     <div class="row">
       <button class="btn bg sm" onclick="openCmdK()" title="⌘K">⌘K</button>
+      <button class="btn bg sm" onclick="openReminderSettings()" title="Reminders" id="remind-btn">🔔</button>
       <button class="btn bg sm" onclick="showWeeklyDigest()">📊 Digest</button>
       <button class="btn bg sm" onclick="openTweetGenerator()">🐦 Post</button>
       <button class="btn bg sm" onclick="runPriorityAudit()">🤖 Audit</button>
@@ -822,6 +823,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div class="ph">
     <div><h1>🤖 AI Automation Library</h1><p class="sub" id="ailab-sub">Track progress toward 100 automations</p></div>
     <div class="row">
+      <button class="btn bg sm" onclick="openHighlightsImport()">📚 Highlights → Tasks</button>
       <button class="btn bg sm" onclick="aiSuggestAutomations()">✨ Suggest More</button>
       <button class="btn bp" onclick="openAddAutomation()">+ Add</button>
     </div>
@@ -1116,7 +1118,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[]};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[]};
 let editT=null,editG=null,fCat='all';
 let profileName=localStorage.getItem('taskos_name')||'Panos';
 
@@ -1399,7 +1401,10 @@ function renderWizPanel(){
     body.innerHTML=`<div class="rs">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <h3>📝 Reflect & Plan Next Week</h3>
-        <button class="btn bg sm" onclick="autoFillReview()">🤖 Auto-Fill from Life OS</button>
+        <div style="display:flex;gap:6px;">
+          <button class="btn bg sm" onclick="autoFillReview()">🤖 Auto-Fill from Life OS</button>
+          <button class="btn bg sm" onclick="openNotesImport()">📥 Paste Notes</button>
+        </div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;">
         <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center;"><div style="font-size:18px;font-weight:700;color:#69db7c;">${workouts}</div><div style="font-size:10px;color:var(--muted);">workouts</div></div>
@@ -3941,6 +3946,7 @@ if('serviceWorker' in navigator){
 }
 initQuickCapture();
 initPWA();
+initReminders();
 
 // ════════════════════════════════════════════════════════════════
 // PWA — INSTALL + UPDATE
@@ -4019,6 +4025,247 @@ function handleQC(e){
   save();updIBadge();
   inp.value='✓ Captured!';inp.style.color='var(--accent)';
   setTimeout(()=>{inp.style.color='';closeQuickCapture();},900);
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 11 — SMART REMINDERS (BROWSER NOTIFICATIONS)
+// ════════════════════════════════════════════════════════════════
+const DEFAULT_REMINDERS=[
+  {id:'r-morning',label:'Morning Kickoff',emoji:'☀️',time:'08:00',days:[0,1,2,3,4,5,6],enabled:true,msg:'Good morning Panos! Check your One Thing and start focused work.'},
+  {id:'r-habits',label:'Habit Nudge',emoji:'✅',time:'18:00',days:[0,1,2,3,4,5,6],enabled:true,msg:"Evening check-in — have you completed your habits today?"},
+  {id:'r-eod',label:'EOD Review',emoji:'🌙',time:'21:00',days:[0,1,2,3,4,5,6],enabled:true,msg:'Time for your End of Day review. What did you accomplish?'},
+  {id:'r-weekly',label:'Weekly Review',emoji:'📅',time:'19:00',days:[0],enabled:true,msg:'Weekly review time! 20 minutes now sets up a great next week.'},
+  {id:'r-crm',label:'Givelink Follow-ups',emoji:'🏢',time:'10:00',days:[1,3,5],enabled:true,msg:'Check your Givelink CRM — who needs a follow-up today?'},
+];
+function initReminders(){
+  if(!S.reminders||!S.reminders.length){
+    S.reminders=DEFAULT_REMINDERS.map(r=>({...r,lastFired:null}));
+    save();
+  }
+  const enabled=S.reminders.filter(r=>r.enabled);
+  if(!enabled.length)return;
+  if('Notification' in window&&Notification.permission==='default'){
+    const hasEnabled=S.reminders.some(r=>r.enabled);
+    if(hasEnabled){
+      setTimeout(()=>Notification.requestPermission(),5000);
+    }
+  }
+  setInterval(checkReminders,60000);
+  checkReminders();
+}
+function checkReminders(){
+  if(!('Notification' in window)||Notification.permission!=='granted')return;
+  const now=new Date();
+  const hhmm=`${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const today=now.toISOString().slice(0,10);
+  const dow=now.getDay();
+  (S.reminders||[]).forEach(r=>{
+    if(!r.enabled)return;
+    if(!r.days.includes(dow))return;
+    if(r.time!==hhmm)return;
+    if(r.lastFired===today)return;
+    r.lastFired=today;
+    save();
+    try{
+      const n=new Notification(`${r.emoji} ${r.label}`,{body:r.msg,icon:'./icons/icon-192.png',tag:r.id});
+      n.onclick=()=>{window.focus();n.close();};
+    }catch(e){}
+  });
+}
+function openReminderSettings(){
+  const body=document.getElementById('remind-body');
+  const perm=('Notification' in window)?Notification.permission:'unsupported';
+  const permColor=perm==='granted'?'#22c55e':perm==='denied'?'#ef4444':'#fbbf24';
+  const permLabel=perm==='granted'?'Granted ✓':perm==='denied'?'Blocked — allow in browser settings':'Click a reminder to enable';
+  body.innerHTML=`
+    <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface2);border-radius:7px;margin-bottom:14px;font-size:12px;">
+      <span style="width:8px;height:8px;border-radius:50%;background:${permColor};flex-shrink:0;display:inline-block;"></span>
+      <span>Notification permission: <strong>${permLabel}</strong></span>
+      ${perm==='default'?`<button class="btn bg sm" onclick="Notification.requestPermission().then(()=>openReminderSettings())" style="margin-left:auto;">Enable</button>`:''}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+    ${(S.reminders||[]).map((r,i)=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);">
+        <span style="font-size:18px;">${r.emoji}</span>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;">${r.label}</div>
+          <div style="font-size:11px;color:var(--muted);">${r.time} · ${r.days.length===7?'Daily':['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].filter((_,d)=>r.days.includes(d)).join(', ')}</div>
+        </div>
+        <label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:12px;">
+          <input type="checkbox" ${r.enabled?'checked':''} onchange="toggleReminder(${i},this.checked)" style="width:16px;height:16px;">
+          ${r.enabled?'On':'Off'}
+        </label>
+      </div>`).join('')}
+    </div>
+    <div style="margin-top:14px;font-size:11px;color:var(--muted);line-height:1.5;">
+      Notifications fire at the scheduled time while the app is open in a browser tab. For always-on reminders, install as a PWA and keep the tab pinned.
+    </div>`;
+  document.getElementById('remind-modal').classList.remove('hidden');
+}
+function toggleReminder(i,val){
+  if(!S.reminders[i])return;
+  S.reminders[i].enabled=val;
+  save();
+  if(val&&'Notification' in window&&Notification.permission==='default'){
+    Notification.requestPermission().then(()=>openReminderSettings());
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 12 — WEEKLY NOTES IMPORT & SYNTHESIS
+// ════════════════════════════════════════════════════════════════
+function openNotesImport(){
+  document.getElementById('notes-import-input').value='';
+  document.getElementById('notes-import-result').innerHTML='';
+  document.getElementById('notes-import-footer').innerHTML=`<button class="btn bg" onclick="closeM('notes-import-modal')">Cancel</button><button class="btn bp" onclick="synthesizeWeeklyNotes()">🤖 Synthesize</button>`;
+  document.getElementById('notes-import-modal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('notes-import-input').focus(),80);
+}
+async function synthesizeWeeklyNotes(){
+  const raw=(document.getElementById('notes-import-input').value||'').trim();
+  if(!raw){toast('Paste your notes first!');return;}
+  const result=document.getElementById('notes-import-result');
+  const footer=document.getElementById('notes-import-footer');
+  result.innerHTML='<div style="padding:16px;text-align:center;color:var(--muted);">⏳ Synthesizing your notes...</div>';
+  footer.innerHTML='';
+  const goals=S.goals.slice(0,5).map(g=>g.title).join('; ')||'none set';
+  const prompt=`You are helping Panos (founder of Givelink, B2B SaaS for nonprofits) extract insights from his weekly notes.
+
+ACTIVE GOALS: ${goals}
+
+RAW NOTES:
+${raw.slice(0,3000)}
+
+Extract and respond in EXACTLY this JSON format (no markdown, no extra text):
+{
+  "wentWell": "2-3 bullet points of wins/positives from the notes",
+  "improve": "1-2 things to do differently next week",
+  "focus": "The single most important focus for next week",
+  "tasks": [
+    {"title": "actionable task extracted from notes", "category": "givelink|health|finance|learning|brand|other", "urgency": "high|low", "importance": "high|low"}
+  ]
+}
+
+Extract 3-8 specific, actionable tasks. Only include real tasks mentioned or implied in the notes.`;
+  const text=await callClaude(prompt,800);
+  if(!text){result.innerHTML='<div style="padding:16px;color:#ef4444;">Could not analyze. Check your API key.</div>';footer.innerHTML=`<button class="btn bg" onclick="closeM('notes-import-modal')">Close</button>`;return;}
+  let parsed=null;
+  try{const json=text.match(/\{[\s\S]*\}/)?.[0];parsed=json?JSON.parse(json):null;}catch(e){}
+  if(!parsed){result.innerHTML='<div style="padding:16px;color:#ef4444;">Parse error. Try again.</div>';footer.innerHTML=`<button class="btn bg" onclick="closeM('notes-import-modal')">Close</button>`;return;}
+  window._notesSynthResult=parsed;
+  const tasks=parsed.tasks||[];
+  result.innerHTML=`
+    <div style="background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:12px;">
+      <div style="font-size:12px;color:var(--accent);font-weight:700;margin-bottom:6px;">✅ WENT WELL</div>
+      <div style="font-size:13px;line-height:1.6;white-space:pre-line;">${esc(parsed.wentWell||'')}</div>
+    </div>
+    <div style="background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:12px;">
+      <div style="font-size:12px;color:#fbbf24;font-weight:700;margin-bottom:6px;">📈 IMPROVE</div>
+      <div style="font-size:13px;line-height:1.6;white-space:pre-line;">${esc(parsed.improve||'')}</div>
+    </div>
+    <div style="background:var(--surface2);border-radius:8px;padding:12px;margin-bottom:12px;">
+      <div style="font-size:12px;color:#a78bfa;font-weight:700;margin-bottom:6px;">🎯 NEXT WEEK FOCUS</div>
+      <div style="font-size:13px;font-weight:600;">${esc(parsed.focus||'')}</div>
+    </div>
+    ${tasks.length?`<div style="margin-bottom:6px;font-size:12px;font-weight:700;color:var(--muted);">📋 EXTRACTED TASKS (${tasks.length}) — select to add to inbox:</div>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+    ${tasks.map((t,i)=>`<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;background:var(--surface2);border-radius:7px;border:1px solid var(--border);">
+      <input type="checkbox" id="ni-t-${i}" checked style="width:16px;height:16px;cursor:pointer;flex-shrink:0;">
+      <div style="flex:1;font-size:13px;">${esc(t.title)}</div>
+      <span style="font-size:11px;color:var(--muted);white-space:nowrap;">${t.category}</span>
+    </div>`).join('')}
+    </div>`:''}`;
+  footer.innerHTML=`<button class="btn bg" onclick="closeM('notes-import-modal')">Cancel</button>
+    <button class="btn bg" onclick="applyNotesSynthesis(false)">Fill Review Only</button>
+    <button class="btn bp" onclick="applyNotesSynthesis(true)">Fill Review + Add Tasks</button>`;
+}
+function applyNotesSynthesis(addTasks){
+  const p=window._notesSynthResult||{};
+  const rw=document.getElementById('rw');const ri=document.getElementById('ri');const rf=document.getElementById('rf');
+  if(rw&&p.wentWell)rw.value=p.wentWell;
+  if(ri&&p.improve)ri.value=p.improve;
+  if(rf&&p.focus)rf.value=p.focus;
+  let added=0;
+  if(addTasks&&p.tasks){
+    p.tasks.forEach((t,i)=>{
+      if(!document.getElementById('ni-t-'+i)?.checked)return;
+      S.tasks.push({id:uid(),title:t.title,notes:'',bucket:'inbox',category:t.category||'other',urgency:t.urgency||'low',importance:t.importance||'high',energy:'high',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,createdAt:new Date().toISOString(),completedAt:null});
+      added++;
+    });
+    if(added){save();updIBadge();toast(`✅ Review filled + ${added} tasks added to inbox!`);}
+    else{toast('✅ Review fields filled from your notes!');}
+  } else{toast('✅ Review fields filled from your notes!');}
+  closeM('notes-import-modal');
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 13 — BOOK HIGHLIGHTS → TASKS
+// ════════════════════════════════════════════════════════════════
+function openHighlightsImport(){
+  document.getElementById('hl-book-title').value='';
+  document.getElementById('hl-input').value='';
+  document.getElementById('hl-result').innerHTML='';
+  document.getElementById('hl-footer').innerHTML=`<button class="btn bg" onclick="closeM('highlights-modal')">Cancel</button><button class="btn bp" onclick="extractHighlightTasks()">🤖 Extract Tasks</button>`;
+  document.getElementById('highlights-modal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('hl-book-title').focus(),80);
+}
+async function extractHighlightTasks(){
+  const bookTitle=(document.getElementById('hl-book-title').value||'').trim();
+  const raw=(document.getElementById('hl-input').value||'').trim();
+  if(!raw){toast('Paste your highlights first!');return;}
+  const result=document.getElementById('hl-result');
+  const footer=document.getElementById('hl-footer');
+  result.innerHTML='<div style="padding:16px;text-align:center;color:var(--muted);">⏳ Extracting actionable tasks from highlights...</div>';
+  footer.innerHTML='';
+  const goals=S.goals.slice(0,5).map(g=>g.title).join('; ')||'none set';
+  const prompt=`You are helping Panos (founder of Givelink, B2B SaaS for nonprofits) extract the most actionable tasks from book highlights.
+
+BOOK: ${bookTitle||'Unknown'}
+ACTIVE GOALS: ${goals}
+
+HIGHLIGHTS:
+${raw.slice(0,4000)}
+
+Extract 5-10 specific, concrete, actionable tasks that Panos should do based on these highlights.
+Each task must be something he can actually do — not a quote or idea, but a specific action.
+Prioritize insights that help with: Givelink growth, personal productivity, health, relationships.
+
+Respond ONLY with valid JSON array (no markdown):
+[
+  {"title": "Specific action to take", "insight": "the highlight that inspired it (max 20 words)", "category": "givelink|health|finance|learning|brand|other", "importance": "high|low"}
+]`;
+  const text=await callClaude(prompt,900);
+  if(!text){result.innerHTML='<div style="padding:16px;color:#ef4444;">Could not analyze. Check your API key.</div>';footer.innerHTML=`<button class="btn bg" onclick="closeM('highlights-modal')">Close</button>`;return;}
+  let tasks=[];
+  try{const json=text.match(/\[[\s\S]*\]/)?.[0];tasks=json?JSON.parse(json):[];}catch(e){}
+  if(!tasks.length){result.innerHTML='<div style="padding:16px;color:#ef4444;">Could not extract tasks. Try again or paste more highlights.</div>';footer.innerHTML=`<button class="btn bg" onclick="closeM('highlights-modal')">Close</button>`;return;}
+  window._highlightTasks=tasks;
+  result.innerHTML=`<div style="margin-bottom:8px;font-size:12px;font-weight:700;color:var(--muted);">📋 ${tasks.length} ACTIONABLE TASKS FROM "${esc(bookTitle||'this book')}"</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+    ${tasks.map((t,i)=>`<div style="padding:10px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);">
+      <div style="display:flex;align-items:flex-start;gap:10px;">
+        <input type="checkbox" id="hl-t-${i}" checked style="width:16px;height:16px;cursor:pointer;flex-shrink:0;margin-top:2px;">
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;margin-bottom:3px;">${esc(t.title)}</div>
+          <div style="font-size:11px;color:var(--muted);font-style:italic;">"${esc(t.insight||'')}"</div>
+          <span style="font-size:10px;color:var(--accent);margin-top:3px;display:inline-block;">${t.category}</span>
+        </div>
+      </div>
+    </div>`).join('')}
+    </div>`;
+  footer.innerHTML=`<button class="btn bg" onclick="closeM('highlights-modal')">Cancel</button>
+    <button class="btn bp" onclick="addHighlightTasks()">Add Selected to Inbox (${tasks.length})</button>`;
+}
+function addHighlightTasks(){
+  const tasks=window._highlightTasks||[];
+  let added=0;
+  tasks.forEach((t,i)=>{
+    if(!document.getElementById('hl-t-'+i)?.checked)return;
+    S.tasks.push({id:uid(),title:t.title,notes:t.insight?`From book highlights: "${t.insight}"`:'' ,bucket:'inbox',category:t.category||'learning',urgency:'low',importance:t.importance||'high',energy:'high',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,createdAt:new Date().toISOString(),completedAt:null});
+    added++;
+  });
+  if(added){save();updIBadge();toast(`📚 ${added} tasks added to inbox from highlights!`);}
+  closeM('highlights-modal');
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -4678,6 +4925,38 @@ function saveDecision(){
     <button class="btn bg sm" onclick="regenRelDraft()">↺ Regenerate</button>
     <button class="btn bp" onclick="copyRelDraft()">📋 Copy</button>
     <button class="btn bg sm" id="rel-draft-log-btn">✓ Log Contact</button>
+  </div>
+</div>
+
+<!-- REMINDERS SETTINGS MODAL -->
+<div class="mo hidden" id="remind-modal">
+  <div class="md" style="width:500px;">
+    <div class="mh"><h3>🔔 Smart Reminders</h3><button class="mc" onclick="closeM('remind-modal')">×</button></div>
+    <div id="remind-body" style="max-height:480px;overflow-y:auto;"></div>
+    <div class="mf"><button class="btn bp" onclick="closeM('remind-modal')">Done</button></div>
+  </div>
+</div>
+
+<!-- WEEKLY NOTES SYNTHESIS MODAL -->
+<div class="mo hidden" id="notes-import-modal">
+  <div class="md" style="width:620px;">
+    <div class="mh"><h3>📥 Weekly Notes Synthesis</h3><button class="mc" onclick="closeM('notes-import-modal')">×</button></div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Paste your raw weekly notes from Apple Notes, Notion, or anywhere. Claude will extract wins, improvements, focus, and tasks.</div>
+    <textarea id="notes-import-input" style="width:100%;min-height:150px;max-height:200px;font-size:13px;line-height:1.6;resize:vertical;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:inherit;margin-bottom:12px;" placeholder="Paste your weekly notes here...&#10;&#10;e.g. Monday: Had a great Givelink demo with XYZ nonprofit...&#10;Wednesday: Workout done, skipped reading...&#10;Insights from Givelink calls: nonprofits want easier onboarding..."></textarea>
+    <div id="notes-import-result" style="max-height:300px;overflow-y:auto;margin-bottom:4px;"></div>
+    <div class="mf" id="notes-import-footer" style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- BOOK HIGHLIGHTS → TASKS MODAL -->
+<div class="mo hidden" id="highlights-modal">
+  <div class="md" style="width:620px;">
+    <div class="mh"><h3>📚 Book Highlights → Tasks</h3><button class="mc" onclick="closeM('highlights-modal')">×</button></div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Paste highlights from Readwise, Kindle, or any book. Claude extracts the most actionable tasks for you.</div>
+    <input id="hl-book-title" class="fc" placeholder="Book title (optional, e.g. Atomic Habits)" style="margin-bottom:8px;">
+    <textarea id="hl-input" style="width:100%;min-height:150px;max-height:200px;font-size:13px;line-height:1.6;resize:vertical;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:inherit;margin-bottom:12px;" placeholder="Paste your book highlights here...&#10;&#10;e.g. &#10;'Every action you take is a vote for the type of person you wish to become.'&#10;'The most effective form of motivation is progress.'&#10;'Habits are the compound interest of self-improvement.'"></textarea>
+    <div id="hl-result" style="max-height:320px;overflow-y:auto;margin-bottom:4px;"></div>
+    <div class="mf" id="hl-footer" style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;"></div>
   </div>
 </div>
 

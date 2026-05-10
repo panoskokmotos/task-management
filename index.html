@@ -56,7 +56,7 @@ hr{border:none;border-top:1px solid var(--border);margin:18px 0;}
 .tc:hover{border-color:var(--accent);background:var(--surface2);}
 .tc.done{opacity:.5;}.tc.done .tt{text-decoration:line-through;}
 .tc.top3{border-left:3px solid var(--accent);}
-.ck{width:17px;height:17px;border:2px solid var(--border);border-radius:4px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .12s;}
+.ck{width:22px;height:22px;min-width:22px;border:2px solid var(--border);border-radius:4px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .12s;}
 .ck:hover{border-color:var(--accent);}
 .ck.on{background:var(--accent);border-color:var(--accent);}
 .tb{flex:1;min-width:0;}
@@ -210,9 +210,28 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   .ph .row .sb{flex:1;min-width:0;}
   h1{font-size:18px;}
   .bnav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:100;padding-bottom:max(env(safe-area-inset-bottom,0px),4px);}
-  .bni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px;cursor:pointer;color:var(--muted);font-size:9px;gap:2px;border:none;background:transparent;transition:color .12s;}
+  .bni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px;cursor:pointer;color:var(--muted);font-size:10px;gap:2px;border:none;background:transparent;transition:color .12s;}
   .bni.active{color:var(--accent);}
   .bni-ic{font-size:18px;line-height:1.2;}
+  /* Larger tap targets for checkboxes */
+  .ck{width:24px;height:24px;min-width:24px;border-radius:6px;}
+  /* Prevent iOS auto-zoom on input focus (requires font-size >= 16px) */
+  .fc,.capi,.sb,.cmdk-i{font-size:16px!important;}
+  /* Life OS 2-column grid on mobile */
+  .los-grid{grid-template-columns:1fr 1fr;}
+  /* Dashboard header: horizontal scroll instead of wrapping */
+  .ph .row{flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;gap:5px;}
+  .ph .row::-webkit-scrollbar{display:none;}
+  /* Larger filter pill targets */
+  .fp{padding:6px 12px;font-size:12px;}
+  /* Larger modal close button */
+  .mc{width:36px;height:36px;font-size:22px;padding:6px;}
+}
+
+@media(max-width:480px){
+  .los-grid{grid-template-columns:1fr;}
+  .dw-timer{font-size:40px;}
+  .stats{grid-template-columns:1fr 1fr;}
 }
 
 /* ── LIFE OS ─────────────────────────────────────────────────── */

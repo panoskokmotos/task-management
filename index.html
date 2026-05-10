@@ -4809,10 +4809,10 @@ async function extractHighlightTasks(){
   if(!raw){toast('Paste your highlights first!');return;}
   const result=document.getElementById('hl-result');
   const footer=document.getElementById('hl-footer');
-  result.innerHTML='<div style="padding:16px;text-align:center;color:var(--muted);">⏳ Extracting actionable tasks from highlights...</div>';
+  result.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);">⏳ Extracting tasks from highlights...</div>';
   footer.innerHTML='';
   const goals=S.goals.slice(0,5).map(g=>g.title).join('; ')||'none set';
-  const prompt=`You are helping Panos (founder of Givelink, B2B SaaS for nonprofits) extract the most actionable tasks from book highlights.
+  const prompt=`You are helping Panos (founder of Givelink, B2B SaaS for nonprofits) extract actionable tasks from book highlights.
 
 BOOK: ${bookTitle||'Unknown'}
 ACTIVE GOALS: ${goals}
@@ -4820,46 +4820,103 @@ ACTIVE GOALS: ${goals}
 HIGHLIGHTS:
 ${raw.slice(0,4000)}
 
-Extract 5-10 specific, concrete, actionable tasks that Panos should do based on these highlights.
-Each task must be something he can actually do — not a quote or idea, but a specific action.
-Prioritize insights that help with: Givelink growth, personal productivity, health, relationships.
+Extract 5-10 specific, concrete, actionable tasks Panos should actually do based on these highlights.
+Each task must be a real action — not a quote or idea.
+Prioritize: Givelink growth, productivity, health, relationships.
 
-Respond ONLY with valid JSON array (no markdown):
-[
-  {"title": "Specific action to take", "insight": "the highlight that inspired it (max 20 words)", "category": "givelink|health|finance|learning|brand|other", "importance": "high|low"}
-]`;
+Return a JSON array. No markdown, no code blocks, just the raw JSON:
+[{"title":"Specific action","insight":"highlight that inspired it (max 15 words)","category":"givelink|health|finance|learning|brand|other","bucket":"this-week|this-month|backlog","importance":"high|low"}]`;
   const text=await callClaude(prompt,900);
-  if(!text){result.innerHTML='<div style="padding:16px;color:#ef4444;">Could not analyze. Check your API key.</div>';footer.innerHTML=`<button class="btn bg" onclick="closeM('highlights-modal')">Close</button>`;return;}
+  if(!text){
+    result.innerHTML='<div style="padding:16px;color:#ef4444;">Could not reach Claude. Check your API key in Settings.</div>';
+    footer.innerHTML=`<button class="btn bp" onclick="closeM('highlights-modal')">Close</button>`;
+    return;
+  }
+  // robust JSON extraction — handles markdown code blocks, leading text, etc.
   let tasks=[];
-  try{const json=text.match(/\[[\s\S]*\]/)?.[0];tasks=json?JSON.parse(json):[];}catch(e){}
-  if(!tasks.length){result.innerHTML='<div style="padding:16px;color:#ef4444;">Could not extract tasks. Try again or paste more highlights.</div>';footer.innerHTML=`<button class="btn bg" onclick="closeM('highlights-modal')">Close</button>`;return;}
+  try{
+    const stripped=text.replace(/```[\w]*\n?/g,'').trim();
+    const jsonStr=stripped.match(/\[[\s\S]*\]/)?.[0];
+    if(jsonStr)tasks=JSON.parse(jsonStr);
+  }catch(e){
+    result.innerHTML=`<div style="padding:16px;color:#ef4444;">Parse error — Claude returned unexpected format. Response was:<br><pre style="font-size:10px;margin-top:8px;white-space:pre-wrap;color:var(--muted);">${esc(text.slice(0,400))}</pre></div>`;
+    footer.innerHTML=`<button class="btn bg" onclick="extractHighlightTasks()">↺ Retry</button><button class="btn bp" onclick="closeM('highlights-modal')">Close</button>`;
+    return;
+  }
+  if(!tasks.length){
+    result.innerHTML='<div style="padding:16px;color:#ef4444;">No tasks extracted. Try adding more highlights or different content.</div>';
+    footer.innerHTML=`<button class="btn bg" onclick="extractHighlightTasks()">↺ Retry</button><button class="btn bp" onclick="closeM('highlights-modal')">Close</button>`;
+    return;
+  }
   window._highlightTasks=tasks;
-  result.innerHTML=`<div style="margin-bottom:8px;font-size:12px;font-weight:700;color:var(--muted);">📋 ${tasks.length} ACTIONABLE TASKS FROM "${esc(bookTitle||'this book')}"</div>
+  _renderHighlightTaskCards(tasks,bookTitle);
+}
+function _renderHighlightTaskCards(tasks,bookTitle){
+  const result=document.getElementById('hl-result');
+  const footer=document.getElementById('hl-footer');
+  const CATS_HL=['givelink','health','finance','learning','brand','other'];
+  const BUCKETS_HL=['inbox','this-week','this-month','backlog'];
+  const BUCKET_LABEL={'inbox':'Inbox','this-week':'This Week','this-month':'This Month','backlog':'Backlog'};
+  result.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <span style="font-size:12px;font-weight:700;color:var(--muted);">📋 ${tasks.length} TASKS FROM "${esc(bookTitle||'this book')}"</span>
+      <label style="font-size:11px;color:var(--muted);cursor:pointer;display:flex;align-items:center;gap:4px;">
+        <input type="checkbox" id="hl-select-all" checked onchange="document.querySelectorAll('.hl-cb').forEach(c=>c.checked=this.checked);_updateHLCount()"> All
+      </label>
+    </div>
     <div style="display:flex;flex-direction:column;gap:8px;">
-    ${tasks.map((t,i)=>`<div style="padding:10px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);">
-      <div style="display:flex;align-items:flex-start;gap:10px;">
-        <input type="checkbox" id="hl-t-${i}" checked style="width:16px;height:16px;cursor:pointer;flex-shrink:0;margin-top:2px;">
-        <div style="flex:1;">
-          <div style="font-size:13px;font-weight:600;margin-bottom:3px;">${esc(t.title)}</div>
-          <div style="font-size:11px;color:var(--muted);font-style:italic;">"${esc(t.insight||'')}"</div>
-          <span style="font-size:10px;color:var(--accent);margin-top:3px;display:inline-block;">${t.category}</span>
+    ${tasks.map((t,i)=>`
+      <div style="padding:10px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);">
+        <div style="display:flex;align-items:flex-start;gap:10px;">
+          <input type="checkbox" id="hl-t-${i}" class="hl-cb" checked onchange="_updateHLCount()" style="width:16px;height:16px;cursor:pointer;flex-shrink:0;margin-top:3px;">
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:600;margin-bottom:5px;">${esc(t.title)}</div>
+            ${t.insight?`<div style="font-size:11px;color:var(--muted);font-style:italic;margin-bottom:6px;">"${esc(t.insight)}"</div>`:''}
+            <div style="display:flex;gap:6px;flex-wrap:wrap;">
+              <select class="hl-cat-${i}" onchange="window._highlightTasks[${i}].category=this.value" style="font-size:11px;padding:2px 6px;background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--text);">
+                ${CATS_HL.map(c=>`<option value="${c}" ${c===t.category?'selected':''}>${c}</option>`).join('')}
+              </select>
+              <select class="hl-bkt-${i}" onchange="window._highlightTasks[${i}].bucket=this.value" style="font-size:11px;padding:2px 6px;background:var(--surface);border:1px solid var(--border);border-radius:5px;color:var(--text);">
+                ${BUCKETS_HL.map(b=>`<option value="${b}" ${b===(t.bucket||'inbox')?'selected':''}>${BUCKET_LABEL[b]}</option>`).join('')}
+              </select>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>`).join('')}
+      </div>`).join('')}
     </div>`;
-  footer.innerHTML=`<button class="btn bg" onclick="closeM('highlights-modal')">Cancel</button>
-    <button class="btn bp" onclick="addHighlightTasks()">Add Selected to Inbox (${tasks.length})</button>`;
+  footer.innerHTML=`
+    <button class="btn bg" onclick="closeM('highlights-modal')">Cancel</button>
+    <button class="btn bp" id="hl-add-btn" onclick="addHighlightTasks()">➕ Add ${tasks.length} Tasks to App</button>`;
+}
+function _updateHLCount(){
+  const checked=document.querySelectorAll('.hl-cb:checked').length;
+  const btn=document.getElementById('hl-add-btn');
+  if(btn)btn.textContent=`➕ Add ${checked} Task${checked!==1?'s':''} to App`;
+  const all=document.getElementById('hl-select-all');
+  if(all)all.checked=checked===document.querySelectorAll('.hl-cb').length;
 }
 function addHighlightTasks(){
   const tasks=window._highlightTasks||[];
   let added=0;
   tasks.forEach((t,i)=>{
     if(!document.getElementById('hl-t-'+i)?.checked)return;
-    S.tasks.push({id:uid(),title:t.title,notes:t.insight?`From book highlights: "${t.insight}"`:'' ,bucket:'inbox',category:t.category||'learning',urgency:'low',importance:t.importance||'high',energy:'high',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,createdAt:new Date().toISOString(),completedAt:null});
+    // read live bucket/category from selects in case user changed them
+    const cat=document.querySelector(`.hl-cat-${i}`)?.value||t.category||'learning';
+    const bucket=document.querySelector(`.hl-bkt-${i}`)?.value||t.bucket||'inbox';
+    S.tasks.push({
+      id:uid(),title:t.title,
+      notes:t.insight?`📚 From highlights: "${t.insight}"` :'',
+      bucket,category:cat,urgency:'low',importance:t.importance||'high',
+      energy:'high',status:'todo',isT3:false,t3s:null,timeBlock:null,
+      dueDate:'',goalId:null,createdAt:new Date().toISOString(),completedAt:null
+    });
     added++;
   });
-  if(added){save();updIBadge();toast(`📚 ${added} tasks added to inbox from highlights!`);}
+  if(!added){toast('No tasks selected.');return;}
+  save();updIBadge();
   closeM('highlights-modal');
+  nav('capture');
+  toast(`📚 ${added} task${added!==1?'s':''} added! Check your inbox.`);
 }
 
 // ════════════════════════════════════════════════════════════════

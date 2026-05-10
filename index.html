@@ -1554,7 +1554,7 @@ function toggleDone(id){
   t.status=t.status==='done'?'todo':'done';
   t.completedAt=t.status==='done'?new Date().toISOString():null;
   if(t.status==='done'){t.isT3=false;t.t3s=null;_logContextSwitch(t.category);}
-  save();refresh();
+  save();refresh();updIBadge();updateChecklistBadge();
 }
 
 function mvB(id,b){const t=S.tasks.find(x=>x.id===id);if(!t)return;t.bucket=b;save();refresh();}

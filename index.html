@@ -287,6 +287,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div class="ni" onclick="nav('decisions')">🧠 Decisions</div>
   <div class="ni" onclick="nav('challenge')">⚡ Daily Challenge</div>
   <div class="ns">Life OS</div>
+  <div class="ni" onclick="nav('books')">📚 Books</div>
   <div class="ni" onclick="nav('health')">💪 Health</div>
   <div class="ni" onclick="nav('finance')">💰 Finance</div>
   <div class="ni" onclick="nav('ailab')">🤖 AI Lab</div>
@@ -398,6 +399,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div class="rb" style="margin-bottom:10px;">
     <h2 style="margin:0">📥 Inbox <span id="icl" style="color:var(--muted);font-size:13px;font-weight:400;"></span></h2>
     <div style="display:flex;gap:6px;">
+      <button class="btn bg sm" onclick="openCSVImport()">📋 Import</button>
       <button class="btn bg sm" onclick="autoProcessInbox()">🤖 AI Triage</button>
       <button class="btn bg sm" id="proc-toggle" onclick="toggleProc()">⚡ Process Mode</button>
     </div>
@@ -762,6 +764,19 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 </div>
 
 
+<!-- BOOKS / READING TRACKER -->
+<div id="v-books" class="view">
+  <div class="ph">
+    <div><h1>📚 Reading Tracker</h1><p class="sub">Track progress, highlights, and insights from every book</p></div>
+    <div class="row">
+      <button class="btn bg sm" onclick="openHighlightsImport()">📋 Highlights → Tasks</button>
+      <button class="btn bp" onclick="openAddBook()">+ Add Book</button>
+    </div>
+  </div>
+  <div id="books-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;"></div>
+  <div id="books-list"></div>
+</div>
+
 <!-- HEALTH DASHBOARD -->
 <div id="v-health" class="view">
   <div class="ph">
@@ -781,6 +796,9 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
       <div id="sleep-trend" style="font-size:12px;color:var(--muted);">Log sleep scores to see trend</div>
       <div id="sleep-correlation" style="margin-top:12px;"></div>
     </div>
+  </div>
+  <div style="margin-top:16px;">
+    <div id="pr-board"></div>
   </div>
   <div style="margin-top:16px;">
     <div class="ph" style="margin-bottom:10px;"><h2 style="margin:0">📋 Log Entries</h2></div>
@@ -938,7 +956,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
     <div class="fg"><label>Date</label><input class="fc" id="h-date" type="date"></div>
     <div class="fr">
       <div class="fg"><label>Type</label>
-        <select class="fc" id="h-type">
+        <select class="fc" id="h-type" onchange="toggleWorkoutFields()">
           <option value="workout">🏋️ Workout</option>
           <option value="sleep">😴 Sleep Score</option>
           <option value="bodyfat">📏 Body Fat %</option>
@@ -946,6 +964,12 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
         </select>
       </div>
       <div class="fg"><label>Value</label><input class="fc" id="h-value" type="number" step="0.1" placeholder="e.g. 85"></div>
+    </div>
+    <div id="workout-fields" style="display:none;">
+      <div class="fr">
+        <div class="fg"><label>Exercise (for PR tracking)</label><input class="fc" id="h-exercise" placeholder="e.g. Bench Press, Deadlift, 5K Run"></div>
+        <div class="fg"><label>Reps / Sets / Time</label><input class="fc" id="h-reps" placeholder="e.g. 5x85kg, 3x5, 22min"></div>
+      </div>
     </div>
     <div class="fg"><label>Notes (optional)</label><input class="fc" id="h-notes" placeholder="e.g. Chest day, felt strong"></div>
     <div class="mf">
@@ -1118,7 +1142,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[]};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[]};
 let editT=null,editG=null,fCat='all';
 let profileName=localStorage.getItem('taskos_name')||'Panos';
 
@@ -1149,7 +1173,7 @@ function nav(v){
   document.getElementById('s-ov')?.classList.remove('open');
   document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
-function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort,eod:renderEod,decisions:renderDecisions,challenge:renderChallenge,ladder:renderLadder})[v]?.();}
+function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort,eod:renderEod,decisions:renderDecisions,challenge:renderChallenge,ladder:renderLadder,books:renderBooks})[v]?.();}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
 
 // ── DASHBOARD ─────────────────────────────────────────────────
@@ -2269,21 +2293,65 @@ function renderHealth(){
     </div>`).join('')||'<div class="empty">No logs yet. Click + Log Entry.</div>';
   renderPhotoLog();
   renderSleepCorrelation();
+  renderPRBoard();
 }
 function openAddHealth(id=null){
   document.getElementById('h-date').value=new Date().toISOString().slice(0,10);
   document.getElementById('h-value').value='';document.getElementById('h-notes').value='';
   document.getElementById('health-modal').classList.remove('hidden');
 }
+function toggleWorkoutFields(){
+  const type=document.getElementById('h-type').value;
+  document.getElementById('workout-fields').style.display=type==='workout'?'':'none';
+}
 function saveHealthLog(){
   const date=document.getElementById('h-date').value;
   const type=document.getElementById('h-type').value;
   const value=parseFloat(document.getElementById('h-value').value);
   const notes=document.getElementById('h-notes').value.trim();
+  const exercise=(document.getElementById('h-exercise')?.value||'').trim();
+  const reps=(document.getElementById('h-reps')?.value||'').trim();
   if(!date||isNaN(value))return toast('Date and value required');
   if(!S.healthLogs)S.healthLogs=[];
-  S.healthLogs.push({id:uid(),date,type,value,notes,createdAt:new Date().toISOString()});
-  save();closeM('health-modal');renderHealth();toast('Health entry logged!');
+  const entry={id:uid(),date,type,value,notes,createdAt:new Date().toISOString()};
+  if(type==='workout'&&exercise){entry.exercise=exercise;entry.reps=reps;}
+  const isPR=type==='workout'&&exercise?checkAndRecordPR(exercise,value,date):false;
+  S.healthLogs.push(entry);
+  save();closeM('health-modal');renderHealth();
+  if(isPR)setTimeout(()=>toast(`🏆 NEW PR! ${exercise}: ${value}kg / ${reps||'new best'}`),300);
+  else toast('Health entry logged!');
+}
+function checkAndRecordPR(exercise,value,date){
+  const prev=S.healthLogs.filter(l=>l.exercise===exercise&&l.date<date).sort((a,b)=>b.value-a.value);
+  return !prev.length||value>prev[0].value;
+}
+function renderPRBoard(){
+  const logs=S.healthLogs.filter(l=>l.exercise);
+  if(!logs.length){document.getElementById('pr-board').innerHTML='';return;}
+  const byEx={};
+  logs.forEach(l=>{
+    if(!byEx[l.exercise])byEx[l.exercise]=[];
+    byEx[l.exercise].push(l);
+  });
+  const prs=Object.entries(byEx).map(([ex,ls])=>{
+    const sorted=[...ls].sort((a,b)=>b.value-a.value);
+    const pr=sorted[0];
+    const prev=sorted[1];
+    return{ex,pr,prev,count:ls.length};
+  }).sort((a,b)=>b.pr.value-a.pr.value);
+  document.getElementById('pr-board').innerHTML=`
+    <h2 style="margin:0 0 10px;">🏆 Personal Records</h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:8px;margin-bottom:8px;">
+    ${prs.map(({ex,pr,prev,count})=>{
+      const gain=prev?((pr.value-prev.value)/prev.value*100).toFixed(0):null;
+      return`<div class="los-card" style="padding:12px;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.5px;">${ex}</div>
+        <div style="font-size:22px;font-weight:800;color:#fbbf24;">${pr.value}<span style="font-size:12px;font-weight:400;color:var(--muted);">kg</span></div>
+        ${pr.reps?`<div style="font-size:11px;color:var(--accent);">${pr.reps}</div>`:''}
+        <div style="font-size:10px;color:var(--muted);margin-top:4px;">${pr.date}${gain?` · <span style="color:#69db7c;">+${gain}%</span>`:''}${count>1?` · ${count} sessions`:''}</div>
+      </div>`;
+    }).join('')}
+    </div>`;
 }
 function deleteHealthLog(id){
   S.healthLogs=(S.healthLogs||[]).filter(l=>l.id!==id);save();renderHealth();
@@ -4028,6 +4096,179 @@ function handleQC(e){
 }
 
 // ════════════════════════════════════════════════════════════════
+// FEATURE 14 — CSV / CLIPBOARD TASK IMPORT
+// ════════════════════════════════════════════════════════════════
+function openCSVImport(){
+  document.getElementById('csv-input').value='';
+  document.getElementById('csv-preview').innerHTML='';
+  document.getElementById('csv-footer').innerHTML=`<button class="btn bg" onclick="closeM('csv-import-modal')">Cancel</button><button class="btn bp" onclick="previewCSV()">Preview</button>`;
+  document.getElementById('csv-import-modal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('csv-input').focus(),80);
+}
+function parseCSVInput(raw){
+  const lines=raw.trim().split('\n').filter(l=>l.trim());
+  if(!lines.length)return[];
+  const sep=lines[0].includes('\t')?'\t':',';
+  const rows=lines.map(l=>l.split(sep).map(c=>c.trim().replace(/^"|"$/g,'')));
+  // detect header row
+  const KNOWN_HEADERS={title:['title','name','task','what'],category:['category','cat','type','label'],bucket:['bucket','when','status','list'],urgency:['urgency','urgent','priority'],importance:['importance','important'],notes:['notes','note','description','desc'],due:['due','duedate','due date','deadline']};
+  const firstLow=rows[0].map(h=>h.toLowerCase().replace(/[\s_-]/g,''));
+  const isHeader=firstLow.some(h=>Object.values(KNOWN_HEADERS).flat().includes(h));
+  let header,data;
+  if(isHeader){header=firstLow;data=rows.slice(1);}
+  else{header=null;data=rows;}
+  const CAT_NORM={givelink:'givelink',health:'health',finance:'finance',automation:'automation',brand:'brand',learning:'learning',relationships:'relationships',other:'other',rel:'relationships',fit:'health',fitness:'health',auto:'automation'};
+  const BUCK_NORM={inbox:'inbox','this-week':'this-week',week:'this-week','this week':'this-week','this-month':'this-month',month:'this-month','this month':'this-month',backlog:'backlog',someday:'someday',later:'someday'};
+  return data.map(row=>{
+    if(!row.length||!row.some(c=>c))return null;
+    if(!header){
+      return{title:row[0]||'',category:'other',bucket:'inbox',urgency:'low',importance:'high',notes:row[1]||''};
+    }
+    const get=(keys)=>{for(const k of keys){const i=header.findIndex(h=>k.includes(h));if(i>=0&&row[i])return row[i];}return '';};
+    const rawCat=(get(KNOWN_HEADERS.category)||'').toLowerCase().trim();
+    const rawBuck=(get(KNOWN_HEADERS.bucket)||'').toLowerCase().trim();
+    const rawUrg=(get(KNOWN_HEADERS.urgency)||'').toLowerCase();
+    const rawImp=(get(KNOWN_HEADERS.importance)||'').toLowerCase();
+    return{
+      title:get(KNOWN_HEADERS.title)||row[0]||'',
+      category:CAT_NORM[rawCat]||'other',
+      bucket:BUCK_NORM[rawBuck]||'inbox',
+      urgency:rawUrg.includes('high')||rawUrg==='1'||rawUrg==='true'?'high':'low',
+      importance:rawImp.includes('low')||rawImp==='0'||rawImp==='false'?'low':'high',
+      notes:get(KNOWN_HEADERS.notes)||'',
+      dueDate:get(KNOWN_HEADERS.due)||''
+    };
+  }).filter(r=>r&&r.title);
+}
+function previewCSV(){
+  const raw=document.getElementById('csv-input').value||'';
+  if(!raw.trim()){toast('Paste some tasks first!');return;}
+  const tasks=parseCSVInput(raw);
+  if(!tasks.length){document.getElementById('csv-preview').innerHTML='<div style="color:#ef4444;font-size:13px;">Could not parse. Try tab-separated (copy from Notion/Sheets) or one task per line.</div>';return;}
+  window._csvTasks=tasks;
+  const BUCK_COLOR={'this-week':'#ef4444','this-month':'#fbbf24',backlog:'#58a6ff',someday:'#94a3b8',inbox:'#69db7c'};
+  document.getElementById('csv-preview').innerHTML=`
+    <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">PREVIEW — ${tasks.length} tasks found</div>
+    <div style="display:flex;flex-direction:column;gap:4px;max-height:280px;overflow-y:auto;">
+    ${tasks.map((t,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 10px;background:var(--surface2);border-radius:6px;border:1px solid var(--border);">
+      <input type="checkbox" id="csv-t-${i}" checked style="width:15px;height:15px;cursor:pointer;flex-shrink:0;">
+      <div style="flex:1;font-size:12px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(t.title)}</div>
+      <span style="font-size:10px;padding:2px 6px;border-radius:8px;background:${BUCK_COLOR[t.bucket]||'#94a3b8'}22;color:${BUCK_COLOR[t.bucket]||'#94a3b8'};white-space:nowrap;flex-shrink:0;">${t.bucket}</span>
+      <span style="font-size:10px;color:var(--muted);white-space:nowrap;flex-shrink:0;">${t.category}</span>
+    </div>`).join('')}
+    </div>`;
+  document.getElementById('csv-footer').innerHTML=`<button class="btn bg" onclick="closeM('csv-import-modal')">Cancel</button><button class="btn bg" onclick="previewCSV()">↺ Re-parse</button><button class="btn bp" onclick="importCSVTasks()">Add ${tasks.length} to Inbox</button>`;
+}
+function importCSVTasks(){
+  const tasks=window._csvTasks||[];
+  let added=0;
+  tasks.forEach((t,i)=>{
+    if(!document.getElementById('csv-t-'+i)?.checked)return;
+    S.tasks.push({id:uid(),title:t.title,notes:t.notes||'',bucket:t.bucket||'inbox',category:t.category||'other',urgency:t.urgency||'low',importance:t.importance||'high',energy:'high',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:t.dueDate||'',goalId:null,createdAt:new Date().toISOString(),completedAt:null});
+    added++;
+  });
+  if(added){save();updIBadge();renderCapture();toast(`✅ ${added} tasks imported to inbox!`);}
+  closeM('csv-import-modal');
+}
+
+// ════════════════════════════════════════════════════════════════
+// FEATURE 15 — READING TRACKER
+// ════════════════════════════════════════════════════════════════
+function renderBooks(){
+  const books=S.books||[];
+  const done=books.filter(b=>b.finishedAt);
+  const reading=books.filter(b=>!b.finishedAt&&b.currentPage>0);
+  const notStarted=books.filter(b=>!b.finishedAt&&!b.currentPage);
+  const totalPages=done.reduce((s,b)=>s+(b.totalPages||0),0);
+  document.getElementById('books-stats').innerHTML=`
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#fbbf24;">${done.length}</div><div class="los-stat-l">Books finished</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#58a6ff;">${reading.length}</div><div class="los-stat-l">Currently reading</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#69db7c;">${totalPages.toLocaleString()}</div><div class="los-stat-l">Pages read total</div></div>`;
+  const renderBook=b=>{
+    const pct=b.totalPages?Math.round(b.currentPage/b.totalPages*100):0;
+    const pctColor=pct>=100?'#69db7c':pct>=50?'#fbbf24':'#58a6ff';
+    return`<div class="los-card" style="margin-bottom:10px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:14px;">${esc(b.title)}</div>
+          ${b.author?`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${esc(b.author)}</div>`:''}
+          ${b.totalPages?`<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <div class="prog-bar" style="flex:1;"><div class="prog-fill" style="width:${pct}%;background:${pctColor};"></div></div>
+            <span style="font-size:11px;font-weight:700;color:${pctColor};white-space:nowrap;">${pct}% · p${b.currentPage}/${b.totalPages}</span>
+          </div>`:''}
+          ${b.summary?`<div style="font-size:12px;color:var(--muted);line-height:1.5;margin-top:6px;border-left:2px solid var(--accent);padding-left:8px;">${esc(b.summary)}</div>`:''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+          <button class="btn bg sm" onclick="openEditBook('${b.id}')">✏️</button>
+          <button class="btn bg sm" onclick="openBookHighlights('${b.id}')">✨ AI</button>
+          ${!b.finishedAt?`<button class="btn bg sm" onclick="markBookDone('${b.id}')">✓ Done</button>`:''}
+        </div>
+      </div>
+      ${b.finishedAt?`<div style="font-size:10px;color:var(--muted);margin-top:4px;">Finished ${fd(b.finishedAt)}</div>`:''}
+    </div>`;
+  };
+  document.getElementById('books-list').innerHTML=`
+    ${reading.length?`<h3 style="margin:0 0 8px;font-size:13px;">Currently Reading</h3>${reading.map(renderBook).join('')}`:''}
+    ${notStarted.length?`<h3 style="margin:12px 0 8px;font-size:13px;color:var(--muted);">To Read</h3>${notStarted.map(renderBook).join('')}`:''}
+    ${done.length?`<h3 style="margin:12px 0 8px;font-size:13px;color:var(--muted);">Finished</h3>${done.map(renderBook).join('')}`:''}
+    ${!books.length?'<div class="empty">No books yet. Add your first one!</div>':''}`;
+}
+function openAddBook(){
+  document.getElementById('book-id').value='';
+  document.getElementById('book-title').value='';
+  document.getElementById('book-author').value='';
+  document.getElementById('book-pages').value='';
+  document.getElementById('book-current').value='';
+  document.getElementById('book-modal-title').textContent='📚 Add Book';
+  document.getElementById('book-modal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('book-title').focus(),80);
+}
+function openEditBook(id){
+  const b=(S.books||[]).find(x=>x.id===id);if(!b)return;
+  document.getElementById('book-id').value=id;
+  document.getElementById('book-title').value=b.title||'';
+  document.getElementById('book-author').value=b.author||'';
+  document.getElementById('book-pages').value=b.totalPages||'';
+  document.getElementById('book-current').value=b.currentPage||'';
+  document.getElementById('book-modal-title').textContent='✏️ Edit Book';
+  document.getElementById('book-modal').classList.remove('hidden');
+}
+function saveBook(){
+  const id=document.getElementById('book-id').value;
+  const title=document.getElementById('book-title').value.trim();
+  if(!title)return toast('Book title required');
+  const b={title,author:document.getElementById('book-author').value.trim(),totalPages:parseInt(document.getElementById('book-pages').value)||0,currentPage:parseInt(document.getElementById('book-current').value)||0};
+  if(!S.books)S.books=[];
+  if(id){const i=S.books.findIndex(x=>x.id===id);if(i>=0)S.books[i]={...S.books[i],...b};}
+  else{S.books.push({id:uid(),...b,startedAt:b.currentPage>0?new Date().toISOString().slice(0,10):null,finishedAt:null,highlights:'',summary:''});}
+  save();closeM('book-modal');renderBooks();toast('Book saved!');
+}
+function markBookDone(id){
+  const b=(S.books||[]).find(x=>x.id===id);if(!b)return;
+  b.finishedAt=new Date().toISOString().slice(0,10);
+  if(b.totalPages)b.currentPage=b.totalPages;
+  save();renderBooks();toast('📖 Book finished! Great work.');
+}
+function deleteBook(id){
+  S.books=(S.books||[]).filter(b=>b.id!==id);save();renderBooks();
+}
+function openBookHighlights(id){
+  const b=(S.books||[]).find(x=>x.id===id);if(!b)return;
+  document.getElementById('hl-book-title').value=b.title||'';
+  document.getElementById('hl-input').value=b.highlights||'';
+  document.getElementById('hl-result').innerHTML='';
+  document.getElementById('hl-footer').innerHTML=`<button class="btn bg" onclick="closeM('highlights-modal')">Cancel</button><button class="btn bp" onclick="extractHighlightTasks()">🤖 Extract Tasks</button>`;
+  document.getElementById('highlights-modal').classList.remove('hidden');
+}
+async function summarizeBook(id){
+  const b=(S.books||[]).find(x=>x.id===id);if(!b||!b.highlights)return toast('Add highlights first');
+  const prompt=`Summarize the key insights from "${b.title}" in 2-3 sentences, based on these highlights:\n\n${b.highlights.slice(0,2000)}\n\nFocus on the most actionable and memorable ideas. Plain text only, no bullet points.`;
+  const text=await callClaude(prompt,200);
+  if(!text)return;
+  b.summary=text;save();renderBooks();toast('📝 Summary generated!');
+}
+
+// ════════════════════════════════════════════════════════════════
 // FEATURE 11 — SMART REMINDERS (BROWSER NOTIFICATIONS)
 // ════════════════════════════════════════════════════════════════
 const DEFAULT_REMINDERS=[
@@ -4925,6 +5166,36 @@ function saveDecision(){
     <button class="btn bg sm" onclick="regenRelDraft()">↺ Regenerate</button>
     <button class="btn bp" onclick="copyRelDraft()">📋 Copy</button>
     <button class="btn bg sm" id="rel-draft-log-btn">✓ Log Contact</button>
+  </div>
+</div>
+
+<!-- CSV IMPORT MODAL -->
+<div class="mo hidden" id="csv-import-modal">
+  <div class="md" style="width:640px;">
+    <div class="mh"><h3>📋 Import Tasks</h3><button class="mc" onclick="closeM('csv-import-modal')">×</button></div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Paste tasks from Notion, Google Sheets, Excel, or just one task per line. Headers are auto-detected.<br>
+    <strong>Supported columns:</strong> title, category, bucket, urgency, importance, notes, due</div>
+    <textarea id="csv-input" style="width:100%;min-height:120px;max-height:180px;font-size:12px;line-height:1.6;resize:vertical;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:monospace;margin-bottom:10px;" placeholder="Paste here — tab-separated (from Notion/Sheets) or one task per line:&#10;&#10;title&#9;category&#9;bucket&#10;Research 5 new nonprofits&#9;givelink&#9;this-week&#10;Book dentist appointment&#9;health&#9;this-month&#10;&#10;Or just:&#10;Research 5 new nonprofits&#10;Book dentist appointment"></textarea>
+    <div id="csv-preview" style="margin-bottom:4px;"></div>
+    <div class="mf" id="csv-footer" style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- BOOK ADD/EDIT MODAL -->
+<div class="mo hidden" id="book-modal">
+  <div class="md" style="width:460px;">
+    <div class="mh"><h3 id="book-modal-title">📚 Add Book</h3><button class="mc" onclick="closeM('book-modal')">×</button></div>
+    <input type="hidden" id="book-id">
+    <div class="fg"><label>Title</label><input class="fc" id="book-title" placeholder="e.g. Atomic Habits"></div>
+    <div class="fg"><label>Author (optional)</label><input class="fc" id="book-author" placeholder="e.g. James Clear"></div>
+    <div class="fr">
+      <div class="fg"><label>Total pages</label><input class="fc" id="book-pages" type="number" placeholder="e.g. 320"></div>
+      <div class="fg"><label>Current page</label><input class="fc" id="book-current" type="number" placeholder="e.g. 120"></div>
+    </div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('book-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveBook()">Save</button>
+    </div>
   </div>
 </div>
 

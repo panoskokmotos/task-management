@@ -1142,7 +1142,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[]};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false}};
 let editT=null,editG=null,fCat='all';
 let profileName=localStorage.getItem('taskos_name')||'Panos';
 
@@ -4305,26 +4305,110 @@ function checkReminders(){
     if(!r.days.includes(dow))return;
     if(r.time!==hhmm)return;
     if(r.lastFired===today)return;
-    r.lastFired=today;
-    save();
+    r.lastFired=today;save();
     try{
       const n=new Notification(`${r.emoji} ${r.label}`,{body:r.msg,icon:'./icons/icon-192.png',tag:r.id});
       n.onclick=()=>{window.focus();n.close();};
     }catch(e){}
+    postToNtfy(r);
   });
 }
+
+// ── NTFY.SH PUSH NOTIFICATIONS ───────────────────────────────
+function _urlBase64ToUint8Array(b64){
+  const pad='='.repeat((4-b64.length%4)%4);
+  const b=atob((b64+pad).replace(/-/g,'+').replace(/_/g,'/'));
+  return Uint8Array.from(b,c=>c.charCodeAt(0));
+}
+async function postToNtfy(r){
+  const topic=(S.ntfy||{}).topic;
+  if(!topic||(S.ntfy||{}).enabled===false)return;
+  try{
+    await fetch(`https://ntfy.sh/${topic}`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({topic,title:`${r.emoji} ${r.label}`,message:r.msg,tags:['bell'],id:r.id}),
+    });
+  }catch(_){}
+}
+async function testNtfy(){
+  const topic=(document.getElementById('ntfy-topic-input')?.value||S.ntfy?.topic||'').trim();
+  if(!topic){toast('Enter a topic name first');return;}
+  toast('Sending test notification...');
+  try{
+    const res=await fetch(`https://ntfy.sh/${topic}`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({topic,title:'🔔 Life OS Test',message:'Push notifications are working! Your reminders will appear here.',tags:['white_check_mark']}),
+    });
+    if(res.ok)toast('✅ Test sent! Check your ntfy app.');
+    else toast('❌ Failed — check your topic name.');
+  }catch(_){toast('❌ Network error. Try again.');}
+}
+async function saveNtfySettings(){
+  const topic=(document.getElementById('ntfy-topic-input')?.value||'').trim().toLowerCase().replace(/[^a-z0-9-_]/g,'');
+  if(!topic){toast('Enter a topic name');return;}
+  if(!S.ntfy)S.ntfy={};
+  S.ntfy.topic=topic;S.ntfy.enabled=true;
+  // Attempt Web Push subscription through ntfy.sh
+  if('serviceWorker' in navigator&&'PushManager' in window){
+    try{
+      const infoRes=await fetch('https://ntfy.sh/info');
+      const info=await infoRes.json();
+      const vapidKey=info.vapid_key;
+      if(vapidKey){
+        const reg=await navigator.serviceWorker.ready;
+        const existing=await reg.pushManager.getSubscription();
+        const sub=existing||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:_urlBase64ToUint8Array(vapidKey)});
+        const key=sub.getKey('p256dh');const auth=sub.getKey('auth');
+        const p256dh=btoa(String.fromCharCode(...new Uint8Array(key)));
+        const authStr=btoa(String.fromCharCode(...new Uint8Array(auth)));
+        await fetch(`https://ntfy.sh/${topic}/webpush`,{
+          method:'PUT',
+          headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({web_push_endpoint:sub.endpoint,web_push_p256dh:p256dh,web_push_auth:authStr}),
+        });
+        S.ntfy.subscribed=true;
+        toast('✅ Web Push registered — works even when app is closed!');
+      }
+    }catch(err){
+      S.ntfy.subscribed=false;
+      toast('✅ Topic saved. Install ntfy app on phone for push when closed.');
+    }
+  } else{toast('✅ Topic saved.');}
+  save();openReminderSettings();
+}
+async function unsubscribeNtfy(){
+  const topic=S.ntfy?.topic;
+  if(topic&&'serviceWorker' in navigator){
+    try{
+      const reg=await navigator.serviceWorker.ready;
+      const sub=await reg.pushManager.getSubscription();
+      if(sub){
+        const auth=sub.getKey('auth');const authStr=btoa(String.fromCharCode(...new Uint8Array(auth)));
+        await fetch(`https://ntfy.sh/${topic}/webpush`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({web_push_endpoint:sub.endpoint,web_push_auth:authStr})});
+        await sub.unsubscribe();
+      }
+    }catch(_){}
+  }
+  if(S.ntfy){S.ntfy.enabled=false;S.ntfy.subscribed=false;S.ntfy.topic='';}
+  save();openReminderSettings();toast('Unsubscribed from push notifications.');
+}
+
 function openReminderSettings(){
   const body=document.getElementById('remind-body');
   const perm=('Notification' in window)?Notification.permission:'unsupported';
   const permColor=perm==='granted'?'#22c55e':perm==='denied'?'#ef4444':'#fbbf24';
-  const permLabel=perm==='granted'?'Granted ✓':perm==='denied'?'Blocked — allow in browser settings':'Click a reminder to enable';
+  const permLabel=perm==='granted'?'Granted ✓':perm==='denied'?'Blocked — allow in browser settings':'Click to enable';
+  const ntfy=S.ntfy||{};
+  const ntfyStatus=ntfy.subscribed?'🟢 Web Push active — works when app is closed':ntfy.enabled&&ntfy.topic?'🟡 Topic set — install ntfy app on phone to receive pushes':'⬜ Not configured';
   body.innerHTML=`
     <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--surface2);border-radius:7px;margin-bottom:14px;font-size:12px;">
       <span style="width:8px;height:8px;border-radius:50%;background:${permColor};flex-shrink:0;display:inline-block;"></span>
-      <span>Notification permission: <strong>${permLabel}</strong></span>
+      <span>Browser notifications: <strong>${permLabel}</strong></span>
       ${perm==='default'?`<button class="btn bg sm" onclick="Notification.requestPermission().then(()=>openReminderSettings())" style="margin-left:auto;">Enable</button>`:''}
     </div>
-    <div style="display:flex;flex-direction:column;gap:8px;">
+    <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
     ${(S.reminders||[]).map((r,i)=>`
       <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);">
         <span style="font-size:18px;">${r.emoji}</span>
@@ -4338,15 +4422,27 @@ function openReminderSettings(){
         </label>
       </div>`).join('')}
     </div>
-    <div style="margin-top:14px;font-size:11px;color:var(--muted);line-height:1.5;">
-      Notifications fire at the scheduled time while the app is open in a browser tab. For always-on reminders, install as a PWA and keep the tab pinned.
+    <div style="border-top:1px solid var(--border);padding-top:14px;">
+      <div style="font-size:13px;font-weight:700;margin-bottom:6px;">📱 Push Notifications via ntfy.sh</div>
+      <div style="font-size:11px;color:var(--muted);line-height:1.6;margin-bottom:10px;">
+        Sends reminders to your phone even when the app is closed.<br>
+        <strong>Setup:</strong> Install the free <strong>ntfy</strong> app → enter a unique topic below → tap Subscribe.<br>
+        Open the ntfy app, add the same topic, and you're done.
+      </div>
+      <div style="font-size:11px;margin-bottom:10px;padding:6px 10px;background:var(--surface2);border-radius:6px;">${ntfyStatus}</div>
+      <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        <input id="ntfy-topic-input" class="fc" style="flex:1;min-width:140px;" placeholder="your-unique-topic-name" value="${esc(ntfy.topic||'')}">
+        <button class="btn bp sm" onclick="saveNtfySettings()">Subscribe</button>
+        <button class="btn bg sm" onclick="testNtfy()">Test 🔔</button>
+        ${ntfy.enabled?`<button class="btn bd sm" onclick="unsubscribeNtfy()">Remove</button>`:''}
+      </div>
+      <div style="margin-top:8px;font-size:10px;color:var(--muted);">Topic must be unique — e.g. <code>taskos-panos-2026</code>. Anyone who knows your topic can send to it, so keep it private.</div>
     </div>`;
   document.getElementById('remind-modal').classList.remove('hidden');
 }
 function toggleReminder(i,val){
   if(!S.reminders[i])return;
-  S.reminders[i].enabled=val;
-  save();
+  S.reminders[i].enabled=val;save();
   if(val&&'Notification' in window&&Notification.permission==='default'){
     Notification.requestPermission().then(()=>openReminderSettings());
   }

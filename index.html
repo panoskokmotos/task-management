@@ -309,6 +309,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
     <div><h1 id="greeting">Good morning, Panos 👋</h1><p class="sub" id="ddate"></p></div>
     <div class="row">
       <button class="btn bg sm" onclick="openCmdK()" title="⌘K">⌘K</button>
+      <button class="btn bg sm" onclick="openChecklist('daily')" id="checklist-btn" title="Daily / Weekly / Monthly Checklist">📋 <span id="checklist-badge" style="display:none;background:#ef4444;color:#fff;border-radius:8px;padding:0 5px;font-size:10px;font-weight:700;"></span></button>
       <button class="btn bg sm" onclick="openReminderSettings()" title="Reminders" id="remind-btn">🔔</button>
       <button class="btn bg sm" onclick="showWeeklyDigest()">📊 Digest</button>
       <button class="btn bg sm" onclick="openTweetGenerator()">🐦 Post</button>
@@ -4015,6 +4016,7 @@ if('serviceWorker' in navigator){
 initQuickCapture();
 initPWA();
 initReminders();
+initChecklists();
 
 // ════════════════════════════════════════════════════════════════
 // PWA — INSTALL + UPDATE
@@ -4269,6 +4271,121 @@ async function summarizeBook(id){
 }
 
 // ════════════════════════════════════════════════════════════════
+// FEATURE 17 — DAILY / WEEKLY / MONTHLY ONBOARDING CHECKLISTS
+// ════════════════════════════════════════════════════════════════
+const CHECKLISTS={
+  daily:[
+    {id:'d1',emoji:'☀️',label:'Read AI morning briefing & confirm your One Thing',action:()=>nav('dashboard')},
+    {id:'d2',emoji:'📋',label:'Review Top 3 tasks — are they still right?',action:()=>nav('focus')},
+    {id:'d3',emoji:'📥',label:'Process inbox — nothing should sit there',action:()=>nav('capture')},
+    {id:'d4',emoji:'🏢',label:'Check Givelink CRM — any follow-ups needed?',action:()=>nav('dashboard')},
+    {id:'d5',emoji:'✅',label:'Log today\'s habits',action:()=>nav('habits')},
+    {id:'d6',emoji:'💪',label:'Log a workout or health metric',action:()=>nav('health')},
+    {id:'d7',emoji:'🌙',label:'Complete EOD Review before sleep',action:()=>nav('eod')},
+  ],
+  weekly:[
+    {id:'w1',emoji:'📅',label:'Run the Weekly Review wizard (20 min — non-negotiable)',action:()=>nav('review')},
+    {id:'w2',emoji:'📥',label:'Clear inbox to zero',action:()=>nav('capture')},
+    {id:'w3',emoji:'🏆',label:'Review goal progress — any stalled for 7+ days?',action:()=>nav('goals')},
+    {id:'w4',emoji:'🤝',label:'Contact overdue relationships',action:()=>nav('relationships')},
+    {id:'w5',emoji:'📊',label:'Open weekly metrics digest',action:()=>{closeM('checklist-modal');showWeeklyDigest();}},
+    {id:'w6',emoji:'💰',label:'Log any income or finance entries',action:()=>nav('finance')},
+    {id:'w7',emoji:'📚',label:'Update reading progress on current books',action:()=>nav('books')},
+    {id:'w8',emoji:'📜',label:'Set your commitment for next week',action:()=>nav('review')},
+    {id:'w9',emoji:'⚡',label:'Pick 3 daily challenges for next week',action:()=>nav('challenge')},
+  ],
+  monthly:[
+    {id:'m1',emoji:'🏆',label:'Review all goals — update status and progress',action:()=>nav('goals')},
+    {id:'m2',emoji:'💰',label:'Monthly finance review — income vs target',action:()=>nav('finance')},
+    {id:'m3',emoji:'🤝',label:'Relationship audit — anyone 30+ days overdue?',action:()=>nav('relationships')},
+    {id:'m4',emoji:'📋',label:'Someday audit — promote, schedule, or delete',action:()=>{closeM('checklist-modal');openSomedayAudit();}},
+    {id:'m5',emoji:'🤖',label:'Review AI automations — how many built vs 100?',action:()=>nav('ailab')},
+    {id:'m6',emoji:'🏢',label:'Givelink pipeline review — deals and stages',action:()=>window.open('givelink.html','_blank')},
+    {id:'m7',emoji:'🎯',label:'Set monthly theme and one big commitment',action:()=>nav('review')},
+    {id:'m8',emoji:'📸',label:'Log a progress photo',action:()=>nav('health')},
+    {id:'m9',emoji:'📚',label:'Summarize books finished this month',action:()=>nav('books')},
+    {id:'m10',emoji:'🔥',label:'Start a new 12-week discomfort challenge',action:()=>nav('ladder')},
+  ],
+};
+function _cbKey(type){
+  const now=new Date();
+  if(type==='daily')return'taskos_cb_daily_'+now.toISOString().slice(0,10);
+  if(type==='weekly'){const d=new Date(now);d.setDate(now.getDate()-((now.getDay()+6)%7));return'taskos_cb_weekly_'+d.toISOString().slice(0,10);}
+  return'taskos_cb_monthly_'+now.toISOString().slice(0,7);
+}
+function _cbChecked(type){
+  try{return new Set(JSON.parse(localStorage.getItem(_cbKey(type))||'[]'));}catch(_){return new Set();}
+}
+function _cbToggle(type,id){
+  const checked=_cbChecked(type);
+  checked.has(id)?checked.delete(id):checked.add(id);
+  localStorage.setItem(_cbKey(type),JSON.stringify([...checked]));
+  renderChecklistBody(type);
+  updateChecklistBadge();
+}
+function updateChecklistBadge(){
+  const today=_cbChecked('daily');
+  const total=CHECKLISTS.daily.length;
+  const done=today.size;
+  const badge=document.getElementById('checklist-badge');
+  if(!badge)return;
+  const remaining=total-done;
+  if(remaining>0){badge.textContent=remaining;badge.style.display='';}
+  else{badge.style.display='none';}
+}
+function openChecklist(type='daily'){
+  ['daily','weekly','monthly'].forEach(t=>{
+    document.getElementById('cb-tab-'+t)?.classList.toggle('active',t===type);
+  });
+  const titles={daily:'☀️ Daily Checklist',weekly:'📅 Weekly Checklist',monthly:'📈 Monthly Checklist'};
+  document.getElementById('checklist-modal-title').textContent=titles[type];
+  renderChecklistBody(type);
+  document.getElementById('checklist-modal').classList.remove('hidden');
+}
+function renderChecklistBody(type){
+  const items=CHECKLISTS[type]||[];
+  const checked=_cbChecked(type);
+  const done=items.filter(i=>checked.has(i.id)).length;
+  const pct=Math.round(done/items.length*100);
+  document.getElementById('checklist-progress').textContent=`${done}/${items.length} done`;
+  const periods={daily:'today',weekly:'this week',monthly:'this month'};
+  document.getElementById('checklist-body').innerHTML=`
+    <div style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-bottom:4px;">
+        <span>${done}/${items.length} complete</span><span>${pct}%</span>
+      </div>
+      <div class="prog-bar"><div class="prog-fill" style="width:${pct}%;background:${pct===100?'#22c55e':'var(--accent)'};transition:width .3s;"></div></div>
+      ${pct===100?`<div style="text-align:center;margin-top:8px;font-size:13px;font-weight:700;color:#22c55e;">🎉 All done ${periods[type]}!</div>`:''}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:6px;">
+    ${items.map(item=>{
+      const done=checked.has(item.id);
+      return`<div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--surface2);border-radius:8px;border:1px solid ${done?'#22c55e33':'var(--border)'};opacity:${done?.7:1};transition:all .2s;cursor:pointer;" onclick="_cbToggle('${type}','${item.id}')">
+        <div style="width:20px;height:20px;border-radius:50%;border:2px solid ${done?'#22c55e':'var(--border)'};background:${done?'#22c55e':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .2s;">
+          ${done?'<span style="color:#000;font-size:12px;font-weight:900;">✓</span>':''}
+        </div>
+        <span style="font-size:16px;flex-shrink:0;">${item.emoji}</span>
+        <span style="flex:1;font-size:13px;${done?'text-decoration:line-through;color:var(--muted);':''}">${item.label}</span>
+        ${item.action?`<button class="btn bg sm" onclick="event.stopPropagation();(${item.action.toString()})();closeM('checklist-modal');" style="flex-shrink:0;">→</button>`:''}
+      </div>`;
+    }).join('')}
+    </div>`;
+}
+function initChecklists(){
+  updateChecklistBadge();
+  // Auto-show daily checklist on first open of the day if < half done
+  const today=new Date().toISOString().slice(0,10);
+  const shownKey='taskos_cb_shown_'+today;
+  if(!localStorage.getItem(shownKey)){
+    localStorage.setItem(shownKey,'1');
+    const checked=_cbChecked('daily');
+    if(checked.size<Math.ceil(CHECKLISTS.daily.length/2)){
+      setTimeout(()=>openChecklist('daily'),1500);
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════════
 // FEATURE 11 — SMART REMINDERS (BROWSER NOTIFICATIONS)
 // ════════════════════════════════════════════════════════════════
 const DEFAULT_REMINDERS=[
@@ -4320,79 +4437,46 @@ function _urlBase64ToUint8Array(b64){
   const b=atob((b64+pad).replace(/-/g,'+').replace(/_/g,'/'));
   return Uint8Array.from(b,c=>c.charCodeAt(0));
 }
+async function _ntfyPost(topic,title,msg,tags){
+  // ntfy.sh: POST to root with JSON body containing topic field
+  return fetch('https://ntfy.sh',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({topic,title,message:msg,tags:tags||['bell']}),
+  });
+}
 async function postToNtfy(r){
   const topic=(S.ntfy||{}).topic;
   if(!topic||(S.ntfy||{}).enabled===false)return;
-  try{
-    await fetch(`https://ntfy.sh/${topic}`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({topic,title:`${r.emoji} ${r.label}`,message:r.msg,tags:['bell'],id:r.id}),
-    });
-  }catch(_){}
+  try{await _ntfyPost(topic,`${r.emoji} ${r.label}`,r.msg,['bell']);}catch(_){}
 }
 async function testNtfy(){
-  const topic=(document.getElementById('ntfy-topic-input')?.value||S.ntfy?.topic||'').trim();
+  const topic=(document.getElementById('ntfy-topic-input')?.value||S.ntfy?.topic||'').trim().toLowerCase().replace(/[^a-z0-9-_]/g,'');
   if(!topic){toast('Enter a topic name first');return;}
-  toast('Sending test notification...');
+  toast('Sending test...');
   try{
-    const res=await fetch(`https://ntfy.sh/${topic}`,{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({topic,title:'🔔 Life OS Test',message:'Push notifications are working! Your reminders will appear here.',tags:['white_check_mark']}),
-    });
-    if(res.ok)toast('✅ Test sent! Check your ntfy app.');
-    else toast('❌ Failed — check your topic name.');
-  }catch(_){toast('❌ Network error. Try again.');}
+    const res=await _ntfyPost(topic,'🔔 Life OS Test','Push notifications are working! Your reminders will appear here.',['white_check_mark']);
+    if(res.ok)toast('✅ Sent! Check your ntfy app.');
+    else{const t=await res.text();toast('❌ Failed: '+t.slice(0,60));}
+  }catch(e){toast('❌ Network error — check your connection.');}
 }
 async function saveNtfySettings(){
   const topic=(document.getElementById('ntfy-topic-input')?.value||'').trim().toLowerCase().replace(/[^a-z0-9-_]/g,'');
   if(!topic){toast('Enter a topic name');return;}
   if(!S.ntfy)S.ntfy={};
-  S.ntfy.topic=topic;S.ntfy.enabled=true;
-  // Attempt Web Push subscription through ntfy.sh
-  if('serviceWorker' in navigator&&'PushManager' in window){
-    try{
-      const infoRes=await fetch('https://ntfy.sh/info');
-      const info=await infoRes.json();
-      const vapidKey=info.vapid_key;
-      if(vapidKey){
-        const reg=await navigator.serviceWorker.ready;
-        const existing=await reg.pushManager.getSubscription();
-        const sub=existing||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:_urlBase64ToUint8Array(vapidKey)});
-        const key=sub.getKey('p256dh');const auth=sub.getKey('auth');
-        const p256dh=btoa(String.fromCharCode(...new Uint8Array(key)));
-        const authStr=btoa(String.fromCharCode(...new Uint8Array(auth)));
-        await fetch(`https://ntfy.sh/${topic}/webpush`,{
-          method:'PUT',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({web_push_endpoint:sub.endpoint,web_push_p256dh:p256dh,web_push_auth:authStr}),
-        });
-        S.ntfy.subscribed=true;
-        toast('✅ Web Push registered — works even when app is closed!');
-      }
-    }catch(err){
-      S.ntfy.subscribed=false;
-      toast('✅ Topic saved. Install ntfy app on phone for push when closed.');
-    }
-  } else{toast('✅ Topic saved.');}
-  save();openReminderSettings();
+  S.ntfy.topic=topic;S.ntfy.enabled=true;S.ntfy.subscribed=false;
+  save();
+  // Verify the topic works by sending a test
+  try{
+    const res=await _ntfyPost(topic,'✅ Life OS Connected','You will receive reminders here. Setup complete!',['tada']);
+    S.ntfy.subscribed=res.ok;save();
+  }catch(_){}
+  openReminderSettings();
+  toast('✅ Saved! Check your ntfy app for a confirmation message.');
 }
-async function unsubscribeNtfy(){
-  const topic=S.ntfy?.topic;
-  if(topic&&'serviceWorker' in navigator){
-    try{
-      const reg=await navigator.serviceWorker.ready;
-      const sub=await reg.pushManager.getSubscription();
-      if(sub){
-        const auth=sub.getKey('auth');const authStr=btoa(String.fromCharCode(...new Uint8Array(auth)));
-        await fetch(`https://ntfy.sh/${topic}/webpush`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({web_push_endpoint:sub.endpoint,web_push_auth:authStr})});
-        await sub.unsubscribe();
-      }
-    }catch(_){}
-  }
+function unsubscribeNtfy(){
   if(S.ntfy){S.ntfy.enabled=false;S.ntfy.subscribed=false;S.ntfy.topic='';}
-  save();openReminderSettings();toast('Unsubscribed from push notifications.');
+  save();openReminderSettings();toast('Removed ntfy topic.');
 }
 
 function openReminderSettings(){
@@ -5291,6 +5375,23 @@ function saveDecision(){
     <div class="mf">
       <button class="btn bg" onclick="closeM('book-modal')">Cancel</button>
       <button class="btn bp" onclick="saveBook()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- DAILY / WEEKLY / MONTHLY CHECKLIST MODAL -->
+<div class="mo hidden" id="checklist-modal">
+  <div class="md" style="width:540px;">
+    <div class="mh"><h3 id="checklist-modal-title">📋 Daily Checklist</h3><button class="mc" onclick="closeM('checklist-modal')">×</button></div>
+    <div style="display:flex;gap:6px;margin-bottom:14px;">
+      <button class="fp active" id="cb-tab-daily" onclick="openChecklist('daily')">☀️ Daily</button>
+      <button class="fp" id="cb-tab-weekly" onclick="openChecklist('weekly')">📅 Weekly</button>
+      <button class="fp" id="cb-tab-monthly" onclick="openChecklist('monthly')">📈 Monthly</button>
+    </div>
+    <div id="checklist-body" style="max-height:480px;overflow-y:auto;"></div>
+    <div class="mf" id="checklist-footer" style="justify-content:space-between;">
+      <span id="checklist-progress" style="font-size:12px;color:var(--muted);"></span>
+      <button class="btn bp" onclick="closeM('checklist-modal')">Done</button>
     </div>
   </div>
 </div>

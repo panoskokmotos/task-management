@@ -290,6 +290,55 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 .dc-meta{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
 .dc-pill{font-size:10px;font-weight:600;padding:3px 8px;border-radius:10px;background:rgba(88,166,255,.12);color:var(--accent);}
 
+/* ── WINS ───────────────────────────────────────────────────── */
+.win-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:flex-start;gap:12px;transition:border-color .12s;}
+.win-card:hover{border-color:var(--accent);}
+.win-icon{font-size:22px;flex-shrink:0;margin-top:1px;}
+.win-body{flex:1;min-width:0;}
+.win-title{font-size:14px;font-weight:600;margin-bottom:3px;}
+.win-desc{font-size:12px;color:var(--muted);line-height:1.5;}
+.win-meta{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;align-items:center;}
+/* ── BUCKET LIST ─────────────────────────────────────────────── */
+.bl-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:flex-start;gap:12px;transition:border-color .12s;cursor:pointer;}
+.bl-card:hover{border-color:var(--accent);}
+.bl-card.done-item{opacity:.55;}
+.bl-check{width:24px;height:24px;min-width:24px;border:2px solid var(--border);border-radius:50%;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .15s;cursor:pointer;font-size:12px;}
+.bl-check.done{background:var(--q2);border-color:var(--q2);}
+.bl-body{flex:1;min-width:0;}
+.bl-title{font-size:14px;font-weight:600;margin-bottom:3px;}
+.bl-title.done{text-decoration:line-through;color:var(--muted);}
+.bl-desc{font-size:12px;color:var(--muted);line-height:1.5;}
+.bl-meta{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;align-items:center;}
+/* ── WISHLIST ────────────────────────────────────────────────── */
+.wish-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-bottom:8px;display:flex;align-items:flex-start;gap:12px;transition:border-color .12s;}
+.wish-card:hover{border-color:var(--accent);}
+.wish-card.bought{opacity:.5;}
+.wish-icon{font-size:20px;flex-shrink:0;margin-top:2px;}
+.wish-body{flex:1;min-width:0;}
+.wish-title{font-size:14px;font-weight:600;margin-bottom:3px;}
+.wish-price{font-size:13px;font-weight:700;color:var(--accent);}
+.wish-meta{display:flex;gap:6px;margin-top:6px;flex-wrap:wrap;align-items:center;}
+/* ── PROJECTS ────────────────────────────────────────────────── */
+.proj-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px;margin-bottom:10px;transition:border-color .12s;}
+.proj-card:hover{border-color:var(--accent);}
+.proj-card.shipped{border-left:3px solid var(--q2);}
+.proj-card.in-progress{border-left:3px solid var(--accent);}
+.proj-card.idea{border-left:3px solid var(--muted);}
+.proj-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px;}
+.proj-title{font-size:15px;font-weight:700;}
+.proj-desc{font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:8px;}
+.proj-tags{display:flex;gap:5px;flex-wrap:wrap;}
+.proj-tag{font-size:10px;padding:2px 7px;border-radius:8px;background:var(--surface2);color:var(--muted);border:1px solid var(--border);}
+.proj-links{display:flex;gap:8px;margin-top:8px;}
+.proj-link{font-size:11px;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:3px;}
+.proj-link:hover{text-decoration:underline;}
+/* shared: AI suggestion strip */
+.ai-strip{background:linear-gradient(135deg,rgba(88,166,255,.07),rgba(167,139,250,.05));border:1px solid rgba(88,166,255,.2);border-radius:10px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.ai-strip-txt{font-size:12px;color:var(--muted);}
+.ai-sugg-list{margin-top:12px;}
+.ai-sugg-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:flex-start;gap:8px;font-size:13px;}
+.ai-sugg-add{flex-shrink:0;background:var(--accent);color:#000;border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer;}
+
 </style>
 </head>
 <body>
@@ -331,6 +380,11 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div class="ni" onclick="nav('habits')">✅ Habits</div>
   <div class="ni" onclick="nav('discomfort')">🔥 Discomfort</div>
   <div class="ni" onclick="nav('ladder')">🪜 Ladder</div>
+  <div class="ns">Personal</div>
+  <div class="ni" onclick="nav('wins')">🏅 Wins</div>
+  <div class="ni" onclick="nav('bucketlist')">🌍 Bucket List</div>
+  <div class="ni" onclick="nav('wishlist')">🛒 Wishlist</div>
+  <div class="ni" onclick="nav('projects')">🚀 Projects</div>
   <div style="margin-top:auto;padding:10px 6px 4px;border-top:1px solid var(--border);">
     <div class="ni" onclick="openSettings()" style="margin:0;">⚙️ Settings</div>
   </div>
@@ -632,6 +686,226 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   </div>
   <div id="ladder-progress" style="margin-bottom:16px;"></div>
   <div id="ladder-body"></div>
+</div>
+
+<!-- ── WINS ───────────────────────────────────────────────────── -->
+<div id="v-wins" class="view">
+  <div class="ph" style="margin-bottom:16px;">
+    <div><h1>🏅 Wins</h1><p class="sub">Every victory worth remembering</p></div>
+    <div class="row" style="gap:6px;">
+      <button class="btn bg sm" onclick="aiSuggestWins()">✨ AI Reflect</button>
+      <button class="btn bp" onclick="openAddWin()">+ Log Win</button>
+    </div>
+  </div>
+  <div id="wins-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;"></div>
+  <div class="fb" id="wins-filter-bar"></div>
+  <div id="wins-list"></div>
+</div>
+
+<!-- ── BUCKET LIST ────────────────────────────────────────────── -->
+<div id="v-bucketlist" class="view">
+  <div class="ph" style="margin-bottom:16px;">
+    <div><h1>🌍 Bucket List</h1><p class="sub">Things to do before you die</p></div>
+    <div class="row" style="gap:6px;">
+      <button class="btn bg sm" onclick="aiSuggestBucket()">✨ AI Suggest</button>
+      <button class="btn bp" onclick="openAddBucket()">+ Add Item</button>
+    </div>
+  </div>
+  <div id="bl-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;"></div>
+  <div class="fb" id="bl-filter-bar"></div>
+  <div id="bl-ai-strip" class="ai-strip" style="display:none;">
+    <div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:2px;">✨ AI Suggestions</div>
+      <div class="ai-strip-txt">Based on your goals and values</div>
+    </div>
+    <button class="btn bg sm" onclick="document.getElementById('bl-ai-strip').style.display='none'">×</button>
+    <div id="bl-ai-list" class="ai-sugg-list" style="width:100%;"></div>
+  </div>
+  <div id="bl-list"></div>
+</div>
+
+<!-- ── WISHLIST ───────────────────────────────────────────────── -->
+<div id="v-wishlist" class="view">
+  <div class="ph" style="margin-bottom:16px;">
+    <div><h1>🛒 Wishlist</h1><p class="sub">Tools, gear & things worth buying</p></div>
+    <div class="row" style="gap:6px;">
+      <button class="btn bg sm" onclick="aiSuggestWishlist()">✨ AI Suggest</button>
+      <button class="btn bp" onclick="openAddWish()">+ Add Item</button>
+    </div>
+  </div>
+  <div id="wish-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;"></div>
+  <div class="fb" id="wish-filter-bar"></div>
+  <div id="wish-ai-strip" class="ai-strip" style="display:none;">
+    <div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:2px;">✨ AI Suggestions</div>
+      <div class="ai-strip-txt">Things that might level you up</div>
+    </div>
+    <button class="btn bg sm" onclick="document.getElementById('wish-ai-strip').style.display='none'">×</button>
+    <div id="wish-ai-list" class="ai-sugg-list" style="width:100%;"></div>
+  </div>
+  <div id="wish-list"></div>
+</div>
+
+<!-- ── PROJECTS ───────────────────────────────────────────────── -->
+<div id="v-projects" class="view">
+  <div class="ph" style="margin-bottom:16px;">
+    <div><h1>🚀 Projects</h1><p class="sub">Things you've built or want to build</p></div>
+    <div class="row" style="gap:6px;">
+      <button class="btn bg sm" onclick="aiSuggestProjects()">✨ AI Suggest</button>
+      <button class="btn bp" onclick="openAddProject()">+ Add Project</button>
+    </div>
+  </div>
+  <div id="proj-stats" style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:18px;"></div>
+  <div class="fb" id="proj-filter-bar"></div>
+  <div id="proj-ai-strip" class="ai-strip" style="display:none;">
+    <div>
+      <div style="font-size:13px;font-weight:600;margin-bottom:2px;">✨ AI Project Ideas</div>
+      <div class="ai-strip-txt">Based on your interests & goals</div>
+    </div>
+    <button class="btn bg sm" onclick="document.getElementById('proj-ai-strip').style.display='none'">×</button>
+    <div id="proj-ai-list" class="ai-sugg-list" style="width:100%;"></div>
+  </div>
+  <div id="proj-list"></div>
+</div>
+
+<!-- ── WIN MODAL ─────────────────────────────────────────────── -->
+<div id="win-modal" class="mo hidden">
+  <div class="md" style="max-width:480px;">
+    <div class="mh"><span style="font-size:16px;font-weight:700;">🏅 Log a Win</span><button class="mc" onclick="closeModal('win-modal')">×</button></div>
+    <div class="fg"><label>Title *</label><input class="fc" id="win-title" placeholder="What did you achieve?"></div>
+    <div class="fg"><label>Description</label><textarea class="fc" id="win-desc" rows="2" placeholder="Add some detail…"></textarea></div>
+    <div class="fr">
+      <div class="fg"><label>Category</label>
+        <select class="fc" id="win-cat">
+          <option value="work">💼 Work</option>
+          <option value="personal">🌱 Personal</option>
+          <option value="health">💪 Health</option>
+          <option value="finance">💰 Finance</option>
+          <option value="learning">📚 Learning</option>
+          <option value="relationship">🤝 Relationship</option>
+        </select>
+      </div>
+      <div class="fg"><label>Emoji (optional)</label><input class="fc" id="win-emoji" placeholder="🏆" maxlength="2"></div>
+    </div>
+    <div class="fg"><label>Date</label><input class="fc" id="win-date" type="date"></div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeModal('win-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveWin()">Save Win</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── BUCKET MODAL ───────────────────────────────────────────── -->
+<div id="bl-modal" class="mo hidden">
+  <div class="md" style="max-width:480px;">
+    <div class="mh"><span style="font-size:16px;font-weight:700;" id="bl-modal-title">🌍 Add to Bucket List</span><button class="mc" onclick="closeModal('bl-modal')">×</button></div>
+    <div class="fg"><label>Experience / Goal *</label><input class="fc" id="bl-title" placeholder="e.g. Hike the Camino de Santiago"></div>
+    <div class="fg"><label>Why it matters (optional)</label><textarea class="fc" id="bl-desc" rows="2" placeholder="What excites you about this?"></textarea></div>
+    <div class="fr">
+      <div class="fg"><label>Category</label>
+        <select class="fc" id="bl-cat">
+          <option value="travel">✈️ Travel</option>
+          <option value="experience">🎯 Experience</option>
+          <option value="skill">🧠 Skill</option>
+          <option value="relationship">🤝 Relationship</option>
+          <option value="achievement">🏆 Achievement</option>
+          <option value="health">💪 Health</option>
+          <option value="creative">🎨 Creative</option>
+        </select>
+      </div>
+      <div class="fg"><label>Priority</label>
+        <select class="fc" id="bl-priority">
+          <option value="dream">🌟 Dream</option>
+          <option value="high">🔥 High</option>
+          <option value="medium">📌 Medium</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label>Target year (optional)</label><input class="fc" id="bl-year" type="number" min="2025" max="2099" placeholder="2026"></div>
+    <input type="hidden" id="bl-edit-id">
+    <div class="mf">
+      <button class="btn bg" onclick="closeModal('bl-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveBucket()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── WISH MODAL ─────────────────────────────────────────────── -->
+<div id="wish-modal" class="mo hidden">
+  <div class="md" style="max-width:480px;">
+    <div class="mh"><span style="font-size:16px;font-weight:700;" id="wish-modal-title">🛒 Add to Wishlist</span><button class="mc" onclick="closeModal('wish-modal')">×</button></div>
+    <div class="fg"><label>Item *</label><input class="fc" id="wish-title" placeholder="e.g. Mechanical keyboard"></div>
+    <div class="fg"><label>Why / notes</label><textarea class="fc" id="wish-desc" rows="2" placeholder="Why do you want this?"></textarea></div>
+    <div class="fr">
+      <div class="fg"><label>Category</label>
+        <select class="fc" id="wish-cat">
+          <option value="tech">💻 Tech</option>
+          <option value="books">📚 Books</option>
+          <option value="gear">🎒 Gear</option>
+          <option value="home">🏠 Home</option>
+          <option value="health">💪 Health</option>
+          <option value="clothing">👕 Clothing</option>
+          <option value="other">📦 Other</option>
+        </select>
+      </div>
+      <div class="fg"><label>Priority</label>
+        <select class="fc" id="wish-priority">
+          <option value="need">🔥 Need</option>
+          <option value="want">💛 Want</option>
+          <option value="dream">🌟 Dream</option>
+        </select>
+      </div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Price (€/$)</label><input class="fc" id="wish-price" type="number" min="0" placeholder="0"></div>
+      <div class="fg"><label>Link (optional)</label><input class="fc" id="wish-url" type="url" placeholder="https://…"></div>
+    </div>
+    <input type="hidden" id="wish-edit-id">
+    <div class="mf">
+      <button class="btn bg" onclick="closeModal('wish-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveWish()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── PROJECT MODAL ──────────────────────────────────────────── -->
+<div id="proj-modal" class="mo hidden">
+  <div class="md" style="max-width:520px;">
+    <div class="mh"><span style="font-size:16px;font-weight:700;" id="proj-modal-title">🚀 Add Project</span><button class="mc" onclick="closeModal('proj-modal')">×</button></div>
+    <div class="fg"><label>Project Name *</label><input class="fc" id="proj-title" placeholder="e.g. Task OS"></div>
+    <div class="fg"><label>Description</label><textarea class="fc" id="proj-desc" rows="2" placeholder="What does it do / what's the idea?"></textarea></div>
+    <div class="fr">
+      <div class="fg"><label>Status</label>
+        <select class="fc" id="proj-status">
+          <option value="idea">💡 Idea</option>
+          <option value="in-progress">⚡ In Progress</option>
+          <option value="shipped">✅ Shipped</option>
+          <option value="archived">📦 Archived</option>
+        </select>
+      </div>
+      <div class="fg"><label>Category</label>
+        <select class="fc" id="proj-cat">
+          <option value="web">🌐 Web App</option>
+          <option value="mobile">📱 Mobile</option>
+          <option value="tool">🔧 Tool / CLI</option>
+          <option value="ai">🤖 AI / ML</option>
+          <option value="api">⚙️ API / Backend</option>
+          <option value="design">🎨 Design</option>
+          <option value="other">📦 Other</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg"><label>Tech Stack (comma-separated)</label><input class="fc" id="proj-stack" placeholder="e.g. React, Node.js, Postgres"></div>
+    <div class="fr">
+      <div class="fg"><label>Live URL</label><input class="fc" id="proj-url" type="url" placeholder="https://…"></div>
+      <div class="fg"><label>Repo URL</label><input class="fc" id="proj-repo" type="url" placeholder="https://github.com/…"></div>
+    </div>
+    <input type="hidden" id="proj-edit-id">
+    <div class="mf">
+      <button class="btn bg" onclick="closeModal('proj-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveProject()">Save</button>
+    </div>
+  </div>
 </div>
 
 </main>
@@ -1210,7 +1484,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[]};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[]};
 let editT=null,editG=null,fCat='all';
 let profileName=localStorage.getItem('taskos_name')||'Panos';
 
@@ -1245,7 +1519,7 @@ function nav(v){
   document.getElementById('s-ov')?.classList.remove('open');
   document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
-function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort,eod:renderEod,decisions:renderDecisions,challenge:renderChallenge,ladder:renderLadder,books:renderBooks})[v]?.();}
+function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort,eod:renderEod,decisions:renderDecisions,challenge:renderChallenge,ladder:renderLadder,books:renderBooks,wins:renderWins,bucketlist:renderBucketList,wishlist:renderWishlist,projects:renderProjects})[v]?.();}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
 
 // ── DASHBOARD ─────────────────────────────────────────────────
@@ -5553,6 +5827,351 @@ function saveDecision(){
   renderDecisions();
   toast('Decision logged!');
 }
+
+// ── WINS ─────────────────────────────────────────────────────────
+const WIN_CATS={work:{label:'💼 Work',color:'var(--accent)'},personal:{label:'🌱 Personal',color:'var(--q2)'},health:{label:'💪 Health',color:'#f97316'},finance:{label:'💰 Finance',color:'var(--q2)'},learning:{label:'📚 Learning',color:'#a78bfa'},relationship:{label:'🤝 Relationship',color:'var(--cf)'}};
+let winFilter='all';
+function renderWins(){
+  const wins=(S.wins||[]).slice().reverse();
+  const now=new Date(),y=now.getFullYear(),m=now.getMonth(),w=new Date(now);
+  w.setDate(now.getDate()-now.getDay());
+  const thisMonth=wins.filter(x=>{ const d=new Date(x.date||x.id); return d.getFullYear()===y&&d.getMonth()===m; });
+  const thisWeek=wins.filter(x=>new Date(x.date||x.id)>=w);
+  document.getElementById('wins-stats').innerHTML=`
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#fbbf24;">${wins.length}</div><div class="los-stat-l">Total Wins</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:var(--accent);">${thisMonth.length}</div><div class="los-stat-l">This Month</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:var(--q2);">${thisWeek.length}</div><div class="los-stat-l">This Week</div></div>`;
+  const cats=['all',...Object.keys(WIN_CATS)];
+  document.getElementById('wins-filter-bar').innerHTML=cats.map(c=>`<button class="fp${winFilter===c?' active':''}" onclick="winFilter='${c}';renderWins()">${c==='all'?'All':WIN_CATS[c].label}</button>`).join('');
+  const filtered=winFilter==='all'?wins:wins.filter(x=>x.cat===winFilter);
+  document.getElementById('wins-list').innerHTML=filtered.length?filtered.map(w=>{
+    const cat=WIN_CATS[w.cat]||WIN_CATS.personal;
+    const emoji=w.emoji||'🏅';
+    return`<div class="win-card">
+      <div class="win-icon">${emoji}</div>
+      <div class="win-body">
+        <div class="win-title">${esc(w.title)}</div>
+        ${w.desc?`<div class="win-desc">${esc(w.desc)}</div>`:''}
+        <div class="win-meta">
+          <span class="badge" style="background:rgba(88,166,255,.12);color:${cat.color};">${cat.label}</span>
+          <span class="tag">${w.date||fd(w.id)}</span>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+        <button class="btn bg sm" onclick="deleteWin('${w.id}')" title="Delete">🗑</button>
+      </div>
+    </div>`;
+  }).join(''):'<div class="empty">No wins logged yet. Start celebrating!</div>';
+}
+function openAddWin(){
+  document.getElementById('win-title').value='';
+  document.getElementById('win-desc').value='';
+  document.getElementById('win-cat').value='work';
+  document.getElementById('win-emoji').value='';
+  document.getElementById('win-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('win-modal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('win-title').focus(),80);
+}
+function saveWin(){
+  const title=document.getElementById('win-title').value.trim();
+  if(!title)return toast('Title required');
+  if(!S.wins)S.wins=[];
+  S.wins.push({id:uid(),title,desc:document.getElementById('win-desc').value.trim(),cat:document.getElementById('win-cat').value,emoji:document.getElementById('win-emoji').value.trim()||'🏅',date:document.getElementById('win-date').value});
+  save();closeModal('win-modal');renderWins();toast('Win logged! 🎉');
+}
+function deleteWin(id){if(!confirm('Delete this win?'))return;S.wins=(S.wins||[]).filter(x=>x.id!==id);save();renderWins();}
+async function aiSuggestWins(){
+  const wins=(S.wins||[]).slice(-10).map(w=>w.title).join(', ');
+  const goals=(S.goals||[]).slice(0,5).map(g=>g.title).join(', ');
+  const prompt=`Based on these recent wins: ${wins||'none yet'}\nAnd these goals: ${goals||'none set'}\n\nWrite a short, motivating reflection (3-4 sentences) on the progress and patterns you see. Be specific and personal. Then suggest 2 areas where the user might look for their next win.`;
+  const txt=await callClaude(prompt,600);
+  if(txt)showAiOut('Your Win Reflection ✨',txt);
+}
+
+// ── BUCKET LIST ───────────────────────────────────────────────────
+const BL_CATS={travel:{label:'✈️ Travel',color:'#38bdf8'},experience:{label:'🎯 Experience',color:'var(--accent)'},skill:{label:'🧠 Skill',color:'#a78bfa'},relationship:{label:'🤝 Relationship',color:'var(--cf)'},achievement:{label:'🏆 Achievement',color:'#fbbf24'},health:{label:'💪 Health',color:'#f97316'},creative:{label:'🎨 Creative',color:'#ec4899'}};
+const BL_PRIORITY={dream:{label:'🌟 Dream',color:'#a78bfa'},high:{label:'🔥 High',color:'var(--q1)'},medium:{label:'📌 Medium',color:'var(--muted)'}};
+let blFilter='all';
+function renderBucketList(){
+  const items=(S.bucketlist||[]).slice().reverse();
+  const done=items.filter(x=>x.done);
+  const active=items.filter(x=>!x.done);
+  document.getElementById('bl-stats').innerHTML=`
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:var(--accent);">${items.length}</div><div class="los-stat-l">Total Items</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:var(--q2);">${done.length}</div><div class="los-stat-l">Completed ✓</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#fbbf24;">${active.length}</div><div class="los-stat-l">Remaining</div></div>`;
+  const cats=['all',...Object.keys(BL_CATS),'done'];
+  document.getElementById('bl-filter-bar').innerHTML=cats.map(c=>`<button class="fp${blFilter===c?' active':''}" onclick="blFilter='${c}';renderBucketList()">${c==='all'?'All':c==='done'?'✓ Done':BL_CATS[c].label}</button>`).join('');
+  let filtered=items;
+  if(blFilter==='done')filtered=done;
+  else if(blFilter!=='all')filtered=items.filter(x=>x.cat===blFilter);
+  document.getElementById('bl-list').innerHTML=filtered.length?filtered.map(x=>{
+    const cat=BL_CATS[x.cat]||BL_CATS.experience;
+    const pri=BL_PRIORITY[x.priority]||BL_PRIORITY.medium;
+    return`<div class="bl-card${x.done?' done-item':''}">
+      <div class="bl-check${x.done?' done':''}" onclick="toggleBucket('${x.id}')" title="${x.done?'Mark undone':'Mark done'}">${x.done?'✓':''}</div>
+      <div class="bl-body">
+        <div class="bl-title${x.done?' done':''}">${esc(x.title)}</div>
+        ${x.desc?`<div class="bl-desc">${esc(x.desc)}</div>`:''}
+        <div class="bl-meta">
+          <span class="badge" style="background:rgba(88,166,255,.12);color:${cat.color};">${cat.label}</span>
+          <span class="badge" style="background:rgba(88,166,255,.08);color:${pri.color};">${pri.label}</span>
+          ${x.year?`<span class="tag">Target: ${x.year}</span>`:''}
+          ${x.done&&x.doneAt?`<span class="tag">✓ ${fd(x.doneAt)}</span>`:''}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+        <button class="btn bg sm" onclick="openEditBucket('${x.id}')">✏️</button>
+        <button class="btn bg sm" onclick="deleteBucket('${x.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join(''):'<div class="empty">No bucket list items yet. Dream big!</div>';
+}
+function toggleBucket(id){
+  const i=(S.bucketlist||[]).findIndex(x=>x.id===id);if(i<0)return;
+  S.bucketlist[i].done=!S.bucketlist[i].done;
+  S.bucketlist[i].doneAt=S.bucketlist[i].done?new Date().toISOString().slice(0,10):null;
+  save();renderBucketList();
+  if(S.bucketlist[i].done)toast('Bucket item completed! 🎉');
+}
+function openAddBucket(prefill){
+  document.getElementById('bl-edit-id').value='';
+  document.getElementById('bl-title').value=prefill||'';
+  document.getElementById('bl-desc').value='';
+  document.getElementById('bl-cat').value='travel';
+  document.getElementById('bl-priority').value='medium';
+  document.getElementById('bl-year').value='';
+  document.getElementById('bl-modal-title').textContent='🌍 Add to Bucket List';
+  document.getElementById('bl-modal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('bl-title').focus(),80);
+}
+function openEditBucket(id){
+  const x=(S.bucketlist||[]).find(b=>b.id===id);if(!x)return;
+  document.getElementById('bl-edit-id').value=id;
+  document.getElementById('bl-title').value=x.title||'';
+  document.getElementById('bl-desc').value=x.desc||'';
+  document.getElementById('bl-cat').value=x.cat||'travel';
+  document.getElementById('bl-priority').value=x.priority||'medium';
+  document.getElementById('bl-year').value=x.year||'';
+  document.getElementById('bl-modal-title').textContent='✏️ Edit Bucket Item';
+  document.getElementById('bl-modal').classList.remove('hidden');
+}
+function saveBucket(){
+  const title=document.getElementById('bl-title').value.trim();
+  if(!title)return toast('Title required');
+  const id=document.getElementById('bl-edit-id').value;
+  const data={title,desc:document.getElementById('bl-desc').value.trim(),cat:document.getElementById('bl-cat').value,priority:document.getElementById('bl-priority').value,year:document.getElementById('bl-year').value||null};
+  if(!S.bucketlist)S.bucketlist=[];
+  if(id){const i=S.bucketlist.findIndex(x=>x.id===id);if(i>=0)S.bucketlist[i]={...S.bucketlist[i],...data};}
+  else S.bucketlist.push({id:uid(),done:false,doneAt:null,...data});
+  save();closeModal('bl-modal');renderBucketList();toast('Saved!');
+}
+function deleteBucket(id){if(!confirm('Delete this item?'))return;S.bucketlist=(S.bucketlist||[]).filter(x=>x.id!==id);save();renderBucketList();}
+async function aiSuggestBucket(){
+  const existing=(S.bucketlist||[]).map(x=>x.title).join(', ');
+  const goals=(S.goals||[]).map(g=>g.title).join(', ');
+  const vals=(S.values||[]).join(', ');
+  const prompt=`Generate 6 bucket list items for someone with these values: ${vals||'growth, impact, experiences'}\nTheir current goals: ${goals||'none listed'}\nThey already have: ${existing||'nothing yet'}\n\nReturn ONLY a JSON array of objects with fields: title (string), cat (one of: travel,experience,skill,relationship,achievement,health,creative), why (one sentence why it matters). No markdown, no extra text.`;
+  const txt=await callClaude(prompt,800);
+  if(!txt)return;
+  let items=[];
+  try{const s=txt.replace(/```[\w]*\n?/g,'').trim();const j=s.match(/\[[\s\S]*\]/)?.[0];if(j)items=JSON.parse(j);}catch(e){return showAiOut('AI Suggestions',txt);}
+  const strip=document.getElementById('bl-ai-strip');
+  const list=document.getElementById('bl-ai-list');
+  list.innerHTML=items.map(it=>`<div class="ai-sugg-item"><div style="flex:1;"><strong>${esc(it.title)}</strong><div style="font-size:12px;color:var(--muted);margin-top:2px;">${esc(it.why||'')}</div></div><button class="ai-sugg-add" onclick="openAddBucket('${esc(it.title).replace(/'/g,"\\'")}')">+ Add</button></div>`).join('');
+  strip.style.display='flex';strip.style.flexWrap='wrap';
+}
+
+// ── WISHLIST ──────────────────────────────────────────────────────
+const WISH_CATS={tech:{label:'💻 Tech',color:'var(--accent)'},books:{label:'📚 Books',color:'#a78bfa'},gear:{label:'🎒 Gear',color:'#f97316'},home:{label:'🏠 Home',color:'#fbbf24'},health:{label:'💪 Health',color:'var(--q2)'},clothing:{label:'👕 Clothing',color:'var(--cf)'},other:{label:'📦 Other',color:'var(--muted)'}};
+const WISH_PRI={need:{label:'🔥 Need',color:'var(--q1)'},want:{label:'💛 Want',color:'#fbbf24'},dream:{label:'🌟 Dream',color:'#a78bfa'}};
+const WISH_ICONS={tech:'💻',books:'📚',gear:'🎒',home:'🏠',health:'💪',clothing:'👕',other:'📦'};
+let wishFilter='all';
+function renderWishlist(){
+  const items=(S.wishlist||[]).slice().reverse();
+  const bought=items.filter(x=>x.bought);
+  const active=items.filter(x=>!x.bought);
+  const totalCost=active.reduce((s,x)=>s+(parseFloat(x.price)||0),0);
+  document.getElementById('wish-stats').innerHTML=`
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:var(--accent);">${active.length}</div><div class="los-stat-l">Items Wanted</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#fbbf24;">${totalCost>0?'€'+totalCost.toLocaleString():'-'}</div><div class="los-stat-l">Est. Total</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:var(--q2);">${bought.length}</div><div class="los-stat-l">Bought ✓</div></div>`;
+  const cats=['all',...Object.keys(WISH_CATS),'bought'];
+  document.getElementById('wish-filter-bar').innerHTML=cats.map(c=>`<button class="fp${wishFilter===c?' active':''}" onclick="wishFilter='${c}';renderWishlist()">${c==='all'?'All':c==='bought'?'✓ Bought':WISH_CATS[c].label}</button>`).join('');
+  let filtered=items;
+  if(wishFilter==='bought')filtered=bought;
+  else if(wishFilter!=='all')filtered=items.filter(x=>x.cat===wishFilter);
+  document.getElementById('wish-list').innerHTML=filtered.length?filtered.map(x=>{
+    const cat=WISH_CATS[x.cat]||WISH_CATS.other;
+    const pri=WISH_PRI[x.priority]||WISH_PRI.want;
+    const icon=WISH_ICONS[x.cat]||'📦';
+    return`<div class="wish-card${x.bought?' bought':''}">
+      <div class="wish-icon">${icon}</div>
+      <div class="wish-body">
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:2px;">
+          <div class="wish-title">${esc(x.title)}</div>
+          ${x.price?`<span class="wish-price">€${parseFloat(x.price).toLocaleString()}</span>`:''}
+        </div>
+        ${x.desc?`<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">${esc(x.desc)}</div>`:''}
+        <div class="wish-meta">
+          <span class="badge" style="background:rgba(88,166,255,.12);color:${cat.color};">${cat.label}</span>
+          <span class="badge" style="background:rgba(88,166,255,.08);color:${pri.color};">${pri.label}</span>
+          ${x.url?`<a href="${esc(x.url)}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent);">🔗 Link</a>`:''}
+          ${x.bought?'<span class="tag">✓ Bought</span>':''}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
+        ${!x.bought?`<button class="btn bg sm" onclick="markWishBought('${x.id}')" title="Mark as bought">✓</button>`:''}
+        <button class="btn bg sm" onclick="openEditWish('${x.id}')">✏️</button>
+        <button class="btn bg sm" onclick="deleteWish('${x.id}')">🗑</button>
+      </div>
+    </div>`;
+  }).join(''):'<div class="empty">No wishlist items yet. Add something!</div>';
+}
+function markWishBought(id){const i=(S.wishlist||[]).findIndex(x=>x.id===id);if(i<0)return;S.wishlist[i].bought=true;save();renderWishlist();toast('Bought! 🎉');}
+function openAddWish(prefill){
+  document.getElementById('wish-edit-id').value='';
+  document.getElementById('wish-title').value=prefill||'';
+  document.getElementById('wish-desc').value='';
+  document.getElementById('wish-cat').value='tech';
+  document.getElementById('wish-priority').value='want';
+  document.getElementById('wish-price').value='';
+  document.getElementById('wish-url').value='';
+  document.getElementById('wish-modal-title').textContent='🛒 Add to Wishlist';
+  document.getElementById('wish-modal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('wish-title').focus(),80);
+}
+function openEditWish(id){
+  const x=(S.wishlist||[]).find(w=>w.id===id);if(!x)return;
+  document.getElementById('wish-edit-id').value=id;
+  document.getElementById('wish-title').value=x.title||'';
+  document.getElementById('wish-desc').value=x.desc||'';
+  document.getElementById('wish-cat').value=x.cat||'tech';
+  document.getElementById('wish-priority').value=x.priority||'want';
+  document.getElementById('wish-price').value=x.price||'';
+  document.getElementById('wish-url').value=x.url||'';
+  document.getElementById('wish-modal-title').textContent='✏️ Edit Item';
+  document.getElementById('wish-modal').classList.remove('hidden');
+}
+function saveWish(){
+  const title=document.getElementById('wish-title').value.trim();
+  if(!title)return toast('Item name required');
+  const id=document.getElementById('wish-edit-id').value;
+  const data={title,desc:document.getElementById('wish-desc').value.trim(),cat:document.getElementById('wish-cat').value,priority:document.getElementById('wish-priority').value,price:document.getElementById('wish-price').value||null,url:document.getElementById('wish-url').value.trim()||null};
+  if(!S.wishlist)S.wishlist=[];
+  if(id){const i=S.wishlist.findIndex(x=>x.id===id);if(i>=0)S.wishlist[i]={...S.wishlist[i],...data};}
+  else S.wishlist.push({id:uid(),bought:false,...data});
+  save();closeModal('wish-modal');renderWishlist();toast('Saved!');
+}
+function deleteWish(id){if(!confirm('Delete this item?'))return;S.wishlist=(S.wishlist||[]).filter(x=>x.id!==id);save();renderWishlist();}
+async function aiSuggestWishlist(){
+  const projs=(S.projects||[]).map(p=>p.title).join(', ');
+  const goals=(S.goals||[]).map(g=>g.title).join(', ');
+  const existing=(S.wishlist||[]).map(x=>x.title).join(', ');
+  const prompt=`Suggest 6 useful things to buy for someone who:\n- Is working on projects: ${projs||'software/apps'}\n- Has goals: ${goals||'productivity and growth'}\n- Already wants: ${existing||'nothing listed'}\n\nFocus on tools, gear, or resources that genuinely improve productivity or quality of life. Return ONLY a JSON array with fields: title, cat (one of: tech,books,gear,home,health,clothing,other), why (one sentence), approxPrice (number in EUR, 0 if unknown). No markdown.`;
+  const txt=await callClaude(prompt,800);
+  if(!txt)return;
+  let items=[];
+  try{const s=txt.replace(/```[\w]*\n?/g,'').trim();const j=s.match(/\[[\s\S]*\]/)?.[0];if(j)items=JSON.parse(j);}catch(e){return showAiOut('AI Suggestions',txt);}
+  const strip=document.getElementById('wish-ai-strip');
+  const list=document.getElementById('wish-ai-list');
+  list.innerHTML=items.map(it=>`<div class="ai-sugg-item"><div style="flex:1;"><strong>${esc(it.title)}</strong>${it.approxPrice?` <span class="wish-price">~€${it.approxPrice}</span>`:''}${it.why?`<div style="font-size:12px;color:var(--muted);margin-top:2px;">${esc(it.why)}</div>`:''}</div><button class="ai-sugg-add" onclick="openAddWish('${esc(it.title).replace(/'/g,"\\'")}')">+ Add</button></div>`).join('');
+  strip.style.display='flex';strip.style.flexWrap='wrap';
+}
+
+// ── PROJECTS ──────────────────────────────────────────────────────
+const PROJ_STATUS={idea:{label:'💡 Idea',color:'var(--muted)'},['in-progress']:{label:'⚡ In Progress',color:'var(--accent)'},shipped:{label:'✅ Shipped',color:'var(--q2)'},archived:{label:'📦 Archived',color:'var(--muted)'}};
+const PROJ_CATS={web:{label:'🌐 Web App'},mobile:{label:'📱 Mobile'},tool:{label:'🔧 Tool / CLI'},ai:{label:'🤖 AI / ML'},api:{label:'⚙️ API'},design:{label:'🎨 Design'},other:{label:'📦 Other'}};
+let projFilter='all';
+function renderProjects(){
+  const items=(S.projects||[]).slice().reverse();
+  const shipped=items.filter(x=>x.status==='shipped');
+  const inProg=items.filter(x=>x.status==='in-progress');
+  const ideas=items.filter(x=>x.status==='idea');
+  document.getElementById('proj-stats').innerHTML=`
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:var(--q2);">${shipped.length}</div><div class="los-stat-l">Shipped 🚀</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:var(--accent);">${inProg.length}</div><div class="los-stat-l">In Progress</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#fbbf24;">${ideas.length}</div><div class="los-stat-l">Ideas</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:var(--muted);">${items.length}</div><div class="los-stat-l">Total</div></div>`;
+  const statuses=['all','in-progress','shipped','idea','archived'];
+  document.getElementById('proj-filter-bar').innerHTML=statuses.map(s=>`<button class="fp${projFilter===s?' active':''}" onclick="projFilter='${s}';renderProjects()">${s==='all'?'All':PROJ_STATUS[s]?.label||s}</button>`).join('');
+  let filtered=projFilter==='all'?items:items.filter(x=>x.status===projFilter);
+  document.getElementById('proj-list').innerHTML=filtered.length?filtered.map(x=>{
+    const st=PROJ_STATUS[x.status]||PROJ_STATUS.idea;
+    const cat=PROJ_CATS[x.cat]||PROJ_CATS.other;
+    const tags=(x.stack||'').split(',').map(t=>t.trim()).filter(Boolean);
+    return`<div class="proj-card ${x.status}">
+      <div class="proj-head">
+        <div>
+          <div class="proj-title">${esc(x.title)}</div>
+          <span class="badge" style="background:rgba(88,166,255,.1);color:${st.color};margin-top:4px;display:inline-flex;">${st.label}</span>
+          <span class="badge" style="background:var(--surface2);color:var(--muted);margin-top:4px;margin-left:4px;">${cat.label}</span>
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0;">
+          <button class="btn bg sm" onclick="openEditProject('${x.id}')">✏️</button>
+          <button class="btn bg sm" onclick="deleteProject('${x.id}')">🗑</button>
+        </div>
+      </div>
+      ${x.desc?`<div class="proj-desc">${esc(x.desc)}</div>`:''}
+      ${tags.length?`<div class="proj-tags">${tags.map(t=>`<span class="proj-tag">${esc(t)}</span>`).join('')}</div>`:''}
+      ${(x.url||x.repo)?`<div class="proj-links">${x.url?`<a href="${esc(x.url)}" target="_blank" rel="noopener" class="proj-link">🌐 Live</a>`:''}${x.repo?`<a href="${esc(x.repo)}" target="_blank" rel="noopener" class="proj-link">📁 Repo</a>`:''}</div>`:''}
+    </div>`;
+  }).join(''):'<div class="empty">No projects yet. Add something you\'ve built!</div>';
+}
+function openAddProject(prefill){
+  document.getElementById('proj-edit-id').value='';
+  document.getElementById('proj-title').value=prefill||'';
+  document.getElementById('proj-desc').value='';
+  document.getElementById('proj-status').value='idea';
+  document.getElementById('proj-cat').value='web';
+  document.getElementById('proj-stack').value='';
+  document.getElementById('proj-url').value='';
+  document.getElementById('proj-repo').value='';
+  document.getElementById('proj-modal-title').textContent='🚀 Add Project';
+  document.getElementById('proj-modal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('proj-title').focus(),80);
+}
+function openEditProject(id){
+  const x=(S.projects||[]).find(p=>p.id===id);if(!x)return;
+  document.getElementById('proj-edit-id').value=id;
+  document.getElementById('proj-title').value=x.title||'';
+  document.getElementById('proj-desc').value=x.desc||'';
+  document.getElementById('proj-status').value=x.status||'idea';
+  document.getElementById('proj-cat').value=x.cat||'web';
+  document.getElementById('proj-stack').value=x.stack||'';
+  document.getElementById('proj-url').value=x.url||'';
+  document.getElementById('proj-repo').value=x.repo||'';
+  document.getElementById('proj-modal-title').textContent='✏️ Edit Project';
+  document.getElementById('proj-modal').classList.remove('hidden');
+}
+function saveProject(){
+  const title=document.getElementById('proj-title').value.trim();
+  if(!title)return toast('Project name required');
+  const id=document.getElementById('proj-edit-id').value;
+  const data={title,desc:document.getElementById('proj-desc').value.trim(),status:document.getElementById('proj-status').value,cat:document.getElementById('proj-cat').value,stack:document.getElementById('proj-stack').value.trim(),url:document.getElementById('proj-url').value.trim()||null,repo:document.getElementById('proj-repo').value.trim()||null};
+  if(!S.projects)S.projects=[];
+  if(id){const i=S.projects.findIndex(x=>x.id===id);if(i>=0)S.projects[i]={...S.projects[i],...data};}
+  else S.projects.push({id:uid(),...data});
+  save();closeModal('proj-modal');renderProjects();toast('Saved!');
+}
+function deleteProject(id){if(!confirm('Delete this project?'))return;S.projects=(S.projects||[]).filter(x=>x.id!==id);save();renderProjects();}
+async function aiSuggestProjects(){
+  const existing=(S.projects||[]).map(p=>p.title+' ('+p.cat+')').join(', ');
+  const goals=(S.goals||[]).map(g=>g.title).join(', ');
+  const vals=(S.values||[]).join(', ');
+  const prompt=`Suggest 5 project ideas for a developer with:\n- Values: ${vals||'impact, growth'}\n- Goals: ${goals||'build useful things'}\n- Already built: ${existing||'nothing listed'}\n\nFocus on impactful, buildable projects. Return ONLY a JSON array with fields: title, desc (1-2 sentences), cat (one of: web,mobile,tool,ai,api,design,other), stack (comma-separated tech suggestions). No markdown.`;
+  const txt=await callClaude(prompt,900);
+  if(!txt)return;
+  let items=[];
+  try{const s=txt.replace(/```[\w]*\n?/g,'').trim();const j=s.match(/\[[\s\S]*\]/)?.[0];if(j)items=JSON.parse(j);}catch(e){return showAiOut('AI Project Ideas',txt);}
+  const strip=document.getElementById('proj-ai-strip');
+  const list=document.getElementById('proj-ai-list');
+  list.innerHTML=items.map(it=>`<div class="ai-sugg-item"><div style="flex:1;"><strong>${esc(it.title)}</strong>${it.desc?`<div style="font-size:12px;color:var(--muted);margin-top:2px;">${esc(it.desc)}</div>`:''} ${it.stack?`<div style="font-size:11px;color:var(--accent);margin-top:3px;">${esc(it.stack)}</div>`:''}</div><button class="ai-sugg-add" onclick="openAddProject('${esc(it.title).replace(/'/g,"\\'")}')">+ Add</button></div>`).join('');
+  strip.style.display='flex';strip.style.flexWrap='wrap';
+}
+
+// shared close helper (some modals use closeModal, some closeM — unify)
+function closeModal(id){document.getElementById(id)?.classList.add('hidden');}
 
 </script>
 

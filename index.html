@@ -26,6 +26,9 @@ body.light{
   --q1:#dc2626;--q2:#16a34a;--q3:#d97706;--q4:#6b7280;
   --cg:#9333ea;--cf:#d97706;--ca:#0891b2;--ch:#dc2626;--cr:#16a34a;--cl:#2563eb;--cb:#db2777;--co:#6b7280;
 }
+body.light .bp{color:#fff;}
+body.light .bni.active{color:var(--accent);}
+body.light .ni:hover,.body.light .ni.active{color:var(--accent);}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden;}
 /* SIDEBAR */
 .sidebar{width:210px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 0;flex-shrink:0;}
@@ -805,7 +808,7 @@ Read 50 books this year"></textarea>
     <input type="hidden" id="paste-import-target">
     <div class="mf" style="flex-wrap:wrap;gap:6px;">
       <button class="btn bg" onclick="closeModal('paste-import-modal')" style="margin-right:auto;">Cancel</button>
-      <button class="btn bg sm" onclick="previewPasteImport()" id="paste-parse-btn">👁 Preview</button>
+      <button class="btn bg sm" onclick="previewPasteImport(true)" id="paste-parse-btn">👁 Preview</button>
       <button class="btn bg sm" onclick="aiCategorizePaste()" id="paste-ai-btn">✨ AI Categorize</button>
       <button class="btn bp" onclick="confirmPasteImport()" id="paste-confirm-btn" style="display:none;">+ Import All</button>
     </div>
@@ -1559,12 +1562,12 @@ function toggleTheme(){
 
 // ── PERSIST ───────────────────────────────────────────────────
 function save(){localStorage.setItem('taskos',JSON.stringify(S));}
-function load(){const d=localStorage.getItem('taskos');if(d)S={...S,...JSON.parse(d)};}
+function load(){const d=localStorage.getItem('taskos');if(d)try{S={...S,...JSON.parse(d)};}catch(e){console.warn('Corrupt localStorage, using defaults',e);}}
 
 // ── UTILS ─────────────────────────────────────────────────────
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
 function ei(t){if(t.urgency==='high'&&t.importance==='high')return'q1';if(t.urgency==='low'&&t.importance==='high')return'q2';if(t.urgency==='high'&&t.importance==='low')return'q3';return'q4';}
-function fd(d){if(!d)return'';return new Date(d).toLocaleDateString('en-US',{month:'short',day:'numeric'});}
+function fd(d){if(!d)return'';const dt=new Date(d);return isNaN(dt)?'':dt.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
 function ft(m){if(!m)return'';if(m<60)return m+'m';const h=Math.floor(m/60),r=m%60;return r?h+'h '+r+'m':h+'h';}
 function active(){return S.tasks.filter(t=>t.status!=='done');}
 function catB(c){const x=CATS[c]||CATS.other;return`<span class="badge c${c[0]}">${x.e} ${x.l}</span>`;}
@@ -2726,6 +2729,11 @@ async function callClaude(prompt, maxTokens=1000){
       headers:{'Content-Type':'application/json','x-api-key':S.claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})
     });
+    if(!res.ok){
+      const err=await res.json().catch(()=>({}));
+      const msg=res.status===429?'Rate limit hit — wait a moment and try again':res.status===401?'Invalid API key — check Settings':(`AI error ${res.status}: `+(err.error?.message||res.statusText));
+      toast(msg);return null;
+    }
     const data=await res.json();
     return data.content?.[0]?.text||null;
   }catch(e){toast('AI error: '+e.message);return null;}
@@ -4919,7 +4927,7 @@ function importCSVTasks(){
     S.tasks.push({id:uid(),title:t.title,notes:t.notes||'',bucket:t.bucket||'inbox',category:t.category||'other',urgency:t.urgency||'low',importance:t.importance||'high',energy:'high',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:t.dueDate||'',goalId:null,createdAt:new Date().toISOString(),completedAt:null});
     added++;
   });
-  if(added){save();updIBadge();renderCapture();toast(`✅ ${added} tasks imported to inbox!`);}
+  if(added){save();updIBadge();updateChecklistBadge();renderCapture();toast(`✅ ${added} tasks imported to inbox!`);}
   closeM('csv-import-modal');
 }
 
@@ -5364,7 +5372,7 @@ function applyNotesSynthesis(addTasks){
       S.tasks.push({id:uid(),title:t.title,notes:'',bucket:'inbox',category:t.category||'other',urgency:t.urgency||'low',importance:t.importance||'high',energy:'high',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,createdAt:new Date().toISOString(),completedAt:null});
       added++;
     });
-    if(added){save();updIBadge();toast(`✅ Review filled + ${added} tasks added to inbox!`);}
+    if(added){save();updIBadge();updateChecklistBadge();toast(`✅ Review filled + ${added} tasks added to inbox!`);}
     else{toast('✅ Review fields filled from your notes!');}
   } else{toast('✅ Review fields filled from your notes!');}
   closeM('notes-import-modal');
@@ -5495,7 +5503,7 @@ function addHighlightTasks(){
     added++;
   });
   if(!added){toast('No tasks selected.');return;}
-  save();updIBadge();
+  save();updIBadge();updateChecklistBadge();
   closeM('highlights-modal');
   nav('capture');
   toast(`📚 ${added} task${added!==1?'s':''} added! Check your inbox.`);
@@ -6271,10 +6279,12 @@ function openPasteImport(target){
   setTimeout(()=>document.getElementById('paste-import-text').focus(),80);
 }
 
-function previewPasteImport(){
+function previewPasteImport(force){
   const raw=document.getElementById('paste-import-text').value;
   const lines=raw.split('\n').map(l=>l.replace(/^[-•*\d.]+\s*/,'').trim()).filter(Boolean);
   if(!lines.length)return toast('Paste some items first');
+  // don't overwrite AI-categorized items unless user explicitly re-parses
+  if(_pasteItems.length&&!force)return _showPastePreview();
   const target=document.getElementById('paste-import-target').value;
   _pasteItems=lines.map(title=>_defaultItem(target,title));
   _showPastePreview();

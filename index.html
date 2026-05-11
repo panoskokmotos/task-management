@@ -5006,6 +5006,7 @@ function deleteBook(id){
 }
 function openBookHighlights(id){
   const b=(S.books||[]).find(x=>x.id===id);if(!b)return;
+  document.getElementById('hl-book-id').value=id;
   document.getElementById('hl-book-title').value=b.title||'';
   document.getElementById('hl-input').value=b.highlights||'';
   document.getElementById('hl-result').innerHTML='';
@@ -5373,6 +5374,7 @@ function applyNotesSynthesis(addTasks){
 // FEATURE 13 — BOOK HIGHLIGHTS → TASKS
 // ════════════════════════════════════════════════════════════════
 function openHighlightsImport(){
+  document.getElementById('hl-book-id').value='';
   document.getElementById('hl-book-title').value='';
   document.getElementById('hl-input').value='';
   document.getElementById('hl-result').innerHTML='';
@@ -5384,6 +5386,9 @@ async function extractHighlightTasks(){
   const bookTitle=(document.getElementById('hl-book-title').value||'').trim();
   const raw=(document.getElementById('hl-input').value||'').trim();
   if(!raw){toast('Paste your highlights first!');return;}
+  // persist highlights back to book so they're pre-filled next time
+  const bookId=document.getElementById('hl-book-id').value;
+  if(bookId){const bi=(S.books||[]).findIndex(x=>x.id===bookId);if(bi>=0){S.books[bi].highlights=raw;save();}}
   const result=document.getElementById('hl-result');
   const footer=document.getElementById('hl-footer');
   result.innerHTML='<div style="padding:20px;text-align:center;color:var(--muted);">⏳ Extracting tasks from highlights...</div>';
@@ -6054,7 +6059,8 @@ async function aiSuggestBucket(){
   try{const s=txt.replace(/```[\w]*\n?/g,'').trim();const j=s.match(/\[[\s\S]*\]/)?.[0];if(j)items=JSON.parse(j);}catch(e){return showAiOut('AI Suggestions',txt);}
   const strip=document.getElementById('bl-ai-strip');
   const list=document.getElementById('bl-ai-list');
-  list.innerHTML=items.map(it=>`<div class="ai-sugg-item"><div style="flex:1;"><strong>${esc(it.title)}</strong><div style="font-size:12px;color:var(--muted);margin-top:2px;">${esc(it.why||'')}</div></div><button class="ai-sugg-add" onclick="openAddBucket('${esc(it.title).replace(/'/g,"\\'")}')">+ Add</button></div>`).join('');
+  window._blAiItems=items;
+  list.innerHTML=items.map((it,i)=>`<div class="ai-sugg-item"><div style="flex:1;"><strong>${esc(it.title)}</strong><div style="font-size:12px;color:var(--muted);margin-top:2px;">${esc(it.why||'')}</div></div><button class="ai-sugg-add" onclick="openAddBucket((window._blAiItems||[])[${i}]?.title||'')">+ Add</button></div>`).join('');
   strip.style.display='flex';strip.style.flexWrap='wrap';
 }
 
@@ -6152,7 +6158,8 @@ async function aiSuggestWishlist(){
   try{const s=txt.replace(/```[\w]*\n?/g,'').trim();const j=s.match(/\[[\s\S]*\]/)?.[0];if(j)items=JSON.parse(j);}catch(e){return showAiOut('AI Suggestions',txt);}
   const strip=document.getElementById('wish-ai-strip');
   const list=document.getElementById('wish-ai-list');
-  list.innerHTML=items.map(it=>`<div class="ai-sugg-item"><div style="flex:1;"><strong>${esc(it.title)}</strong>${it.approxPrice?` <span class="wish-price">~€${it.approxPrice}</span>`:''}${it.why?`<div style="font-size:12px;color:var(--muted);margin-top:2px;">${esc(it.why)}</div>`:''}</div><button class="ai-sugg-add" onclick="openAddWish('${esc(it.title).replace(/'/g,"\\'")}')">+ Add</button></div>`).join('');
+  window._wishAiItems=items;
+  list.innerHTML=items.map((it,i)=>`<div class="ai-sugg-item"><div style="flex:1;"><strong>${esc(it.title)}</strong>${it.approxPrice?` <span class="wish-price">~€${it.approxPrice}</span>`:''}${it.why?`<div style="font-size:12px;color:var(--muted);margin-top:2px;">${esc(it.why)}</div>`:''}</div><button class="ai-sugg-add" onclick="openAddWish((window._wishAiItems||[])[${i}]?.title||'')">+ Add</button></div>`).join('');
   strip.style.display='flex';strip.style.flexWrap='wrap';
 }
 
@@ -6244,7 +6251,8 @@ async function aiSuggestProjects(){
   try{const s=txt.replace(/```[\w]*\n?/g,'').trim();const j=s.match(/\[[\s\S]*\]/)?.[0];if(j)items=JSON.parse(j);}catch(e){return showAiOut('AI Project Ideas',txt);}
   const strip=document.getElementById('proj-ai-strip');
   const list=document.getElementById('proj-ai-list');
-  list.innerHTML=items.map(it=>`<div class="ai-sugg-item"><div style="flex:1;"><strong>${esc(it.title)}</strong>${it.desc?`<div style="font-size:12px;color:var(--muted);margin-top:2px;">${esc(it.desc)}</div>`:''} ${it.stack?`<div style="font-size:11px;color:var(--accent);margin-top:3px;">${esc(it.stack)}</div>`:''}</div><button class="ai-sugg-add" onclick="openAddProject('${esc(it.title).replace(/'/g,"\\'")}')">+ Add</button></div>`).join('');
+  window._projAiItems=items;
+  list.innerHTML=items.map((it,i)=>`<div class="ai-sugg-item"><div style="flex:1;"><strong>${esc(it.title)}</strong>${it.desc?`<div style="font-size:12px;color:var(--muted);margin-top:2px;">${esc(it.desc)}</div>`:''} ${it.stack?`<div style="font-size:11px;color:var(--accent);margin-top:3px;">${esc(it.stack)}</div>`:''}</div><button class="ai-sugg-add" onclick="openAddProject((window._projAiItems||[])[${i}]?.title||'')">+ Add</button></div>`).join('');
   strip.style.display='flex';strip.style.flexWrap='wrap';
 }
 
@@ -6677,6 +6685,7 @@ function closeModal(id){document.getElementById(id)?.classList.add('hidden');}
   <div class="md" style="width:620px;">
     <div class="mh"><h3>📚 Book Highlights → Tasks</h3><button class="mc" onclick="closeM('highlights-modal')">×</button></div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Paste highlights from Readwise, Kindle, or any book. Claude extracts the most actionable tasks for you.</div>
+    <input type="hidden" id="hl-book-id">
     <input id="hl-book-title" class="fc" placeholder="Book title (optional, e.g. Atomic Habits)" style="margin-bottom:8px;">
     <textarea id="hl-input" style="width:100%;min-height:150px;max-height:200px;font-size:13px;line-height:1.6;resize:vertical;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:inherit;margin-bottom:12px;" placeholder="Paste your book highlights here...&#10;&#10;e.g. &#10;'Every action you take is a vote for the type of person you wish to become.'&#10;'The most effective form of motivation is progress.'&#10;'Habits are the compound interest of self-improvement.'"></textarea>
     <div id="hl-result" style="max-height:320px;overflow-y:auto;margin-bottom:4px;"></div>

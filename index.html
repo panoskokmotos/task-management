@@ -246,6 +246,22 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 .fin-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;}
 
 
+/* ── TOAST ───────────────────────────────────────────────────── */
+#toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 18px;font-size:13px;font-weight:500;z-index:9000;opacity:0;transition:opacity .22s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 20px rgba(0,0,0,.4);}
+#toast.show{opacity:1;}
+/* ── DEPTH BADGE ─────────────────────────────────────────────── */
+.depth-shallow{background:rgba(134,142,150,.15);color:#868e96;}
+.depth-medium{background:rgba(88,166,255,.15);color:#58a6ff;}
+.depth-deep{background:rgba(105,219,124,.15);color:#69db7c;}
+/* ── CONFETTI CANVAS ─────────────────────────────────────────── */
+#confetti-canvas{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:8999;}
+/* ── STREAK MILESTONE ────────────────────────────────────────── */
+#streak-milestone{position:fixed;top:60px;left:50%;transform:translateX(-50%) scale(.8);background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;border-radius:14px;padding:12px 24px;font-size:15px;font-weight:700;z-index:9001;opacity:0;transition:all .35s;pointer-events:none;text-align:center;box-shadow:0 6px 24px rgba(251,191,36,.4);}
+#streak-milestone.show{opacity:1;transform:translateX(-50%) scale(1);}
+/* ── EXECUTION SCORE ─────────────────────────────────────────── */
+.exec-ring{position:relative;width:44px;height:44px;flex-shrink:0;}
+/* ── WEEKLY THEME ────────────────────────────────────────────── */
+.theme-card{background:linear-gradient(135deg,rgba(88,166,255,.08),rgba(34,211,238,.05));border:1px solid rgba(88,166,255,.2);border-radius:12px;padding:12px 16px;flex:1;min-width:180px;}
 /* ── DAILY CHALLENGE ─────────────────────────────────────────── */
 .dc-card{background:linear-gradient(135deg,rgba(88,166,255,.1),rgba(34,211,238,.06));border:1px solid rgba(88,166,255,.3);border-radius:12px;padding:18px;margin-bottom:20px;position:relative;overflow:hidden;}
 .dc-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,#58a6ff,#22d3ee,#a78bfa);}
@@ -313,6 +329,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
       <button class="btn bg sm" onclick="openReminderSettings()" title="Reminders" id="remind-btn">🔔</button>
       <button class="btn bg sm" onclick="showWeeklyDigest()">📊 Digest</button>
       <button class="btn bg sm" onclick="openTweetGenerator()">🐦 Post</button>
+      <button class="btn bg sm" onclick="aiSequenceTasks()">🔢 Sequence</button>
       <button class="btn bg sm" onclick="runPriorityAudit()">🤖 Audit</button>
       <button class="btn bg sm" onclick="showValueAlignment()">🎯 Values</button>
       <button class="btn bg sm" onclick="showCommitments()">📜 Commits</button>
@@ -335,6 +352,22 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
         <span style="font-size:10px;color:var(--muted);">What makes today a success?</span>
       </div>
       <div id="one-thing-display"></div>
+    </div>
+  </div>
+  <!-- WEEKLY THEME + EXECUTION SCORE ROW -->
+  <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;" id="theme-exec-row">
+    <!-- WEEKLY THEME -->
+    <div class="theme-card" style="flex:1;min-width:220px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <span style="font-size:11px;font-weight:700;color:#58a6ff;text-transform:uppercase;letter-spacing:.5px;">🎨 Week Theme</span>
+        <span style="font-size:10px;color:var(--muted);">Cal Newport</span>
+      </div>
+      <div id="weekly-theme-display"></div>
+    </div>
+    <!-- EXECUTION SCORE -->
+    <div id="exec-score-card" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;display:flex;align-items:center;gap:14px;min-width:180px;">
+      <div id="exec-ring" style="width:52px;height:52px;flex-shrink:0;"></div>
+      <div><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;">Execution</div><div id="exec-label" style="font-size:12px;color:var(--muted);margin-top:2px;"></div></div>
     </div>
   </div>
   <!-- MORNING BRIEFING -->
@@ -663,6 +696,15 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
         </select>
       </div>
       <div class="fg"><label>Time Block (min)</label><input class="fc" id="t-time" type="number" placeholder="e.g. 30" min="5" step="5"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Work Depth</label>
+        <select class="fc" id="t-depth">
+          <option value="shallow">⚪ Shallow — admin, email, easy tasks</option>
+          <option value="medium">🔵 Medium — focused effort</option>
+          <option value="deep">🟢 Deep — high-concentration, cognitively demanding</option>
+        </select>
+      </div>
     </div>
     <div class="fr">
       <div class="fg"><label>Due Date</label><input class="fc" id="t-due" type="date"></div>
@@ -1149,7 +1191,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false}};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[]};
 let editT=null,editG=null,fCat='all';
 let profileName=localStorage.getItem('taskos_name')||'Panos';
 
@@ -1166,6 +1208,10 @@ function active(){return S.tasks.filter(t=>t.status!=='done');}
 function catB(c){const x=CATS[c]||CATS.other;return`<span class="badge c${c[0]}">${x.e} ${x.l}</span>`;}
 function eB(t){const q=ei(t);return`<span class="badge ${q}">${EQ[q].a}</span>`;}
 function goalStats(gId){const linked=S.tasks.filter(t=>t.goalId===gId);const done=linked.filter(t=>t.status==='done');return{total:linked.length,done:done.length,pct:linked.length?Math.round(done.length/linked.length*100):0};}
+function depthB(depth){if(!depth||depth==='shallow')return'';const cls='depth-'+depth;const label=depth==='deep'?'🟢 Deep':depth==='medium'?'🔵 Medium':'';return label?`<span class="badge ${cls}" style="font-size:10px;">${label}</span>`:'';}
+
+// ── TOAST ─────────────────────────────────────────────────────
+function toast(msg,ms=2500){const t=document.getElementById('toast');if(!t)return;t.innerHTML=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms);}
 
 // ── NAV ───────────────────────────────────────────────────────
 function nav(v){
@@ -1211,6 +1257,8 @@ function renderDash(){
   checkPreMortem();
   renderMomentumScore();
   renderOneThing();
+  renderWeeklyTheme();
+  renderExecutionScore();
 }
 
 function renderTop3(){
@@ -1486,7 +1534,7 @@ function tcHTML(t,showT3btn=false){
     <div class="tb">
       <div class="tt">${t.title}</div>
       <div class="tm">
-        ${catB(t.category)}${eB(t)}
+        ${catB(t.category)}${eB(t)}${depthB(t.depth)}
         ${t.timeBlock?`<span class="tag">⏱ ${ft(t.timeBlock)}</span>`:''}
         ${t.dueDate?`<span class="tag">📅 ${fd(t.dueDate)}</span>`:''}
         ${t.recurring?`<span style="font-size:11px;" title="${t.recurring}">🔄</span>`:''}
@@ -1511,6 +1559,7 @@ function openAdd(bucket='inbox'){
   document.getElementById('t-time').value='';
   document.getElementById('t-due').value='';
   document.getElementById('t-rec').value='';
+  document.getElementById('t-depth').value='medium';
   document.getElementById('del-btn').style.display='none';
   fillGoalDrop();
   document.getElementById('tm').classList.remove('hidden');
@@ -1531,6 +1580,7 @@ function openEdit(id){
   document.getElementById('t-time').value=t.timeBlock||'';
   document.getElementById('t-due').value=t.dueDate||'';
   document.getElementById('t-rec').value=t.recurring||'';
+  document.getElementById('t-depth').value=t.depth||'medium';
   document.getElementById('del-btn').style.display='block';
   fillGoalDrop(t.goalId);
   document.getElementById('tm').classList.remove('hidden');
@@ -1540,7 +1590,7 @@ function openEdit(id){
 function saveTask(){
   const title=document.getElementById('t-title').value.trim();
   if(!title){alert('Enter a task title.');return;}
-  const d={title,notes:document.getElementById('t-notes').value,category:document.getElementById('t-cat').value,bucket:document.getElementById('t-bucket').value,urgency:document.getElementById('t-urg').value,importance:document.getElementById('t-imp').value,energy:document.getElementById('t-eng').value,timeBlock:parseInt(document.getElementById('t-time').value)||null,dueDate:document.getElementById('t-due').value,recurring:document.getElementById('t-rec').value,goalId:document.getElementById('t-goal').value||null};
+  const d={title,notes:document.getElementById('t-notes').value,category:document.getElementById('t-cat').value,bucket:document.getElementById('t-bucket').value,urgency:document.getElementById('t-urg').value,importance:document.getElementById('t-imp').value,energy:document.getElementById('t-eng').value,depth:document.getElementById('t-depth').value||'medium',timeBlock:parseInt(document.getElementById('t-time').value)||null,dueDate:document.getElementById('t-due').value,recurring:document.getElementById('t-rec').value,goalId:document.getElementById('t-goal').value||null};
   if(editT){const i=S.tasks.findIndex(t=>t.id===editT);S.tasks[i]={...S.tasks[i],...d};}
   else S.tasks.push({id:uid(),...d,status:'todo',isT3:false,t3s:null,createdAt:new Date().toISOString(),completedAt:null});
   save();closeM('tm');refresh();
@@ -1553,11 +1603,71 @@ function toggleDone(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
   t.status=t.status==='done'?'todo':'done';
   t.completedAt=t.status==='done'?new Date().toISOString():null;
-  if(t.status==='done'){t.isT3=false;t.t3s=null;_logContextSwitch(t.category);}
+  if(t.status==='done'){
+    t.isT3=false;t.t3s=null;_logContextSwitch(t.category);
+    _fireConfetti(t.depth);
+    _checkTaskMilestone();
+  }
   save();refresh();updIBadge();updateChecklistBadge();
 }
 
 function mvB(id,b){const t=S.tasks.find(x=>x.id===id);if(!t)return;t.bucket=b;save();refresh();}
+
+// ── CELEBRATION ANIMATION ──────────────────────────────────────
+function _fireConfetti(depth){
+  const canvas=document.getElementById('confetti-canvas');
+  if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  canvas.width=window.innerWidth;
+  canvas.height=window.innerHeight;
+  const count=depth==='deep'?120:depth==='medium'?70:35;
+  const colors=depth==='deep'?['#69db7c','#22c55e','#86efac']:
+                depth==='medium'?['#58a6ff','#93c5fd','#60a5fa']:
+                ['#8b949e','#d1d5db','#9ca3af'];
+  const particles=Array.from({length:count},()=>({
+    x:Math.random()*canvas.width,
+    y:-10-Math.random()*60,
+    w:6+Math.random()*8,
+    h:4+Math.random()*4,
+    r:Math.random()*Math.PI*2,
+    dr:(.02+Math.random()*.06)*(Math.random()<.5?1:-1),
+    vx:(Math.random()-.5)*4,
+    vy:3+Math.random()*5,
+    color:colors[Math.floor(Math.random()*colors.length)],
+    alpha:1
+  }));
+  let frame=0;
+  const maxFrames=depth==='deep'?100:70;
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    particles.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;p.r+=p.dr;p.alpha=Math.max(0,1-frame/maxFrames);
+      ctx.save();ctx.globalAlpha=p.alpha;ctx.translate(p.x,p.y);ctx.rotate(p.r);
+      ctx.fillStyle=p.color;ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);ctx.restore();
+    });
+    if(++frame<maxFrames)requestAnimationFrame(draw);else ctx.clearRect(0,0,canvas.width,canvas.height);
+  }
+  draw();
+}
+
+function _checkTaskMilestone(){
+  const today=new Date().toISOString().slice(0,10);
+  const todayDone=S.tasks.filter(t=>t.completedAt?.slice(0,10)===today).length;
+  const MILESTONES={5:'5 tasks done today! 🔥',10:'10 tasks! You\'re on fire! 🔥🔥',25:'25 tasks today — beast mode! 🏆'};
+  if(MILESTONES[todayDone])_showStreakMilestone(MILESTONES[todayDone]);
+  const totalDone=S.tasks.filter(t=>t.status==='done').length;
+  const TOTAL_MILESTONES={10:'10 tasks completed! 🎉',50:'50 tasks done! 💪',100:'100 tasks! Century club 🏆',250:'250 tasks! Unstoppable 🚀',500:'500 tasks completed! Legend 🌟'};
+  if(TOTAL_MILESTONES[totalDone])_showStreakMilestone(TOTAL_MILESTONES[totalDone]);
+}
+
+function _showStreakMilestone(msg){
+  const el=document.getElementById('streak-milestone');
+  if(!el)return;
+  el.innerHTML=msg;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t=setTimeout(()=>el.classList.remove('show'),3500);
+}
 
 function addT3(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
@@ -2264,6 +2374,31 @@ function showAiOut(title, text){
   document.getElementById('ai-out-modal').classList.remove('hidden');
 }
 function daysSinceDate(d){if(!d)return 999;return Math.floor((Date.now()-new Date(d))/(86400000));}
+
+// ── AI SEQUENCE SCORE (Eat That Frog) ─────────────────────────
+async function aiSequenceTasks(){
+  const candidates=active().filter(t=>t.bucket==='backlog'||t.bucket==='this-week'||t.bucket==='this-month');
+  if(!candidates.length){toast('No tasks to sequence.');return;}
+  toast('⏳ AI sequencing your tasks...');
+  const taskList=candidates.slice(0,30).map((t,i)=>`${i+1}. [${t.urgency}/${t.importance}/${t.depth||'medium'}] ${t.title} (${CATS[t.category]?.l||'Other'})`).join('\n');
+  const weekCtx=_currentWeekKey();
+  const prompt=`You are a productivity expert helping prioritize tasks using impact × urgency scoring ("Eat That Frog" + Eisenhower matrix).
+
+TASK LIST (format: urgency/importance/depth):
+${taskList}
+
+Instructions:
+- Rank these tasks in the optimal sequence to maximize results
+- Consider: urgency (deadline pressure), importance (goal impact), depth (cognitive demand — tackle deep tasks when energy is highest)
+- Output the top 10 most impactful tasks in order
+- For each: "[rank]. [task title] — [1-sentence reason]"
+- End with: "FROG 🐸: [the single highest-resistance task to do FIRST today]"
+
+Be direct. No cheerleading.`;
+  const text=await callClaude(prompt,600);
+  if(!text)return;
+  showAiOut('🔢 AI Task Sequence — Eat This Order',text);
+}
 
 // ── HEALTH ─────────────────────────────────────────────────────
 function renderHealth(){
@@ -3489,6 +3624,81 @@ function toggleOneThing(id){
 function clearOneThing(id){
   S.oneThing = (S.oneThing || []).filter(x => x.id !== id);
   save(); renderOneThing();
+}
+
+// ════════════════════════════════════════════════════════════════
+// WEEKLY THEME (Cal Newport)
+// ════════════════════════════════════════════════════════════════
+function _currentWeekKey(){
+  const d=new Date();
+  const mon=new Date(d);
+  mon.setDate(d.getDate()-((d.getDay()+6)%7));
+  return mon.toISOString().slice(0,10);
+}
+function renderWeeklyTheme(){
+  const el=document.getElementById('weekly-theme-display');
+  if(!el)return;
+  if(!S.weeklyTheme)S.weeklyTheme=[];
+  const week=_currentWeekKey();
+  const entry=S.weeklyTheme.find(x=>x.week===week);
+  if(entry){
+    el.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+      <span style="font-size:14px;font-weight:600;color:var(--text);">🎯 ${entry.theme}</span>
+      <button class="btn bg sm" onclick="clearWeeklyTheme()" style="font-size:10px;flex-shrink:0;">✏ Change</button>
+    </div>`;
+  } else {
+    el.innerHTML=`<div style="display:flex;gap:6px;">
+      <input class="fc" id="wt-input" placeholder="e.g. Week of Deep Work, Week of Relationships..." style="flex:1;font-size:12px;" onkeydown="if(event.key==='Enter')saveWeeklyTheme()">
+      <button class="btn bp sm" onclick="saveWeeklyTheme()">Set</button>
+    </div>`;
+  }
+}
+function saveWeeklyTheme(){
+  const inp=document.getElementById('wt-input');
+  const theme=inp?inp.value.trim():'';
+  if(!theme)return;
+  const week=_currentWeekKey();
+  if(!S.weeklyTheme)S.weeklyTheme=[];
+  S.weeklyTheme=S.weeklyTheme.filter(x=>x.week!==week);
+  S.weeklyTheme.push({week,theme});
+  save();renderWeeklyTheme();
+  toast('🎨 Week theme set!');
+}
+function clearWeeklyTheme(){
+  const week=_currentWeekKey();
+  S.weeklyTheme=(S.weeklyTheme||[]).filter(x=>x.week!==week);
+  save();renderWeeklyTheme();
+}
+
+// ════════════════════════════════════════════════════════════════
+// WEEKLY EXECUTION SCORE (12 Week Year)
+// ════════════════════════════════════════════════════════════════
+function _calcExecScore(){
+  const monday=new Date();
+  monday.setDate(monday.getDate()-((monday.getDay()+6)%7));
+  monday.setHours(0,0,0,0);
+  const weekTasks=S.tasks.filter(t=>t.bucket==='this-week');
+  if(!weekTasks.length)return{score:0,done:0,total:0,label:'No tasks'};
+  const done=weekTasks.filter(t=>t.status==='done').length;
+  const score=Math.round(done/weekTasks.length*100);
+  return{score,done,total:weekTasks.length,label:score>=85?'On Track':score>=60?'Behind':'At Risk'};
+}
+function renderExecutionScore(){
+  const ring=document.getElementById('exec-ring');
+  const label=document.getElementById('exec-label');
+  if(!ring)return;
+  const e=_calcExecScore();
+  const s=e.score;
+  const color=s>=85?'#69db7c':s>=60?'#fbbf24':'#ff6b6b';
+  const r=22,circ=2*Math.PI*r,dash=circ*(s/100);
+  ring.innerHTML=`<svg width="52" height="52" style="position:absolute;top:0;left:0;" viewBox="0 0 52 52">
+    <circle cx="26" cy="26" r="${r}" fill="none" stroke="var(--surface2)" stroke-width="4"/>
+    <circle cx="26" cy="26" r="${r}" fill="none" stroke="${color}" stroke-width="4"
+      stroke-dasharray="${dash} ${circ}" stroke-dashoffset="${circ*0.25}"
+      stroke-linecap="round" style="transition:stroke-dasharray .4s ease;"/>
+  </svg><span style="position:relative;font-size:14px;font-weight:800;color:${color};">${s}%</span>`;
+  ring.style.cssText='width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;';
+  label.innerHTML=`<span style="color:${color};font-weight:600;">${e.done}/${e.total} this week</span><br><span style="font-size:10px;color:var(--muted);">${e.label} · target 85%</span>`;
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -5670,5 +5880,11 @@ function saveDecision(){
   </div>
 </div>
 
+<!-- TOAST -->
+<div id="toast"></div>
+<!-- STREAK MILESTONE -->
+<div id="streak-milestone"></div>
+<!-- CONFETTI CANVAS -->
+<canvas id="confetti-canvas"></canvas>
 </body>
 </html>

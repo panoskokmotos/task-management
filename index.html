@@ -288,6 +288,10 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 /* ── STREAK MILESTONE ────────────────────────────────────────── */
 #streak-milestone{position:fixed;top:60px;left:50%;transform:translateX(-50%) scale(.8);background:linear-gradient(135deg,#fbbf24,#f59e0b);color:#000;border-radius:14px;padding:12px 24px;font-size:15px;font-weight:700;z-index:9001;opacity:0;transition:all .35s;pointer-events:none;text-align:center;box-shadow:0 6px 24px rgba(251,191,36,.4);}
 #streak-milestone.show{opacity:1;transform:translateX(-50%) scale(1);}
+/* ── SPIN ANIMATION ──────────────────────────────────────────── */
+@keyframes sp{to{transform:rotate(360deg);}}.spin-icon{display:inline-block;animation:sp .8s linear infinite;}
+/* ── BULK BAR ────────────────────────────────────────────────── */
+#bulk-bar{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px 12px;display:none;gap:8px;align-items:center;z-index:4000;box-shadow:0 4px 20px rgba(0,0,0,.4);flex-wrap:wrap;}
 /* ── EXECUTION SCORE ─────────────────────────────────────────── */
 .exec-ring{position:relative;width:44px;height:44px;flex-shrink:0;}
 /* ── WEEKLY THEME ────────────────────────────────────────────── */
@@ -629,7 +633,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 <div id="v-history" class="view">
   <div class="ph">
     <div><h1>📚 Review History</h1><p class="sub">Past weekly reviews & snapshots</p></div>
-    <button class="btn bd sm" onclick="if(confirm('Clear all review history?')){localStorage.removeItem('taskos_history');renderHistoryView();}">🗑 Clear</button>
+    <button class="btn bd sm" onclick="showConfirm('Clear all review history?',ok=>{if(ok){localStorage.removeItem('taskos_history');renderHistoryView();}},{okLabel:'Clear',icon:'🗑'})">🗑 Clear</button>
   </div>
   <div id="hist-list"></div>
 </div>
@@ -1184,7 +1188,7 @@ Read 50 books this year"></textarea>
     <hr>
     <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Switch workspace at any time from the sidebar or with <kbd style="background:var(--surface2);padding:2px 6px;border-radius:3px;font-size:11px;">⌘2</kbd></p>
     <div class="mf">
-      <button class="btn bd sm" style="margin-right:auto;" onclick="if(confirm('Reset ALL personal task data? This cannot be undone.')){localStorage.removeItem('taskos');location.reload();}">🗑 Reset Data</button>
+      <button class="btn bd sm" style="margin-right:auto;" onclick="showConfirm('Reset ALL data? This <strong>cannot be undone</strong>.',ok=>{if(ok){localStorage.removeItem('taskos');location.reload();}},{okLabel:'Reset Everything',icon:'💀'})">🗑 Reset Data</button>
       <button class="btn bg" onclick="closeM('set-m')">Cancel</button>
       <button class="btn bp" onclick="saveSettings()">Save</button>
     </div>
@@ -1700,6 +1704,129 @@ function toast(msg,ms=2500){_toastQ.push({msg,ms});if(!_toastRunning)_runToast()
 function _runToast(){if(!_toastQ.length){_toastRunning=false;return;}_toastRunning=true;const{msg,ms}=_toastQ.shift();const t=document.getElementById('toast');if(!t){_runToast();return;}t.innerHTML=msg;t.classList.add('show');t.style.pointerEvents='auto';_toastTimer=setTimeout(()=>{t.classList.remove('show');t.style.pointerEvents='none';_toastTimer=null;setTimeout(_runToast,220);},ms);}
 function _dismissToast(){if(_toastTimer){clearTimeout(_toastTimer);_toastTimer=null;}const t=document.getElementById('toast');if(t){t.classList.remove('show');t.style.pointerEvents='none';}_toastRunning=false;setTimeout(_runToast,220);}
 
+// ── CONFIRM MODAL ─────────────────────────────────────────────
+let _confirmCb=null;
+function showConfirm(msg,cb,{okLabel='Delete',icon='⚠️',danger=true}={}){
+  document.getElementById('confirm-msg').innerHTML=msg;
+  document.getElementById('confirm-icon').textContent=icon;
+  const btn=document.getElementById('confirm-ok-btn');
+  btn.textContent=okLabel;
+  btn.className=danger?'btn bd':'btn bp';
+  _confirmCb=cb;
+  document.getElementById('confirm-modal').classList.remove('hidden');
+}
+
+// ── AI LOADING SPINNERS ───────────────────────────────────────
+function _showAiLoader(msg='⏳ Working...'){const b=document.getElementById('ai-out-body');if(b)b.textContent=msg;document.getElementById('ai-out-modal').classList.remove('hidden');}
+function _btnLoading(btn,loading){
+  if(!btn)return;
+  if(loading){btn._origText=btn.innerHTML;btn.innerHTML='<span class="spin-icon">⟳</span> Working...';btn.disabled=true;}
+  else{btn.innerHTML=btn._origText||btn.innerHTML;btn.disabled=false;}
+}
+
+// ── GLOBAL SEARCH ─────────────────────────────────────────────
+function openGlobalSearch(){
+  document.getElementById('gsearch-modal').classList.remove('hidden');
+  setTimeout(()=>document.getElementById('gsearch-input')?.focus(),50);
+}
+function _gsearch(){
+  const q=(document.getElementById('gsearch-input')?.value||'').toLowerCase().trim();
+  const el=document.getElementById('gsearch-results');
+  if(!el)return;
+  if(!q){el.innerHTML='';return;}
+  const taskHits=S.tasks.filter(t=>t.title.toLowerCase().includes(q)).slice(0,8);
+  const goalHits=(S.goals||[]).filter(g=>g.title.toLowerCase().includes(q)).slice(0,4);
+  const peopleHits=(S.people||[]).filter(p=>p.name.toLowerCase().includes(q)).slice(0,4);
+  const bookHits=(S.books||[]).filter(b=>b.title.toLowerCase().includes(q)).slice(0,4);
+  let html='';
+  if(taskHits.length){
+    html+=`<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin:8px 0 4px;">Tasks</div>`;
+    html+=taskHits.map(t=>`<div onclick="closeM('gsearch-modal');nav('all');setTimeout(()=>openEdit('${t.id}'),200)" style="padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">${t.status==='done'?'✓ ':''}${esc(t.title)}<span style="font-size:11px;color:var(--muted);margin-left:8px;">${BKTS[t.bucket]?.e||''} ${CATS[t.category]?.l||''}</span></div>`).join('');
+  }
+  if(goalHits.length){
+    html+=`<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin:8px 0 4px;">Goals</div>`;
+    html+=goalHits.map(g=>`<div onclick="closeM('gsearch-modal');nav('goals')" style="padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''"> ${g.isTop3?'⭐ ':''}${esc(g.title)}</div>`).join('');
+  }
+  if(peopleHits.length){
+    html+=`<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin:8px 0 4px;">People</div>`;
+    html+=peopleHits.map(p=>`<div onclick="closeM('gsearch-modal');nav('relationships')" style="padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">🤝 ${esc(p.name)}</div>`).join('');
+  }
+  if(bookHits.length){
+    html+=`<div style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;margin:8px 0 4px;">Books</div>`;
+    html+=bookHits.map(b=>`<div onclick="closeM('gsearch-modal');nav('books')" style="padding:8px 10px;border-radius:6px;cursor:pointer;font-size:13px;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background=''">📖 ${esc(b.title)}</div>`).join('');
+  }
+  if(!taskHits.length&&!goalHits.length&&!peopleHits.length&&!bookHits.length){
+    html='<div style="text-align:center;padding:24px;color:var(--muted);">No results for "'+esc(q)+'"</div>';
+  }
+  el.innerHTML=html;
+}
+
+// ── BULK EDIT ─────────────────────────────────────────────────
+let _bulkSelected=new Set();
+let _bulkMode=false;
+function toggleBulkMode(){
+  _bulkMode=!_bulkMode;
+  _bulkSelected.clear();
+  refresh();
+  const bar=document.getElementById('bulk-bar');
+  if(bar)bar.style.display=_bulkMode?'flex':'none';
+}
+function toggleBulkSelect(id){
+  if(_bulkSelected.has(id))_bulkSelected.delete(id);
+  else _bulkSelected.add(id);
+  const cnt=document.getElementById('bulk-count');
+  if(cnt)cnt.textContent=_bulkSelected.size+' selected';
+  refresh();
+}
+function applyBulkAction(action){
+  const ids=Array.from(_bulkSelected);
+  if(!ids.length)return;
+  if(action==='done'){ids.forEach(id=>toggleDone(id));}
+  else if(action.startsWith('bucket:')){const b=action.split(':')[1];ids.forEach(id=>mvB(id,b));}
+  else if(action==='delete'){
+    showConfirm(`Delete ${ids.length} task${ids.length>1?'s':''}?`,ok=>{
+      if(ok){S.tasks=S.tasks.filter(t=>!ids.includes(t.id));save();refresh();}
+    },{okLabel:'Delete All'});
+  }
+  if(action!=='delete'){_bulkSelected.clear();_bulkMode=false;const bar=document.getElementById('bulk-bar');if(bar)bar.style.display='none';}
+}
+
+// ── SOMEDAY REVIEW FLOW ───────────────────────────────────────
+let _somedayQueue=[],_somedayIdx=0;
+function openSomedayReview(){
+  _somedayQueue=S.tasks.filter(t=>t.bucket==='someday'&&t.status!=='done');
+  _somedayIdx=0;
+  _renderSomedayCard();
+  document.getElementById('someday-review-modal').classList.remove('hidden');
+}
+function _renderSomedayCard(){
+  const el=document.getElementById('someday-card-body');
+  if(!el)return;
+  if(_somedayIdx>=_somedayQueue.length){
+    el.innerHTML='<div style="text-align:center;padding:30px;"><div style="font-size:32px;margin-bottom:10px;">✅</div><div>Someday review complete!</div></div>';
+    return;
+  }
+  const t=_somedayQueue[_somedayIdx];
+  const daysOld=Math.floor((Date.now()-new Date(t.createdAt))/86400000);
+  el.innerHTML=`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${_somedayIdx+1} of ${_somedayQueue.length}</div>
+    <div style="font-size:16px;font-weight:600;margin-bottom:8px;">${esc(t.title)}</div>
+    <div style="font-size:12px;color:var(--muted);margin-bottom:18px;">${daysOld}d in Someday · ${CATS[t.category]?.l||''}</div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;justify-content:center;">
+      <button class="btn bp sm" onclick="_somedayAction('week')">🔴 Do This Week</button>
+      <button class="btn bg sm" onclick="_somedayAction('keep')">🔵 Keep for Later</button>
+      <button class="btn bd sm" onclick="_somedayAction('delete')">🗑 Hell No — Delete</button>
+    </div>`;
+}
+function _somedayAction(action){
+  const t=_somedayQueue[_somedayIdx];
+  if(!t)return;
+  if(action==='week')mvB(t.id,'this-week');
+  else if(action==='delete'){S.tasks=S.tasks.filter(x=>x.id!==t.id);save();}
+  // 'keep' does nothing
+  _somedayIdx++;
+  _renderSomedayCard();
+}
+
 // ── NAV ───────────────────────────────────────────────────────
 function nav(v){
   localStorage.setItem('taskos_lastview',v);
@@ -2090,8 +2217,14 @@ function saveTask(){
   if(!title){alert('Enter a task title.');return;}
   const d={title,notes:document.getElementById('t-notes').value,category:document.getElementById('t-cat').value,bucket:document.getElementById('t-bucket').value,urgency:document.getElementById('t-urg').value,importance:document.getElementById('t-imp').value,energy:document.getElementById('t-eng').value,depth:document.getElementById('t-depth').value||'medium',timeBlock:parseInt(document.getElementById('t-time').value)||null,dueDate:document.getElementById('t-due').value,recurring:document.getElementById('t-rec').value,goalId:document.getElementById('t-goal').value||null,checklist:_editChecklist,blockedBy:Array.from(document.getElementById('t-blocked').selectedOptions).map(o=>o.value)};
   if(!editT&&d.bucket!=='inbox'&&S.hellYesFilter){
-    const ans=confirm('Is "'+title.slice(0,50)+'" a HELL YES? (Cancel = move to Someday)');
-    if(!ans){d.bucket='someday';}
+    // Hell Yes / No — ask asynchronously then save
+    const capD=d,capTitle=title;
+    showConfirm('Is "<strong>'+esc(capTitle.slice(0,50))+'</strong>" a HELL YES?',yes=>{
+      if(!yes)capD.bucket='someday';
+      S.tasks.push({id:uid(),...capD,status:'todo',isT3:false,t3s:null,createdAt:new Date().toISOString(),completedAt:null});
+      save();closeM('tm');refresh();
+    },{okLabel:'🔥 Hell Yes!',icon:'⚡',danger:false});
+    return;
   }
   if(editT){const i=S.tasks.findIndex(t=>t.id===editT);S.tasks[i]={...S.tasks[i],...d};}
   else S.tasks.push({id:uid(),...d,status:'todo',isT3:false,t3s:null,createdAt:new Date().toISOString(),completedAt:null});
@@ -2272,7 +2405,7 @@ function saveGoal(){
   save();closeM('gm');renderGoals();
 }
 
-function delCurGoal(){if(!editG||!confirm('Delete goal?'))return;S.goals=S.goals.filter(g=>g.id!==editG);save();closeM('gm');renderGoals();}
+function delCurGoal(){if(!editG)return;showConfirm('Delete this goal?',ok=>{if(!ok)return;S.goals=S.goals.filter(g=>g.id!==editG);save();closeM('gm');renderGoals();},{okLabel:'Delete Goal'});}
 
 function fillGoalDrop(sel=''){
   const s=document.getElementById('t-goal');
@@ -4013,7 +4146,10 @@ function renderLadder(){
   }).join('');
 }
 function startOrResetLadder(){
-  if(S.discomfortLadder?.startWeek&&!confirm('Reset the ladder? Your progress will be lost.'))return;
+  if(S.discomfortLadder?.startWeek){
+    showConfirm('Reset the ladder? Your progress will be lost.',ok=>{if(!ok)return;S.discomfortLadder={startWeek:new Date().toISOString(),completedWeeks:[]};save();renderLadder();toast('🪜 Ladder reset! Week 1: '+DISCOMFORT_LADDER[0].title);},{okLabel:'Reset'});
+    return;
+  }
   S.discomfortLadder={startWeek:new Date().toISOString(),completedWeeks:[]};
   save();renderLadder();toast('🪜 Ladder started! Week 1: '+DISCOMFORT_LADDER[0].title);
 }
@@ -6972,5 +7108,49 @@ function closeModal(id){document.getElementById(id)?.classList.add('hidden');}
 <div id="streak-milestone"></div>
 <!-- CONFETTI CANVAS -->
 <canvas id="confetti-canvas"></canvas>
+
+<!-- CONFIRM MODAL -->
+<div class="mo hidden" id="confirm-modal" onclick="if(event.target===this){closeM('confirm-modal');_confirmCb&&_confirmCb(false);}">
+  <div class="md" style="width:340px;text-align:center;padding:24px 20px;">
+    <div id="confirm-icon" style="font-size:28px;margin-bottom:10px;"></div>
+    <div id="confirm-msg" style="font-size:14px;margin-bottom:20px;line-height:1.5;"></div>
+    <div class="mf" style="justify-content:center;gap:10px;">
+      <button class="btn bg" onclick="closeM('confirm-modal');_confirmCb&&_confirmCb(false)">Cancel</button>
+      <button id="confirm-ok-btn" class="btn bd" onclick="closeM('confirm-modal');_confirmCb&&_confirmCb(true)">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- GLOBAL SEARCH MODAL -->
+<div class="mo hidden" id="gsearch-modal" onclick="if(event.target===this)closeM('gsearch-modal')">
+  <div class="md" style="width:500px;max-width:94vw;padding:16px;">
+    <input class="fc" id="gsearch-input" placeholder="Search tasks, goals, people, books…" oninput="_gsearch()" style="margin-bottom:10px;">
+    <div id="gsearch-results" style="max-height:340px;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- SOMEDAY REVIEW MODAL -->
+<div class="mo hidden" id="someday-review-modal" onclick="if(event.target===this)closeM('someday-review-modal')">
+  <div class="md" style="width:420px;max-width:94vw;">
+    <div class="mh"><h3>🔮 Someday Review</h3><button class="btn bd sm" onclick="closeM('someday-review-modal')">✕</button></div>
+    <div id="someday-card-body" style="padding:4px 0;min-height:140px;"></div>
+  </div>
+</div>
+
+<!-- BULK ACTION BAR -->
+<div id="bulk-bar">
+  <span id="bulk-count" style="font-size:13px;font-weight:600;color:var(--accent);">0 selected</span>
+  <select class="fc" style="width:auto;font-size:12px;padding:4px 8px;" onchange="if(this.value){applyBulkAction('bucket:'+this.value);this.value=''}">
+    <option value="">Move to…</option>
+    <option value="inbox">Inbox</option>
+    <option value="this-week">This Week</option>
+    <option value="next-week">Next Week</option>
+    <option value="backlog">Backlog</option>
+    <option value="someday">Someday</option>
+  </select>
+  <button class="btn bg sm" onclick="applyBulkAction('done')">✓ Done</button>
+  <button class="btn bd sm" onclick="applyBulkAction('delete')">🗑 Delete</button>
+  <button class="btn bg sm" onclick="toggleBulkMode()">✕ Cancel</button>
+</div>
 </body>
 </html>

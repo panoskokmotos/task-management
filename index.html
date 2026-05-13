@@ -353,6 +353,10 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 .ai-sugg-list{margin-top:12px;}
 .ai-sugg-item{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:flex-start;gap:8px;font-size:13px;}
 .ai-sugg-add{flex-shrink:0;background:var(--accent);color:#000;border:none;border-radius:6px;padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer;}
+#xp-bar-wrap{display:flex;align-items:center;gap:6px;padding:4px 10px;background:var(--surface2);border-radius:20px;font-size:11px;font-weight:600;}
+.xp-bar{width:80px;height:6px;background:var(--surface);border-radius:3px;overflow:hidden;}
+#xp-fill{height:100%;background:linear-gradient(90deg,#58a6ff,#69db7c);border-radius:3px;transition:width .4s ease;}
+.sd-energy-btn.active{background:var(--accent);color:#000;}
 
 </style>
 </head>
@@ -412,6 +416,12 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div class="ph">
     <div><h1 id="greeting">Good morning, Panos 👋</h1><p class="sub" id="ddate"></p></div>
     <div class="row">
+      <div id="xp-bar-wrap" title="Your XP">
+        <span id="xp-level-label">Lv 1</span>
+        <div class="xp-bar"><div id="xp-fill" style="width:0%"></div></div>
+        <span id="xp-label">0 XP</span>
+      </div>
+      <button class="btn bg sm" id="start-day-btn" onclick="openStartDay()" style="display:none;">☀️ Start Day</button>
       <button class="btn bg sm" onclick="openCmdK()" title="⌘K">⌘K</button>
       <button class="btn bg sm" onclick="openChecklist('daily')" id="checklist-btn" title="Daily / Weekly / Monthly Checklist">📋 <span id="checklist-badge" style="display:none;background:#ef4444;color:#fff;border-radius:8px;padding:0 5px;font-size:10px;font-weight:700;"></span></button>
       <button class="btn bg sm" onclick="openReminderSettings()" title="Reminders" id="remind-btn">🔔</button>
@@ -423,6 +433,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
       <button class="btn bg sm" onclick="showCommitments()">📜 Commits</button>
       <button class="btn bg sm" onclick="showContextReport()">🔀</button>
       <button class="btn bg sm" onclick="nav('eod')">🌙 EOD</button>
+      <button class="btn bg sm" onclick="openQuickAdd()">⚡ Quick Add</button>
       <button class="btn bp" onclick="openAdd()">+ Add Task</button>
     </div>
   </div>
@@ -481,6 +492,12 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
     </div>
     <div id="premortem-ai-out" style="display:none;margin-top:10px;font-size:12px;line-height:1.6;background:var(--surface2);border-radius:6px;padding:10px;white-space:pre-wrap;"></div>
   </div>
+  <!-- XP NUDGE -->
+  <div id="xp-nudge" style="display:none;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.3);border-radius:8px;padding:8px 12px;font-size:12px;text-align:center;margin-bottom:10px;"></div>
+  <!-- NETWORK HEALTH WIDGET -->
+  <div id="network-health-widget"></div>
+  <!-- DAILY QUESTS WIDGET -->
+  <div id="daily-quests-widget"></div>
   <!-- STREAK ROW -->
   <div id="streak-row" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;"></div>
   <!-- ANTI-PATTERN ALERTS -->
@@ -657,8 +674,12 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 <div id="v-decisions" class="view">
   <div class="ph">
     <div><h1>🧠 Decision Journal</h1><p class="sub">Log key decisions. Review them at 30 & 90 days.</p></div>
-    <button class="btn bp" onclick="openAddDecision()">+ Log Decision</button>
+    <div class="row">
+      <button class="btn bg sm" onclick="_aiBtn(this,aiSuggestDecisions)">✨ AI Suggest</button>
+      <button class="btn bp" onclick="openAddDecision()">+ Log Decision</button>
+    </div>
   </div>
+  <div id="ai-decisions-result" style="margin-bottom:16px;"></div>
   <div id="dec-list"></div>
 </div>
 
@@ -1066,6 +1087,14 @@ Read 50 books this year"></textarea>
       <select class="fc" id="t-blocked" multiple style="min-height:48px;">
       </select>
     </div>
+    <div class="fg" style="margin-top:4px;">
+      <label style="font-size:11px;color:var(--muted);">📌 If-Then trigger (optional)</label>
+      <input class="fc" id="t-ifthen" placeholder="When I finish lunch, I will work on this" style="font-size:12px;">
+    </div>
+    <div class="fg">
+      <label>🤝 Linked People (optional)</label>
+      <select class="fc" id="t-people" multiple size="3" style="min-height:60px;"></select>
+    </div>
     <div class="fg" id="checklist-section">
       <label>Checklist <span id="cl-badge" style="font-size:11px;color:var(--muted);"></span></label>
       <div id="cl-items"></div>
@@ -1130,6 +1159,14 @@ Read 50 books this year"></textarea>
             <option value="passive">Passive Income</option>
           </select>
         </div>
+      </div>
+    </details>
+    <details style="margin-top:8px;margin-bottom:8px;">
+      <summary style="font-size:12px;color:var(--muted);cursor:pointer;padding:6px 0;">🧠 WOOP — Go Deeper (optional)</summary>
+      <div style="padding:8px 0;">
+        <div class="fg"><label style="font-size:11px;">Outcome — Best result if achieved?</label><input class="fc" id="g-woop-outcome" placeholder="I will have..."></div>
+        <div class="fg"><label style="font-size:11px;">Obstacle — Biggest inner obstacle?</label><input class="fc" id="g-woop-obstacle" placeholder="My main obstacle is..."></div>
+        <div class="fg"><label style="font-size:11px;">Plan — If obstacle, then I will?</label><input class="fc" id="g-woop-plan" placeholder="If I feel like giving up, then I will..."></div>
       </div>
     </details>
     <div class="mf">
@@ -1576,7 +1613,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false,dailyIntention:[],energyLog:[],xp:0,level:1,badges:[],dailyQuests:[],questsDate:''};
 let editT=null,editG=null,fCat='all';
 let profileName=localStorage.getItem('taskos_name')||'Panos';
 let _editChecklist=[];
@@ -1845,6 +1882,17 @@ function refresh(){const a=document.querySelector('.view.active');if(a)renderVie
 
 // ── DASHBOARD ─────────────────────────────────────────────────
 function renderDash(){
+  _updateXPBar();
+  if(!sessionStorage.getItem('xp_animated')){
+    sessionStorage.setItem('xp_animated','1');
+    const fill=document.getElementById('xp-fill');
+    if(fill){
+      const target=fill.style.width;
+      fill.style.width='0%';
+      fill.style.transition='none';
+      setTimeout(()=>{fill.style.transition='width 1.5s ease';fill.style.width=target;},100);
+    }
+  }
   const h=new Date().getHours();
   document.getElementById('greeting').textContent=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', '+profileName+' 👋';
   document.getElementById('ddate').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'});
@@ -1873,6 +1921,43 @@ function renderDash(){
   renderOneThing();
   renderWeeklyTheme();
   renderExecutionScore();
+  _updateStartDayBtn();
+  // XP nudge
+  const _xpNext=XP_LEVELS[S.level]||XP_LEVELS[XP_LEVELS.length-1];
+  const _xpGap=_xpNext-(S.xp||0);
+  const nudgeEl=document.getElementById('xp-nudge');
+  if(nudgeEl){
+    if(_xpGap>0&&_xpGap<=20){
+      nudgeEl.innerHTML='⚡ Only <strong>'+_xpGap+' XP</strong> to Level '+((S.level||1)+1)+' — complete a task!';
+      nudgeEl.style.display='';
+    } else {nudgeEl.style.display='none';}
+  }
+  // Network health widget
+  const {score:nhScore,overdue:nhOverdue,recent:nhRecent}=_calcNetworkScore();
+  const nhEl=document.getElementById('network-health-widget');
+  if(nhEl&&(S.people||[]).length>0){
+    nhEl.innerHTML=`<div style="background:var(--surface2);border-radius:12px;padding:10px 14px;margin-bottom:12px;cursor:pointer;" onclick="nav('relationships')">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:14px;font-weight:700;">🤝 Network</span>
+        <div style="flex:1;height:6px;background:var(--surface);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${nhScore}%;background:${nhScore>70?'var(--q2)':nhScore>40?'#fbbf24':'#ef4444'};border-radius:3px;"></div></div>
+        <span style="font-size:13px;font-weight:700;color:${nhScore>70?'var(--q2)':nhScore>40?'#fbbf24':'#ef4444'}">${nhScore}/100</span>
+      </div>
+      ${nhOverdue.length?`<div style="font-size:11px;color:var(--muted);margin-top:4px;">${nhOverdue.length} contact${nhOverdue.length>1?'s':''} overdue · ${nhRecent} reached this month</div>`:''}
+    </div>`;
+  } else if(nhEl){nhEl.innerHTML='';}
+  // Daily quests widget
+  const quests=S.dailyQuests||[];
+  const questsEl=document.getElementById('daily-quests-widget');
+  if(questsEl){
+    questsEl.innerHTML=quests.length?`<div style="margin-bottom:14px;background:var(--surface2);border-radius:12px;padding:12px 14px;">
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">⚔️ Daily Quests</div>
+      ${quests.map(q=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;${q.done?'opacity:0.5;text-decoration:line-through;':''}">
+        <span>${q.done?'✅':'⬜'}</span>
+        <span style="flex:1;">${esc(q.text)}</span>
+        <span style="font-size:11px;color:var(--accent);">+${q.xp} XP</span>
+      </div>`).join('')}
+    </div>`:'';
+  }
 }
 
 function renderTop3(){
@@ -2159,6 +2244,7 @@ function tcHTML(t,showT3btn=false){
         ${t.isT3&&t.status!=='done'?'<span style="font-size:11px;">⭐</span>':''}
         ${gl?`<span style="font-size:10px;color:var(--muted);">↳ ${gl.title.slice(0,20)}</span>`:''}
       </div>
+      ${t.ifThen?`<div style="font-size:10px;color:var(--muted);margin-top:2px;">📌 ${esc(t.ifThen)}</div>`:''}
     </div>
     ${showT3btn&&t.bucket==='this-week'&&!t.isT3&&t.status!=='done'?`<button class="btn bg sm" onclick="event.stopPropagation();addT3('${t.id}')" title="Add to Top 3">⭐</button>`:''}
   </div>`;
@@ -2183,6 +2269,9 @@ function openAdd(bucket='inbox'){
   fillGoalDrop();
   _editChecklist=[];_renderChecklistEditor();
   fillBlockerDrop(null,[]);
+  document.getElementById('t-ifthen').value='';
+  const peopSel=document.getElementById('t-people');
+  if(peopSel){peopSel.innerHTML=(S.people||[]).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');}
   document.getElementById('tm').classList.remove('hidden');
   setTimeout(()=>_trapFocus(document.getElementById('tm')),50);
   document.getElementById('t-title').focus();
@@ -2207,6 +2296,9 @@ function openEdit(id){
   fillGoalDrop(t.goalId);
   _editChecklist=(t.checklist||[]).map(c=>({...c}));_renderChecklistEditor();
   fillBlockerDrop(t.id,t.blockedBy||[]);
+  document.getElementById('t-ifthen').value=t.ifThen||'';
+  const peopSel=document.getElementById('t-people');
+  if(peopSel){peopSel.innerHTML=(S.people||[]).map(p=>`<option value="${p.id}"${(t.linkedPeople||[]).includes(p.id)?' selected':''}>${esc(p.name)}</option>`).join('');}
   document.getElementById('tm').classList.remove('hidden');
   setTimeout(()=>_trapFocus(document.getElementById('tm')),50);
   document.getElementById('t-title').focus();
@@ -2215,7 +2307,7 @@ function openEdit(id){
 function saveTask(){
   const title=document.getElementById('t-title').value.trim();
   if(!title){alert('Enter a task title.');return;}
-  const d={title,notes:document.getElementById('t-notes').value,category:document.getElementById('t-cat').value,bucket:document.getElementById('t-bucket').value,urgency:document.getElementById('t-urg').value,importance:document.getElementById('t-imp').value,energy:document.getElementById('t-eng').value,depth:document.getElementById('t-depth').value||'medium',timeBlock:parseInt(document.getElementById('t-time').value)||null,dueDate:document.getElementById('t-due').value,recurring:document.getElementById('t-rec').value,goalId:document.getElementById('t-goal').value||null,checklist:_editChecklist,blockedBy:Array.from(document.getElementById('t-blocked').selectedOptions).map(o=>o.value)};
+  const d={title,notes:document.getElementById('t-notes').value,category:document.getElementById('t-cat').value,bucket:document.getElementById('t-bucket').value,urgency:document.getElementById('t-urg').value,importance:document.getElementById('t-imp').value,energy:document.getElementById('t-eng').value,depth:document.getElementById('t-depth').value||'medium',timeBlock:parseInt(document.getElementById('t-time').value)||null,dueDate:document.getElementById('t-due').value,recurring:document.getElementById('t-rec').value,goalId:document.getElementById('t-goal').value||null,checklist:_editChecklist,blockedBy:Array.from(document.getElementById('t-blocked').selectedOptions).map(o=>o.value),ifThen:document.getElementById('t-ifthen')?.value.trim()||'',linkedPeople:Array.from(document.getElementById('t-people').selectedOptions).map(o=>o.value)};
   if(!editT&&d.bucket!=='inbox'&&S.hellYesFilter){
     // Hell Yes / No — ask asynchronously then save
     const capD=d,capTitle=title;
@@ -2253,6 +2345,7 @@ function delCurTask(){if(editT){delTask(editT);closeM('tm');}}
 
 function toggleDone(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  const wasT3=t.isT3;const wasDepth=t.depth||'medium';
   t.status=t.status==='done'?'todo':'done';
   t.completedAt=t.status==='done'?new Date().toISOString():null;
   if(t.status==='done'){
@@ -2272,6 +2365,19 @@ function toggleDone(id){
     }
   }
   save();refresh();updIBadge();updateChecklistBadge();
+  if(t.status==='done'){
+    const baseXP={'deep':20,'medium':10,'shallow':5}[wasDepth]||10;
+    const lucky=Math.random()<0.125;
+    const mult=lucky?3:1;
+    const xpAmount=baseXP+(wasT3?15:0);
+    awardXP(xpAmount*mult,'task');
+    if(lucky)toast('🎰 Lucky Task! <strong>3× XP!</strong> 🎉',3000);
+    if((t.linkedPeople||[]).length){
+      const names=(t.linkedPeople||[]).map(id2=>(S.people||[]).find(p=>p.id===id2)?.name).filter(Boolean);
+      if(names.length)toast('🤝 Affects: '+names.join(', ')+' — log a touchpoint? <a href="#" onclick="nav(\'relationships\');return false;" style="color:var(--accent);">→ CRM</a>',5000);
+    }
+  }
+  _checkQuestCompletion();
 }
 
 function cycleStatus(id){
@@ -2363,6 +2469,9 @@ function openAddGoal(){
   document.getElementById('g-finance-type').value='';
   _fillHabitDrop('g-habit','');
   document.getElementById('del-goal-btn').style.display='none';
+  document.getElementById('g-woop-outcome').value='';
+  document.getElementById('g-woop-obstacle').value='';
+  document.getElementById('g-woop-plan').value='';
   document.getElementById('gm').classList.remove('hidden');
   setTimeout(()=>_trapFocus(document.getElementById('gm')),50);
 }
@@ -2382,6 +2491,10 @@ function openEditGoal(id){
   document.getElementById('g-current').value=g.currentValue!=null?g.currentValue:'';
   document.getElementById('g-unit').value=g.unit||'';
   document.getElementById('del-goal-btn').style.display='block';
+  const woop=g.woop||{};
+  document.getElementById('g-woop-outcome').value=woop.outcome||'';
+  document.getElementById('g-woop-obstacle').value=woop.obstacle||'';
+  document.getElementById('g-woop-plan').value=woop.plan||'';
   document.getElementById('gm').classList.remove('hidden');
   setTimeout(()=>_trapFocus(document.getElementById('gm')),50);
 }
@@ -2398,7 +2511,8 @@ function saveGoal(){
     linkedFinanceType:document.getElementById('g-finance-type')?.value||'',
     targetValue:parseFloat(document.getElementById('g-target').value)||null,
     currentValue:parseFloat(document.getElementById('g-current').value)||null,
-    unit:document.getElementById('g-unit').value||''
+    unit:document.getElementById('g-unit').value||'',
+    woop:{outcome:document.getElementById('g-woop-outcome').value.trim(),obstacle:document.getElementById('g-woop-obstacle').value.trim(),plan:document.getElementById('g-woop-plan').value.trim()}
   };
   if(editG){const i=S.goals.findIndex(g=>g.id===editG);S.goals[i]={...S.goals[i],...d};}
   else S.goals.push({id:uid(),...d});
@@ -3329,6 +3443,9 @@ function renderRelationships(){
   document.getElementById('rel-list').innerHTML=filtered.length?filtered.map(p=>{
     const days=daysSinceDate(p.lastContact);
     const overdue=days>(p.interval||30);
+    const gives=(p.interactions||[]).filter(i=>i.type==='give').length;
+    const gets=(p.interactions||[]).filter(i=>i.type==='get').length;
+    const balance=gives+gets>0?(gives>gets?'↑ You give more':gives<gets?'↓ They give more':'⚖ Balance'):'';
     return`<div class="rel-card">
       <div class="rel-avatar">${p.name[0].toUpperCase()}</div>
       <div style="flex:1;">
@@ -3336,6 +3453,7 @@ function renderRelationships(){
           <span style="font-weight:600;font-size:13px;">${p.name}</span>
           ${p.isTop?'<span style="font-size:11px;">⭐</span>':''}
           <span class="badge co">${p.type}</span>
+          ${balance?`<span style="font-size:10px;color:var(--muted);">${balance}</span>`:''}
         </div>
         ${p.notes?`<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">${p.notes}</div>`:''}
         <div style="font-size:11px;color:${overdue?'#ff6b6b':'var(--muted)'};">${overdue?'⚠️ ':''}Last contact: ${p.lastContact||'never'} (${days===999?'never':days+'d ago'})</div>
@@ -3343,6 +3461,8 @@ function renderRelationships(){
       <div style="display:flex;flex-direction:column;gap:5px;">
         ${overdue?`<button class="btn bg sm" onclick="draftRelationshipMessage('${p.id}')">✍️ Draft</button>`:''}
         <button class="btn bg sm" onclick="logRelContact('${p.id}')">📞 Logged</button>
+        <button class="btn bg sm" onclick="event.stopPropagation();logInteraction('${p.id}','give')" title="Log: I gave">🎁</button>
+        <button class="btn bg sm" onclick="event.stopPropagation();logInteraction('${p.id}','get')" title="Log: I received">🙏</button>
         <button class="btn bg sm" onclick="openAddPerson('${p.id}')">✏️</button>
         <button class="btn bd sm" onclick="deletePerson('${p.id}')">×</button>
       </div>
@@ -3379,7 +3499,7 @@ function savePerson(){
 function deletePerson(id){softDelete('people',id,renderRelationships,'Person');}
 function logRelContact(id){
   const p=(S.people||[]).find(x=>x.id===id);if(!p)return;
-  p.lastContact=new Date().toISOString().slice(0,10);save();renderRelationships();toast('Contact logged ✓');
+  p.lastContact=new Date().toISOString().slice(0,10);save();renderRelationships();toast('Contact logged ✓');_checkQuestCompletion();
 }
 async function aiRelNudge(){
   if(!_aiLock('aiRelNudge'))return;
@@ -3511,8 +3631,10 @@ function toggleHabit(name){
   const today=new Date().toISOString().slice(0,10);
   if(!S.habitLogs)S.habitLogs={};
   if(!S.habitLogs[today])S.habitLogs[today]={};
-  S.habitLogs[today][name]=!S.habitLogs[today][name];
+  const checked=!S.habitLogs[today][name];
+  S.habitLogs[today][name]=checked;
   save();renderHabits();
+  if(checked){awardXP(5,'habit');_checkQuestCompletion();}
 }
 function openHabitSettings(){
   const habits=S.habits||[];
@@ -4160,7 +4282,7 @@ function completeLadderWeek(week){
     // Also log as discomfort entry
     const w=DISCOMFORT_LADDER.find(x=>x.week===week);
     if(w)S.discomfortLogs.push({id:uid(),date:new Date().toISOString().slice(0,10),title:'[Ladder W'+week+'] '+w.title,intensity:w.hard,notes:w.desc});
-    save();renderLadder();
+    save();renderLadder();awardXP(50,'ladder');
     toast('🔥 Week '+week+' complete! '+(week<12?'Next: '+DISCOMFORT_LADDER[week].title:'LADDER COMPLETE! 🏆'));
   }
 }
@@ -4358,6 +4480,283 @@ function toggleOneThing(id){
 function clearOneThing(id){
   S.oneThing = (S.oneThing || []).filter(x => x.id !== id);
   save(); renderOneThing();
+}
+
+// ════════════════════════════════════════════════════════════════
+// QUICK ADD
+// ════════════════════════════════════════════════════════════════
+function openQuickAdd(){document.getElementById('qa-input').value='';document.getElementById('quick-add-modal').classList.remove('hidden');setTimeout(()=>document.getElementById('qa-input').focus(),50);}
+function doQuickAdd(){const lines=document.getElementById('qa-input').value.split('\n').map(l=>l.trim()).filter(Boolean);if(!lines.length)return;lines.forEach(title=>S.tasks.push({id:uid(),title,notes:'',bucket:'inbox',category:'other',urgency:'low',importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',createdAt:new Date().toISOString(),completedAt:null}));save();refresh();closeM('quick-add-modal');toast(`Added ${lines.length} task${lines.length>1?'s':''} to Inbox`);}
+
+// ════════════════════════════════════════════════════════════════
+// START DAY MODAL
+// ════════════════════════════════════════════════════════════════
+let _sdStep=0;
+function openStartDay(){
+  const today=new Date().toISOString().slice(0,10);
+  _sdStep=0;
+  document.getElementById('sd-wins').value='';
+  const top3=S.tasks.filter(t=>t.isT3&&t.status!=='done').map(t=>t.title);
+  const sel=document.getElementById('sd-one-thing-sel');
+  sel.innerHTML='<option value="">— type below or pick —</option>'+top3.map(t=>`<option value="${esc(t)}">${esc(t.slice(0,50))}</option>`).join('');
+  document.getElementById('sd-one-thing-custom').value='';
+  document.getElementById('sd-intention').value='';
+  document.getElementById('sd-word').value='';
+  document.querySelectorAll('.sd-energy-btn').forEach(b=>b.classList.remove('active'));
+  _sdShowStep(0);
+  document.getElementById('start-day-modal').classList.remove('hidden');
+}
+function _sdShowStep(n){
+  _sdStep=n;
+  document.querySelectorAll('.sd-step').forEach((el,i)=>el.style.display=i===n?'':'none');
+  document.getElementById('sd-step-indicator').textContent='Step '+(n+1)+' of 4';
+  document.getElementById('sd-back-btn').style.display=n>0?'':'none';
+  document.getElementById('sd-next-btn').textContent=n===3?'Start My Day ✓':'Next →';
+}
+function _sdNext(){
+  const today=new Date().toISOString().slice(0,10);
+  if(_sdStep===1){
+    const sel=document.getElementById('sd-one-thing-sel').value;
+    const custom=document.getElementById('sd-one-thing-custom').value.trim();
+    const text=sel||custom;
+    if(text){
+      S.oneThing=S.oneThing||[];
+      S.oneThing=S.oneThing.filter(x=>x.date!==today);
+      S.oneThing.push({id:uid(),date:today,text,done:false});
+      save();
+    }
+  }
+  if(_sdStep===2){
+    const intention=document.getElementById('sd-intention').value.trim();
+    const word=document.getElementById('sd-word').value.trim();
+    if(intention||word){
+      S.dailyIntention=S.dailyIntention||[];
+      S.dailyIntention.push({date:today,intention,word});
+      save();
+    }
+  }
+  if(_sdStep===3){
+    closeM('start-day-modal');
+    toast('☀️ Day started! Focus on your One Thing.');
+    _updateStartDayBtn();
+    return;
+  }
+  _sdShowStep(_sdStep+1);
+}
+function _sdSetEnergy(level){
+  const today=new Date().toISOString().slice(0,10);
+  S.energyLog=S.energyLog||[];
+  S.energyLog=S.energyLog.filter(e=>e.date!==today);
+  S.energyLog.push({date:today,level});
+  save();
+  document.querySelectorAll('.sd-energy-btn').forEach(b=>b.classList.toggle('active',parseInt(b.dataset.level)===level));
+}
+function _updateStartDayBtn(){
+  const btn=document.getElementById('start-day-btn');
+  if(!btn)return;
+  const today=new Date().toISOString().slice(0,10);
+  const done=!!(S.dailyIntention||[]).find(x=>x.date===today);
+  const h=new Date().getHours();
+  btn.style.display=(h<12||!done)?'':'none';
+  if(h>=12&&!done)btn.style.display='';
+  btn.style.opacity=done?'0.5':'1';
+  btn.title=done?'Start Day already completed today':'Begin your morning ritual';
+}
+
+// ════════════════════════════════════════════════════════════════
+// XP / LEVELS / BADGES
+// ════════════════════════════════════════════════════════════════
+const XP_LEVELS=[0,100,250,500,1000,2000,5000,10000];
+const LEVEL_TITLES=['Beginner','Executor','Builder','Achiever','Champion','Legend','Master','Grandmaster'];
+let _checkingBadges=false;
+
+function awardXP(amount,reason){
+  if(!amount||amount<=0)return;
+  S.xp=(S.xp||0)+amount;
+  const oldLevel=S.level||1;
+  let newLevel=oldLevel;
+  for(let i=XP_LEVELS.length-1;i>=0;i--){if(S.xp>=XP_LEVELS[i]){newLevel=i+1;break;}}
+  if(newLevel>oldLevel){S.level=newLevel;_levelUp(newLevel);}
+  save();
+  _updateXPBar();
+  setTimeout(checkBadges,0);
+}
+
+function _updateXPBar(){
+  const lv=S.level||1;
+  const cur=S.xp||0;
+  const lo=XP_LEVELS[lv-1]||0;
+  const hi=XP_LEVELS[lv]||XP_LEVELS[XP_LEVELS.length-1];
+  const pct=hi>lo?Math.round((cur-lo)/(hi-lo)*100):100;
+  const fill=document.getElementById('xp-fill');
+  const lbl=document.getElementById('xp-level-label');
+  const xpl=document.getElementById('xp-label');
+  if(fill)fill.style.width=pct+'%';
+  if(lbl)lbl.textContent='Lv '+lv+' '+(LEVEL_TITLES[lv-1]||'');
+  if(xpl)xpl.textContent=cur+' XP';
+}
+
+function _levelUp(n){
+  toast('🎉 Level Up! You are now <strong>Level '+n+' — '+(LEVEL_TITLES[n-1]||'')+'</strong>',4000);
+  _fireConfetti('deep');
+}
+
+const BADGES=[
+  {id:'first-task',name:'🎯 First Step',desc:'Complete your first task',check:()=>(S.tasks||[]).filter(t=>t.status==='done').length>=1},
+  {id:'deep-thinker',name:'🧠 Deep Thinker',desc:'Complete 10 deep tasks',check:()=>(S.tasks||[]).filter(t=>t.status==='done'&&t.depth==='deep').length>=10},
+  {id:'streak-7',name:'🔥 Week Warrior',desc:'Achieve a 7-day habit streak',check:()=>(S.habits||[]).some(h=>(h.streak||0)>=7)},
+  {id:'centurion',name:'💯 Centurion',desc:'Complete 100 tasks',check:()=>(S.tasks||[]).filter(t=>t.status==='done').length>=100},
+  {id:'goal-getter',name:'🏆 Goal Getter',desc:'Mark a goal as complete',check:()=>(S.goals||[]).some(g=>g.status==='done'||g.complete)},
+  {id:'challenger',name:'⚡ Challenger',desc:'Complete a full challenge',check:()=>(S.challengeHistory||[]).length>=1||(S.completedChallenges||[]).length>=1},
+  {id:'win-logger',name:'🏅 Win Logger',desc:'Log 10 wins',check:()=>(S.wins||[]).length>=10},
+  {id:'ladder-climber',name:'🪜 Ladder Climber',desc:'Complete discomfort ladder week 4',check:()=>(S.discomfortLadder?.completedWeeks||[]).length>=4},
+];
+
+function checkBadges(){
+  if(_checkingBadges)return;
+  _checkingBadges=true;
+  try{
+    S.badges=S.badges||[];
+    BADGES.forEach(b=>{
+      if(!S.badges.includes(b.id)&&b.check()){
+        S.badges.push(b.id);
+        save();
+        toast('🏅 Badge Unlocked: <strong>'+b.name+'</strong> — '+b.desc,4000);
+      }
+    });
+  }finally{_checkingBadges=false;}
+}
+
+// ════════════════════════════════════════════════════════════════
+// DAILY QUESTS
+// ════════════════════════════════════════════════════════════════
+const QUEST_TEMPLATES=[
+  {id:'q-deep2',text:'Complete 2 deep tasks',xp:30,check:()=>(S.tasks||[]).filter(t=>t.status==='done'&&t.depth==='deep'&&t.completedAt&&t.completedAt.slice(0,10)===new Date().toISOString().slice(0,10)).length>=2},
+  {id:'q-habit3',text:'Check off 3 habits today',xp:20,check:()=>{const today=new Date().toISOString().slice(0,10);return (S.habits||[]).filter(h=>(S.habitLogs?.[today]||{})[h]).length>=3;}},
+  {id:'q-inbox0',text:'Clear your Inbox to 0',xp:25,check:()=>(S.tasks||[]).filter(t=>t.bucket==='inbox'&&t.status!=='done').length===0},
+  {id:'q-energy',text:'Log your energy today',xp:10,check:()=>!!(S.energyLog||[]).find(e=>e.date===new Date().toISOString().slice(0,10))},
+  {id:'q-oneT',text:'Complete your One Thing',xp:35,check:()=>{const ot=(S.oneThing||[]).find(x=>x.date===new Date().toISOString().slice(0,10));return !!(ot&&ot.done);}},
+  {id:'q-contact',text:'Log a relationship contact',xp:15,check:()=>{const today=new Date().toISOString().slice(0,10);return (S.people||[]).some(p=>p.lastContact===today);}},
+  {id:'q-win',text:'Log a win today',xp:15,check:()=>!!(S.wins||[]).find(w=>w.date===new Date().toISOString().slice(0,10))},
+];
+function _genDailyQuests(){
+  const today=new Date().toISOString().slice(0,10);
+  if(S.questsDate===today)return;
+  const shuffled=[...QUEST_TEMPLATES].sort(()=>Math.random()-.5).slice(0,3);
+  S.dailyQuests=shuffled.map(q=>({id:q.id,text:q.text,xp:q.xp,done:false}));
+  S.questsDate=today;
+  save();
+}
+function _checkQuestCompletion(){
+  if(!S.dailyQuests)return;
+  const today=new Date().toISOString().slice(0,10);
+  if(S.questsDate!==today)return;
+  QUEST_TEMPLATES.forEach(qt=>{
+    const q=S.dailyQuests.find(x=>x.id===qt.id);
+    if(q&&!q.done&&qt.check()){
+      q.done=true;
+      save();
+      awardXP(q.xp,'quest');
+      toast('Quest complete: <strong>'+q.text+'</strong> +'+q.xp+' XP',3500);
+    }
+  });
+}
+
+// ════════════════════════════════════════════════════════════════
+// AI DECISION ADVISOR
+// ════════════════════════════════════════════════════════════════
+async function aiSuggestDecisions(){
+  if(!_aiLock('aiSuggestDecisions'))return;
+  try{
+    const goals=(S.goals||[]).slice(0,6).map(g=>g.title).join(', ');
+    const vals=(S.values||[]).slice(0,6).join(', ');
+    const recent=(S.decisions||[]).slice(-5).map(d=>d.decision||d.title||'').join(', ');
+    const prompt='You are a life strategy advisor. Based on this person\'s goals and values, suggest 5 meaningful decisions they should consider making.\n\nGoals: '+(goals||'Not set')+'\nValues: '+(vals||'Not set')+'\nRecent decisions: '+(recent||'None')+'\n\nFor each decision, provide:\nDECISION: [title]\nOPTION_A: [option A]\nOPTION_B: [option B]\nINSIGHT: [1-sentence strategic insight]\nLEAN: [A or B — your recommendation]\n\nList exactly 5 decisions. Be specific and actionable.';
+    const text=await callClaude(prompt,1500);
+    const el=document.getElementById('ai-decisions-result');
+    if(!el)return;
+    if(!text){el.innerHTML='<p style="color:var(--muted);font-size:13px;">Could not reach Claude. Check your API key.</p>';return;}
+    const blocks=text.split(/(?=DECISION:)/).filter(b=>b.trim());
+    if(!blocks.length){el.innerHTML='<p style="color:var(--muted);font-size:13px;">No suggestions returned.</p>';return;}
+    el.innerHTML='<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">AI Suggested Decisions</div>'+blocks.map(b=>{
+      const get=(key)=>{const m=b.match(new RegExp(key+':\\s*(.+)'));return m?m[1].trim():'';};
+      const title=get('DECISION'),optA=get('OPTION_A'),optB=get('OPTION_B'),insight=get('INSIGHT'),lean=get('LEAN');
+      if(!title)return'';
+      return`<div style="background:var(--surface2);border-radius:10px;padding:12px;margin-bottom:8px;">
+        <div style="font-weight:600;font-size:13px;margin-bottom:6px;">${esc(title)}</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:4px;">A: ${esc(optA)} &nbsp;|&nbsp; B: ${esc(optB)}</div>
+        <div style="font-size:12px;color:var(--accent);margin-bottom:8px;">💡 ${esc(insight)} → Lean: <strong>${esc(lean)}</strong></div>
+        <button class="btn bg sm" onclick="openAddDecision(${JSON.stringify({title,optA,optB,insight})})">+ Log This</button>
+      </div>`;
+    }).join('');
+  }finally{_aiUnlock('aiSuggestDecisions');}
+}
+
+// ════════════════════════════════════════════════════════════════
+// NETWORK HEALTH SCORE
+// ════════════════════════════════════════════════════════════════
+function _calcNetworkScore(){
+  const people=S.people||[];
+  if(!people.length)return{score:0,overdue:[],recent:0};
+  let total=0,max=0;
+  const overdue=[];
+  const monthAgo=new Date(Date.now()-30*86400000).toISOString().slice(0,10);
+  people.forEach(p=>{
+    const weight={'close':3,'friend':2,'acquaintance':1,'professional':1}[p.type||'acquaintance']||1;
+    const interval=p.contactInterval||p.interval||30;
+    const last=p.lastContact||'2000-01-01';
+    const daysSince=Math.floor((Date.now()-new Date(last))/86400000);
+    const recency=Math.max(0,1-daysSince/interval);
+    total+=weight*recency;
+    max+=weight;
+    if(daysSince>interval)overdue.push(p);
+  });
+  const score=max?Math.round(total/max*100):0;
+  const recent=people.filter(p=>p.lastContact&&p.lastContact>=monthAgo).length;
+  return{score,overdue,recent};
+}
+
+// ════════════════════════════════════════════════════════════════
+// WEEKLY WRAPPED
+// ════════════════════════════════════════════════════════════════
+function _maybeShowWeeklyWrapped(){
+  const today=new Date();
+  if(today.getDay()!==0)return;
+  const key='taskos_wrapped_'+today.toISOString().slice(0,10);
+  if(localStorage.getItem(key))return;
+  localStorage.setItem(key,'1');
+  const weekAgo=new Date(today-7*86400000).toISOString().slice(0,10);
+  const tasks=(S.tasks||[]).filter(t=>t.completedAt&&t.completedAt.slice(0,10)>=weekAgo&&t.status==='done');
+  const wins=(S.wins||[]).filter(w=>w.date&&w.date>=weekAgo);
+  const xpThisWeek=tasks.reduce((a,t)=>a+({'deep':20,'medium':10,'shallow':5}[t.depth]||10),0);
+  const deepCount=tasks.filter(t=>t.depth==='deep').length;
+  const el=document.getElementById('weekly-wrapped-body');
+  if(!el)return;
+  const dateStr=today.toLocaleDateString();
+  el.innerHTML=`<div style="text-align:center;padding:8px;">
+    <div style="font-size:32px;margin-bottom:4px;">📊</div>
+    <div style="font-size:18px;font-weight:700;margin-bottom:16px;">Your Week in Review</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;text-align:center;margin-bottom:16px;">
+      <div style="background:var(--surface2);border-radius:10px;padding:12px;"><div style="font-size:24px;font-weight:700;color:var(--accent);">${tasks.length}</div><div style="font-size:11px;color:var(--muted);">Tasks Done</div></div>
+      <div style="background:var(--surface2);border-radius:10px;padding:12px;"><div style="font-size:24px;font-weight:700;color:#69db7c;">+${xpThisWeek}</div><div style="font-size:11px;color:var(--muted);">XP Earned</div></div>
+      <div style="background:var(--surface2);border-radius:10px;padding:12px;"><div style="font-size:24px;font-weight:700;color:#fbbf24;">${wins.length}</div><div style="font-size:11px;color:var(--muted);">Wins Logged</div></div>
+      <div style="background:var(--surface2);border-radius:10px;padding:12px;"><div style="font-size:24px;font-weight:700;color:#a78bfa;">${deepCount}</div><div style="font-size:11px;color:var(--muted);">Deep Tasks</div></div>
+    </div>
+    ${wins.length?`<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">⭐ Best win: <em>${esc(wins[wins.length-1].title)}</em></div>`:''}
+    <button class="btn bg sm" onclick="(function(){const txt='Week of ${dateStr}: ${tasks.length} tasks, +${xpThisWeek} XP, ${wins.length} wins, ${deepCount} deep tasks';navigator.clipboard?.writeText(txt);toast('Copied to clipboard!');})()">📋 Copy Summary</button>
+  </div>`;
+  document.getElementById('weekly-wrapped-modal').classList.remove('hidden');
+}
+
+// ════════════════════════════════════════════════════════════════
+// RELATIONSHIP INTERACTIONS (Give/Get)
+// ════════════════════════════════════════════════════════════════
+function logInteraction(personId,type){
+  const p=(S.people||[]).find(x=>x.id===personId);if(!p)return;
+  p.interactions=p.interactions||[];
+  p.interactions.push({date:new Date().toISOString().slice(0,10),type,note:''});
+  save();renderRelationships();
+  toast(type==='give'?'🎁 Gave logged':'🙏 Received logged');
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -4962,7 +5361,7 @@ function toggleSB(){
 }
 
 // ── INIT ──────────────────────────────────────────────────────
-load();seed();seedGoals();resetRecurring();
+load();seed();seedGoals();resetRecurring();_genDailyQuests();_maybeShowWeeklyWrapped();
 document.title='Task OS — '+profileName;
 const _lastP=localStorage.getItem('taskos_lastview');
 if(_lastP&&_lastP!=='dashboard'){nav(_lastP);}else{renderDash();}
@@ -4984,6 +5383,19 @@ initQuickCapture();
 initPWA();
 initReminders();
 initChecklists();
+// Evening streak saver
+setInterval(()=>{
+  const hr=new Date().getHours();
+  if(hr<21)return;
+  const today=new Date().toISOString().slice(0,10);
+  const key='taskos_eve_nudge_'+today;
+  if(sessionStorage.getItem(key))return;
+  const pending=(S.habits||[]).filter(h2=>h2&&!(S.habitLogs?.[today]||{})[h2]);
+  if(pending.length>0){
+    sessionStorage.setItem(key,'1');
+    toast('🔥 Don\'t break your streak! '+pending.length+' habit'+(pending.length>1?'s':'')+' still pending tonight.',6000);
+  }
+},60000);
 
 // ════════════════════════════════════════════════════════════════
 // PWA — INSTALL + UPDATE
@@ -5758,6 +6170,8 @@ function applyNotesSynthesis(addTasks){
 function openHighlightsImport(){
   document.getElementById('hl-book-id').value='';
   document.getElementById('hl-book-title').value='';
+  const hlAuthorEl=document.getElementById('hl-author');
+  if(hlAuthorEl)hlAuthorEl.value='';
   document.getElementById('hl-input').value='';
   document.getElementById('hl-result').innerHTML='';
   document.getElementById('hl-footer').innerHTML=`<button class="btn bg" onclick="closeM('highlights-modal')">Cancel</button><button class="btn bp" onclick="extractHighlightTasks()">🤖 Extract Tasks</button>`;
@@ -5766,8 +6180,14 @@ function openHighlightsImport(){
 }
 async function extractHighlightTasks(){
   const bookTitle=(document.getElementById('hl-book-title').value||'').trim();
+  const author=(document.getElementById('hl-author')?.value||'').trim();
   const raw=(document.getElementById('hl-input').value||'').trim();
   if(!raw){toast('Paste your highlights first!');return;}
+  // Auto-create book from readwise if title provided and not already in library
+  if(bookTitle&&author){
+    const existing=(S.books||[]).find(b=>b.title.toLowerCase()===bookTitle.toLowerCase());
+    if(!existing){addBookFromReadwise(bookTitle,author);}
+  }
   // persist highlights back to book so they're pre-filled next time
   const bookId=document.getElementById('hl-book-id').value;
   if(bookId){const bi=(S.books||[]).findIndex(x=>x.id===bookId);if(bi>=0){S.books[bi].highlights=raw;save();}}
@@ -6266,11 +6686,11 @@ function renderDecisions(){
   `).join('');
 }
 
-function openAddDecision(){
+function openAddDecision(prefill){
   document.getElementById('dec-date').value=new Date().toISOString().slice(0,10);
-  document.getElementById('dec-decision').value='';
-  document.getElementById('dec-alts').value='';
-  document.getElementById('dec-outcome').value='';
+  document.getElementById('dec-decision').value=(prefill&&prefill.title)||'';
+  document.getElementById('dec-alts').value=(prefill&&prefill.optA&&prefill.optB)?'A: '+(prefill.optA||'')+'\nB: '+(prefill.optB||''):'';
+  document.getElementById('dec-outcome').value=(prefill&&prefill.insight)||'';
   document.getElementById('dec-r30').checked=true;
   document.getElementById('dec-r90').checked=true;
   document.getElementById('dec-modal').classList.remove('hidden');
@@ -6347,7 +6767,7 @@ function saveWin(){
   if(!title)return toast('Title required');
   if(!S.wins)S.wins=[];
   S.wins.push({id:uid(),title,desc:document.getElementById('win-desc').value.trim(),cat:document.getElementById('win-cat').value,emoji:document.getElementById('win-emoji').value.trim()||'🏅',date:document.getElementById('win-date').value});
-  save();closeModal('win-modal');renderWins();toast('Win logged! 🎉');
+  save();closeModal('win-modal');renderWins();toast('Win logged! 🎉');awardXP(10,'win');_checkQuestCompletion();
 }
 function deleteWin(id){softDelete('wins',id,renderWins,'Win');}
 async function aiSuggestWins(){
@@ -7096,9 +7516,75 @@ function closeModal(id){document.getElementById(id)?.classList.add('hidden');}
     <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Paste highlights from Readwise, Kindle, or any book. Claude extracts the most actionable tasks for you.</div>
     <input type="hidden" id="hl-book-id">
     <input id="hl-book-title" class="fc" placeholder="Book title (optional, e.g. Atomic Habits)" style="margin-bottom:8px;">
+    <input id="hl-author" class="fc" placeholder="Author (optional, e.g. James Clear)" style="margin-bottom:8px;">
     <textarea id="hl-input" style="width:100%;min-height:150px;max-height:200px;font-size:13px;line-height:1.6;resize:vertical;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:inherit;margin-bottom:12px;" placeholder="Paste your book highlights here...&#10;&#10;e.g. &#10;'Every action you take is a vote for the type of person you wish to become.'&#10;'The most effective form of motivation is progress.'&#10;'Habits are the compound interest of self-improvement.'"></textarea>
     <div id="hl-result" style="max-height:320px;overflow-y:auto;margin-bottom:4px;"></div>
     <div class="mf" id="hl-footer" style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;"></div>
+  </div>
+</div>
+
+<!-- QUICK ADD MODAL -->
+<div class="mo hidden" id="quick-add-modal" onclick="if(event.target===this)closeM('quick-add-modal')">
+  <div class="md" style="width:460px;max-width:94vw;">
+    <div class="mh"><h3>⚡ Quick Add Tasks</h3><button class="mc" onclick="closeM('quick-add-modal')">×</button></div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:8px;">One task per line — all land in Inbox</p>
+    <textarea id="qa-input" class="fc" style="min-height:120px;resize:vertical;" placeholder="Buy groceries&#10;Call dentist&#10;Review Q3 report"></textarea>
+    <div class="mf" style="margin-top:12px;">
+      <button class="btn bg" onclick="closeM('quick-add-modal')">Cancel</button>
+      <button class="btn bp" onclick="doQuickAdd()">Add to Inbox</button>
+    </div>
+  </div>
+</div>
+
+<!-- START DAY MODAL -->
+<div class="mo hidden" id="start-day-modal" onclick="if(event.target===this)closeM('start-day-modal')">
+  <div class="md" style="width:480px;max-width:94vw;">
+    <div class="mh"><h3>☀️ Start Your Day</h3><button class="mc" onclick="closeM('start-day-modal')">×</button></div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:14px;" id="sd-step-indicator">Step 1 of 4</div>
+    <!-- Step 1: Yesterday wins -->
+    <div class="sd-step">
+      <p style="font-size:14px;font-weight:600;margin-bottom:8px;">🏆 Yesterday's wins</p>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">What did you accomplish? (optional — log to Wins)</p>
+      <textarea id="sd-wins" class="fc" style="min-height:80px;resize:vertical;" placeholder="Shipped the landing page, had a great workout..."></textarea>
+      <button class="btn bg sm" style="margin-top:8px;" onclick="(function(){const v=document.getElementById('sd-wins').value.trim();if(v){v.split('\n').filter(Boolean).forEach(w=>{S.wins=S.wins||[];S.wins.push({id:uid(),title:w,cat:'personal',emoji:'🏆',date:new Date().toISOString().slice(0,10),desc:''});});save();toast('Wins logged! 🎉');}})()">Log as Wins</button>
+    </div>
+    <!-- Step 2: One Thing -->
+    <div class="sd-step" style="display:none;">
+      <p style="font-size:14px;font-weight:600;margin-bottom:8px;">⚡ Your One Thing</p>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:10px;">What would make today a success?</p>
+      <select id="sd-one-thing-sel" class="fc" style="margin-bottom:8px;"><option value="">— pick from Top 3 or type below —</option></select>
+      <input id="sd-one-thing-custom" class="fc" placeholder="Or type your One Thing here...">
+    </div>
+    <!-- Step 3: Intention & Word -->
+    <div class="sd-step" style="display:none;">
+      <p style="font-size:14px;font-weight:600;margin-bottom:8px;">🎯 Set Your Intention</p>
+      <input id="sd-intention" class="fc" placeholder="Today I am... (e.g. focused, bold, present)" style="margin-bottom:8px;">
+      <input id="sd-word" class="fc" placeholder="My word for today... (e.g. Execute, Create, Connect)">
+    </div>
+    <!-- Step 4: Energy Check -->
+    <div class="sd-step" style="display:none;">
+      <p style="font-size:14px;font-weight:600;margin-bottom:12px;">⚡ Energy Check</p>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">How's your energy right now?</p>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button class="btn bg sd-energy-btn" data-level="1" onclick="_sdSetEnergy(1)" style="font-size:18px;padding:10px 14px;">😴<br><span style="font-size:10px;">Drained</span></button>
+        <button class="btn bg sd-energy-btn" data-level="2" onclick="_sdSetEnergy(2)" style="font-size:18px;padding:10px 14px;">😕<br><span style="font-size:10px;">Low</span></button>
+        <button class="btn bg sd-energy-btn" data-level="3" onclick="_sdSetEnergy(3)" style="font-size:18px;padding:10px 14px;">😐<br><span style="font-size:10px;">OK</span></button>
+        <button class="btn bg sd-energy-btn" data-level="4" onclick="_sdSetEnergy(4)" style="font-size:18px;padding:10px 14px;">😊<br><span style="font-size:10px;">Good</span></button>
+        <button class="btn bg sd-energy-btn" data-level="5" onclick="_sdSetEnergy(5)" style="font-size:18px;padding:10px 14px;">🔥<br><span style="font-size:10px;">On Fire</span></button>
+      </div>
+    </div>
+    <div class="mf" style="margin-top:18px;">
+      <button class="btn bg" id="sd-back-btn" onclick="_sdShowStep(_sdStep-1)" style="display:none;">← Back</button>
+      <button class="btn bp" id="sd-next-btn" onclick="_sdNext()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- WEEKLY WRAPPED MODAL -->
+<div class="mo hidden" id="weekly-wrapped-modal" onclick="if(event.target===this)closeM('weekly-wrapped-modal')">
+  <div class="md" style="width:400px;max-width:94vw;">
+    <div class="mh"><h3>🎊 Weekly Wrapped</h3><button class="mc" onclick="closeM('weekly-wrapped-modal')">×</button></div>
+    <div id="weekly-wrapped-body"></div>
   </div>
 </div>
 

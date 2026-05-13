@@ -222,6 +222,7 @@ select.fc option{background:var(--s2);}
   <div class="logo">
     <div class="logo-main">Givelink</div>
     <div class="logo-sub">Sprint Board</div>
+    <a href="index.html" style="font-size:11px;color:var(--muted);text-decoration:none;padding:3px 7px;border-radius:5px;border:1px solid var(--border);display:inline-flex;align-items:center;gap:3px;margin-top:6px;">← Task OS</a>
   </div>
   <div class="sprint-banner">
     <div class="sprint-name" id="sb-name">Sprint 1</div>
@@ -264,6 +265,9 @@ select.fc option{background:var(--s2);}
     <hr>
     <h2>🎯 Sprint Goals</h2>
     <div id="ov-goals"></div>
+    <hr>
+    <h2>📉 Burndown</h2>
+    <div id="burndown-chart"></div>
   </div>
 
   <!-- CRM VIEW -->
@@ -434,7 +438,8 @@ let S={
   tasks:[],
   blFilter:'all',
   pastSprints:[],
-  nonprofits:[]
+  nonprofits:[],
+  snapshots:[]
 };
 let editId=null;
 
@@ -538,6 +543,7 @@ function renderOverview(){
   document.getElementById('ov-goals').innerHTML=goals.length?goals.map(t=>goalHTML(t)).join(''):'<div class="empty">No sprint goals yet. Add one!</div>';
   renderVelocityStats();
   renderImpactWidget();
+  renderBurndown();
 }
 
 // ── PILLAR VIEW ───────────────────────────────────────────────────
@@ -728,11 +734,44 @@ function toggleDone(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
   t.status=t.status==='done'?'todo':'done';
   t.completedAt=t.status==='done'?new Date().toISOString():null;
-  save();refresh();
+  _recordSnapshot();save();refresh();
 }
 function moveSprint(id,sprint){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
   t.sprint=sprint;save();refresh();
+}
+function _recordSnapshot(){
+  if(!S.sprint)return;
+  const today=new Date().toISOString().slice(0,10);
+  if(!S.snapshots)S.snapshots=[];
+  const existing=S.snapshots.find(x=>x.date===today);
+  const done=S.tasks.filter(t=>t.sprint==='current'&&t.status==='done').length;
+  const total=S.tasks.filter(t=>t.sprint==='current').length;
+  if(existing){existing.done=done;existing.total=total;}
+  else S.snapshots.push({date:today,done,total});
+  save();
+}
+function renderBurndown(){
+  const el=document.getElementById('burndown-chart');
+  if(!el||!S.sprint)return;
+  const snapshots=(S.snapshots||[]).slice().sort((a,b)=>a.date>b.date?1:-1);
+  if(snapshots.length<2){el.innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px;">Complete tasks to see burndown progress</div>';return;}
+  const start=new Date(S.sprint.start);
+  const end=new Date(S.sprint.end);
+  const totalDays=Math.max(1,Math.round((end-start)/86400000));
+  const total=snapshots[0]?.total||S.tasks.filter(t=>t.sprint==='current').length;
+  const W=280,H=100,pad=20;
+  const dateToX=d=>pad+Math.round((new Date(d)-start)/86400000/totalDays*(W-pad*2));
+  const doneToY=done=>H-pad-Math.round(done/Math.max(total,1)*(H-pad*2));
+  const idealPts=[[pad,H-pad],[W-pad,pad]];
+  const actualPts=snapshots.map(s=>[dateToX(s.date),doneToY(s.done)]);
+  el.innerHTML='<svg width="'+W+'" height="'+H+'" style="width:100%;max-width:'+W+'px;">'+
+    '<polyline points="'+idealPts.map(p=>p.join(',')).join(' ')+'" fill="none" stroke="rgba(88,166,255,.3)" stroke-width="1.5" stroke-dasharray="4"/>'+
+    '<polyline points="'+actualPts.map(p=>p.join(',')).join(' ')+'" fill="none" stroke="#69db7c" stroke-width="2" stroke-linecap="round"/>'+
+    (actualPts.length?'<circle cx="'+actualPts[actualPts.length-1][0]+'" cy="'+actualPts[actualPts.length-1][1]+'" r="4" fill="#69db7c"/>')+
+    '<text x="'+pad+'" y="'+(H-4)+'" font-size="9" fill="var(--muted)">Sprint start</text>'+
+    '<text x="'+(W-pad)+'" y="'+(H-4)+'" font-size="9" fill="var(--muted)" text-anchor="end">End</text>'+
+    '</svg>';
 }
 
 // ── SPRINT SETTINGS ───────────────────────────────────────────────

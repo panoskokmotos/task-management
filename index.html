@@ -69,6 +69,7 @@ hr{border:none;border-top:1px solid var(--border);margin:18px 0;}
 .ck{width:22px;height:22px;min-width:22px;border:2px solid var(--border);border-radius:4px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .12s;}
 .ck:hover{border-color:var(--accent);}
 .ck.on{background:var(--accent);border-color:var(--accent);}
+.ck.ip{background:rgba(251,191,36,.3);border-color:#fbbf24;}
 .tb{flex:1;min-width:0;}
 .tt{font-size:13px;font-weight:500;line-height:1.4;}
 .tm{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap;align-items:center;}
@@ -552,7 +553,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div class="ph">
     <div><h1>✅ All Tasks</h1><p class="sub" id="atc"></p></div>
     <div class="row">
-      <input class="sb" id="srch" placeholder="🔍 Search..." oninput="renderAll()">
+      <input class="sb" id="srch" placeholder="🔍 Search..." oninput="_debouncedSearch()">
       <button class="btn bp" onclick="openAdd()">+ Add Task</button>
     </div>
   </div>
@@ -1057,6 +1058,18 @@ Read 50 books this year"></textarea>
       </div>
     </div>
     <div class="fg"><label>Linked Goal</label><select class="fc" id="t-goal"><option value="">— No goal —</option></select></div>
+    <div class="fg"><label>Blocked By (optional)</label>
+      <select class="fc" id="t-blocked" multiple style="min-height:48px;">
+      </select>
+    </div>
+    <div class="fg" id="checklist-section">
+      <label>Checklist <span id="cl-badge" style="font-size:11px;color:var(--muted);"></span></label>
+      <div id="cl-items"></div>
+      <div style="display:flex;gap:6px;margin-top:6px;">
+        <input class="fc" id="cl-input" placeholder="Add step..." style="font-size:12px;" onkeydown="if(event.key==='Enter'){addChecklistItem();event.preventDefault();}">
+        <button class="btn bg sm" onclick="addChecklistItem()">+</button>
+      </div>
+    </div>
     <div class="mf">
       <button class="btn bd sm" id="del-btn" style="margin-right:auto;display:none;" onclick="delCurTask()">🗑 Delete</button>
       <button class="btn bg" onclick="closeM('tm')">Cancel</button>
@@ -1071,6 +1084,11 @@ Read 50 books this year"></textarea>
     <div class="mh"><h3 id="gm-title">Add Goal</h3><button class="mc" onclick="closeM('gm')">×</button></div>
     <div class="fg"><label>Goal Title *</label><input class="fc" id="g-title" placeholder="e.g. Scale Givelink to 100 nonprofits"></div>
     <div class="fg"><label>Why it matters</label><textarea class="fc" id="g-desc" placeholder="Why is this important to you?"></textarea></div>
+    <div class="fr">
+      <div class="fg"><label>Target Value (optional)</label><input class="fc" id="g-target" type="number" placeholder="e.g. 100" min="0"></div>
+      <div class="fg"><label>Current Value</label><input class="fc" id="g-current" type="number" placeholder="e.g. 23" min="0"></div>
+      <div class="fg"><label>Unit</label><input class="fc" id="g-unit" placeholder="e.g. nonprofits, kg, €/mo"></div>
+    </div>
     <div class="fr">
       <div class="fg"><label>Category</label>
         <select class="fc" id="g-cat">
@@ -1139,10 +1157,24 @@ Read 50 books this year"></textarea>
       <label style="margin:0;">Theme</label>
       <button id="theme-toggle-btn" onclick="toggleTheme()" style="display:flex;align-items:center;gap:7px;padding:6px 14px;border-radius:20px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font-size:13px;font-weight:500;transition:all .15s;"></button>
     </div>
+    <div class="fg"><label>Data Backup</label>
+      <div style="display:flex;gap:8px;">
+        <button class="btn bg sm" onclick="exportData()" style="flex:1;">⬇️ Export JSON</button>
+        <label class="btn bg sm" style="flex:1;text-align:center;cursor:pointer;">⬆️ Import JSON<input type="file" accept=".json" style="display:none;" onchange="importData(event)"></label>
+        <button class="btn bg sm" onclick="exportCSV()" style="flex:1;">📊 Export CSV</button>
+        <button class="btn bg sm" onclick="exportMarkdown()" style="flex:1;">📝 Export MD</button>
+      </div>
+    </div>
     <div class="fg"><label>Claude API Key (for AI features)</label><input class="fc" id="set-claude-key" type="password" placeholder="sk-ant-api03-..."></div>
     <div class="fg">
       <label>About Me <span style="font-weight:400;color:var(--muted);">— used to personalize AI suggestions</span></label>
       <textarea class="fc" id="set-about" rows="3" placeholder="e.g. I'm a software engineer interested in productivity, startups, and fitness. I like building tools and learning new skills. I value deep work and long-term thinking."></textarea>
+    </div>
+    <div class="fg"><label>Hell Yes / No Filter (Essentialism)</label>
+      <select class="fc" id="set-hell-yes">
+        <option value="false">Off (default)</option>
+        <option value="true">On — prompt for every non-inbox task</option>
+      </select>
     </div>
     <hr>
     <p style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">🔌 Integrations</p>
@@ -1306,6 +1338,7 @@ Read 50 books this year"></textarea>
       </div>
     </div>
     <div class="los-grid" id="dw-stats"></div>
+    <div id="dw-depth-stats"></div>
   </div>
   <div style="margin-top:16px;">
     <h2>📋 Session Log</h2>
@@ -1539,9 +1572,34 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[]};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false};
 let editT=null,editG=null,fCat='all';
 let profileName=localStorage.getItem('taskos_name')||'Panos';
+let _editChecklist=[];
+function _renderChecklistEditor(){
+  const items=document.getElementById('cl-items');
+  const badge=document.getElementById('cl-badge');
+  if(!items)return;
+  const done=_editChecklist.filter(x=>x.done).length;
+  badge.textContent=_editChecklist.length?'('+done+'/'+_editChecklist.length+')':'';
+  items.innerHTML=_editChecklist.map((c,i)=>'<div style="display:flex;align-items:center;gap:8px;padding:4px 0;">'+
+    '<div class="ck '+(c.done?'on':'')+'" onclick="_toggleCLItem(''+c.id+'')" style="width:18px;height:18px;flex-shrink:0;">'+(c.done?'<span style="color:#fff;font-size:9px;">✓</span>':'')+'</div>'+
+    '<span style="flex:1;font-size:13px;'+(c.done?'text-decoration:line-through;color:var(--muted)':'')+'">'+c.text+'</span>'+
+    '<button class="btn bg sm" style="padding:2px 6px;font-size:11px;" onclick="_removeCLItem(''+c.id+'')">×</button>'+
+    '</div>').join('');
+}
+function addChecklistItem(){
+  const inp=document.getElementById('cl-input');
+  const text=inp?.value.trim();if(!text)return;
+  _editChecklist.push({id:uid(),text,done:false});
+  inp.value='';_renderChecklistEditor();
+}
+function _toggleCLItem(id){const c=_editChecklist.find(x=>x.id===id);if(c){c.done=!c.done;_renderChecklistEditor();}}
+function _removeCLItem(id){_editChecklist=_editChecklist.filter(x=>x.id!==id);_renderChecklistEditor();}
+function fillBlockerDrop(currentId,selectedIds=[]){
+  const s=document.getElementById('t-blocked');if(!s)return;
+  s.innerHTML=active().filter(t=>t.id!==currentId).map(t=>'<option value="'+t.id+'"'+(selectedIds.includes(t.id)?' selected':'')+'>'+t.title.slice(0,45)+'</option>').join('');
+}
 
 // ── THEME ─────────────────────────────────────────────────────
 function applyTheme(light){
@@ -1561,11 +1619,69 @@ function toggleTheme(){
 (function initTheme(){applyTheme(localStorage.getItem('taskos_theme')==='light');})();
 
 // ── PERSIST ───────────────────────────────────────────────────
-function save(){localStorage.setItem('taskos',JSON.stringify(S));}
+function save(){
+  try{localStorage.setItem('taskos',JSON.stringify(S));}
+  catch(e){
+    if(e.name==='QuotaExceededError'||e.code===22){
+      toast('⚠️ Storage full! Export your data before adding more.',5000);
+    }
+  }
+}
 function load(){const d=localStorage.getItem('taskos');if(d)try{S={...S,...JSON.parse(d)};}catch(e){console.warn('Corrupt localStorage, using defaults',e);}}
+function exportData(){
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='taskos-backup-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();URL.revokeObjectURL(a.href);
+  toast('✅ Data exported!');
+}
+function importData(e){
+  const file=e.target.files[0];if(!file)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{
+      const d=JSON.parse(ev.target.result);
+      if(!d.tasks||!Array.isArray(d.tasks)){toast('❌ Invalid backup file');return;}
+      Object.assign(S,d);save();refresh();
+      toast(`✅ Imported ${d.tasks.length} tasks!`);
+    }catch(err){toast('❌ Failed to parse file');}
+  };
+  reader.readAsText(file);
+}
+function exportCSV(){
+  const headers=['title','category','bucket','urgency','importance','depth','status','dueDate','timeBlock','notes','createdAt','completedAt'];
+  const rows=S.tasks.map(t=>headers.map(h=>{
+    const v=t[h]||'';return '"'+String(v).replace(/"/g,'""')+'"';
+  }).join(','));
+  const csv=[headers.join(','),...rows].join('\n');
+  const blob=new Blob([csv],{type:'text/csv'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='taskos-tasks-'+new Date().toISOString().slice(0,10)+'.csv';
+  a.click();URL.revokeObjectURL(a.href);
+  toast('📊 CSV exported!');
+}
+function exportMarkdown(){
+  const buckets={inbox:'📥 Inbox','this-week':'🔴 This Week','this-month':'🟠 This Month',backlog:'🟢 Backlog',someday:'🔵 Someday'};
+  let md='# Task OS Export — '+new Date().toLocaleDateString()+'\n\n';
+  Object.entries(buckets).forEach(([key,label])=>{
+    const tasks=S.tasks.filter(t=>t.bucket===key&&t.status!=='done');
+    if(!tasks.length)return;
+    md+=`## ${label}\n\n`;
+    tasks.forEach(t=>{md+=`- [${t.status==='done'?'x':' '}] ${t.title}${t.dueDate?' (due '+t.dueDate+')':''}\n`;});
+    md+='\n';
+  });
+  const blob=new Blob([md],{type:'text/markdown'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='taskos-tasks-'+new Date().toISOString().slice(0,10)+'.md';
+  a.click();URL.revokeObjectURL(a.href);
+  toast('📝 Markdown exported!');
+}
 
 // ── UTILS ─────────────────────────────────────────────────────
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
+const _aiInFlight=new Set();
+function _aiLock(key){if(_aiInFlight.has(key))return false;_aiInFlight.add(key);return true;}
+function _aiUnlock(key){_aiInFlight.delete(key);}
 function ei(t){if(t.urgency==='high'&&t.importance==='high')return'q1';if(t.urgency==='low'&&t.importance==='high')return'q2';if(t.urgency==='high'&&t.importance==='low')return'q3';return'q4';}
 function fd(d){if(!d)return'';const dt=new Date(d);return isNaN(dt)?'':dt.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
 function ft(m){if(!m)return'';if(m<60)return m+'m';const h=Math.floor(m/60),r=m%60;return r?h+'h '+r+'m':h+'h';}
@@ -1731,9 +1847,10 @@ function renderEisenhower(){
 }
 
 // ── ALL TASKS ─────────────────────────────────────────────────
-function setF(cat,el){fCat=cat;document.querySelectorAll('.fp').forEach(p=>p.classList.remove('active'));el.classList.add('active');renderAll();}
+function setF(cat,el){fCat=cat;sessionStorage.setItem('taskos_fcat',fCat);document.querySelectorAll('.fp').forEach(p=>p.classList.remove('active'));el.classList.add('active');renderAll();}
 
 function renderAll(){
+  if(!fCat||fCat==='all'){const saved=sessionStorage.getItem('taskos_fcat');if(saved&&saved!=='all'){fCat=saved;document.querySelectorAll('.fp').forEach(p=>{p.classList.toggle('active',p.getAttribute('onclick')?.includes("'"+fCat+"'"));});}}
   const q=document.getElementById('srch')?.value?.toLowerCase()||'';
   let tasks=[...S.tasks];
   if(fCat!=='all')tasks=tasks.filter(t=>t.category===fCat);
@@ -1895,9 +2012,9 @@ function finishReview(){
 function tcHTML(t,showT3btn=false){
   const gl=t.goalId?S.goals.find(g=>g.id===t.goalId):null;
   return`<div class="tc fi ${t.status==='done'?'done':''} ${t.isT3&&t.status!=='done'?'top3':''}" onclick="openEdit('${t.id}')">
-    <div class="ck ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${t.status==='done'?'<span style="color:#fff;font-size:10px;">✓</span>':''}</div>
+    <div class="ck ${t.status==='done'?'on':t.status==='in-progress'?'ip':''}" onclick="event.stopPropagation();cycleStatus('${t.id}')" title="${t.status==='done'?'Done':t.status==='in-progress'?'In Progress':'Todo — click to start'}">${t.status==='done'?'<span style="color:#fff;font-size:10px;">✓</span>':t.status==='in-progress'?'<span style="font-size:10px;">▶</span>':''}</div>
     <div class="tb">
-      <div class="tt">${t.title}</div>
+      <div class="tt">${t.title}${t.checklist?.length?`<span style="font-size:10px;background:var(--surface2);border-radius:8px;padding:1px 6px;color:var(--muted);margin-left:6px;">${t.checklist.filter(c=>c.done).length}/${t.checklist.length} ✓</span>`:''}${t.blockedBy?.length&&t.blockedBy.some(bid=>S.tasks.find(x=>x.id===bid&&x.status!=='done'))?'<span class="badge" style="background:rgba(255,107,107,.15);color:#ff6b6b;font-size:10px;margin-left:4px;">🚫 Blocked</span>':''}</div>
       <div class="tm">
         ${catB(t.category)}${eB(t)}${depthB(t.depth)}
         ${t.timeBlock?`<span class="tag">⏱ ${ft(t.timeBlock)}</span>`:''}
@@ -1927,7 +2044,10 @@ function openAdd(bucket='inbox'){
   document.getElementById('t-depth').value='medium';
   document.getElementById('del-btn').style.display='none';
   fillGoalDrop();
+  _editChecklist=[];_renderChecklistEditor();
+  fillBlockerDrop(null,[]);
   document.getElementById('tm').classList.remove('hidden');
+  setTimeout(()=>_trapFocus(document.getElementById('tm')),50);
   document.getElementById('t-title').focus();
 }
 
@@ -1948,20 +2068,51 @@ function openEdit(id){
   document.getElementById('t-depth').value=t.depth||'medium';
   document.getElementById('del-btn').style.display='block';
   fillGoalDrop(t.goalId);
+  _editChecklist=(t.checklist||[]).map(c=>({...c}));_renderChecklistEditor();
+  fillBlockerDrop(t.id,t.blockedBy||[]);
   document.getElementById('tm').classList.remove('hidden');
+  setTimeout(()=>_trapFocus(document.getElementById('tm')),50);
   document.getElementById('t-title').focus();
 }
 
 function saveTask(){
   const title=document.getElementById('t-title').value.trim();
   if(!title){alert('Enter a task title.');return;}
-  const d={title,notes:document.getElementById('t-notes').value,category:document.getElementById('t-cat').value,bucket:document.getElementById('t-bucket').value,urgency:document.getElementById('t-urg').value,importance:document.getElementById('t-imp').value,energy:document.getElementById('t-eng').value,depth:document.getElementById('t-depth').value||'medium',timeBlock:parseInt(document.getElementById('t-time').value)||null,dueDate:document.getElementById('t-due').value,recurring:document.getElementById('t-rec').value,goalId:document.getElementById('t-goal').value||null};
+  const d={title,notes:document.getElementById('t-notes').value,category:document.getElementById('t-cat').value,bucket:document.getElementById('t-bucket').value,urgency:document.getElementById('t-urg').value,importance:document.getElementById('t-imp').value,energy:document.getElementById('t-eng').value,depth:document.getElementById('t-depth').value||'medium',timeBlock:parseInt(document.getElementById('t-time').value)||null,dueDate:document.getElementById('t-due').value,recurring:document.getElementById('t-rec').value,goalId:document.getElementById('t-goal').value||null,checklist:_editChecklist,blockedBy:Array.from(document.getElementById('t-blocked').selectedOptions).map(o=>o.value)};
+  if(!editT&&d.bucket!=='inbox'&&S.hellYesFilter){
+    const ans=confirm('Is "'+title.slice(0,50)+'" a HELL YES? (Cancel = move to Someday)');
+    if(!ans){d.bucket='someday';}
+  }
   if(editT){const i=S.tasks.findIndex(t=>t.id===editT);S.tasks[i]={...S.tasks[i],...d};}
   else S.tasks.push({id:uid(),...d,status:'todo',isT3:false,t3s:null,createdAt:new Date().toISOString(),completedAt:null});
   save();closeM('tm');refresh();
 }
 
-function delTask(id){if(!confirm('Delete?'))return;S.tasks=S.tasks.filter(t=>t.id!==id);save();refresh();}
+let _searchTimer=null;
+function _debouncedSearch(){clearTimeout(_searchTimer);_searchTimer=setTimeout(renderAll,150);}
+let _undoTask=null,_undoTimer=null;
+function delTask(id){
+  const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  _undoTask={...t};
+  S.tasks=S.tasks.filter(x=>x.id!==id);
+  save();refresh();updIBadge();
+  const toastEl=document.getElementById('toast');
+  if(toastEl){
+    toastEl.innerHTML=`🗑 Deleted "<strong>${t.title.slice(0,30)}</strong>" — <span style="color:var(--accent);cursor:pointer;font-weight:700;" onclick="_undoDelete()">Undo</span>`;
+    toastEl.classList.add('show');
+    clearTimeout(toastEl._t);
+    toastEl._t=setTimeout(()=>{toastEl.classList.remove('show');_undoTask=null;},5000);
+  }
+}
+function _undoDelete(){
+  if(!_undoTask)return;
+  S.tasks.push(_undoTask);
+  _undoTask=null;
+  const toastEl=document.getElementById('toast');
+  if(toastEl){clearTimeout(toastEl._t);toastEl.classList.remove('show');}
+  save();refresh();updIBadge();
+  toast('↩️ Task restored!');
+}
 function delCurTask(){if(editT){delTask(editT);closeM('tm');}}
 
 function toggleDone(id){
@@ -1972,10 +2123,26 @@ function toggleDone(id){
     t.isT3=false;t.t3s=null;_logContextSwitch(t.category);
     _fireConfetti(t.depth);
     _checkTaskMilestone();
+    if(t.recurring){
+      const next={...t,id:uid(),status:'todo',completedAt:null,createdAt:new Date().toISOString(),isT3:false,t3s:null};
+      if(t.dueDate){
+        const d=new Date(t.dueDate);
+        if(t.recurring==='daily')d.setDate(d.getDate()+1);
+        else if(t.recurring==='weekly')d.setDate(d.getDate()+7);
+        next.dueDate=d.toISOString().slice(0,10);
+      }
+      S.tasks.push(next);
+      setTimeout(()=>toast('🔄 Recurring task reset!'),300);
+    }
   }
   save();refresh();updIBadge();updateChecklistBadge();
 }
 
+function cycleStatus(id){
+  const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  if(t.status==='todo'){t.status='in-progress';t.completedAt=null;save();refresh();updIBadge();updateChecklistBadge();}
+  else toggleDone(id);
+}
 function mvB(id,b){const t=S.tasks.find(x=>x.id===id);if(!t)return;t.bucket=b;save();refresh();}
 
 // ── CELEBRATION ANIMATION ──────────────────────────────────────
@@ -2053,7 +2220,7 @@ function _fillHabitDrop(selId,val=''){
 function openAddGoal(){
   editG=null;
   document.getElementById('gm-title').textContent='Add Goal';
-  ['g-title','g-desc'].forEach(i=>document.getElementById(i).value='');
+  ['g-title','g-desc','g-target','g-current','g-unit'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('g-cat').value='givelink';
   document.getElementById('g-top').value='false';
   document.getElementById('g-health-metric').value='';
@@ -2061,6 +2228,7 @@ function openAddGoal(){
   _fillHabitDrop('g-habit','');
   document.getElementById('del-goal-btn').style.display='none';
   document.getElementById('gm').classList.remove('hidden');
+  setTimeout(()=>_trapFocus(document.getElementById('gm')),50);
 }
 
 function openEditGoal(id){
@@ -2074,8 +2242,12 @@ function openEditGoal(id){
   document.getElementById('g-health-metric').value=g.linkedHealthMetric||'';
   document.getElementById('g-finance-type').value=g.linkedFinanceType||'';
   _fillHabitDrop('g-habit',g.linkedHabit||'');
+  document.getElementById('g-target').value=g.targetValue!=null?g.targetValue:'';
+  document.getElementById('g-current').value=g.currentValue!=null?g.currentValue:'';
+  document.getElementById('g-unit').value=g.unit||'';
   document.getElementById('del-goal-btn').style.display='block';
   document.getElementById('gm').classList.remove('hidden');
+  setTimeout(()=>_trapFocus(document.getElementById('gm')),50);
 }
 
 function saveGoal(){
@@ -2087,7 +2259,10 @@ function saveGoal(){
     isTop3:document.getElementById('g-top').value==='true',
     linkedHealthMetric:document.getElementById('g-health-metric')?.value||'',
     linkedHabit:document.getElementById('g-habit')?.value||'',
-    linkedFinanceType:document.getElementById('g-finance-type')?.value||''
+    linkedFinanceType:document.getElementById('g-finance-type')?.value||'',
+    targetValue:parseFloat(document.getElementById('g-target').value)||null,
+    currentValue:parseFloat(document.getElementById('g-current').value)||null,
+    unit:document.getElementById('g-unit').value||''
   };
   if(editG){const i=S.goals.findIndex(g=>g.id===editG);S.goals[i]={...S.goals[i],...d};}
   else S.goals.push({id:uid(),...d});
@@ -2107,7 +2282,26 @@ function editVals(){document.getElementById('v-inp').value=S.values.join('\n');d
 function saveVals(){S.values=document.getElementById('v-inp').value.split('\n').map(v=>v.trim()).filter(Boolean);save();closeM('vm');renderGoals();}
 
 // ── MODAL ─────────────────────────────────────────────────────
-function closeM(id){document.getElementById(id).classList.add('hidden');editT=null;editG=null;}
+function _trapFocus(modalEl){
+  const focusable=modalEl.querySelectorAll('button,input,select,textarea,[tabindex]:not([tabindex="-1"])');
+  if(!focusable.length)return;
+  const first=focusable[0],last=focusable[focusable.length-1];
+  modalEl._trapHandler=e=>{
+    if(e.key!=='Tab')return;
+    if(e.shiftKey){if(document.activeElement===first){e.preventDefault();last.focus();}}
+    else{if(document.activeElement===last){e.preventDefault();first.focus();}}
+  };
+  modalEl.addEventListener('keydown',modalEl._trapHandler);
+  first.focus();
+}
+function _releaseFocus(modalEl){
+  if(modalEl._trapHandler)modalEl.removeEventListener('keydown',modalEl._trapHandler);
+}
+function closeM(id){
+  const el=document.getElementById(id);
+  if(el){_releaseFocus(el);el.classList.add('hidden');}
+  editT=null;editG=null;
+}
 document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',function(e){if(e.target===this){this.classList.add('hidden');editT=null;editG=null;}}));
 
 // ── INBOX BADGE ───────────────────────────────────────────────
@@ -2747,8 +2941,10 @@ function daysSinceDate(d){if(!d)return 999;return Math.floor((Date.now()-new Dat
 
 // ── AI SEQUENCE SCORE (Eat That Frog) ─────────────────────────
 async function aiSequenceTasks(){
-  const candidates=active().filter(t=>t.bucket==='backlog'||t.bucket==='this-week'||t.bucket==='this-month');
-  if(!candidates.length){toast('No tasks to sequence.');return;}
+  if(!_aiLock('aiSequenceTasks'))return;
+  try{
+  const candidates=active().filter(t=>(t.bucket==='backlog'||t.bucket==='this-week'||t.bucket==='this-month')&&!(t.blockedBy?.some(bid=>S.tasks.find(x=>x.id===bid&&x.status!=='done'))));
+  if(!candidates.length){_aiUnlock('aiSequenceTasks');toast('No tasks to sequence.');return;}
   toast('⏳ AI sequencing your tasks...');
   const taskList=candidates.slice(0,30).map((t,i)=>`${i+1}. [${t.urgency}/${t.importance}/${t.depth||'medium'}] ${t.title} (${CATS[t.category]?.l||'Other'})`).join('\n');
   const weekCtx=_currentWeekKey();
@@ -2768,6 +2964,7 @@ Be direct. No cheerleading.`;
   const text=await callClaude(prompt,600);
   if(!text)return;
   showAiOut('🔢 AI Task Sequence — Eat This Order',text);
+  }finally{_aiUnlock('aiSequenceTasks');}
 }
 
 // ── HEALTH ─────────────────────────────────────────────────────
@@ -2970,6 +3167,8 @@ function deleteAutomation(id){
   S.automations=(S.automations||[]).filter(a=>a.id!==id);save();renderAilab();
 }
 async function aiSuggestAutomations(){
+  if(!_aiLock('aiSuggestAutomations'))return;
+  try{
   toast('⏳ Thinking...');
   const existing=(S.automations||[]).map(a=>a.name).join(', ')||'none yet';
   const tasks=S.tasks.filter(t=>t.status!=='done').slice(0,10).map(t=>t.title).join(', ');
@@ -2978,6 +3177,7 @@ My current active tasks: ${tasks}.
 Suggest 5 NEW automation ideas I haven't built yet. Format: numbered list, each with name + one-line description. Focus on personal productivity, Givelink B2B SaaS for nonprofits, and content creation.`;
   const result=await callClaude(prompt,600);
   if(result)showAiOut('✨ Automation Ideas',result);
+  }finally{_aiUnlock('aiSuggestAutomations');}
 }
 
 // ── RELATIONSHIPS ──────────────────────────────────────────────
@@ -3049,12 +3249,15 @@ function logRelContact(id){
   p.lastContact=new Date().toISOString().slice(0,10);save();renderRelationships();toast('Contact logged ✓');
 }
 async function aiRelNudge(){
+  if(!_aiLock('aiRelNudge'))return;
+  try{
   toast('⏳ Thinking...');
   const people=S.people||[];
   const list=people.map(p=>`${p.name} (${p.type}, ${daysSinceDate(p.lastContact)}d since contact, interval: ${p.interval||30}d${p.isTop?' TOP':''})${p.notes?', '+p.notes:''}`).join('\n');
   const prompt='Here are my relationships:\n'+(list||'No people logged yet.')+'\n\nToday is '+new Date().toLocaleDateString()+'. Who should I reach out to this week and why? Suggest 3 people with specific reason and conversation starter.';
   const result=await callClaude(prompt,500);
   if(result)showAiOut('🤝 Who to Reach Out To',result);
+  }finally{_aiUnlock('aiRelNudge');}
 }
 
 // ── DEEP WORK ──────────────────────────────────────────────────
@@ -3071,6 +3274,22 @@ function renderDeepWork(){
     <div class="los-card los-stat"><div class="los-stat-n" style="color:#a78bfa;">${Math.round(allSecs/3600*10)/10}h</div><div class="los-stat-l">Total</div></div>`;
   document.getElementById('dw-log').innerHTML=sessions.slice().sort((a,b)=>a.date>b.date?-1:1).slice(0,20).map(s=>`
     <div class="dis-row"><div style="display:flex;justify-content:space-between;"><span style="font-weight:500;">🧠 ${s.label||'Deep Work'}</span><span style="color:var(--accent);font-weight:600;">${Math.round(s.duration/60)}m</span></div><div style="font-size:11px;color:var(--muted);">${s.date}</div></div>`).join('')||'<div class="empty">No sessions yet. Start a timer!</div>';
+  // Depth breakdown of completed tasks
+  const completedTasks=S.tasks.filter(t=>t.status==='done');
+  const deepTasks=completedTasks.filter(t=>t.depth==='deep').length;
+  const medTasks=completedTasks.filter(t=>t.depth==='medium').length;
+  const shallowTasks=completedTasks.filter(t=>!t.depth||t.depth==='shallow').length;
+  const total=completedTasks.length||1;
+  const deepPct=Math.round(deepTasks/total*100);
+  const medPct=Math.round(medTasks/total*100);
+  const shallowPct=100-deepPct-medPct;
+  const depthEl=document.getElementById('dw-depth-stats');
+  if(depthEl){depthEl.innerHTML=completedTasks.length?`<div style="margin-top:12px;padding:12px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);"><div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:.4px;">Completed Task Depth</div>`+
+    `<div style="display:flex;flex-direction:column;gap:6px;">`+
+    `<div style="display:flex;align-items:center;gap:8px;"><div style="width:70px;font-size:12px;color:#69db7c;">🟢 Deep</div><div style="flex:1;height:6px;background:var(--border);border-radius:3px;"><div style="height:100%;border-radius:3px;background:#69db7c;width:${deepPct}%;"></div></div><div style="width:36px;font-size:11px;color:var(--muted);text-align:right;">${deepPct}%</div></div>`+
+    `<div style="display:flex;align-items:center;gap:8px;"><div style="width:70px;font-size:12px;color:#58a6ff;">🔵 Medium</div><div style="flex:1;height:6px;background:var(--border);border-radius:3px;"><div style="height:100%;border-radius:3px;background:#58a6ff;width:${medPct}%;"></div></div><div style="width:36px;font-size:11px;color:var(--muted);text-align:right;">${medPct}%</div></div>`+
+    `<div style="display:flex;align-items:center;gap:8px;"><div style="width:70px;font-size:12px;color:var(--muted);">⚪ Shallow</div><div style="flex:1;height:6px;background:var(--border);border-radius:3px;"><div style="height:100%;border-radius:3px;background:#8b949e;width:${shallowPct}%;"></div></div><div style="width:36px;font-size:11px;color:var(--muted);text-align:right;">${shallowPct}%</div></div>`+
+    `</div></div>`:'<div style="color:var(--muted);font-size:12px;text-align:center;padding:8px;">Complete tasks to see depth breakdown</div>';}
   _dwUpdateDisplay();
 }
 function dwSetDuration(mins){_dwSecsLeft=mins*60;_dwDuration=mins*60;_dwUpdateDisplay();}
@@ -3366,17 +3585,20 @@ function openTweetGenerator(){
   document.getElementById('tweet-modal').classList.remove('hidden');
 }
 async function generateTweet(){
+  if(!_aiLock('generateTweet'))return;
   const btn=document.getElementById('tweet-gen-btn');
   const selected=Array.from(document.querySelectorAll('.tweet-sel:checked')).map(c=>c.value);
   const angle=document.getElementById('tweet-angle').value;
-  if(!selected.length){toast('Select at least one win/task');return;}
+  if(!selected.length){_aiUnlock('generateTweet');toast('Select at least one win/task');return;}
   btn.textContent='⏳';btn.disabled=true;
+  try{
   const angles={founder:'authentic founder journey, vulnerable and real',givelink:'startup progress building B2B SaaS for nonprofits',growth:'personal growth and discipline',health:'health optimization and discipline'};
   const prompt=`Write a Twitter/X post (max 280 chars) or thread (2-3 tweets) for a startup founder sharing their week. Angle: ${angles[angle]}. Wins/progress to feature:\n${selected.map(s=>'- '+s).join('\n')}\n\nMake it authentic, no hype, specific details. No generic motivational filler. Use minimal emojis. End with a question or observation to drive engagement.`;
   const result=await callClaude(prompt,400);
   document.getElementById('tweet-text').textContent=result||'Could not generate.';
   document.getElementById('tweet-output').style.display='';
   btn.textContent='✨ Generate';btn.disabled=false;
+  }finally{_aiUnlock('generateTweet');}
 }
 
 // ── WEEKLY METRICS DIGEST ─────────────────────────────────────
@@ -3643,6 +3865,8 @@ function saveChallenge(){
   save();closeM('dc-modal');renderChallenge();toast('⚡ Challenge set!');
 }
 async function genAIChallenge(){
+  if(!_aiLock('genAIChallenge'))return;
+  try{
   toast('⏳ Generating your challenge...');
   const goals=S.goals.slice(0,5).map(g=>g.title).join(', ')||'Givelink growth, health, AI automations';
   const habits=S.habits.slice(0,5).join(', ')||'none set';
@@ -3658,6 +3882,7 @@ async function genAIChallenge(){
   S.challengeLogs=(S.challengeLogs||[]).filter(c=>c.date!==today);
   S.challengeLogs.push({id:uid(),date:today,title,why,cat:cat||'growth',diff,completed:false,source:'ai'});
   save();renderChallenge();toast('🤖 AI challenge set!');
+  }finally{_aiUnlock('genAIChallenge');}
 }
 
 
@@ -3828,6 +4053,8 @@ function savePreMortem(){
   document.getElementById('premortem-widget').style.display='none';
 }
 async function aiPreMortem(){
+  if(!_aiLock('aiPreMortem'))return;
+  try{
   const risks=document.getElementById('premortem-risks')?.value.trim();
   const top3=S.tasks.filter(t=>t.isT3&&t.status!=='done').sort((a,b)=>a.t3s-b.t3s).map(t=>t.title);
   const week=active().filter(t=>t.bucket==='this-week').slice(0,8).map(t=>t.title);
@@ -3838,6 +4065,7 @@ async function aiPreMortem(){
   if(out){out.textContent='⏳ Analyzing...';out.style.display='';}
   const result=await callClaude(prompt,500);
   if(out){out.textContent=result||'Could not generate analysis.';out.style.display='';}
+  }finally{_aiUnlock('aiPreMortem');}
 }
 
 // ── BODY PROGRESS PHOTOS LOG ──────────────────────────────────────
@@ -4561,6 +4789,7 @@ function openSettings(){
   document.getElementById('set-readwise-key').value=localStorage.getItem('taskos_readwise_key')||'';
   document.getElementById('set-notion-key').value=localStorage.getItem('taskos_notion_key')||'';
   document.getElementById('set-notion-page').value=localStorage.getItem('taskos_notion_page')||'';
+  document.getElementById('set-hell-yes').value=S.hellYesFilter?'true':'false';
   applyTheme(document.body.classList.contains('light'));
   document.getElementById('set-m').classList.remove('hidden');
 }
@@ -4568,7 +4797,9 @@ function saveSettings(){
   const n=document.getElementById('set-name').value.trim();
   if(n){profileName=n;localStorage.setItem('taskos_name',n);document.title='Task OS — '+n;}
   const k=document.getElementById('set-claude-key').value.trim();
-  S.claudeKey=k;save();
+  S.claudeKey=k;
+  S.hellYesFilter=document.getElementById('set-hell-yes').value==='true';
+  save();
   const ab=document.getElementById('set-about').value.trim();
   if(ab)localStorage.setItem('taskos_about',ab); else localStorage.removeItem('taskos_about');
   const rw=document.getElementById('set-readwise-key').value.trim();
@@ -4687,11 +4918,18 @@ function handleQC(e){
   const raw=(inp?.value||'').trim();
   if(!raw){closeQuickCapture();return;}
   const TAG_MAP={givelink:'givelink',health:'health',finance:'finance',automation:'automation',brand:'brand',learning:'learning',relationships:'relationships',rel:'relationships',fit:'health'};
+  const BUCKET_MAP={inbox:'inbox',week:'this-week','this-week':'this-week',month:'this-month','this-month':'this-month',backlog:'backlog',someday:'someday'};
   const tags=(raw.match(/@\w+/g)||[]).map(t=>t.slice(1).toLowerCase());
   const cat=tags.map(t=>TAG_MAP[t]).find(Boolean)||'other';
-  const title=raw.replace(/@\w+/g,'').trim();
+  const bucketTag=(raw.match(/@(inbox|week|this-week|month|this-month|backlog|someday)/i)||[])[1];
+  const bucket=bucketTag?BUCKET_MAP[bucketTag.toLowerCase()]:'inbox';
+  const urgentTag=raw.match(/!(urgent|high|low)/i);
+  const urgency=urgentTag?(urgentTag[1].toLowerCase()==='low'?'low':'high'):'low';
+  const timeTag=raw.match(/~(\d+)m?/);
+  const timeBlock=timeTag?parseInt(timeTag[1]):null;
+  const title=raw.replace(/@\w+/g,'').replace(/![\w]+/g,'').replace(/~\d+m?/g,'').trim();
   if(!title){closeQuickCapture();return;}
-  S.tasks.push({id:uid(),title,notes:'',bucket:'inbox',category:cat,urgency:'low',importance:'high',energy:'high',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,createdAt:new Date().toISOString(),completedAt:null});
+  S.tasks.push({id:uid(),title,notes:'',bucket,category:cat,urgency,importance:'high',energy:'high',status:'todo',isT3:false,t3s:null,timeBlock,dueDate:'',goalId:null,checklist:[],blockedBy:[],createdAt:new Date().toISOString(),completedAt:null});
   save();updIBadge();
   inp.value='✓ Captured!';inp.style.color='var(--accent)';
   setTimeout(()=>{inp.style.color='';closeQuickCapture();},900);
@@ -5609,8 +5847,10 @@ function _renderAIBriefing(d,el){
 // ════════════════════════════════════════════════════════════════
 let _inboxSuggestions=[];
 async function autoProcessInbox(){
+  if(!_aiLock('autoProcessInbox'))return;
+  try{
   const inbox=active().filter(t=>t.bucket==='inbox');
-  if(!inbox.length){toast('📥 Inbox is empty!');return;}
+  if(!inbox.length){_aiUnlock('autoProcessInbox');return toast('📥 Inbox is empty!');}
   const modal=document.getElementById('inbox-ai-modal');
   const body=document.getElementById('inbox-ai-body');
   const footer=document.getElementById('inbox-ai-footer');
@@ -5658,6 +5898,7 @@ Respond ONLY with valid JSON array, no markdown:
   footer.innerHTML=`<button class="btn bg" onclick="closeM('inbox-ai-modal')">Cancel</button>
     <button class="btn bg" onclick="applyInboxSuggestions(false)">Apply Selected</button>
     <button class="btn bp" onclick="applyInboxSuggestions(true)">Apply All (${suggestions.length})</button>`;
+  }finally{_aiUnlock('autoProcessInbox');}
 }
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
 function applyInboxSuggestions(all){
@@ -5735,6 +5976,8 @@ function lastTaskCompletionDaysAgo(goalId){
   return daysSinceDate(latest.completedAt);
 }
 async function showGoalDigest(){
+  if(!_aiLock('showGoalDigest'))return;
+  try{
   const modal=document.getElementById('goal-digest-modal');
   const body=document.getElementById('goal-digest-body');
   modal.classList.remove('hidden');
@@ -5772,6 +6015,7 @@ Max 350 words. Be specific. Name actual gaps.`;
   const text=await callClaude(prompt,500);
   if(!text){body.innerHTML='<div style="padding:20px;color:#ef4444;">Could not generate. Check your API key.</div>';return;}
   _renderGoalDigest(text,body);
+  }finally{_aiUnlock('showGoalDigest');}
 }
 function _renderGoalDigest(text,body){
   const lines=text.split('\n').filter(l=>l.trim());

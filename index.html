@@ -417,8 +417,8 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
       <button class="btn bg sm" onclick="openReminderSettings()" title="Reminders" id="remind-btn">🔔</button>
       <button class="btn bg sm" onclick="showWeeklyDigest()">📊 Digest</button>
       <button class="btn bg sm" onclick="openTweetGenerator()">🐦 Post</button>
-      <button class="btn bg sm" onclick="aiSequenceTasks()">🔢 Sequence</button>
-      <button class="btn bg sm" onclick="runPriorityAudit()">🤖 Audit</button>
+      <button class="btn bg sm" onclick="_aiBtn(this,aiSequenceTasks)">🔢 Sequence</button>
+      <button class="btn bg sm" onclick="_aiBtn(this,runPriorityAudit)">🤖 Audit</button>
       <button class="btn bg sm" onclick="showValueAlignment()">🎯 Values</button>
       <button class="btn bg sm" onclick="showCommitments()">📜 Commits</button>
       <button class="btn bg sm" onclick="showContextReport()">🔀</button>
@@ -476,7 +476,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
     <div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Think through this week's risks before they happen.</div>
     <textarea class="fc" id="premortem-risks" style="min-height:52px;font-size:12px;" placeholder="What are the 2-3 biggest risks to your week?"></textarea>
     <div style="display:flex;gap:8px;margin-top:8px;">
-      <button class="btn bg sm" onclick="aiPreMortem()">🤖 AI Risk Analysis</button>
+      <button class="btn bg sm" onclick="_aiBtn(this,aiPreMortem)">🤖 AI Risk Analysis</button>
       <button class="btn bp sm" onclick="savePreMortem()">Save</button>
     </div>
     <div id="premortem-ai-out" style="display:none;margin-top:10px;font-size:12px;line-height:1.6;background:var(--surface2);border-radius:6px;padding:10px;white-space:pre-wrap;"></div>
@@ -522,7 +522,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
     <h2 style="margin:0">📥 Inbox <span id="icl" style="color:var(--muted);font-size:13px;font-weight:400;"></span></h2>
     <div style="display:flex;gap:6px;">
       <button class="btn bg sm" onclick="openCSVImport()">📋 Import</button>
-      <button class="btn bg sm" onclick="autoProcessInbox()">🤖 AI Triage</button>
+      <button class="btn bg sm" onclick="_aiBtn(this,autoProcessInbox)">🤖 AI Triage</button>
       <button class="btn bg sm" id="proc-toggle" onclick="toggleProc()">⚡ Process Mode</button>
     </div>
   </div>
@@ -609,7 +609,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 
 <!-- GOALS -->
 <div id="v-goals" class="view">
-  <div class="ph"><div><h1>🏆 Goals & Progress</h1><p class="sub">Every task should serve a goal.</p></div><div style="display:flex;gap:6px;"><button class="btn bg sm" onclick="showGoalDigest()">🤖 How am I doing?</button><button class="btn bp" onclick="openAddGoal()">+ Add Goal</button></div></div>
+  <div class="ph"><div><h1>🏆 Goals & Progress</h1><p class="sub">Every task should serve a goal.</p></div><div style="display:flex;gap:6px;"><button class="btn bg sm" onclick="_aiBtn(this,showGoalDigest)">🤖 How am I doing?</button><button class="btn bp" onclick="openAddGoal()">+ Add Goal</button></div></div>
   <h2>📊 Progress Dashboard</h2>
   <div class="goal-dash" id="goal-dash"></div>
   <hr>
@@ -668,7 +668,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div class="ph">
     <div><h1>⚡ Daily Challenge</h1><p class="sub">One mission per day. Aligned to your north star.</p></div>
     <div class="row">
-      <button class="btn bg sm" onclick="genAIChallenge()">🤖 AI Challenge</button>
+      <button class="btn bg sm" onclick="_aiBtn(this,genAIChallenge)">🤖 AI Challenge</button>
       <button class="btn bp" onclick="openAddChallenge()">+ Custom</button>
     </div>
   </div>
@@ -709,7 +709,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
     <div><h1>🏅 Wins</h1><p class="sub">Every victory worth remembering</p></div>
     <div class="row" style="gap:6px;">
       <button class="btn bg sm" onclick="openPasteImport('wins')">📋 Paste</button>
-      <button class="btn bg sm" onclick="aiSuggestWins()">✨ AI Reflect</button>
+      <button class="btn bg sm" onclick="_aiBtn(this,aiSuggestWins)">✨ AI Reflect</button>
       <button class="btn bp" onclick="openAddWin()">+ Log Win</button>
     </div>
   </div>
@@ -724,7 +724,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
     <div><h1>🌍 Bucket List</h1><p class="sub">Things to do before you die</p></div>
     <div class="row" style="gap:6px;">
       <button class="btn bg sm" onclick="openPasteImport('bucketlist')">📋 Paste</button>
-      <button class="btn bg sm" onclick="aiSuggestBucket()">✨ AI Suggest</button>
+      <button class="btn bg sm" onclick="_aiBtn(this,aiSuggestBucket)">✨ AI Suggest</button>
       <button class="btn bp" onclick="openAddBucket()">+ Add Item</button>
     </div>
   </div>
@@ -747,7 +747,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
     <div><h1>🛒 Wishlist</h1><p class="sub">Tools, gear & things worth buying</p></div>
     <div class="row" style="gap:6px;">
       <button class="btn bg sm" onclick="openPasteImport('wishlist')">📋 Paste</button>
-      <button class="btn bg sm" onclick="aiSuggestWishlist()">✨ AI Suggest</button>
+      <button class="btn bg sm" onclick="_aiBtn(this,aiSuggestWishlist)">✨ AI Suggest</button>
       <button class="btn bp" onclick="openAddWish()">+ Add Item</button>
     </div>
   </div>
@@ -770,7 +770,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
     <div><h1>🚀 Projects</h1><p class="sub">Things you've built or want to build</p></div>
     <div class="row" style="gap:6px;">
       <button class="btn bg sm" onclick="openPasteImport('projects')">📋 Paste</button>
-      <button class="btn bg sm" onclick="aiSuggestProjects()">✨ AI Suggest</button>
+      <button class="btn bg sm" onclick="_aiBtn(this,aiSuggestProjects)">✨ AI Suggest</button>
       <button class="btn bp" onclick="openAddProject()">+ Add Project</button>
     </div>
   </div>
@@ -814,7 +814,7 @@ Read 50 books this year"></textarea>
     <div class="mf" style="flex-wrap:wrap;gap:6px;">
       <button class="btn bg" onclick="closeModal('paste-import-modal')" style="margin-right:auto;">Cancel</button>
       <button class="btn bg sm" onclick="previewPasteImport(true)" id="paste-parse-btn">👁 Preview</button>
-      <button class="btn bg sm" onclick="aiCategorizePaste()" id="paste-ai-btn">✨ AI Categorize</button>
+      <button class="btn bg sm" onclick="_aiBtn(this,aiCategorizePaste)" id="paste-ai-btn">✨ AI Categorize</button>
       <button class="btn bp" onclick="confirmPasteImport()" id="paste-confirm-btn" style="display:none;">+ Import All</button>
     </div>
   </div>
@@ -962,7 +962,7 @@ Read 50 books this year"></textarea>
 
 </main>
 
-<button class="fab" onclick="openAdd()">+</button>
+<button class="fab" onclick="openFAB()">+</button>
 
 <nav class="bnav">
   <button class="bni active" data-v="dashboard" onclick="nav('dashboard')"><span class="bni-ic">🏠</span>Home</button>
@@ -1275,7 +1275,7 @@ Read 50 books this year"></textarea>
     <div><h1>🤖 AI Automation Library</h1><p class="sub" id="ailab-sub">Track progress toward 100 automations</p></div>
     <div class="row">
       <button class="btn bg sm" onclick="openHighlightsImport()">📚 Highlights → Tasks</button>
-      <button class="btn bg sm" onclick="aiSuggestAutomations()">✨ Suggest More</button>
+      <button class="btn bg sm" onclick="_aiBtn(this,aiSuggestAutomations)">✨ Suggest More</button>
       <button class="btn bp" onclick="openAddAutomation()">+ Add</button>
     </div>
   </div>
@@ -1303,7 +1303,7 @@ Read 50 books this year"></textarea>
   <div class="ph">
     <div><h1>🤝 Relationship CRM</h1><p class="sub">Stay connected with the people who matter</p></div>
     <div class="row">
-      <button class="btn bg sm" onclick="aiRelNudge()">🤖 Who to reach out?</button>
+      <button class="btn bg sm" onclick="_aiBtn(this,aiRelNudge)">🤖 Who to reach out?</button>
       <button class="btn bp" onclick="openAddPerson()">+ Add Person</button>
     </div>
   </div>
@@ -1686,6 +1686,9 @@ function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2
 const _aiInFlight=new Set();
 function _aiLock(key){if(_aiInFlight.has(key))return false;_aiInFlight.add(key);return true;}
 function _aiUnlock(key){_aiInFlight.delete(key);}
+async function _aiBtn(btn,fn){if(btn._aiRunning)return;btn._aiRunning=true;const orig=btn.innerHTML;btn.innerHTML='⏳';btn.disabled=true;try{await fn();}finally{btn.innerHTML=orig;btn.disabled=false;btn._aiRunning=false;}}
+function softDelete(collection,id,renderFn,label){const idx=(S[collection]||[]).findIndex(x=>x.id===id);if(idx<0)return;const item=S[collection].splice(idx,1)[0];save();renderFn();window._lastDeleted={collection,item,idx};toast(`${label} deleted. <a href="#" onclick="undoDelete();return false;" style="color:var(--accent);font-weight:700;">Undo</a>`,4500);}
+function undoDelete(){if(!window._lastDeleted)return;const{collection,item,idx}=window._lastDeleted;if(!S[collection])S[collection]=[];S[collection].splice(idx,0,item);window._lastDeleted=null;_dismissToast();save();refresh();toast('Restored ✓');}
 function ei(t){if(t.urgency==='high'&&t.importance==='high')return'q1';if(t.urgency==='low'&&t.importance==='high')return'q2';if(t.urgency==='high'&&t.importance==='low')return'q3';return'q4';}
 function fd(d){if(!d)return'';const dt=new Date(d);return isNaN(dt)?'':dt.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
 function ft(m){if(!m)return'';if(m<60)return m+'m';const h=Math.floor(m/60),r=m%60;return r?h+'h '+r+'m':h+'h';}
@@ -1696,7 +1699,10 @@ function goalStats(gId){const linked=S.tasks.filter(t=>t.goalId===gId);const don
 function depthB(depth){if(!depth||depth==='shallow')return'';const cls='depth-'+depth;const label=depth==='deep'?'🟢 Deep':depth==='medium'?'🔵 Medium':'';return label?`<span class="badge ${cls}" style="font-size:10px;">${label}</span>`:'';}
 
 // ── TOAST ─────────────────────────────────────────────────────
-function toast(msg,ms=2500){const t=document.getElementById('toast');if(!t)return;t.innerHTML=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms);}
+const _toastQ=[];let _toastRunning=false,_toastTimer=null;
+function toast(msg,ms=2500){_toastQ.push({msg,ms});if(!_toastRunning)_runToast();}
+function _runToast(){if(!_toastQ.length){_toastRunning=false;return;}_toastRunning=true;const{msg,ms}=_toastQ.shift();const t=document.getElementById('toast');if(!t){_runToast();return;}t.innerHTML=msg;t.classList.add('show');t.style.pointerEvents='auto';_toastTimer=setTimeout(()=>{t.classList.remove('show');t.style.pointerEvents='none';_toastTimer=null;setTimeout(_runToast,220);},ms);}
+function _dismissToast(){if(_toastTimer){clearTimeout(_toastTimer);_toastTimer=null;}const t=document.getElementById('toast');if(t){t.classList.remove('show');t.style.pointerEvents='none';}_toastRunning=false;setTimeout(_runToast,220);}
 
 // ── CONFIRM MODAL ─────────────────────────────────────────────
 let _confirmCb=null;
@@ -2138,6 +2144,8 @@ function finishReview(){
 // ── TASK CARD HTML ────────────────────────────────────────────
 function tcHTML(t,showT3btn=false){
   const gl=t.goalId?S.goals.find(g=>g.id===t.goalId):null;
+  const today=new Date().toISOString().slice(0,10);
+  const overdue=t.dueDate&&t.dueDate<today&&t.status!=='done';
   return`<div class="tc fi ${t.status==='done'?'done':''} ${t.isT3&&t.status!=='done'?'top3':''}" onclick="openEdit('${t.id}')">
     <div class="ck ${t.status==='done'?'on':t.status==='in-progress'?'ip':''}" onclick="event.stopPropagation();cycleStatus('${t.id}')" title="${t.status==='done'?'Done':t.status==='in-progress'?'In Progress':'Todo — click to start'}">${t.status==='done'?'<span style="color:#fff;font-size:10px;">✓</span>':t.status==='in-progress'?'<span style="font-size:10px;">▶</span>':''}</div>
     <div class="tb">
@@ -2145,7 +2153,8 @@ function tcHTML(t,showT3btn=false){
       <div class="tm">
         ${catB(t.category)}${eB(t)}${depthB(t.depth)}
         ${t.timeBlock?`<span class="tag">⏱ ${ft(t.timeBlock)}</span>`:''}
-        ${t.dueDate?`<span class="tag">📅 ${fd(t.dueDate)}</span>`:''}
+        ${t.dueDate?`<span class="tag" style="${overdue?'color:#dc2626;font-weight:600;':''}">📅 ${fd(t.dueDate)}</span>`:''}
+        ${overdue?'<span class="badge" style="background:rgba(220,38,38,.15);color:#dc2626;">⚠ Overdue</span>':''}
         ${t.recurring?`<span style="font-size:11px;" title="${t.recurring}">🔄</span>`:''}
         ${t.isT3&&t.status!=='done'?'<span style="font-size:11px;">⭐</span>':''}
         ${gl?`<span style="font-size:10px;color:var(--muted);">↳ ${gl.title.slice(0,20)}</span>`:''}
@@ -2156,6 +2165,7 @@ function tcHTML(t,showT3btn=false){
 }
 
 // ── TASK CRUD ─────────────────────────────────────────────────
+function openFAB(){const v=document.querySelector('.view.active')?.id?.replace('v-','');const map={wins:openAddWin,bucketlist:openAddBucket,wishlist:openAddWish,projects:openAddProject,goals:openAddGoal,books:openAddBook,health:openAddHealth};(map[v]||openAdd)();}
 function openAdd(bucket='inbox'){
   editT=null;
   document.getElementById('tm-title').textContent='Add Task';
@@ -2229,20 +2239,13 @@ function delTask(id){
   _undoTask={...t};
   S.tasks=S.tasks.filter(x=>x.id!==id);
   save();refresh();updIBadge();
-  const toastEl=document.getElementById('toast');
-  if(toastEl){
-    toastEl.innerHTML=`🗑 Deleted "<strong>${t.title.slice(0,30)}</strong>" — <span style="color:var(--accent);cursor:pointer;font-weight:700;" onclick="_undoDelete()">Undo</span>`;
-    toastEl.classList.add('show');
-    clearTimeout(toastEl._t);
-    toastEl._t=setTimeout(()=>{toastEl.classList.remove('show');_undoTask=null;},5000);
-  }
+  toast(`🗑 "<strong>${t.title.slice(0,30)}</strong>" deleted — <span style="cursor:pointer;font-weight:700;color:var(--accent);" onclick="_undoDelete()">Undo</span>`,4500);
 }
 function _undoDelete(){
   if(!_undoTask)return;
   S.tasks.push(_undoTask);
   _undoTask=null;
-  const toastEl=document.getElementById('toast');
-  if(toastEl){clearTimeout(toastEl._t);toastEl.classList.remove('show');}
+  _dismissToast();
   save();refresh();updIBadge();
   toast('↩️ Task restored!');
 }
@@ -3373,9 +3376,7 @@ function savePerson(){
   else S.people.push(obj);
   save();closeM('rel-modal');renderRelationships();toast('Person saved!');
 }
-function deletePerson(id){
-  showConfirm('Remove this person?',ok=>{if(!ok)return;S.people=(S.people||[]).filter(p=>p.id!==id);save();renderRelationships();},{okLabel:'Remove'});
-}
+function deletePerson(id){softDelete('people',id,renderRelationships,'Person');}
 function logRelContact(id){
   const p=(S.people||[]).find(x=>x.id===id);if(!p)return;
   p.lastContact=new Date().toISOString().slice(0,10);save();renderRelationships();toast('Contact logged ✓');
@@ -3923,7 +3924,7 @@ function renderChallenge(){
           <button class="btn bp" onclick="acceptChallenge('${suggested.id}')">⚡ Accept This</button>
           <button class="btn bg sm" onclick="skipChallenge('${suggested.id}')">→ Next</button>
           <button class="btn bg sm" onclick="openAddChallenge()">✏️ Custom</button>
-          <button class="btn bg sm" onclick="genAIChallenge()">🤖 AI Pick</button>
+          <button class="btn bg sm" onclick="_aiBtn(this,genAIChallenge)">🤖 AI Pick</button>
         </div>
       </div>`;
   }
@@ -3965,7 +3966,7 @@ function skipChallenge(curId){
         <button class="btn bp" onclick="acceptChallenge('${next.id}')">⚡ Accept This</button>
         <button class="btn bg sm" onclick="skipChallenge('${next.id}')">→ Next</button>
         <button class="btn bg sm" onclick="openAddChallenge()">✏️ Custom</button>
-        <button class="btn bg sm" onclick="genAIChallenge()">🤖 AI Pick</button>
+        <button class="btn bg sm" onclick="_aiBtn(this,genAIChallenge)">🤖 AI Pick</button>
       </div>
     </div>`;
 }
@@ -6296,9 +6297,12 @@ function saveDecision(){
 
 // ── WINS ─────────────────────────────────────────────────────────
 const WIN_CATS={work:{label:'💼 Work',color:'var(--accent)'},personal:{label:'🌱 Personal',color:'var(--q2)'},health:{label:'💪 Health',color:'#f97316'},finance:{label:'💰 Finance',color:'var(--q2)'},learning:{label:'📚 Learning',color:'#a78bfa'},relationship:{label:'🤝 Relationship',color:'var(--cf)'}};
-let winFilter='all';
+let winFilter='all',winSort='date-desc';
 function renderWins(){
-  const wins=(S.wins||[]).slice().reverse();
+  let wins=(S.wins||[]).slice();
+  if(winSort==='date-asc')wins.sort((a,b)=>(a.date||a.id)<(b.date||b.id)?-1:1);
+  else if(winSort==='cat')wins.sort((a,b)=>(a.cat||'').localeCompare(b.cat||''));
+  else wins.reverse();
   const now=new Date(),y=now.getFullYear(),m=now.getMonth(),w=new Date(now);
   w.setDate(now.getDate()-now.getDay());
   const thisMonth=wins.filter(x=>{ const d=new Date(x.date||x.id); return d.getFullYear()===y&&d.getMonth()===m; });
@@ -6308,7 +6312,7 @@ function renderWins(){
     <div class="los-card los-stat"><div class="los-stat-n" style="color:var(--accent);">${thisMonth.length}</div><div class="los-stat-l">This Month</div></div>
     <div class="los-card los-stat"><div class="los-stat-n" style="color:var(--q2);">${thisWeek.length}</div><div class="los-stat-l">This Week</div></div>`;
   const cats=['all',...Object.keys(WIN_CATS)];
-  document.getElementById('wins-filter-bar').innerHTML=cats.map(c=>`<button class="fp${winFilter===c?' active':''}" onclick="winFilter='${c}';renderWins()">${c==='all'?'All':WIN_CATS[c].label}</button>`).join('');
+  document.getElementById('wins-filter-bar').innerHTML=cats.map(c=>`<button class="fp${winFilter===c?' active':''}" onclick="winFilter='${c}';renderWins()">${c==='all'?'All':WIN_CATS[c].label}</button>`).join('')+`<select class="fc" style="width:auto;font-size:12px;padding:4px 8px;margin-left:auto;" onchange="winSort=this.value;renderWins()"><option value="date-desc"${winSort==='date-desc'?' selected':''}>Newest</option><option value="date-asc"${winSort==='date-asc'?' selected':''}>Oldest</option><option value="cat"${winSort==='cat'?' selected':''}>Category</option></select>`;
   const filtered=winFilter==='all'?wins:wins.filter(x=>x.cat===winFilter);
   document.getElementById('wins-list').innerHTML=filtered.length?filtered.map(w=>{
     const cat=WIN_CATS[w.cat]||WIN_CATS.personal;
@@ -6345,7 +6349,7 @@ function saveWin(){
   S.wins.push({id:uid(),title,desc:document.getElementById('win-desc').value.trim(),cat:document.getElementById('win-cat').value,emoji:document.getElementById('win-emoji').value.trim()||'🏅',date:document.getElementById('win-date').value});
   save();closeModal('win-modal');renderWins();toast('Win logged! 🎉');
 }
-function deleteWin(id){showConfirm('Delete this win?',ok=>{if(!ok)return;S.wins=(S.wins||[]).filter(x=>x.id!==id);save();renderWins();},{okLabel:'Delete'});}
+function deleteWin(id){softDelete('wins',id,renderWins,'Win');}
 async function aiSuggestWins(){
   const wins=(S.wins||[]).slice(-10).map(w=>w.title).join(', ');
   const goals=(S.goals||[]).slice(0,5).map(g=>g.title).join(', ');
@@ -6358,9 +6362,14 @@ async function aiSuggestWins(){
 // ── BUCKET LIST ───────────────────────────────────────────────────
 const BL_CATS={travel:{label:'✈️ Travel',color:'#38bdf8'},experience:{label:'🎯 Experience',color:'var(--accent)'},skill:{label:'🧠 Skill',color:'#a78bfa'},relationship:{label:'🤝 Relationship',color:'var(--cf)'},achievement:{label:'🏆 Achievement',color:'#fbbf24'},health:{label:'💪 Health',color:'#f97316'},creative:{label:'🎨 Creative',color:'#ec4899'}};
 const BL_PRIORITY={dream:{label:'🌟 Dream',color:'#a78bfa'},high:{label:'🔥 High',color:'var(--q1)'},medium:{label:'📌 Medium',color:'var(--muted)'}};
-let blFilter='all';
+let blFilter='all',blSort='date-desc';
 function renderBucketList(){
-  const items=(S.bucketlist||[]).slice().reverse();
+  const PRIORITY_ORDER={dream:0,high:1,medium:2};
+  let items=(S.bucketlist||[]).slice();
+  if(blSort==='priority')items.sort((a,b)=>(PRIORITY_ORDER[a.priority]??2)-(PRIORITY_ORDER[b.priority]??2));
+  else if(blSort==='cat')items.sort((a,b)=>(a.cat||'').localeCompare(b.cat||''));
+  else if(blSort==='date-asc'){}
+  else items.reverse();
   const done=items.filter(x=>x.done);
   const active=items.filter(x=>!x.done);
   document.getElementById('bl-stats').innerHTML=`
@@ -6368,7 +6377,7 @@ function renderBucketList(){
     <div class="los-card los-stat"><div class="los-stat-n" style="color:var(--q2);">${done.length}</div><div class="los-stat-l">Completed ✓</div></div>
     <div class="los-card los-stat"><div class="los-stat-n" style="color:#fbbf24;">${active.length}</div><div class="los-stat-l">Remaining</div></div>`;
   const cats=['all',...Object.keys(BL_CATS),'done'];
-  document.getElementById('bl-filter-bar').innerHTML=cats.map(c=>`<button class="fp${blFilter===c?' active':''}" onclick="blFilter='${c}';renderBucketList()">${c==='all'?'All':c==='done'?'✓ Done':BL_CATS[c].label}</button>`).join('');
+  document.getElementById('bl-filter-bar').innerHTML=cats.map(c=>`<button class="fp${blFilter===c?' active':''}" onclick="blFilter='${c}';renderBucketList()">${c==='all'?'All':c==='done'?'✓ Done':BL_CATS[c].label}</button>`).join('')+`<select class="fc" style="width:auto;font-size:12px;padding:4px 8px;margin-left:auto;" onchange="blSort=this.value;renderBucketList()"><option value="date-desc"${blSort==='date-desc'?' selected':''}>Newest</option><option value="date-asc"${blSort==='date-asc'?' selected':''}>Oldest</option><option value="priority"${blSort==='priority'?' selected':''}>Priority</option><option value="cat"${blSort==='cat'?' selected':''}>Category</option></select>`;
   let filtered=items;
   if(blFilter==='done')filtered=done;
   else if(blFilter!=='all')filtered=items.filter(x=>x.cat===blFilter);
@@ -6433,7 +6442,7 @@ function saveBucket(){
   else S.bucketlist.push({id:uid(),done:false,doneAt:null,...data});
   save();closeModal('bl-modal');renderBucketList();toast('Saved!');
 }
-function deleteBucket(id){showConfirm('Delete this item?',ok=>{if(!ok)return;S.bucketlist=(S.bucketlist||[]).filter(x=>x.id!==id);save();renderBucketList();},{okLabel:'Delete'});}
+function deleteBucket(id){softDelete('bucketlist',id,renderBucketList,'Bucket item');}
 async function aiSuggestBucket(){
   const existing=(S.bucketlist||[]).map(x=>x.title).join(', ');
   const goals=(S.goals||[]).map(g=>g.title).join(', ');
@@ -6455,9 +6464,15 @@ async function aiSuggestBucket(){
 const WISH_CATS={tech:{label:'💻 Tech',color:'var(--accent)'},books:{label:'📚 Books',color:'#a78bfa'},gear:{label:'🎒 Gear',color:'#f97316'},home:{label:'🏠 Home',color:'#fbbf24'},health:{label:'💪 Health',color:'var(--q2)'},clothing:{label:'👕 Clothing',color:'var(--cf)'},other:{label:'📦 Other',color:'var(--muted)'}};
 const WISH_PRI={need:{label:'🔥 Need',color:'var(--q1)'},want:{label:'💛 Want',color:'#fbbf24'},dream:{label:'🌟 Dream',color:'#a78bfa'}};
 const WISH_ICONS={tech:'💻',books:'📚',gear:'🎒',home:'🏠',health:'💪',clothing:'👕',other:'📦'};
-let wishFilter='all';
+let wishFilter='all',wishSort='date-desc';
 function renderWishlist(){
-  const items=(S.wishlist||[]).slice().reverse();
+  const WISH_PRI_ORDER={need:0,want:1,dream:2};
+  let items=(S.wishlist||[]).slice();
+  if(wishSort==='priority')items.sort((a,b)=>(WISH_PRI_ORDER[a.priority]??1)-(WISH_PRI_ORDER[b.priority]??1));
+  else if(wishSort==='price-high')items.sort((a,b)=>(parseFloat(b.price)||0)-(parseFloat(a.price)||0));
+  else if(wishSort==='price-low')items.sort((a,b)=>(parseFloat(a.price)||0)-(parseFloat(b.price)||0));
+  else if(wishSort==='date-asc'){}
+  else items.reverse();
   const bought=items.filter(x=>x.bought);
   const active=items.filter(x=>!x.bought);
   const totalCost=active.reduce((s,x)=>s+(parseFloat(x.price)||0),0);
@@ -6466,7 +6481,7 @@ function renderWishlist(){
     <div class="los-card los-stat"><div class="los-stat-n" style="color:#fbbf24;">${totalCost>0?'€'+totalCost.toLocaleString():'-'}</div><div class="los-stat-l">Est. Total</div></div>
     <div class="los-card los-stat"><div class="los-stat-n" style="color:var(--q2);">${bought.length}</div><div class="los-stat-l">Bought ✓</div></div>`;
   const cats=['all',...Object.keys(WISH_CATS),'bought'];
-  document.getElementById('wish-filter-bar').innerHTML=cats.map(c=>`<button class="fp${wishFilter===c?' active':''}" onclick="wishFilter='${c}';renderWishlist()">${c==='all'?'All':c==='bought'?'✓ Bought':WISH_CATS[c].label}</button>`).join('');
+  document.getElementById('wish-filter-bar').innerHTML=cats.map(c=>`<button class="fp${wishFilter===c?' active':''}" onclick="wishFilter='${c}';renderWishlist()">${c==='all'?'All':c==='bought'?'✓ Bought':WISH_CATS[c].label}</button>`).join('')+`<select class="fc" style="width:auto;font-size:12px;padding:4px 8px;margin-left:auto;" onchange="wishSort=this.value;renderWishlist()"><option value="date-desc"${wishSort==='date-desc'?' selected':''}>Newest</option><option value="date-asc"${wishSort==='date-asc'?' selected':''}>Oldest</option><option value="priority"${wishSort==='priority'?' selected':''}>Priority</option><option value="price-high"${wishSort==='price-high'?' selected':''}>Price ↓</option><option value="price-low"${wishSort==='price-low'?' selected':''}>Price ↑</option></select>`;
   let filtered=items;
   if(wishFilter==='bought')filtered=bought;
   else if(wishFilter!=='all')filtered=items.filter(x=>x.cat===wishFilter);
@@ -6532,7 +6547,7 @@ function saveWish(){
   else S.wishlist.push({id:uid(),bought:false,...data});
   save();closeModal('wish-modal');renderWishlist();toast('Saved!');
 }
-function deleteWish(id){showConfirm('Delete this item?',ok=>{if(!ok)return;S.wishlist=(S.wishlist||[]).filter(x=>x.id!==id);save();renderWishlist();},{okLabel:'Delete'});}
+function deleteWish(id){softDelete('wishlist',id,renderWishlist,'Wishlist item');}
 async function aiSuggestWishlist(){
   const projs=(S.projects||[]).map(p=>p.title).join(', ');
   const goals=(S.goals||[]).map(g=>g.title).join(', ');
@@ -6553,9 +6568,14 @@ async function aiSuggestWishlist(){
 // ── PROJECTS ──────────────────────────────────────────────────────
 const PROJ_STATUS={idea:{label:'💡 Idea',color:'var(--muted)'},['in-progress']:{label:'⚡ In Progress',color:'var(--accent)'},shipped:{label:'✅ Shipped',color:'var(--q2)'},archived:{label:'📦 Archived',color:'var(--muted)'}};
 const PROJ_CATS={web:{label:'🌐 Web App'},mobile:{label:'📱 Mobile'},tool:{label:'🔧 Tool / CLI'},ai:{label:'🤖 AI / ML'},api:{label:'⚙️ API'},design:{label:'🎨 Design'},other:{label:'📦 Other'}};
-let projFilter='all';
+let projFilter='all',projSort='date-desc';
 function renderProjects(){
-  const items=(S.projects||[]).slice().reverse();
+  const PROJ_STATUS_ORDER={shipped:0,'in-progress':1,idea:2,archived:3};
+  let items=(S.projects||[]).slice();
+  if(projSort==='status')items.sort((a,b)=>(PROJ_STATUS_ORDER[a.status]??2)-(PROJ_STATUS_ORDER[b.status]??2));
+  else if(projSort==='cat')items.sort((a,b)=>(a.cat||'').localeCompare(b.cat||''));
+  else if(projSort==='date-asc'){}
+  else items.reverse();
   const shipped=items.filter(x=>x.status==='shipped');
   const inProg=items.filter(x=>x.status==='in-progress');
   const ideas=items.filter(x=>x.status==='idea');
@@ -6565,7 +6585,7 @@ function renderProjects(){
     <div class="los-card los-stat"><div class="los-stat-n" style="color:#fbbf24;">${ideas.length}</div><div class="los-stat-l">Ideas</div></div>
     <div class="los-card los-stat"><div class="los-stat-n" style="color:var(--muted);">${items.length}</div><div class="los-stat-l">Total</div></div>`;
   const statuses=['all','in-progress','shipped','idea','archived'];
-  document.getElementById('proj-filter-bar').innerHTML=statuses.map(s=>`<button class="fp${projFilter===s?' active':''}" onclick="projFilter='${s}';renderProjects()">${s==='all'?'All':PROJ_STATUS[s]?.label||s}</button>`).join('');
+  document.getElementById('proj-filter-bar').innerHTML=statuses.map(s=>`<button class="fp${projFilter===s?' active':''}" onclick="projFilter='${s}';renderProjects()">${s==='all'?'All':PROJ_STATUS[s]?.label||s}</button>`).join('')+`<select class="fc" style="width:auto;font-size:12px;padding:4px 8px;margin-left:auto;" onchange="projSort=this.value;renderProjects()"><option value="date-desc"${projSort==='date-desc'?' selected':''}>Newest</option><option value="date-asc"${projSort==='date-asc'?' selected':''}>Oldest</option><option value="status"${projSort==='status'?' selected':''}>Status</option><option value="cat"${projSort==='cat'?' selected':''}>Category</option></select>`;
   let filtered=projFilter==='all'?items:items.filter(x=>x.status===projFilter);
   document.getElementById('proj-list').innerHTML=filtered.length?filtered.map(x=>{
     const st=PROJ_STATUS[x.status]||PROJ_STATUS.idea;
@@ -6625,7 +6645,7 @@ function saveProject(){
   else S.projects.push({id:uid(),...data});
   save();closeModal('proj-modal');renderProjects();toast('Saved!');
 }
-function deleteProject(id){showConfirm('Delete this project?',ok=>{if(!ok)return;S.projects=(S.projects||[]).filter(x=>x.id!==id);save();renderProjects();},{okLabel:'Delete'});}
+function deleteProject(id){softDelete('projects',id,renderProjects,'Project');}
 async function aiSuggestProjects(){
   const existing=(S.projects||[]).map(p=>p.title+' ('+p.cat+')').join(', ');
   const goals=(S.goals||[]).map(g=>g.title).join(', ');
@@ -6775,13 +6795,13 @@ function closeModal(id){document.getElementById(id)?.classList.add('hidden');}
     <div id="tweet-output" style="display:none;margin-top:12px;">
       <div style="background:var(--surface2);border-radius:8px;padding:14px;font-size:13px;line-height:1.6;white-space:pre-wrap;min-height:80px;" id="tweet-text"></div>
       <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:10px;">
-        <button class="btn bg sm" onclick="generateTweet()">🔄 Regenerate</button>
+        <button class="btn bg sm" onclick="_aiBtn(this,generateTweet)">🔄 Regenerate</button>
         <button class="btn bp sm" onclick="navigator.clipboard.writeText(document.getElementById('tweet-text').textContent);toast('Copied!')">📋 Copy</button>
       </div>
     </div>
     <div class="mf">
       <button class="btn bg" onclick="closeM('tweet-modal')">Close</button>
-      <button class="btn bp" id="tweet-gen-btn" onclick="generateTweet()">✨ Generate</button>
+      <button class="btn bp" id="tweet-gen-btn" onclick="_aiBtn(this,generateTweet)">✨ Generate</button>
     </div>
   </div>
 </div>
@@ -6793,7 +6813,7 @@ function closeModal(id){document.getElementById(id)?.classList.add('hidden');}
     <div id="digest-body" style="font-size:13px;line-height:1.7;white-space:pre-wrap;font-family:monospace;background:var(--surface2);border-radius:8px;padding:14px;max-height:420px;overflow-y:auto;"></div>
     <div class="mf">
       <button class="btn bg" onclick="closeM('digest-modal')">Close</button>
-      <button class="btn bg" onclick="showGoalDigest()">🤖 AI Goal Analysis</button>
+      <button class="btn bg" onclick="_aiBtn(this,showGoalDigest)">🤖 AI Goal Analysis</button>
       <button class="btn bp" onclick="navigator.clipboard.writeText(document.getElementById('digest-body').textContent);toast('Copied!')">📋 Copy</button>
     </div>
   </div>

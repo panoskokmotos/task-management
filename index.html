@@ -383,6 +383,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div class="ni" onclick="nav('all')">✅ All Tasks</div>
   <div class="ns">Planning</div>
   <div class="ni" onclick="nav('goals')">🏆 Goals</div>
+  <div class="ni" onclick="nav('wheel')">🎡 Wheel of Life</div>
   <div class="ni" onclick="nav('review')">📅 Weekly Review</div>
   <div class="ni" onclick="nav('focus')">🧠 Focus Now</div>
   <div class="ni" onclick="nav('history')">📚 Review History</div>
@@ -434,6 +435,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
       <button class="btn bg sm" onclick="showContextReport()">🔀</button>
       <button class="btn bg sm" onclick="nav('eod')">🌙 EOD</button>
       <button class="btn bg sm" onclick="openQuickAdd()">⚡ Quick Add</button>
+      <button class="btn bg sm" id="plan-week-btn" onclick="openWeekPlan()">📋 Plan Week</button>
       <button class="btn bp" onclick="openAdd()">+ Add Task</button>
     </div>
   </div>
@@ -494,8 +496,12 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   </div>
   <!-- XP NUDGE -->
   <div id="xp-nudge" style="display:none;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.3);border-radius:8px;padding:8px 12px;font-size:12px;text-align:center;margin-bottom:10px;"></div>
+  <!-- WEEK INTENTION BANNER -->
+  <div id="week-intention-banner" style="display:none;"></div>
   <!-- NETWORK HEALTH WIDGET -->
   <div id="network-health-widget"></div>
+  <!-- WHEEL DASH WIDGET -->
+  <div id="wheel-dash-widget"></div>
   <!-- DAILY QUESTS WIDGET -->
   <div id="daily-quests-widget"></div>
   <!-- STREAK ROW -->
@@ -637,6 +643,25 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <hr>
   <h2>💎 Core Values</h2>
   <div class="card"><div id="vals"></div><button class="btn bg sm" style="margin-top:10px;" onclick="editVals()">✏️ Edit Values</button></div>
+</div>
+
+<!-- WHEEL OF LIFE -->
+<div id="v-wheel" class="view">
+  <div class="ph">
+    <div><h1>🎡 Wheel of Life</h1><p class="sub">Rate your life areas and track balance over time</p></div>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <select id="wheel-cadence-filter" class="fc" style="width:auto;font-size:12px;padding:4px 8px;" onchange="renderWheel()">
+        <option value="all">All</option>
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+        <option value="annual">Annual</option>
+      </select>
+      <button class="btn bp" onclick="openWheelModal()">+ Rate Myself</button>
+    </div>
+  </div>
+  <div id="wheel-chart-area" style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;align-items:flex-start;"></div>
+  <div id="wheel-insight-area" style="margin-bottom:20px;"></div>
+  <div id="wheel-history-area"></div>
 </div>
 
 <!-- WEEKLY REVIEW WIZARD -->
@@ -1613,7 +1638,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false,dailyIntention:[],energyLog:[],xp:0,level:1,badges:[],dailyQuests:[],questsDate:''};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false,dailyIntention:[],energyLog:[],xp:0,level:1,badges:[],dailyQuests:[],questsDate:'',wheelAssessments:[],socialProfiles:[],brandStatement:'',weeklyNotes:[]};
 let editT=null,editG=null,fCat='all';
 let profileName=localStorage.getItem('taskos_name')||'Panos';
 let _editChecklist=[];
@@ -1877,7 +1902,7 @@ function nav(v){
   document.getElementById('s-ov')?.classList.remove('open');
   document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
-function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort,eod:renderEod,decisions:renderDecisions,challenge:renderChallenge,ladder:renderLadder,books:renderBooks,wins:renderWins,bucketlist:renderBucketList,wishlist:renderWishlist,projects:renderProjects})[v]?.();}
+function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,wheel:renderWheel,review:renderReview,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort,eod:renderEod,decisions:renderDecisions,challenge:renderChallenge,ladder:renderLadder,books:renderBooks,wins:renderWins,bucketlist:renderBucketList,wishlist:renderWishlist,projects:renderProjects})[v]?.();}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
 
 // ── DASHBOARD ─────────────────────────────────────────────────
@@ -4610,6 +4635,7 @@ const BADGES=[
   {id:'challenger',name:'⚡ Challenger',desc:'Complete a full challenge',check:()=>(S.challengeHistory||[]).length>=1||(S.completedChallenges||[]).length>=1},
   {id:'win-logger',name:'🏅 Win Logger',desc:'Log 10 wins',check:()=>(S.wins||[]).length>=10},
   {id:'ladder-climber',name:'🪜 Ladder Climber',desc:'Complete discomfort ladder week 4',check:()=>(S.discomfortLadder?.completedWeeks||[]).length>=4},
+  {id:'wheel-master',name:'🎡 Self-Aware',desc:'Complete 4 wheel assessments',check:()=>(S.wheelAssessments||[]).length>=4},
 ];
 
 function checkBadges(){
@@ -7585,6 +7611,83 @@ function closeModal(id){document.getElementById(id)?.classList.add('hidden');}
   <div class="md" style="width:400px;max-width:94vw;">
     <div class="mh"><h3>🎊 Weekly Wrapped</h3><button class="mc" onclick="closeM('weekly-wrapped-modal')">×</button></div>
     <div id="weekly-wrapped-body"></div>
+  </div>
+</div>
+
+<!-- WHEEL OF LIFE MODAL -->
+<div class="mo hidden" id="wheel-modal" onclick="if(event.target===this)closeM('wheel-modal')">
+  <div class="md" style="width:500px;max-width:94vw;">
+    <div class="mh"><h3>🎡 Rate Your Life Areas</h3><button class="mc" onclick="closeM('wheel-modal')">×</button></div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:12px;color:var(--muted);">Assessment cadence:</label>
+      <select id="wheel-cadence" class="fc" style="width:auto;font-size:12px;padding:4px 8px;margin-left:8px;">
+        <option value="weekly">Weekly check-in</option>
+        <option value="monthly" selected>Monthly review</option>
+        <option value="annual">Annual assessment</option>
+      </select>
+    </div>
+    <div id="wheel-sliders"></div>
+    <div class="mf" style="margin-top:16px;">
+      <button class="btn bg" onclick="closeM('wheel-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveWheelAssessment()">Save & Get AI Insight</button>
+    </div>
+  </div>
+</div>
+
+<!-- SOCIAL PROFILE MODAL -->
+<div class="mo hidden" id="social-profile-modal" onclick="if(event.target===this)closeM('social-profile-modal')">
+  <div class="md" style="width:460px;max-width:94vw;">
+    <div class="mh"><h3>🌐 Add Social Profile</h3><button class="mc" onclick="closeM('social-profile-modal')">×</button></div>
+    <div class="fg">
+      <label>Platform</label>
+      <select id="sp-platform" class="fc">
+        <option value="linkedin">LinkedIn</option>
+        <option value="twitter">X / Twitter</option>
+        <option value="instagram">Instagram</option>
+        <option value="website">Website / Blog</option>
+        <option value="youtube">YouTube</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="fg"><label>Handle / URL</label><input class="fc" id="sp-handle" placeholder="@yourhandle or https://..."></div>
+    <div class="fg">
+      <label>Current Bio / About (paste from platform)</label>
+      <textarea class="fc" id="sp-bio" rows="4" placeholder="Paste your current bio or about section here..."></textarea>
+    </div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('social-profile-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveSocialProfile()">Save Profile</button>
+    </div>
+  </div>
+</div>
+
+<!-- PLAN MY WEEK MODAL -->
+<div class="mo hidden" id="week-plan-modal" onclick="if(event.target===this)closeM('week-plan-modal')">
+  <div class="md" style="width:520px;max-width:94vw;max-height:80vh;overflow-y:auto;">
+    <div class="mh"><h3>📋 Plan My Week</h3><button class="mc" onclick="closeM('week-plan-modal')">×</button></div>
+    <div id="wp-step-indicator" style="font-size:11px;color:var(--muted);margin-bottom:12px;">Step 1 of 3</div>
+    <!-- Step 1: Goals check -->
+    <div class="wp-step">
+      <p style="font-size:14px;font-weight:600;margin-bottom:10px;">🎯 Goals Without This-Week Tasks</p>
+      <div id="wp-goals-list"></div>
+    </div>
+    <!-- Step 2: Task intake -->
+    <div class="wp-step" style="display:none;">
+      <p style="font-size:14px;font-weight:600;margin-bottom:10px;">📥 Promote Tasks to This Week</p>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:8px;">Tasks from This Month &amp; Backlog — move the important ones:</p>
+      <div id="wp-task-list" style="max-height:200px;overflow-y:auto;margin-bottom:10px;"></div>
+      <input class="fc" id="wp-quick-add" placeholder="Quick add a task to This Week..." onkeydown="if(event.key==='Enter'){const v=this.value.trim();if(v){S.tasks.push({id:uid(),title:v,notes:'',bucket:'this-week',category:'other',urgency:'low',importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,recurring:'',checklist:[],blockedBy:[],createdAt:new Date().toISOString(),completedAt:null});save();this.value='';_wpRenderTaskList();toast('Task added to This Week!');}}">
+    </div>
+    <!-- Step 3: Intention -->
+    <div class="wp-step" style="display:none;">
+      <p style="font-size:14px;font-weight:600;margin-bottom:10px;">🎯 Set Your Weekly Intention</p>
+      <div id="wp-week-count" style="font-size:12px;color:var(--muted);margin-bottom:10px;"></div>
+      <input class="fc" id="wp-intention" placeholder="My focus this week is... (e.g. Ship the MVP, recover health, deepen relationships)">
+    </div>
+    <div class="mf" style="margin-top:16px;">
+      <button class="btn bg" id="wp-back-btn" onclick="_wpStep(_wpCurrentStep-1)" style="display:none;">← Back</button>
+      <button class="btn bp" id="wp-next-btn" onclick="_wpNext()">Next →</button>
+    </div>
   </div>
 </div>
 

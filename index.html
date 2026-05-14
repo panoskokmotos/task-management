@@ -383,6 +383,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div class="ni" onclick="nav('all')">✅ All Tasks</div>
   <div class="ns">Planning</div>
   <div class="ni" onclick="nav('goals')">🏆 Goals</div>
+  <div class="ni" onclick="nav('wheel')">🎡 Wheel of Life</div>
   <div class="ni" onclick="nav('review')">📅 Weekly Review</div>
   <div class="ni" onclick="nav('focus')">🧠 Focus Now</div>
   <div class="ni" onclick="nav('history')">📚 Review History</div>
@@ -434,6 +435,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
       <button class="btn bg sm" onclick="showContextReport()">🔀</button>
       <button class="btn bg sm" onclick="nav('eod')">🌙 EOD</button>
       <button class="btn bg sm" onclick="openQuickAdd()">⚡ Quick Add</button>
+      <button class="btn bg sm" id="plan-week-btn" onclick="openWeekPlan()">📋 Plan Week</button>
       <button class="btn bp" onclick="openAdd()">+ Add Task</button>
     </div>
   </div>
@@ -494,8 +496,12 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   </div>
   <!-- XP NUDGE -->
   <div id="xp-nudge" style="display:none;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.3);border-radius:8px;padding:8px 12px;font-size:12px;text-align:center;margin-bottom:10px;"></div>
+  <!-- WEEK INTENTION BANNER -->
+  <div id="week-intention-banner" style="display:none;"></div>
   <!-- NETWORK HEALTH WIDGET -->
   <div id="network-health-widget"></div>
+  <!-- WHEEL DASH WIDGET -->
+  <div id="wheel-dash-widget"></div>
   <!-- DAILY QUESTS WIDGET -->
   <div id="daily-quests-widget"></div>
   <!-- STREAK ROW -->
@@ -575,6 +581,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
     <div><h1>✅ All Tasks</h1><p class="sub" id="atc"></p></div>
     <div class="row">
       <input class="sb" id="srch" placeholder="🔍 Search..." oninput="_debouncedSearch()">
+      <button class="btn bg sm" onclick="_aiBtn(this,aiTaskHealthCheck)">🤖 Task Health</button>
       <button class="btn bp" onclick="openAdd()">+ Add Task</button>
     </div>
   </div>
@@ -637,6 +644,25 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <hr>
   <h2>💎 Core Values</h2>
   <div class="card"><div id="vals"></div><button class="btn bg sm" style="margin-top:10px;" onclick="editVals()">✏️ Edit Values</button></div>
+</div>
+
+<!-- WHEEL OF LIFE -->
+<div id="v-wheel" class="view">
+  <div class="ph">
+    <div><h1>🎡 Wheel of Life</h1><p class="sub">Rate your life areas and track balance over time</p></div>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <select id="wheel-cadence-filter" class="fc" style="width:auto;font-size:12px;padding:4px 8px;" onchange="renderWheel()">
+        <option value="all">All</option>
+        <option value="weekly">Weekly</option>
+        <option value="monthly">Monthly</option>
+        <option value="annual">Annual</option>
+      </select>
+      <button class="btn bp" onclick="openWheelModal()">+ Rate Myself</button>
+    </div>
+  </div>
+  <div id="wheel-chart-area" style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px;align-items:flex-start;"></div>
+  <div id="wheel-insight-area" style="margin-bottom:20px;"></div>
+  <div id="wheel-history-area"></div>
 </div>
 
 <!-- WEEKLY REVIEW WIZARD -->
@@ -1103,8 +1129,10 @@ Read 50 books this year"></textarea>
         <button class="btn bg sm" onclick="addChecklistItem()">+</button>
       </div>
     </div>
+    <div id="task-improve-result" style="max-height:180px;overflow-y:auto;margin-bottom:8px;"></div>
     <div class="mf">
       <button class="btn bd sm" id="del-btn" style="margin-right:auto;display:none;" onclick="delCurTask()">🗑 Delete</button>
+      <button class="btn bg sm" id="ai-improve-btn" onclick="_aiBtn(this,()=>aiImproveTask(editT))" style="margin-right:auto;display:none;">✨ AI Improve</button>
       <button class="btn bg" onclick="closeM('tm')">Cancel</button>
       <button class="btn bp" onclick="saveTask()">Save Task</button>
     </div>
@@ -1169,8 +1197,10 @@ Read 50 books this year"></textarea>
         <div class="fg"><label style="font-size:11px;">Plan — If obstacle, then I will?</label><input class="fc" id="g-woop-plan" placeholder="If I feel like giving up, then I will..."></div>
       </div>
     </details>
+    <div id="goal-breakdown-result" style="margin-top:10px;max-height:200px;overflow-y:auto;"></div>
     <div class="mf">
       <button class="btn bd sm" id="del-goal-btn" style="margin-right:auto;display:none;" onclick="delCurGoal()">🗑 Delete</button>
+      <button class="btn bg sm" onclick="_aiBtn(this,()=>aiBreakdownGoal(editG))">🤖 Break into Tasks</button>
       <button class="btn bg" onclick="closeM('gm')">Cancel</button>
       <button class="btn bp" onclick="saveGoal()">Save Goal</button>
     </div>
@@ -1223,6 +1253,18 @@ Read 50 books this year"></textarea>
     <div class="fg"><label>Notion Integration Token <a href="https://www.notion.so/my-integrations" target="_blank" style="color:var(--accent);font-size:10px;margin-left:4px;">create integration ↗</a></label><input class="fc" id="set-notion-key" type="password" placeholder="secret_..."></div>
     <div class="fg"><label>Notion Page/Database URL (for weekly notes)</label><input class="fc" id="set-notion-page" placeholder="https://notion.so/My-Weekly-Notes-abc123..."></div>
     <hr>
+    <hr>
+    <div style="font-size:13px;font-weight:700;margin-bottom:8px;">🌐 Personal Brand &amp; Social</div>
+    <div class="fg">
+      <label>Brand Statement (2–3 sentences about you &amp; what you're building)</label>
+      <textarea class="fc" id="set-brand" rows="3" placeholder="I'm a founder building AI tools for productivity. Known for deep work and systems thinking..."></textarea>
+    </div>
+    <div id="social-profiles-list" style="margin-bottom:8px;"></div>
+    <div style="display:flex;gap:8px;margin-bottom:8px;">
+      <button class="btn bg sm" onclick="openSocialProfileModal()">+ Add Profile</button>
+      <button class="btn bg sm" onclick="_aiBtn(this,aiSocialAudit)">🤖 AI Brand Audit</button>
+    </div>
+    <div id="social-audit-result" style="font-size:12px;"></div>
     <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Switch workspace at any time from the sidebar or with <kbd style="background:var(--surface2);padding:2px 6px;border-radius:3px;font-size:11px;">⌘2</kbd></p>
     <div class="mf">
       <button class="btn bd sm" style="margin-right:auto;" onclick="showConfirm('Reset ALL data? This <strong>cannot be undone</strong>.',ok=>{if(ok){localStorage.removeItem('taskos');location.reload();}},{okLabel:'Reset Everything',icon:'💀'})">🗑 Reset Data</button>
@@ -1613,7 +1655,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false,dailyIntention:[],energyLog:[],xp:0,level:1,badges:[],dailyQuests:[],questsDate:''};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false,dailyIntention:[],energyLog:[],xp:0,level:1,badges:[],dailyQuests:[],questsDate:'',wheelAssessments:[],socialProfiles:[],brandStatement:'',weeklyNotes:[]};
 let editT=null,editG=null,fCat='all';
 let profileName=localStorage.getItem('taskos_name')||'Panos';
 let _editChecklist=[];
@@ -1877,7 +1919,7 @@ function nav(v){
   document.getElementById('s-ov')?.classList.remove('open');
   document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
-function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort,eod:renderEod,decisions:renderDecisions,challenge:renderChallenge,ladder:renderLadder,books:renderBooks,wins:renderWins,bucketlist:renderBucketList,wishlist:renderWishlist,projects:renderProjects})[v]?.();}
+function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,wheel:renderWheel,review:renderReview,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort,eod:renderEod,decisions:renderDecisions,challenge:renderChallenge,ladder:renderLadder,books:renderBooks,wins:renderWins,bucketlist:renderBucketList,wishlist:renderWishlist,projects:renderProjects})[v]?.();}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
 
 // ── DASHBOARD ─────────────────────────────────────────────────
@@ -1932,6 +1974,17 @@ function renderDash(){
       nudgeEl.style.display='';
     } else {nudgeEl.style.display='none';}
   }
+  // Week intention banner
+  const thisWeekNote=(S.weeklyNotes||[]).slice().reverse().find(n=>n.intention);
+  const intentBanner=document.getElementById('week-intention-banner');
+  if(intentBanner){
+    if(thisWeekNote?.intention){
+      intentBanner.innerHTML=`<div style="font-size:12px;color:var(--muted);text-align:center;padding:6px 0;border-bottom:1px solid var(--border);margin-bottom:10px;">🎯 This week: <em style="color:var(--text);">${esc(thisWeekNote.intention)}</em></div>`;
+      intentBanner.style.display='';
+    } else {
+      intentBanner.style.display='none';
+    }
+  }
   // Network health widget
   const {score:nhScore,overdue:nhOverdue,recent:nhRecent}=_calcNetworkScore();
   const nhEl=document.getElementById('network-health-widget');
@@ -1945,6 +1998,20 @@ function renderDash(){
       ${nhOverdue.length?`<div style="font-size:11px;color:var(--muted);margin-top:4px;">${nhOverdue.length} contact${nhOverdue.length>1?'s':''} overdue · ${nhRecent} reached this month</div>`:''}
     </div>`;
   } else if(nhEl){nhEl.innerHTML='';}
+  // Mini wheel widget
+  const latestWheel=(S.wheelAssessments||[]).slice(-1)[0];
+  const ww=document.getElementById('wheel-dash-widget');
+  if(ww){
+    if(latestWheel){
+      const avg=(Object.values(latestWheel.scores).reduce((a,b)=>a+b,0)/8).toFixed(1);
+      ww.innerHTML=`<div style="background:var(--surface2);border-radius:12px;padding:10px 14px;margin-bottom:12px;cursor:pointer;display:flex;align-items:center;gap:12px;" onclick="nav('wheel')">
+        <div style="flex-shrink:0;">${_renderWheelSVG(latestWheel.scores).replace('width:220px;height:220px','width:60px;height:60px')}</div>
+        <div><div style="font-size:13px;font-weight:600;">🎡 Wheel of Life</div><div style="font-size:11px;color:var(--muted);">Avg score: <strong>${avg}/10</strong> · <a onclick="event.stopPropagation();openWheelModal()" style="color:var(--accent);cursor:pointer;">Update</a></div></div>
+      </div>`;
+    } else {
+      ww.innerHTML=`<div style="background:var(--surface2);border-radius:12px;padding:10px 14px;margin-bottom:12px;cursor:pointer;" onclick="openWheelModal()"><span style="font-size:13px;">🎡 Rate your Wheel of Life →</span></div>`;
+    }
+  }
   // Daily quests widget
   const quests=S.dailyQuests||[];
   const questsEl=document.getElementById('daily-quests-widget');
@@ -2141,6 +2208,7 @@ function goalHTML(g){
     ${s.total?`<div style="margin-top:8px;"><div class="gp" style="margin-bottom:3px;"><div class="gp-fill" style="width:${s.pct}%"></div></div><div style="font-size:10px;color:var(--muted);">${s.done}/${s.total} tasks · ${s.pct}%</div></div>`:''}
     ${metricHTML}${habitHTML}${finHTML}
     ${linked.length?`<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:7px;">${linked.map(t=>`<div style="font-size:11px;color:var(--muted);padding:2px 0;">• ${t.title}</div>`).join('')}</div>`:''}
+    <div style="margin-top:8px;" onclick="event.stopPropagation();"><button class="btn bg sm" onclick="openAdd('this-week','${g.id}')">+ Task</button></div>
   </div>`;
 }
 
@@ -2196,6 +2264,18 @@ function renderWizPanel(){
       <div class="fg"><label>🎯 Focus for next week?</label><textarea class="fc" id="rf" placeholder="The single most important thing..."></textarea></div>
       <div class="fg" style="margin-top:4px;border-top:1px solid var(--border);padding-top:10px;"><label style="color:var(--accent);font-weight:700;">📜 This Week I Commit To</label><input class="fc" id="rcommit" placeholder="e.g. Book 2 demo calls. No excuses."></div>
       <div class="fg"><label>If I don't follow through, it's because</label><input class="fc" id="rifnot" placeholder="Name your most likely excuse in advance..."></div>
+      <div class="fg" style="margin-top:8px;">
+        <label>📔 Weekly Journal (free reflection)</label>
+        <textarea class="fc" id="r-journal" rows="3" placeholder="How did the week really feel? What surprised you? What would you tell yourself next Monday?"></textarea>
+      </div>
+      <div class="fg">
+        <label>🙏 3 Things You're Grateful For</label>
+        <textarea class="fc" id="r-gratitude" rows="2" placeholder="1. ... 2. ... 3. ..."></textarea>
+      </div>
+      <div class="fg">
+        <label>🏆 Biggest Win This Week</label>
+        <input class="fc" id="r-bigwin" placeholder="The single best thing that happened...">
+      </div>
     </div>
     ${rev.length?`<h3 style="margin:14px 0 8px;font-size:13px;color:var(--muted);">Past Reviews</h3>${rev.map(r=>`<div class="card" style="margin-bottom:8px;"><div style="font-weight:600;margin-bottom:4px;font-size:13px;">📅 ${fd(r.weekOf)}</div>${r.focus?`<div style="font-size:12px;color:var(--muted);">🎯 ${r.focus}</div>`:''}</div>`).join('')}`:''}
     <div class="wiz-nav"><button class="btn bg" onclick="goStep(3)">← Back</button><button class="btn bp" onclick="finishReview()">✅ Save & Finish</button></div>`;
@@ -2220,6 +2300,8 @@ function finishReview(){
   const hist=JSON.parse(localStorage.getItem('taskos_history')||'[]');
   hist.push(review);
   localStorage.setItem('taskos_history',JSON.stringify(hist));
+  const wNote={id:uid(),weekOf:new Date().toISOString().slice(0,10),note:document.getElementById('r-journal')?.value.trim()||'',gratitude:document.getElementById('r-gratitude')?.value.trim()||'',bigWin:document.getElementById('r-bigwin')?.value.trim()||'',intention:''};
+  if(wNote.note||wNote.gratitude||wNote.bigWin){S.weeklyNotes=S.weeklyNotes||[];S.weeklyNotes.push(wNote);}
   save();
   const sub=document.getElementById('wiz-sub');
   if(sub){sub.textContent='✅ Review saved! See you next week.';setTimeout(()=>{sub.textContent='Every Sunday · 20 min · non-negotiable.';},3000);}
@@ -2252,7 +2334,7 @@ function tcHTML(t,showT3btn=false){
 
 // ── TASK CRUD ─────────────────────────────────────────────────
 function openFAB(){const v=document.querySelector('.view.active')?.id?.replace('v-','');const map={wins:openAddWin,bucketlist:openAddBucket,wishlist:openAddWish,projects:openAddProject,goals:openAddGoal,books:openAddBook,health:openAddHealth};(map[v]||openAdd)();}
-function openAdd(bucket='inbox'){
+function openAdd(bucket='inbox',goalId=null){
   editT=null;
   document.getElementById('tm-title').textContent='Add Task';
   ['t-title','t-notes'].forEach(i=>document.getElementById(i).value='');
@@ -2267,11 +2349,14 @@ function openAdd(bucket='inbox'){
   document.getElementById('t-depth').value='medium';
   document.getElementById('del-btn').style.display='none';
   fillGoalDrop();
+  if(goalId){const gs=document.getElementById('t-goal');if(gs)gs.value=goalId;}
   _editChecklist=[];_renderChecklistEditor();
   fillBlockerDrop(null,[]);
   document.getElementById('t-ifthen').value='';
   const peopSel=document.getElementById('t-people');
   if(peopSel){peopSel.innerHTML=(S.people||[]).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');}
+  const aiImproveBtn=document.getElementById('ai-improve-btn');
+  if(aiImproveBtn)aiImproveBtn.style.display='none';
   document.getElementById('tm').classList.remove('hidden');
   setTimeout(()=>_trapFocus(document.getElementById('tm')),50);
   document.getElementById('t-title').focus();
@@ -2299,6 +2384,10 @@ function openEdit(id){
   document.getElementById('t-ifthen').value=t.ifThen||'';
   const peopSel=document.getElementById('t-people');
   if(peopSel){peopSel.innerHTML=(S.people||[]).map(p=>`<option value="${p.id}"${(t.linkedPeople||[]).includes(p.id)?' selected':''}>${esc(p.name)}</option>`).join('');}
+  const aiImproveBtn=document.getElementById('ai-improve-btn');
+  if(aiImproveBtn)aiImproveBtn.style.display='';
+  const tiRes=document.getElementById('task-improve-result');
+  if(tiRes)tiRes.innerHTML='';
   document.getElementById('tm').classList.remove('hidden');
   setTimeout(()=>_trapFocus(document.getElementById('tm')),50);
   document.getElementById('t-title').focus();
@@ -4610,6 +4699,7 @@ const BADGES=[
   {id:'challenger',name:'⚡ Challenger',desc:'Complete a full challenge',check:()=>(S.challengeHistory||[]).length>=1||(S.completedChallenges||[]).length>=1},
   {id:'win-logger',name:'🏅 Win Logger',desc:'Log 10 wins',check:()=>(S.wins||[]).length>=10},
   {id:'ladder-climber',name:'🪜 Ladder Climber',desc:'Complete discomfort ladder week 4',check:()=>(S.discomfortLadder?.completedWeeks||[]).length>=4},
+  {id:'wheel-master',name:'🎡 Self-Aware',desc:'Complete 4 wheel assessments',check:()=>(S.wheelAssessments||[]).length>=4},
 ];
 
 function checkBadges(){
@@ -4625,6 +4715,392 @@ function checkBadges(){
       }
     });
   }finally{_checkingBadges=false;}
+}
+
+// ── WHEEL OF LIFE ──────────────────────────────────────────────
+const WHEEL_AREAS=[
+  {id:'career',label:'Career',emoji:'💼'},
+  {id:'finance',label:'Finance',emoji:'💰'},
+  {id:'health',label:'Health',emoji:'💪'},
+  {id:'relationships',label:'Relationships',emoji:'🤝'},
+  {id:'growth',label:'Growth',emoji:'🧠'},
+  {id:'fun',label:'Fun & Recreation',emoji:'🎉'},
+  {id:'environment',label:'Environment',emoji:'🏠'},
+  {id:'purpose',label:'Purpose',emoji:'🎯'},
+];
+
+function openWheelModal(){
+  const last=(S.wheelAssessments||[]).slice(-1)[0];
+  const prev=last?.scores||{};
+  const html=WHEEL_AREAS.map(a=>`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+      <span style="width:130px;font-size:13px;">${a.emoji} ${a.label}</span>
+      <input type="range" min="1" max="10" value="${prev[a.id]||5}" id="ws-${a.id}" oninput="document.getElementById('wv-${a.id}').textContent=this.value" style="flex:1;">
+      <span id="wv-${a.id}" style="width:20px;font-size:13px;font-weight:700;color:var(--accent);">${prev[a.id]||5}</span>
+    </div>`).join('');
+  document.getElementById('wheel-sliders').innerHTML=html;
+  document.getElementById('wheel-modal').classList.remove('hidden');
+}
+
+function saveWheelAssessment(){
+  const scores={};
+  WHEEL_AREAS.forEach(a=>{scores[a.id]=parseInt(document.getElementById('ws-'+a.id)?.value||5);});
+  const cadence=document.getElementById('wheel-cadence')?.value||'monthly';
+  const entry={id:uid(),date:new Date().toISOString(),cadence,scores,aiInsight:''};
+  S.wheelAssessments=S.wheelAssessments||[];
+  S.wheelAssessments.push(entry);
+  save();
+  closeM('wheel-modal');
+  renderWheel();
+  awardXP(30,'wheel');
+  toast('🎡 Assessment saved! +30 XP');
+  aiWheelInsight(entry.id,scores,cadence);
+}
+
+async function aiWheelInsight(entryId,scores,cadence){
+  const goals=(S.goals||[]).slice(0,5).map(g=>g.title).join(', ');
+  const vals=(S.values||[]).join(', ');
+  const scoreStr=WHEEL_AREAS.map(a=>`${a.label}: ${scores[a.id]}/10`).join(', ');
+  const prompt=`A person rated their life balance (${cadence} assessment):
+${scoreStr}
+
+Their goals: ${goals||'Not set'}
+Their values: ${vals||'Not set'}
+
+Give a brief, honest, energizing insight (3-4 sentences):
+1. Name their top 2 lowest-scoring areas
+2. Give ONE specific action for each low area
+3. Highlight ONE strength or positive trend
+
+Be direct and personal, not generic.`;
+  const text=await callClaude(prompt,400);
+  if(!text)return;
+  const entry=(S.wheelAssessments||[]).find(e=>e.id===entryId);
+  if(entry){entry.aiInsight=text;save();}
+  renderWheel();
+}
+
+function _renderWheelSVG(scores){
+  const cx=110,cy=110,r=80,n=WHEEL_AREAS.length;
+  const axes=WHEEL_AREAS.map((a,i)=>{
+    const angle=(i/n)*2*Math.PI-Math.PI/2;
+    return{a,angle,x:cx+r*Math.cos(angle),y:cy+r*Math.sin(angle)};
+  });
+  const rings=[0.25,0.5,0.75,1].map(f=>{
+    const pts=axes.map(ax=>`${cx+r*f*Math.cos(ax.angle)},${cy+r*f*Math.sin(ax.angle)}`).join(' ');
+    return`<polygon points="${pts}" fill="none" stroke="var(--border)" stroke-width="1" opacity="0.5"/>`;
+  }).join('');
+  const scorePts=axes.map(ax=>{
+    const val=(scores[ax.a.id]||1)/10;
+    return`${cx+r*val*Math.cos(ax.angle)},${cy+r*val*Math.sin(ax.angle)}`;
+  }).join(' ');
+  const axisLines=axes.map(ax=>`<line x1="${cx}" y1="${cy}" x2="${ax.x}" y2="${ax.y}" stroke="var(--border)" stroke-width="1" opacity="0.6"/>
+    <text x="${cx+(r+18)*Math.cos(ax.angle)}" y="${cy+(r+18)*Math.sin(ax.angle)}" text-anchor="middle" dominant-baseline="middle" font-size="9" fill="var(--muted)">${ax.a.emoji}</text>`).join('');
+  return`<svg viewBox="0 0 220 220" style="width:220px;height:220px;">${rings}${axisLines}<polygon points="${scorePts}" fill="rgba(88,166,255,.25)" stroke="var(--accent)" stroke-width="2"/></svg>`;
+}
+
+function renderWheel(){
+  const filter=document.getElementById('wheel-cadence-filter')?.value||'all';
+  const all=(S.wheelAssessments||[]).filter(e=>filter==='all'||e.cadence===filter).reverse();
+  const chartEl=document.getElementById('wheel-chart-area');
+  if(chartEl){
+    if(!all.length){
+      chartEl.innerHTML='<div style="color:var(--muted);font-size:13px;padding:20px;">No assessments yet — click &quot;+ Rate Myself&quot; to start.</div>';
+    } else {
+      const latest=all[0];
+      const d=new Date(latest.date).toLocaleDateString();
+      const scoreList=WHEEL_AREAS.map(a=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0;"><span>${a.emoji} ${a.label}</span><strong>${latest.scores[a.id]}/10</strong></div>`).join('');
+      chartEl.innerHTML=`<div>${_renderWheelSVG(latest.scores)}</div>
+        <div style="flex:1;min-width:180px;">
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${latest.cadence} · ${d}</div>
+          ${scoreList}
+        </div>`;
+    }
+  }
+  const insightEl=document.getElementById('wheel-insight-area');
+  if(insightEl){
+    const withInsight=all.find(e=>e.aiInsight);
+    insightEl.innerHTML=withInsight?`<div style="background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.2);border-radius:12px;padding:14px 16px;font-size:13px;line-height:1.6;"><span style="font-weight:700;font-size:11px;color:var(--accent);text-transform:uppercase;display:block;margin-bottom:6px;">🤖 AI Insight</span>${esc(withInsight.aiInsight)}</div>`:'';
+  }
+  const histEl=document.getElementById('wheel-history-area');
+  if(histEl){
+    if(all.length>1){
+      histEl.innerHTML=`<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Past Assessments</div>`+
+      all.slice(1,4).map(e=>{
+        const d=new Date(e.date).toLocaleDateString();
+        const avg=(Object.values(e.scores).reduce((a,b)=>a+b,0)/8).toFixed(1);
+        return`<div style="background:var(--surface2);border-radius:8px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;gap:12px;">
+          <div style="font-size:11px;color:var(--muted);">${e.cadence} · ${d}</div>
+          <div style="font-size:13px;font-weight:700;color:var(--accent);">Avg: ${avg}/10</div>
+          ${WHEEL_AREAS.map(a=>`<span style="font-size:10px;">${a.emoji}${e.scores[a.id]}</span>`).join('')}
+        </div>`;
+      }).join('');
+    } else { histEl.innerHTML=''; }
+  }
+}
+
+// ── SOCIAL & BRAND ─────────────────────────────────────────────
+const SOCIAL_ICONS={linkedin:'🔵',twitter:'🐦',instagram:'📷',website:'🌐',youtube:'📺',other:'🔗'};
+
+function openSocialProfileModal(id=null){
+  const p=id?(S.socialProfiles||[]).find(x=>x.id===id):null;
+  document.getElementById('sp-platform').value=p?.platform||'linkedin';
+  document.getElementById('sp-handle').value=p?.handle||'';
+  document.getElementById('sp-bio').value=p?.bio||'';
+  document.getElementById('social-profile-modal').dataset.editId=id||'';
+  document.getElementById('social-profile-modal').classList.remove('hidden');
+}
+
+function saveSocialProfile(){
+  const editId=document.getElementById('social-profile-modal').dataset.editId;
+  const obj={
+    id:editId||uid(),
+    platform:document.getElementById('sp-platform').value,
+    handle:document.getElementById('sp-handle').value.trim(),
+    bio:document.getElementById('sp-bio').value.trim(),
+    lastChecked:new Date().toISOString().slice(0,10)
+  };
+  S.socialProfiles=S.socialProfiles||[];
+  if(editId){const i=S.socialProfiles.findIndex(x=>x.id===editId);if(i>=0)S.socialProfiles[i]=obj;else S.socialProfiles.push(obj);}
+  else S.socialProfiles.push(obj);
+  save();
+  closeM('social-profile-modal');
+  _renderSocialProfilesList();
+  toast('Profile saved!');
+}
+
+function _renderSocialProfilesList(){
+  const el=document.getElementById('social-profiles-list');
+  if(!el)return;
+  const profiles=S.socialProfiles||[];
+  if(!profiles.length){el.innerHTML='<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">No profiles added yet.</div>';return;}
+  el.innerHTML=profiles.map(p=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--surface2);border-radius:8px;margin-bottom:6px;font-size:12px;">
+    <span>${SOCIAL_ICONS[p.platform]||'🔗'}</span>
+    <span style="flex:1;font-weight:600;">${esc(p.handle||p.platform)}</span>
+    <span style="color:var(--muted);">${p.bio?p.bio.slice(0,40)+'…':''}</span>
+    <button class="btn bg sm" onclick="openSocialProfileModal('${p.id}')">✏</button>
+    <button class="btn bd sm" onclick="(function(){S.socialProfiles=S.socialProfiles.filter(x=>x.id!=='${p.id}');save();_renderSocialProfilesList();})()">×</button>
+  </div>`).join('');
+}
+
+async function aiSocialAudit(){
+  const profiles=S.socialProfiles||[];
+  if(!profiles.length&&!S.brandStatement){toast('Add a brand statement or social profiles first.');return;}
+  const brand=S.brandStatement||'Not provided';
+  const goals=(S.goals||[]).slice(0,5).map(g=>g.title).join(', ');
+  const vals=(S.values||[]).join(', ');
+  const profStr=profiles.map(p=>`${p.platform} (${p.handle}): ${p.bio||'No bio provided'}`).join('\n');
+  const prompt=`You are a personal brand strategist. Audit this person's brand presence:
+
+BRAND STATEMENT: ${brand}
+SOCIAL PROFILES:
+${profStr||'None provided'}
+GOALS: ${goals||'Not set'}
+VALUES: ${vals||'Not set'}
+
+Provide a structured audit:
+STRENGTHS: [list 3 specific strengths]
+OPPORTUNITIES: [list 3 specific improvement opportunities with concrete actions]
+PRIORITY_ACTION: [single most important thing to do this week]
+CONSISTENCY_SCORE: [1-10 score on brand consistency across platforms]
+INSIGHT: [1-sentence strategic insight]
+
+Be specific and actionable. Reference their actual goals and values.`;
+  const text=await callClaude(prompt,600);
+  if(!text)return;
+  const parse=(key)=>{const m=text.match(new RegExp(key+':\\s*([\\s\\S]+?)(?=\\n[A-Z_]+:|$)'));return m?m[1].trim():'';};
+  const html=`<div style="background:var(--surface2);border-radius:10px;padding:14px;margin-top:10px;">
+    <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px;">🤖 AI Brand Audit</div>
+    ${parse('STRENGTHS')?`<div style="margin-bottom:8px;"><strong style="font-size:11px;">✅ Strengths</strong><div style="font-size:12px;color:var(--muted);white-space:pre-line;">${esc(parse('STRENGTHS'))}</div></div>`:''}
+    ${parse('OPPORTUNITIES')?`<div style="margin-bottom:8px;"><strong style="font-size:11px;">🚀 Opportunities</strong><div style="font-size:12px;color:var(--muted);white-space:pre-line;">${esc(parse('OPPORTUNITIES'))}</div></div>`:''}
+    ${parse('PRIORITY_ACTION')?`<div style="margin-bottom:8px;background:rgba(88,166,255,.1);border-radius:8px;padding:8px;"><strong style="font-size:11px;">⚡ Priority Action</strong><div style="font-size:12px;">${esc(parse('PRIORITY_ACTION'))}</div></div>`:''}
+    ${parse('CONSISTENCY_SCORE')?`<div style="font-size:12px;color:var(--muted);">Consistency: ${esc(parse('CONSISTENCY_SCORE'))}/10</div>`:''}
+  </div>`;
+  const el=document.getElementById('social-audit-result');
+  if(el)el.innerHTML=html;
+  awardXP(20,'brand-audit');
+  toast('🌐 Brand audit complete! +20 XP');
+}
+
+// ── WEEK PLAN WIZARD ───────────────────────────────────────────
+let _wpCurrentStep=0;
+function openWeekPlan(){
+  _wpCurrentStep=0;
+  _wpShowStep(0);
+  document.getElementById('week-plan-modal').classList.remove('hidden');
+}
+function _wpShowStep(n){
+  _wpCurrentStep=n;
+  document.querySelectorAll('.wp-step').forEach((el,i)=>el.style.display=i===n?'':'none');
+  document.getElementById('wp-step-indicator').textContent=`Step ${n+1} of 3`;
+  document.getElementById('wp-back-btn').style.display=n>0?'':'none';
+  document.getElementById('wp-next-btn').textContent=n===2?'Lock It In ✓':'Next →';
+  if(n===0)_wpRenderGoalsCheck();
+  if(n===1)_wpRenderTaskList();
+  if(n===2){
+    const tw=S.tasks.filter(t=>t.bucket==='this-week'&&t.status!=='done').length;
+    const el=document.getElementById('wp-week-count');
+    if(el)el.innerHTML=`<strong style="color:${tw>=8?'#ef4444':tw>=5?'#fbbf24':'var(--q2)'}">${tw}/10</strong> tasks in This Week`;
+  }
+}
+function _wpStep(n){_wpShowStep(Math.max(0,Math.min(2,n)));}
+function _wpRenderGoalsCheck(){
+  const el=document.getElementById('wp-goals-list');if(!el)return;
+  const goals=(S.goals||[]).filter(g=>!g.complete);
+  if(!goals.length){el.innerHTML='<div style="color:var(--muted);font-size:13px;">No active goals. <a onclick="nav(\'goals\')" style="color:var(--accent);cursor:pointer;">Add goals →</a></div>';return;}
+  el.innerHTML=goals.map(g=>{
+    const hasTW=S.tasks.some(t=>t.goalId===g.id&&t.bucket==='this-week'&&t.status!=='done');
+    return`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;">
+      <span style="flex:1;">${hasTW?'✅':'⚠️'} ${esc(g.title.slice(0,50))}</span>
+      ${!hasTW?`<button class="btn bg sm" onclick="closeM('week-plan-modal');openAdd('this-week','${g.id}')">+ Task</button>`:'<span style="font-size:11px;color:var(--q2);">covered</span>'}
+    </div>`;
+  }).join('');
+}
+function _wpRenderTaskList(){
+  const el=document.getElementById('wp-task-list');if(!el)return;
+  const candidates=S.tasks.filter(t=>['this-month','backlog'].includes(t.bucket)&&t.status!=='done').sort((a,b)=>(b.importance==='high'?1:0)-(a.importance==='high'?1:0)).slice(0,12);
+  if(!candidates.length){el.innerHTML='<div style="color:var(--muted);font-size:12px;">No tasks in This Month or Backlog.</div>';return;}
+  el.innerHTML=candidates.map(t=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;border-bottom:1px solid var(--border);">
+    <span style="flex:1;">${esc(t.title.slice(0,50))}</span>
+    <button class="btn bg sm" onclick="mvB('${t.id}','this-week');_wpRenderTaskList();toast('Moved!')">→ This Week</button>
+  </div>`).join('');
+}
+function _wpNext(){
+  if(_wpCurrentStep===2){
+    const intention=document.getElementById('wp-intention')?.value.trim();
+    if(intention){
+      const today=new Date().toISOString().slice(0,10);
+      S.weeklyNotes=S.weeklyNotes||[];
+      const existing=S.weeklyNotes.find(n=>n.weekOf===today);
+      if(existing)existing.intention=intention;
+      else S.weeklyNotes.push({id:uid(),weekOf:today,note:'',gratitude:'',bigWin:'',intention});
+      save();
+    }
+    closeM('week-plan-modal');
+    refresh();
+    toast('📋 Week planned! Let\'s go! 🚀');
+    awardXP(15,'week-plan');
+    return;
+  }
+  _wpShowStep(_wpCurrentStep+1);
+}
+
+// ── GOAL TASK ENGINE ───────────────────────────────────────────
+async function aiBreakdownGoal(goalId){
+  const g=(S.goals||[]).find(x=>x.id===goalId);if(!g)return;
+  const existing=S.tasks.filter(t=>t.goalId===goalId&&t.status!=='done').map(t=>t.title).join(', ');
+  const vals=(S.values||[]).join(', ');
+  const prompt=`Break down this goal into 5 concrete, actionable tasks:
+
+GOAL: ${g.title}
+DESCRIPTION: ${g.description||'None'}
+EXISTING TASKS: ${existing||'None'}
+VALUES: ${vals}
+
+For each task:
+TASK: [specific action title starting with a verb]
+DEPTH: [shallow/medium/deep]
+TIME: [estimated minutes]
+
+List exactly 5 tasks. Each must be completable in one focused session. Start each title with an action verb.`;
+  const text=await callClaude(prompt,500);
+  if(!text)return;
+  const tasks=text.split(/(?=TASK:)/).filter(b=>b.trim());
+  const el=document.getElementById('goal-breakdown-result');
+  if(!el)return;
+  el.innerHTML=`<div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">Suggested Tasks</div>`+
+  tasks.map(b=>{
+    const title=(b.match(/TASK:\s*(.+)/)||[])[1]?.trim()||'';
+    const depth=(b.match(/DEPTH:\s*(.+)/)||[])[1]?.trim()||'medium';
+    const time=parseInt((b.match(/TIME:\s*(\d+)/)||[])[1])||null;
+    if(!title)return'';
+    return`<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--surface2);border-radius:8px;margin-bottom:6px;font-size:12px;">
+      <span style="flex:1;">${esc(title)}</span>
+      <span style="font-size:10px;color:var(--muted);">${depth}${time?' · '+time+'m':''}</span>
+      <button class="btn bp sm" onclick="_addGoalTask('${goalId}',${JSON.stringify(title).replace(/'/g,"\\'")},'${depth}',${time||'null'})">➕</button>
+    </div>`;
+  }).join('');
+}
+function _addGoalTask(goalId,title,depth,timeBlock){
+  S.tasks.push({id:uid(),title,notes:'',bucket:'this-week',category:'other',urgency:'low',importance:'high',energy:'high',depth:depth||'medium',status:'todo',isT3:false,t3s:null,timeBlock:timeBlock||null,dueDate:'',goalId,recurring:'',checklist:[],blockedBy:[],createdAt:new Date().toISOString(),completedAt:null});
+  save();refresh();
+  toast('Task added to This Week!');
+}
+
+// ── TASK IMPROVEMENT AI ────────────────────────────────────────
+async function aiImproveTask(taskId){
+  const t=S.tasks.find(x=>x.id===taskId);
+  if(!t){toast('Save the task first before improving.');return;}
+  const g=t.goalId?(S.goals||[]).find(x=>x.id===t.goalId):null;
+  const prompt=`Improve this task definition:
+
+TITLE: ${t.title}
+NOTES: ${t.notes||'None'}
+BUCKET: ${t.bucket}
+URGENCY: ${t.urgency}, IMPORTANCE: ${t.importance}
+DEPTH: ${t.depth||'medium'}
+TIME ESTIMATE: ${t.timeBlock?t.timeBlock+'min':'Not set'}
+LINKED GOAL: ${g?.title||'None'}
+
+Provide:
+BETTER_TITLE: [rewritten title, starts with action verb, specific and clear]
+TIME_ESTIMATE: [suggested minutes if not set, or "OK" if fine]
+DEPTH_SUGGESTION: [shallow/medium/deep with 1-word reason]
+FLAG: [one of: too-vague / too-large / missing-context / looks-good]
+TIP: [1 sentence improvement tip]`;
+  const text=await callClaude(prompt,300);
+  if(!text)return;
+  const get=(key)=>{const m=text.match(new RegExp(key+':\\s*(.+)'));return m?m[1].trim():'';};
+  const betterTitle=get('BETTER_TITLE');
+  const timeEst=get('TIME_ESTIMATE');
+  const depthSug=get('DEPTH_SUGGESTION');
+  const flag=get('FLAG');
+  const tip=get('TIP');
+  const el=document.getElementById('task-improve-result');
+  if(!el)return;
+  el.innerHTML=`<div style="background:rgba(88,166,255,.08);border-radius:8px;padding:10px;font-size:12px;">
+    <div style="font-weight:700;font-size:11px;color:var(--accent);margin-bottom:6px;">✨ AI Suggestions</div>
+    ${betterTitle&&betterTitle!==t.title?`<div style="margin-bottom:6px;">📝 Better title: <strong>${esc(betterTitle)}</strong> <button class="btn bg sm" style="font-size:10px;padding:2px 6px;" onclick="document.getElementById('t-title').value=${JSON.stringify(betterTitle)};toast('Title updated!')">Apply</button></div>`:''}
+    ${timeEst&&timeEst!=='OK'&&!t.timeBlock?`<div style="margin-bottom:4px;">⏱ Suggested time: <strong>${esc(timeEst)}</strong> <button class="btn bg sm" style="font-size:10px;padding:2px 6px;" onclick="document.getElementById('t-time').value=parseInt('${timeEst}')||30;toast('Time set!')">Apply</button></div>`:''}
+    ${depthSug?`<div style="margin-bottom:4px;">🎯 Depth: <strong>${esc(depthSug)}</strong></div>`:''}
+    ${flag&&flag!=='looks-good'?`<div style="margin-bottom:4px;color:#fbbf24;">⚠️ ${esc(flag).replace(/-/g,' ')}</div>`:''}
+    ${tip?`<div style="color:var(--muted);">💡 ${esc(tip)}</div>`:''}
+  </div>`;
+}
+
+// ── BULK TASK HEALTH CHECK ─────────────────────────────────────
+async function aiTaskHealthCheck(){
+  const pending=S.tasks.filter(t=>t.status!=='done').slice(0,40);
+  if(!pending.length){toast('No pending tasks to check!');return;}
+  const taskStr=pending.map(t=>`[${t.id.slice(-4)}] ${t.title} (${t.bucket},${t.depth||'?'},goal:${t.goalId?'yes':'no'})`).join('\n');
+  const prompt=`Audit these tasks for quality issues:
+
+${taskStr}
+
+For each problematic task, output:
+ID: [last 4 chars]
+ISSUE: [vague-title / missing-goal / too-large / duplicate]
+FIX: [specific 1-sentence suggestion]
+
+Only list tasks with real issues (skip healthy ones). Max 8 flags.`;
+  const text=await callClaude(prompt,600);
+  if(!text)return;
+  const blocks=text.split(/(?=ID:)/).filter(b=>b.trim()&&b.includes('ID:'));
+  if(!blocks.length){showAiOut('🤖 Task Health Check','<div style="padding:20px;text-align:center;color:var(--q2);">✅ All tasks look healthy!</div>');return;}
+  const html=`<div style="padding:4px;">`+blocks.map(b=>{
+    const id4=(b.match(/ID:\s*(\S+)/)||[])[1]?.trim()||'';
+    const issue=(b.match(/ISSUE:\s*(.+)/)||[])[1]?.trim()||'';
+    const fix=(b.match(/FIX:\s*(.+)/)||[])[1]?.trim()||'';
+    const task=pending.find(t=>t.id.endsWith(id4));
+    if(!task)return'';
+    return`<div style="padding:10px;border-bottom:1px solid var(--border);">
+      <div style="font-size:13px;font-weight:600;">${esc(task.title.slice(0,60))}</div>
+      <div style="font-size:11px;color:#fbbf24;margin:2px 0;">⚠️ ${esc(issue.replace(/-/g,' '))}</div>
+      <div style="font-size:12px;color:var(--muted);">💡 ${esc(fix)}</div>
+      <button class="btn bg sm" style="margin-top:4px;font-size:11px;" onclick="openEdit('${task.id}')">Edit Task</button>
+    </div>`;
+  }).join('')+'</div>';
+  showAiOut('🤖 Task Health Check ('+blocks.length+' issues found)',html);
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -5301,6 +5777,7 @@ function renderHistoryView(){
   el.innerHTML=hist.map(r=>{
     const snap=r.snapshot||{};
     const top=Object.entries(snap.byCategory||{}).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    const wn=(S.weeklyNotes||[]).find(n=>n.weekOf===r.weekOf?.slice(0,10));
     return`<div class="rs">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <div>
@@ -5312,6 +5789,8 @@ function renderHistoryView(){
       ${r.focus?`<div style="font-size:13px;margin-bottom:6px;"><span style="color:var(--accent);font-weight:600;">🎯 Focus:</span> ${r.focus}</div>`:''}
       ${r.wentWell?`<div style="font-size:12px;color:var(--muted);margin-bottom:4px;"><strong style="color:var(--bb);">✅ Went well:</strong> ${r.wentWell}</div>`:''}
       ${r.improve?`<div style="font-size:12px;color:var(--muted);"><strong style="color:var(--bm);">📈 Improve:</strong> ${r.improve}</div>`:''}
+      ${wn?.bigWin?`<div style="font-size:12px;margin-top:4px;">🏆 <em>${esc(wn.bigWin)}</em></div>`:''}
+      ${wn?.note?`<div style="font-size:12px;color:var(--muted);margin-top:4px;">📔 ${esc(wn.note.slice(0,120))}${wn.note.length>120?'…':''}</div>`:''}
     </div>`;
   }).join('');
 }
@@ -5325,6 +5804,8 @@ function openSettings(){
   document.getElementById('set-notion-key').value=localStorage.getItem('taskos_notion_key')||'';
   document.getElementById('set-notion-page').value=localStorage.getItem('taskos_notion_page')||'';
   document.getElementById('set-hell-yes').value=S.hellYesFilter?'true':'false';
+  if(document.getElementById('set-brand'))document.getElementById('set-brand').value=S.brandStatement||'';
+  _renderSocialProfilesList();
   applyTheme(document.body.classList.contains('light'));
   document.getElementById('set-m').classList.remove('hidden');
 }
@@ -5334,6 +5815,7 @@ function saveSettings(){
   const k=document.getElementById('set-claude-key').value.trim();
   S.claudeKey=k;
   S.hellYesFilter=document.getElementById('set-hell-yes').value==='true';
+  S.brandStatement=document.getElementById('set-brand')?.value.trim()||'';
   save();
   const ab=document.getElementById('set-about').value.trim();
   if(ab)localStorage.setItem('taskos_about',ab); else localStorage.removeItem('taskos_about');
@@ -7585,6 +8067,83 @@ function closeModal(id){document.getElementById(id)?.classList.add('hidden');}
   <div class="md" style="width:400px;max-width:94vw;">
     <div class="mh"><h3>🎊 Weekly Wrapped</h3><button class="mc" onclick="closeM('weekly-wrapped-modal')">×</button></div>
     <div id="weekly-wrapped-body"></div>
+  </div>
+</div>
+
+<!-- WHEEL OF LIFE MODAL -->
+<div class="mo hidden" id="wheel-modal" onclick="if(event.target===this)closeM('wheel-modal')">
+  <div class="md" style="width:500px;max-width:94vw;">
+    <div class="mh"><h3>🎡 Rate Your Life Areas</h3><button class="mc" onclick="closeM('wheel-modal')">×</button></div>
+    <div style="margin-bottom:12px;">
+      <label style="font-size:12px;color:var(--muted);">Assessment cadence:</label>
+      <select id="wheel-cadence" class="fc" style="width:auto;font-size:12px;padding:4px 8px;margin-left:8px;">
+        <option value="weekly">Weekly check-in</option>
+        <option value="monthly" selected>Monthly review</option>
+        <option value="annual">Annual assessment</option>
+      </select>
+    </div>
+    <div id="wheel-sliders"></div>
+    <div class="mf" style="margin-top:16px;">
+      <button class="btn bg" onclick="closeM('wheel-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveWheelAssessment()">Save & Get AI Insight</button>
+    </div>
+  </div>
+</div>
+
+<!-- SOCIAL PROFILE MODAL -->
+<div class="mo hidden" id="social-profile-modal" onclick="if(event.target===this)closeM('social-profile-modal')">
+  <div class="md" style="width:460px;max-width:94vw;">
+    <div class="mh"><h3>🌐 Add Social Profile</h3><button class="mc" onclick="closeM('social-profile-modal')">×</button></div>
+    <div class="fg">
+      <label>Platform</label>
+      <select id="sp-platform" class="fc">
+        <option value="linkedin">LinkedIn</option>
+        <option value="twitter">X / Twitter</option>
+        <option value="instagram">Instagram</option>
+        <option value="website">Website / Blog</option>
+        <option value="youtube">YouTube</option>
+        <option value="other">Other</option>
+      </select>
+    </div>
+    <div class="fg"><label>Handle / URL</label><input class="fc" id="sp-handle" placeholder="@yourhandle or https://..."></div>
+    <div class="fg">
+      <label>Current Bio / About (paste from platform)</label>
+      <textarea class="fc" id="sp-bio" rows="4" placeholder="Paste your current bio or about section here..."></textarea>
+    </div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('social-profile-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveSocialProfile()">Save Profile</button>
+    </div>
+  </div>
+</div>
+
+<!-- PLAN MY WEEK MODAL -->
+<div class="mo hidden" id="week-plan-modal" onclick="if(event.target===this)closeM('week-plan-modal')">
+  <div class="md" style="width:520px;max-width:94vw;max-height:80vh;overflow-y:auto;">
+    <div class="mh"><h3>📋 Plan My Week</h3><button class="mc" onclick="closeM('week-plan-modal')">×</button></div>
+    <div id="wp-step-indicator" style="font-size:11px;color:var(--muted);margin-bottom:12px;">Step 1 of 3</div>
+    <!-- Step 1: Goals check -->
+    <div class="wp-step">
+      <p style="font-size:14px;font-weight:600;margin-bottom:10px;">🎯 Goals Without This-Week Tasks</p>
+      <div id="wp-goals-list"></div>
+    </div>
+    <!-- Step 2: Task intake -->
+    <div class="wp-step" style="display:none;">
+      <p style="font-size:14px;font-weight:600;margin-bottom:10px;">📥 Promote Tasks to This Week</p>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:8px;">Tasks from This Month &amp; Backlog — move the important ones:</p>
+      <div id="wp-task-list" style="max-height:200px;overflow-y:auto;margin-bottom:10px;"></div>
+      <input class="fc" id="wp-quick-add" placeholder="Quick add a task to This Week..." onkeydown="if(event.key==='Enter'){const v=this.value.trim();if(v){S.tasks.push({id:uid(),title:v,notes:'',bucket:'this-week',category:'other',urgency:'low',importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,recurring:'',checklist:[],blockedBy:[],createdAt:new Date().toISOString(),completedAt:null});save();this.value='';_wpRenderTaskList();toast('Task added to This Week!');}}">
+    </div>
+    <!-- Step 3: Intention -->
+    <div class="wp-step" style="display:none;">
+      <p style="font-size:14px;font-weight:600;margin-bottom:10px;">🎯 Set Your Weekly Intention</p>
+      <div id="wp-week-count" style="font-size:12px;color:var(--muted);margin-bottom:10px;"></div>
+      <input class="fc" id="wp-intention" placeholder="My focus this week is... (e.g. Ship the MVP, recover health, deepen relationships)">
+    </div>
+    <div class="mf" style="margin-top:16px;">
+      <button class="btn bg" id="wp-back-btn" onclick="_wpStep(_wpCurrentStep-1)" style="display:none;">← Back</button>
+      <button class="btn bp" id="wp-next-btn" onclick="_wpNext()">Next →</button>
+    </div>
   </div>
 </div>
 

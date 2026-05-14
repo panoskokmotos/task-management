@@ -159,6 +159,11 @@ select.fc option{background:var(--surface2);}
 @keyframes fi{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 @keyframes slideDown{from{opacity:0;transform:translateY(-6px);}to{opacity:1;transform:translateY(0);}}
 @keyframes popIn{0%{transform:scale(.5);opacity:0;}60%{transform:scale(1.2);}100%{transform:scale(1);opacity:1;}}
+@keyframes comboIn{from{scale:.5;opacity:0;}to{scale:1;opacity:1;}}
+.hc-dot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--border);}
+.hc-dot.hc-done{background:#69db7c;}
+.hc-dot.hc-shield{background:#58a6ff;}
+.hc-dot.hc-miss{background:var(--border);opacity:.5;}
 @keyframes toastIn{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 .fi{animation:fi .18s ease;}
 .mob-bar{display:none;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;}
@@ -408,30 +413,37 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 <main class="main">
 
 <!-- DASHBOARD -->
+<div id="v-today" class="view" style="max-width:560px;margin:0 auto;"></div>
+
 <div id="v-dashboard" class="view active">
   <div class="ph">
     <div><h1 id="greeting">Good morning, Panos 👋</h1><p class="sub" id="ddate"></p></div>
-    <div class="row">
-      <button class="btn bg sm" onclick="openCmdK()" title="⌘K">⌘K</button>
-      <button class="btn bg sm" onclick="openChecklist('daily')" id="checklist-btn" title="Daily / Weekly / Monthly Checklist">📋 <span id="checklist-badge" style="display:none;background:#ef4444;color:#fff;border-radius:8px;padding:0 5px;font-size:10px;font-weight:700;"></span></button>
-      <button class="btn bg sm" onclick="openReminderSettings()" title="Reminders" id="remind-btn">🔔</button>
-      <button class="btn bg sm" onclick="showWeeklyDigest()">📊 Digest</button>
-      <button class="btn bg sm" onclick="openTweetGenerator()">🐦 Post</button>
-      <button class="btn bg sm" onclick="aiSequenceTasks()">🔢 Sequence</button>
-      <button class="btn bg sm" onclick="runPriorityAudit()">🤖 Audit</button>
-      <button class="btn bg sm" onclick="showValueAlignment()">🎯 Values</button>
-      <button class="btn bg sm" onclick="showCommitments()">📜 Commits</button>
-      <button class="btn bg sm" onclick="showContextReport()">🔀</button>
-      <button class="btn bg sm" onclick="nav('eod')">🌙 EOD</button>
+    <div class="row" style="flex-wrap:wrap;gap:4px;">
       <button class="btn bg sm" id="start-day-btn" onclick="nav('morning')" style="display:none;">☀️ Start Day</button>
       <button class="btn bg sm" onclick="openQuickAdd()">⚡ Quick Add</button>
+      <button class="btn bg sm" onclick="nav('eod')">🌙 EOD</button>
+      <button class="btn bg sm" onclick="openChecklist('daily')" id="checklist-btn" title="Checklist">📋 <span id="checklist-badge" style="display:none;background:#ef4444;color:#fff;border-radius:8px;padding:0 5px;font-size:10px;font-weight:700;"></span></button>
+      <button class="btn bg sm" onclick="openReminderSettings()" title="Reminders" id="remind-btn">🔔</button>
+      <button class="btn bg sm" onclick="openCmdK()" title="⌘K">⌘K</button>
+      <div style="position:relative;display:inline-block;">
+        <button class="btn bg sm" onclick="this.nextElementSibling.classList.toggle('hidden')" title="More tools">⋯ More</button>
+        <div class="hidden" id="dash-more-menu" style="position:absolute;right:0;top:100%;margin-top:4px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:6px;z-index:200;min-width:160px;display:flex;flex-direction:column;gap:3px;box-shadow:0 8px 24px rgba(0,0,0,.3);">
+          <button class="btn bg sm" onclick="showWeeklyDigest();document.getElementById('dash-more-menu').classList.add('hidden')">📊 Digest</button>
+          <button class="btn bg sm" onclick="openTweetGenerator();document.getElementById('dash-more-menu').classList.add('hidden')">🐦 Post</button>
+          <button class="btn bg sm" onclick="aiSequenceTasks();document.getElementById('dash-more-menu').classList.add('hidden')">🔢 Sequence</button>
+          <button class="btn bg sm" onclick="runPriorityAudit();document.getElementById('dash-more-menu').classList.add('hidden')">🤖 Audit</button>
+          <button class="btn bg sm" onclick="showValueAlignment();document.getElementById('dash-more-menu').classList.add('hidden')">🎯 Values</button>
+          <button class="btn bg sm" onclick="showCommitments();document.getElementById('dash-more-menu').classList.add('hidden')">📜 Commits</button>
+          <button class="btn bg sm" onclick="showContextReport();document.getElementById('dash-more-menu').classList.add('hidden')">🔀 Context</button>
+        </div>
+      </div>
       <button class="btn bp" onclick="openAdd()">+ Add Task</button>
     </div>
   </div>
   <!-- XP BAR -->
-  <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:8px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;flex-wrap:wrap;">
-    <span id="xp-bar-wrap" style="display:flex;align-items:center;gap:4px;"></span>
-    <div id="badges-strip" style="display:flex;gap:4px;flex-wrap:wrap;"></div>
+  <div style="margin-bottom:12px;padding:10px 14px;background:var(--surface);border:1px solid var(--border);border-radius:10px;">
+    <span id="xp-bar-wrap" style="display:block;width:100%;"></span>
+    <div id="badges-strip" style="display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;"></div>
   </div>
   <!-- MOMENTUM SCORE + ONE THING ROW -->
   <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;" id="momentum-row">
@@ -976,10 +988,10 @@ Read 50 books this year"></textarea>
 <button class="fab" onclick="openAdd()">+</button>
 
 <nav class="bnav">
+  <button class="bni" data-v="today" onclick="nav('today')"><span class="bni-ic">☀️</span>Today</button>
   <button class="bni active" data-v="dashboard" onclick="nav('dashboard')"><span class="bni-ic">🏠</span>Home</button>
   <button class="bni" data-v="capture" onclick="nav('capture')"><span class="bni-ic">⚡</span>Capture</button>
   <button class="bni" data-v="buckets" onclick="nav('buckets')"><span class="bni-ic">📦</span>Buckets</button>
-  <button class="bni" data-v="all" onclick="nav('all')"><span class="bni-ic">✅</span>Tasks</button>
   <button class="bni" data-v="goals" onclick="nav('goals')"><span class="bni-ic">🏆</span>Goals</button>
 </nav>
 
@@ -1555,7 +1567,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],xp:0,level:1,badges:[]};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],xp:0,level:1,badges:[],streakShields:2,shieldMonth:'',shieldDays:[],personalBests:{bestTaskDay:0,bestStreak:0,bestWeek:0},monthlyXP:{}};
 let editT=null,editG=null,fCat='all';
 let profileName=localStorage.getItem('taskos_name')||'Panos';
 
@@ -1607,7 +1619,7 @@ function nav(v){
   document.getElementById('s-ov')?.classList.remove('open');
   document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
-function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort,eod:renderEod,decisions:renderDecisions,challenge:renderChallenge,ladder:renderLadder,books:renderBooks,wins:renderWins,bucketlist:renderBucketList,wishlist:renderWishlist,projects:renderProjects,morning:renderMorning})[v]?.();}
+function renderView(v){({today:renderToday,dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort,eod:renderEod,decisions:renderDecisions,challenge:renderChallenge,ladder:renderLadder,books:renderBooks,wins:renderWins,bucketlist:renderBucketList,wishlist:renderWishlist,projects:renderProjects,morning:renderMorning})[v]?.();}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
 
 // ── DASHBOARD ─────────────────────────────────────────────────
@@ -1627,6 +1639,7 @@ function renderDash(){
     <div class="sc"><div class="sn" style="color:var(--bm)">${mc}</div><div class="sl">This Month</div></div>
     <div class="sc"><div class="sn" style="color:var(--bb)">${bc}</div><div class="sl">Backlog</div></div>
     <div class="sc"><div class="sn" style="color:var(--accent)">${dc}</div><div class="sl">Done Today</div></div>`;
+  _refillShields();
   renderTop3();
   const wt=a.filter(t=>t.bucket==='this-week').slice(0,6);
   document.getElementById('dash-week').innerHTML=wt.length?wt.map(t=>tcHTML(t,true)).join(''):'<div class="empty">No tasks this week. <span style="color:var(--accent);cursor:pointer;" onclick="nav(\'buckets\')">Add some →</span></div>';
@@ -2025,15 +2038,32 @@ function delCurTask(){if(editT){delTask(editT);closeM('tm');}}
 
 function toggleDone(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  const wasT3=t.isT3;
   t.status=t.status==='done'?'todo':'done';
   t.completedAt=t.status==='done'?new Date().toISOString():null;
   if(t.status==='done'){
     t.isT3=false;t.t3s=null;_logContextSwitch(t.category);
     _fireConfetti(t.depth);
     _checkTaskMilestone();
-    awardXP(t.isT3?25:10,'Task completed');
   }
   save();refresh();updIBadge();updateChecklistBadge();
+  if(t.status==='done'){
+    try{
+      const base=wasT3?25:10;
+      const {xp:finalXP,reason}=_calcXP(base,wasT3);
+      awardXP(finalXP,reason||'Task completed');
+      _playSound(wasT3?'top3done':'done');
+      if(_comboCount>=2)_showComboBadge(_comboCount>=5?'🔥🔥🔥 ×3 COMBO!':_comboCount>=3?'🔥🔥 ×2 COMBO!':'🔥 ×1.5 COMBO');
+      if(reason&&reason.includes('Lucky'))_playSound('combo');
+      // track monthly XP
+      const mo=new Date().toISOString().slice(0,7);
+      if(!S.monthlyXP)S.monthlyXP={};
+      S.monthlyXP[mo]=(S.monthlyXP[mo]||0)+finalXP;
+      // check auto-shield
+      _autoShield();
+      checkGoalCompletion();
+    }catch(e){console.warn('awardXP error:',e);}
+  }
 }
 
 function mvB(id,b){const t=S.tasks.find(x=>x.id===id);if(!t)return;t.bucket=b;save();refresh();}
@@ -2083,6 +2113,8 @@ function _checkTaskMilestone(){
   const totalDone=S.tasks.filter(t=>t.status==='done').length;
   const TOTAL_MILESTONES={10:'10 tasks completed! 🎉',50:'50 tasks done! 💪',100:'100 tasks! Century club 🏆',250:'250 tasks! Unstoppable 🚀',500:'500 tasks completed! Legend 🌟'};
   if(TOTAL_MILESTONES[totalDone])_showStreakMilestone(TOTAL_MILESTONES[totalDone]);
+  _updatePersonalBests();
+  _checkMysteryBadges();
 }
 
 function _showStreakMilestone(msg){
@@ -2092,6 +2124,7 @@ function _showStreakMilestone(msg){
   el.classList.add('show');
   clearTimeout(el._t);
   el._t=setTimeout(()=>el.classList.remove('show'),3500);
+  _playSound('streak');
 }
 
 function addT3(id){
@@ -3180,16 +3213,20 @@ function renderHabits(){
     <div class="los-card los-stat"><div class="los-stat-n" style="color:#69db7c;">${doneToday.length}/${habits.length}</div><div class="los-stat-l">Done today</div></div>
     <div class="los-card los-stat"><div class="los-stat-n" style="color:#fbbf24;">${_habitStreak()}</div><div class="los-stat-l">Day streak (all done)</div></div>
     <div class="los-card los-stat"><div class="los-stat-n" style="color:#74c0fc;">${habits.length}</div><div class="los-stat-l">Active habits</div></div>`;
+  const chainDays21=[];for(let i=20;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);chainDays21.push(d.toISOString().slice(0,10));}
   if(!habits.length){
     document.getElementById('habits-checklist').innerHTML='<div class="empty">No habits yet. Click ⚙️ Manage Habits to add some.</div>';
   } else {
     document.getElementById('habits-checklist').innerHTML=`<h3 style="margin-bottom:12px;">Today's Habits</h3>`+habits.map(h=>`
-      <div class="habit-row">
-        <div class="habit-ck ${todayLog[h]?'on':''}" onclick="toggleHabit('${h.replace(/'/g,"\'")}')">
-          ${todayLog[h]?'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':''}
+      <div class="habit-row" style="flex-direction:column;align-items:flex-start;gap:6px;padding-bottom:10px;border-bottom:1px solid var(--border);margin-bottom:4px;">
+        <div style="display:flex;align-items:center;gap:10px;width:100%;">
+          <div class="habit-ck ${todayLog[h]?'on':''}" onclick="toggleHabit('${h.replace(/'/g,"\'")}')">
+            ${todayLog[h]?'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':''}
+          </div>
+          <span style="font-size:13px;flex:1;">${h}</span>
+          ${todayLog[h]?'<span style="font-size:12px;color:#69db7c;">✓ Done</span>':''}
         </div>
-        <span style="font-size:13px;flex:1;">${h}</span>
-        ${todayLog[h]?'<span style="font-size:12px;color:#69db7c;">✓ Done</span>':''}
+        <div style="display:flex;gap:3px;padding-left:34px;" title="Last 21 days">${_habitChainHTML(h,chainDays21)}</div>
       </div>`).join('');
   }
   // Heatmap (last 28 days)
@@ -4650,7 +4687,8 @@ function toggleSB(){
 }
 
 // ── INIT ──────────────────────────────────────────────────────
-load();seed();seedGoals();resetRecurring();
+load();seed();seedGoals();resetRecurring();_refillShields();
+document.addEventListener('click',e=>{const m=document.getElementById('dash-more-menu');if(m&&!m.contains(e.target)&&!m.previousElementSibling?.contains(e.target))m.classList.add('hidden');});
 document.title='Task OS — '+profileName;
 const _lastP=localStorage.getItem('taskos_lastview');
 if(_lastP&&_lastP!=='dashboard'){nav(_lastP);}else{renderDash();}
@@ -6127,6 +6165,8 @@ function showLevelUp(level){
   document.getElementById('lvu-sub').textContent=`Keep it up. You're becoming unstoppable.`;
   ov.style.cssText='display:flex;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.75);align-items:center;justify-content:center;flex-direction:column;text-align:center;';
   updateXPBar();
+  _playSound('levelup');
+  _fireConfetti('deep');
 }
 function updateXPBar(){
   const el=document.getElementById('xp-bar-wrap');
@@ -6134,7 +6174,29 @@ function updateXPBar(){
   const xp=getXP(),lvl=getLevel(),next=lvl*200,prev=(lvl-1)*200;
   const pct=Math.min(100,Math.round((xp-prev)/(next-prev)*100));
   const name=LEVEL_NAMES[lvl]||'';
-  el.innerHTML=`<span style="font-size:11px;font-weight:700;color:var(--accent);">Lv.${lvl}</span><div style="width:60px;height:5px;background:var(--border);border-radius:3px;overflow:hidden;margin:0 4px;"><div style="height:5px;width:${pct}%;background:var(--accent);border-radius:3px;transition:width .3s;"></div></div><span style="font-size:10px;color:var(--muted);">${xp} XP</span>`;
+  const shields=S.streakShields||0;
+  const streak=_taskStreak();
+  const pb=S.personalBests||{};
+  const today=new Date().toISOString().slice(0,10);
+  const todayDone=S.tasks.filter(t=>t.completedAt?.slice(0,10)===today).length;
+  el.innerHTML=`
+    <div style="width:100%;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:5px;flex-wrap:wrap;gap:6px;">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span style="font-size:12px;font-weight:800;color:var(--accent);">Lv.${lvl} ${name}</span>
+          <span style="font-size:11px;color:var(--muted);">${xp} XP · ${next-xp} to next</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span style="font-size:12px;font-weight:700;color:#fbbf24;" title="Task completion streak">🔥 ${streak}d</span>
+          <span style="font-size:12px;font-weight:700;color:#58a6ff;" title="Streak shields remaining this month — auto-used when you miss a day">🛡 ${shields}</span>
+          ${pb.bestTaskDay>0?`<span style="font-size:11px;color:var(--muted);" title="Today vs your personal best day">📊 Today ${todayDone}/${pb.bestTaskDay} PB</span>`:''}
+          <button id="sound-toggle-btn" onclick="toggleSound()" style="background:none;border:none;cursor:pointer;font-size:14px;padding:0;" title="Toggle sounds">${_soundOn()?'🔊':'🔇'}</button>
+        </div>
+      </div>
+      <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;">
+        <div style="height:6px;width:${pct}%;background:linear-gradient(90deg,var(--accent),#a78bfa);border-radius:3px;transition:width .4s;"></div>
+      </div>
+    </div>`;
 }
 function checkBadges(){
   if(!S.badges)S.badges=[];
@@ -6165,22 +6227,38 @@ function checkBadges(){
 }
 function _taskStreak(){
   const today=new Date();today.setHours(0,0,0,0);
+  const shielded=new Set(S.shieldDays||[]);
   let streak=0,d=new Date(today);
   while(true){
     const ds=d.toISOString().slice(0,10);
-    const had=S.tasks.some(t=>t.completedAt&&t.completedAt.slice(0,10)===ds);
+    const had=S.tasks.some(t=>t.completedAt&&t.completedAt.slice(0,10)===ds)||shielded.has(ds);
     if(!had)break;
     streak++;d.setDate(d.getDate()-1);
     if(streak>400)break;
   }
   return streak;
 }
+function _autoShield(){
+  // If yesterday had no tasks and a shield is available, auto-use it
+  const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
+  const yd=yesterday.toISOString().slice(0,10);
+  const hadYesterday=S.tasks.some(t=>t.completedAt&&t.completedAt.slice(0,10)===yd);
+  const alreadyShielded=(S.shieldDays||[]).includes(yd);
+  if(!hadYesterday&&!alreadyShielded&&(S.streakShields||0)>0){_useShield(yd);}
+}
 function _renderBadgesStrip(){
   const el=document.getElementById('badges-strip');
   if(!el)return;
   const badges=S.badges||[];
-  if(!badges.length){el.innerHTML='<span style="font-size:11px;color:var(--muted);">No badges yet — complete tasks to earn them!</span>';return;}
-  el.innerHTML=badges.map(b=>`<span title="${b.name}: ${b.desc}" style="cursor:default;font-size:16px;">${b.emoji}</span>`).join('');
+  const mysteryLocked=[
+    {id:'nightOwl',hint:'🌙 ???',tip:'Secret: complete tasks late at night'},
+    {id:'century',hint:'💯 ???',tip:'Secret: complete 8+ tasks in one day'},
+    {id:'sniper',hint:'🎯 ???',tip:'Secret: intentional minimalist day'},
+    {id:'fortnight',hint:'🌟 ???',tip:'Secret: 14-day streak achieved'},
+  ].filter(m=>!badges.some(b=>b.id===m.id));
+  if(!badges.length&&!mysteryLocked.length){el.innerHTML='<span style="font-size:11px;color:var(--muted);">No badges yet — complete tasks to earn them!</span>';return;}
+  el.innerHTML=badges.map(b=>`<span title="${b.name}: ${b.desc}" style="cursor:default;font-size:16px;">${b.emoji}</span>`).join('')
+    +mysteryLocked.map(m=>`<span title="${m.tip}" style="cursor:default;font-size:14px;opacity:.45;">${m.hint}</span>`).join('');
 }
 
 // ── AI DECISION ADVISOR ───────────────────────────────────────────
@@ -6704,6 +6782,242 @@ function confirmPasteImport(){
 // shared close helper (some modals use closeModal, some closeM — unify)
 function closeModal(id){document.getElementById(id)?.classList.add('hidden');}
 
+// ── SOUND DESIGN ─────────────────────────────────────────────
+let _audioCtx=null;
+function _getAudio(){if(!_audioCtx){try{_audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}return _audioCtx;}
+function _soundOn(){return localStorage.getItem('taskos_sounds')!=='off';}
+function toggleSound(){const on=_soundOn();localStorage.setItem('taskos_sounds',on?'off':'on');const btn=document.getElementById('sound-toggle-btn');if(btn)btn.textContent=on?'🔇':'🔊';toast(on?'Sound off':'Sound on 🔊');}
+function _playTone(freq,type='sine',duration=0.2,vol=0.3,delay=0){
+  const ctx=_getAudio();if(!ctx)return;
+  const osc=ctx.createOscillator();const gain=ctx.createGain();
+  osc.connect(gain);gain.connect(ctx.destination);
+  osc.type=type;osc.frequency.setValueAtTime(freq,ctx.currentTime+delay);
+  gain.gain.setValueAtTime(0,ctx.currentTime+delay);
+  gain.gain.linearRampToValueAtTime(vol,ctx.currentTime+delay+0.01);
+  gain.gain.exponentialRampToValueAtTime(0.001,ctx.currentTime+delay+duration);
+  osc.start(ctx.currentTime+delay);osc.stop(ctx.currentTime+delay+duration+0.05);
+}
+function _playSound(type){
+  if(!_soundOn())return;
+  if(type==='done'){_playTone(523,  'sine',0.15,0.25);_playTone(784,'sine',0.12,0.18,0.1);}
+  else if(type==='top3done'){_playTone(523,'sine',0.1,0.2);_playTone(659,'sine',0.1,0.2,0.1);_playTone(784,'sine',0.18,0.25,0.2);}
+  else if(type==='levelup'){_playTone(523,'sine',0.12,0.3);_playTone(659,'sine',0.12,0.3,0.13);_playTone(784,'sine',0.15,0.3,0.26);_playTone(1047,'sine',0.22,0.35,0.4);}
+  else if(type==='streak'){_playTone(880,'sine',0.08,0.2);_playTone(1046,'sine',0.08,0.22,0.09);_playTone(1318,'sine',0.15,0.28,0.18);}
+  else if(type==='shield'){_playTone(440,'sine',0.08,0.15);_playTone(330,'sine',0.12,0.12,0.1);}
+  else if(type==='combo'){_playTone(660,'square',0.06,0.15);_playTone(880,'square',0.08,0.18,0.07);}
+  else if(type==='goal'){_playTone(523,'sine',0.1,0.3);_playTone(659,'sine',0.1,0.3,0.12);_playTone(784,'sine',0.1,0.3,0.24);_playTone(1047,'sine',0.1,0.35,0.36);_playTone(1318,'sine',0.25,0.4,0.5);}
+}
+
+// ── STREAK SHIELD SYSTEM ──────────────────────────────────────
+function _refillShields(){
+  const month=new Date().toISOString().slice(0,7);
+  if(!S.shieldMonth||S.shieldMonth!==month){S.streakShields=2;S.shieldMonth=month;if(!S.shieldDays)S.shieldDays=[];save();}
+}
+function _useShield(dateStr){
+  if(!S.streakShields||S.streakShields<=0)return false;
+  S.streakShields--;if(!S.shieldDays)S.shieldDays=[];S.shieldDays.push(dateStr);save();
+  _playSound('shield');toast(`🛡 Streak shield used! (${S.streakShields} remaining)`);
+  return true;
+}
+
+// ── COMBO + VARIABLE XP ────────────────────────────────────────
+let _comboCount=0,_comboTimer=null;
+function _calcXP(base,wasT3){
+  let xp=base,reasons=[];
+  // combo multiplier
+  _comboCount++;
+  clearTimeout(_comboTimer);
+  _comboTimer=setTimeout(()=>{_comboCount=0;},3*60*1000);
+  if(_comboCount===2){xp=Math.round(xp*1.5);reasons.push('🔥 ×1.5 Combo');}
+  else if(_comboCount===3){xp=Math.round(xp*2);reasons.push('🔥🔥 ×2 Combo');}
+  else if(_comboCount>=5){xp=Math.round(xp*3);reasons.push('🔥🔥🔥 ×3 COMBO!');}
+  // lucky drop (20%)
+  if(Math.random()<0.2){xp=Math.round(xp*2);reasons.push('🎰 Lucky Drop!');}
+  return {xp,reason:reasons.join(' ')};
+}
+function _showComboBadge(label){
+  const old=document.getElementById('combo-badge');if(old)old.remove();
+  const el=document.createElement('div');el.id='combo-badge';
+  el.style.cssText='position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#ff6b6b,#fbbf24);color:#fff;padding:8px 20px;border-radius:24px;font-size:14px;font-weight:800;z-index:9997;animation:comboIn .25s ease;pointer-events:none;box-shadow:0 4px 20px rgba(255,107,107,.4);letter-spacing:.5px;';
+  el.textContent=label;document.body.appendChild(el);
+  setTimeout(()=>{el.style.opacity='0';el.style.transition='opacity .4s';setTimeout(()=>el.remove(),450);},2200);
+}
+
+// ── PERSONAL BEST TRACKING ─────────────────────────────────────
+function _updatePersonalBests(){
+  if(!S.personalBests)S.personalBests={bestTaskDay:0,bestStreak:0,bestWeek:0};
+  const today=new Date().toISOString().slice(0,10);
+  const todayDone=S.tasks.filter(t=>t.completedAt?.slice(0,10)===today).length;
+  if(todayDone>S.personalBests.bestTaskDay){S.personalBests.bestTaskDay=todayDone;save();toast(`🏅 New daily record: ${todayDone} tasks!`);}
+  const streak=_taskStreak();
+  if(streak>S.personalBests.bestStreak){S.personalBests.bestStreak=streak;save();}
+  // weekly (Sun-Sat window)
+  const now=new Date();const dayOfWeek=now.getDay();
+  const weekDays=[];for(let i=0;i<7;i++){const d=new Date(now);d.setDate(now.getDate()-dayOfWeek+i);weekDays.push(d.toISOString().slice(0,10));}
+  const weekDone=S.tasks.filter(t=>t.completedAt&&weekDays.includes(t.completedAt.slice(0,10))).length;
+  if(weekDone>S.personalBests.bestWeek){S.personalBests.bestWeek=weekDone;save();}
+  // track monthly XP
+  const month=new Date().toISOString().slice(0,7);
+  if(!S.monthlyXP)S.monthlyXP={};
+}
+
+// ── GOAL COMPLETION CELEBRATION ────────────────────────────────
+function checkGoalCompletion(){
+  const goals=S.goals||[];
+  goals.forEach(g=>{
+    const s=goalStats(g.id);
+    if(s.total>0&&s.done===s.total&&!g._celebrated){
+      g._celebrated=true;save();
+      _showGoalCelebration(g.title);
+      awardXP(100,'Goal completed!');
+      _playSound('goal');
+    }
+  });
+}
+function _showGoalCelebration(title){
+  const el=document.getElementById('goal-celebration-overlay');
+  if(!el)return;
+  document.getElementById('gcov-title').textContent=title;
+  el.style.display='flex';
+  _fireConfetti('deep');
+  setTimeout(()=>{el.style.display='none';},6000);
+}
+
+// ── HABIT CHAIN VISUALIZATION ──────────────────────────────────
+function _habitChainHTML(habit,days){
+  return days.map(d=>{
+    const shielded=(S.shieldDays||[]).includes(d);
+    const done=(S.habitLogs?.[d]||{})[habit];
+    const cls=done?'hc-done':(shielded?'hc-shield':'hc-miss');
+    return`<span class="hc-dot ${cls}" title="${d}"></span>`;
+  }).join('');
+}
+
+// ── MYSTERY BADGES ─────────────────────────────────────────────
+function _checkMysteryBadges(){
+  if(!S.badges)S.badges=[];
+  const earned=new Set(S.badges.map(b=>b.id));
+  const add=b=>{if(!earned.has(b.id)){S.badges.push({...b,earnedAt:new Date().toISOString()});save();toast(`${b.emoji} Secret badge unlocked: ${b.name}!`);awardXP(75,'Mystery badge');}}
+  // Night Owl: 3 tasks after 11pm
+  const nightTasks=S.tasks.filter(t=>{if(!t.completedAt)return false;const h=new Date(t.completedAt).getHours();return h>=23;}).length;
+  if(nightTasks>=3)add({id:'nightOwl',name:'Night Owl',emoji:'🌙',desc:'Completed tasks after 11pm',mystery:true});
+  // Century: 100+ XP in total daily (check if today's tasks XP would exceed 100)
+  const today=new Date().toISOString().slice(0,10);
+  const todayCount=S.tasks.filter(t=>t.completedAt?.slice(0,10)===today).length;
+  if(todayCount>=8)add({id:'century',name:'Century',emoji:'💯',desc:'Completed 8+ tasks in one day',mystery:true});
+  // Sniper: One Thing done, only 1 task completed that day total
+  const oneThing=S.oneThing||[];
+  const todayOT=oneThing.find(o=>o.date===today&&o.done);
+  if(todayOT&&todayCount===1)add({id:'sniper',name:'Sniper',emoji:'🎯',desc:'Only completed The One Thing — intentional minimalist',mystery:true});
+  // Consistent: task streak >= 14 days
+  if(_taskStreak()>=14)add({id:'fortnight',name:'Fortnight',emoji:'🌟',desc:'14-day task completion streak',mystery:true});
+}
+
+// ── TODAY VIEW ─────────────────────────────────────────────────
+function calcTodayScore(){
+  const today=new Date().toISOString().slice(0,10);
+  const ot=(S.oneThing||[]).find(o=>o.date===today);
+  const otDone=ot&&ot.done?40:0;
+  const t3=S.tasks.filter(t=>t.isT3&&t.status==='done'&&t.completedAt?.slice(0,10)===today).length;
+  const t3Score=Math.round(Math.min(t3/3,1)*30);
+  const habits=S.habits||[];
+  const todayLog=S.habitLogs?.[today]||{};
+  const habDone=habits.length?habits.filter(h=>todayLog[h]).length:0;
+  const habScore=habits.length?Math.round(habDone/habits.length*20):0;
+  const todayC=_todayChallenge?.();
+  const chalScore=todayC?.completed?10:0;
+  return Math.min(100,otDone+t3Score+habScore+chalScore);
+}
+function renderToday(){
+  const today=new Date().toISOString().slice(0,10);
+  const score=calcTodayScore();
+  // XP + streak header
+  const xp=getXP(),lvl=getLevel(),next=lvl*200,prev=(lvl-1)*200;
+  const xpPct=Math.min(100,Math.round((xp-prev)/(next-prev)*100));
+  const streak=_taskStreak();
+  const shields=S.streakShields||0;
+  // One Thing
+  const ot=(S.oneThing||[]).find(o=>o.date===today);
+  // Top 3
+  const top3=S.tasks.filter(t=>t.isT3&&t.status!=='done').sort((a,b)=>a.t3s-b.t3s);
+  const t3Labels=['🟣 Givelink','📚 Growth','⚡ Wildcard'];
+  // Habits
+  const habits=S.habits||[];
+  const todayLog=S.habitLogs?.[today]||{};
+  // Challenge
+  const todayC=typeof _todayChallenge==='function'?_todayChallenge():null;
+  // Habit chain: last 14 days
+  const chainDays=[];for(let i=13;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);chainDays.push(d.toISOString().slice(0,10));}
+  const el=document.getElementById('v-today');if(!el)return;
+  el.innerHTML=`
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+    <div>
+      <div style="font-size:18px;font-weight:800;color:var(--text);">⚡ TODAY</div>
+      <div style="font-size:12px;color:var(--muted);">${new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</div>
+    </div>
+    <div style="text-align:right;">
+      <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">🔥 ${streak}d streak · 🛡 ${shields} shields</div>
+      <div style="font-size:10px;color:var(--muted);">Lv.${lvl} · ${xp} XP</div>
+    </div>
+  </div>
+  <!-- XP bar -->
+  <div style="height:4px;background:var(--border);border-radius:2px;margin-bottom:14px;overflow:hidden;">
+    <div style="height:4px;width:${xpPct}%;background:var(--accent);border-radius:2px;transition:width .4s;"></div>
+  </div>
+  <!-- Daily Score Ring -->
+  <div style="display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:14px;">
+    <div style="position:relative;width:64px;height:64px;flex-shrink:0;">
+      <svg width="64" height="64" viewBox="0 0 64 64" style="transform:rotate(-90deg);">
+        <circle cx="32" cy="32" r="26" fill="none" stroke="var(--border)" stroke-width="7"/>
+        <circle cx="32" cy="32" r="26" fill="none" stroke="${score>=80?'#69db7c':score>=50?'#fbbf24':'#58a6ff'}" stroke-width="7" stroke-dasharray="${2*Math.PI*26}" stroke-dashoffset="${2*Math.PI*26*(1-score/100)}" stroke-linecap="round" style="transition:stroke-dashoffset .5s;"/>
+      </svg>
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:var(--text);">${score}%</div>
+    </div>
+    <div>
+      <div style="font-size:13px;font-weight:700;color:var(--text);">Daily Score</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:3px;">${score>=80?'Crushing it! 🏆':score>=50?'Good momentum 🔥':score===0?'Let\'s get started →':'Keep going 💪'}</div>
+      <div style="font-size:11px;color:var(--muted);margin-top:4px;">One Thing·Top3·Habits·Challenge</div>
+    </div>
+  </div>
+  <!-- ONE THING -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:14px;">
+    <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">🎯 Your One Thing</div>
+    ${ot?`<div style="font-size:15px;font-weight:600;color:var(--text);line-height:1.4;padding:12px;background:var(--surface2);border-radius:10px;border-left:3px solid var(--accent);">${esc(ot.text||ot.title||'')}</div>${ot.done?'<div style="margin-top:8px;font-size:12px;color:#69db7c;">✓ Done — well done!</div>':'<div style="margin-top:8px;font-size:12px;color:var(--muted);">Focus here first.</div>'}`:'<div style="font-size:13px;color:var(--muted);padding:12px 0;">No One Thing set. <span style="color:var(--accent);cursor:pointer;" onclick="nav(\'dashboard\')">Set it on the dashboard →</span></div>'}
+  </div>
+  <!-- TOP 3 -->
+  <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:14px;">
+    <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;">⭐ Top 3</div>
+    ${[1,2,3].map(s=>{const t=top3.find(x=>x.t3s===s);return t?`<div style="display:flex;align-items:flex-start;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);">
+      <div class="ck ${t.status==='done'?'on':''}" onclick="toggleDone('${t.id}');renderToday();" style="margin-top:2px;flex-shrink:0;"></div>
+      <div style="flex:1;"><div style="font-size:13px;font-weight:500;color:var(--text);">${esc(t.title)}</div><div style="font-size:11px;color:var(--muted);margin-top:2px;">${t3Labels[s-1]}</div></div>
+    </div>`:`<div style="padding:9px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted);">${t3Labels[s-1]} — <span style="color:var(--accent);cursor:pointer;" onclick="nav('buckets')">Pick a task →</span></div>`;}).join('')}
+  </div>
+  <!-- HABITS -->
+  ${habits.length?`<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:14px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;">🏃 Habits Today</div>
+      <div style="font-size:12px;color:var(--muted);">${habits.filter(h=>todayLog[h]).length}/${habits.length}</div>
+    </div>
+    ${habits.slice(0,5).map(h=>`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);">
+      <div class="habit-ck ${todayLog[h]?'on':''}" onclick="toggleHabit('${h.replace(/'/g,"\\'")}');renderToday();" style="flex-shrink:0;">${todayLog[h]?'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':''}</div>
+      <span style="flex:1;font-size:13px;color:var(--text);">${esc(h)}</span>
+      <div style="display:flex;gap:2px;">${_habitChainHTML(h,chainDays.slice(-7))}</div>
+    </div>`).join('')}
+  </div>`:''}
+  <!-- CHALLENGE -->
+  ${todayC?`<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;margin-bottom:14px;">
+    <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">⚡ Daily Challenge</div>
+    <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:8px;">${esc(todayC.title)}</div>
+    ${todayC.completed?'<div style="font-size:12px;color:#69db7c;">✅ Completed — great work!</div>':`<button class="btn bp sm" onclick="completeChallenge();renderToday();">✅ Mark Complete</button>`}
+  </div>`:''}
+  <!-- Footer actions -->
+  <div style="display:flex;gap:8px;margin-top:4px;margin-bottom:20px;">
+    <button class="btn bp" onclick="openAdd()" style="flex:1;">+ Add Task</button>
+    <button class="btn bg" onclick="nav('all')" style="flex:1;">All Tasks →</button>
+  </div>`;
+}
+
+
 </script>
 
 <!-- DECISION MODAL -->
@@ -7085,6 +7399,15 @@ function closeModal(id){document.getElementById(id)?.classList.add('hidden');}
 <div id="v-morning" class="view" style="max-width:560px;margin:0 auto;">
   <div id="morning-body"></div>
   <div id="morning-nav" style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;"></div>
+</div>
+
+<!-- GOAL CELEBRATION OVERLAY -->
+<div id="goal-celebration-overlay" style="display:none;position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,.82);align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px;">
+  <div style="font-size:72px;margin-bottom:16px;animation:popIn .4s cubic-bezier(.34,1.56,.64,1);">🏆</div>
+  <div style="font-size:26px;font-weight:900;color:#fff;margin-bottom:8px;">Goal Completed!</div>
+  <div id="gcov-title" style="font-size:17px;color:#fbbf24;font-weight:700;margin-bottom:16px;max-width:340px;line-height:1.4;"></div>
+  <div style="font-size:15px;color:#69db7c;font-weight:700;margin-bottom:24px;">+100 XP Bonus 🎉</div>
+  <button class="btn bp" onclick="document.getElementById('goal-celebration-overlay').style.display='none'" style="padding:12px 32px;font-size:15px;">Keep Going! 🚀</button>
 </div>
 </body>
 </html>

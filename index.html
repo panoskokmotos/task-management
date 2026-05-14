@@ -372,7 +372,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div style="padding:8px 10px 10px;border-bottom:1px solid var(--border);margin-bottom:4px;">
     <div style="display:flex;gap:5px;">
       <button style="flex:1;padding:7px 6px;border-radius:8px;border:none;cursor:pointer;font-size:11px;font-weight:700;background:var(--accent);color:#000;letter-spacing:.2px;">🏠 Personal</button>
-      <a href="givelink.html" style="flex:1;padding:7px 6px;border-radius:8px;border:1px solid rgba(167,139,250,.4);cursor:pointer;font-size:11px;font-weight:700;background:rgba(167,139,250,.1);color:#a78bfa;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center;gap:4px;letter-spacing:.2px;" title="Switch to Givelink Sprint Board (⌘2)">🟣 Givelink</a>
+      <a href="givelink.html" style="flex:1;padding:7px 6px;border-radius:8px;border:1px solid var(--border);cursor:pointer;font-size:11px;font-weight:700;background:var(--surface2);color:var(--text);text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center;gap:4px;letter-spacing:.2px;" title="Switch to Givelink Sprint Board (⌘2)">🟣 Givelink</a>
     </div>
   </div>
   <div class="ns">Main</div>
@@ -1933,6 +1933,12 @@ function renderWizPanel(){
       <div class="fg"><label>🎯 Focus for next week?</label><textarea class="fc" id="rf" placeholder="The single most important thing..."></textarea></div>
       <div class="fg" style="margin-top:4px;border-top:1px solid var(--border);padding-top:10px;"><label style="color:var(--accent);font-weight:700;">📜 This Week I Commit To</label><input class="fc" id="rcommit" placeholder="e.g. Book 2 demo calls. No excuses."></div>
       <div class="fg"><label>If I don't follow through, it's because</label><input class="fc" id="rifnot" placeholder="Name your most likely excuse in advance..."></div>
+      <div class="fg" style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px;">
+        <label style="color:var(--accent);font-weight:700;">📝 Weekly Notes (brain dump)</label>
+        <textarea class="fc" id="rweeklyNotes" rows="5" placeholder="Paste or type your notes, thoughts, meetings, insights from this week...&#10;&#10;Claude will help you turn them into tasks."></textarea>
+        <button class="btn bg sm" style="margin-top:6px;" onclick="suggestTasksFromNotes()">🤖 Suggest Tasks from Notes</button>
+      </div>
+      <div id="weekly-task-suggestions" style="margin-top:10px;"></div>
     </div>
     ${rev.length?`<h3 style="margin:14px 0 8px;font-size:13px;color:var(--muted);">Past Reviews</h3>${rev.map(r=>`<div class="card" style="margin-bottom:8px;"><div style="font-weight:600;margin-bottom:4px;font-size:13px;">📅 ${fd(r.weekOf)}</div>${r.focus?`<div style="font-size:12px;color:var(--muted);">🎯 ${r.focus}</div>`:''}</div>`).join('')}`:''}
     <div class="wiz-nav"><button class="btn bg" onclick="goStep(3)">← Back</button><button class="btn bp" onclick="finishReview()">✅ Save & Finish</button></div>`;
@@ -1950,7 +1956,9 @@ function finishReview(){
     wentWell:document.getElementById('rw')?.value||'',
     improve:document.getElementById('ri')?.value||'',
     focus:document.getElementById('rf')?.value||'',
-    snapshot:{tasksCompleted:done.length,totalActive:active().length,goalsCount:S.goals.length,byCategory}
+    weeklyNotes:document.getElementById('rweeklyNotes')?.value||'',
+    commitment:commit,
+    snapshot:{tasksCompleted:done.length,totalActive:active().length,goalsCount:S.goals.length,byCategory,habitStreak:_habitStreak(),taskStreak:_taskStreak()}
   };
   S.reviews.push(review);
   // also persist to external history for the history view
@@ -1961,6 +1969,39 @@ function finishReview(){
   const sub=document.getElementById('wiz-sub');
   if(sub){sub.textContent='✅ Review saved! See you next week.';setTimeout(()=>{sub.textContent='Every Sunday · 20 min · non-negotiable.';},3000);}
   wizStep=0;renderWizBar();renderWizPanel();
+}
+
+// ── WEEKLY NOTES → TASK SUGGESTIONS ──────────────────────────
+async function suggestTasksFromNotes(){
+  const notes=document.getElementById('rweeklyNotes')?.value.trim();
+  if(!notes){toast('Add some notes first');return;}
+  const el=document.getElementById('weekly-task-suggestions');
+  if(!el)return;
+  el.innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px 0;">⏳ Thinking...</div>';
+  const about=getAboutMe();
+  const prompt=`${about?`Context about this person: ${about}\n\n`:''}Based on these weekly notes, extract 5-8 concrete, actionable tasks the person should do next week. Be specific — convert vague ideas into actual to-dos.\n\nReturn ONLY a JSON array with no markdown: [{"title":"...","category":"work|health|learning|finance|relationships|other","urgency":"high|low"}]\n\nWeekly notes:\n${notes}`;
+  let txt;
+  try{txt=await callClaude(prompt,500);}catch(e){el.innerHTML='<div style="color:#ef4444;font-size:12px;">AI unavailable — add your Claude key in Settings.</div>';return;}
+  if(!txt){el.innerHTML='<div style="color:#ef4444;font-size:12px;">No response from AI.</div>';return;}
+  try{
+    const arr=JSON.parse(txt.match(/\[[\s\S]*\]/)?.[0]||'[]');
+    if(!arr.length){el.innerHTML='<div style="font-size:12px;color:var(--muted);">No tasks extracted — try adding more detail to your notes.</div>';return;}
+    window._suggestedTasks=arr;
+    el.innerHTML=`<div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px;">🤖 ${arr.length} suggested tasks — tap to add to Inbox:</div>`
+      +arr.map((t,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:7px 8px;border:1px solid var(--border);border-radius:8px;margin-bottom:4px;" id="ws-row-${i}">
+        <span style="flex:1;font-size:12px;">${esc(t.title)}</span>
+        <span style="font-size:10px;color:var(--muted);">${CATS[t.category]?.e||'📌'}</span>
+        <button class="btn bg sm" onclick="addSuggestedTask(${i})">+ Add</button>
+      </div>`).join('');
+  }catch(e){el.innerHTML='<div style="color:#ef4444;font-size:12px;">Could not parse AI suggestions. Try again.</div>';}
+}
+function addSuggestedTask(i){
+  const t=(window._suggestedTasks||[])[i];if(!t)return;
+  S.tasks.push({id:uid(),title:t.title,notes:'',bucket:'inbox',category:t.category||'other',urgency:t.urgency||'low',importance:'high',energy:'high',status:'todo',isT3:false,t3s:null,createdAt:new Date().toISOString(),completedAt:null,goalId:null});
+  save();
+  const row=document.getElementById('ws-row-'+i);
+  if(row){row.style.opacity='.5';const btn=row.querySelector('button');if(btn){btn.textContent='✓ Added';btn.disabled=true;}}
+  toast('Added to Inbox: '+t.title);
 }
 
 // ── TASK CARD HTML ────────────────────────────────────────────
@@ -3666,16 +3707,36 @@ function renderChallenge(){
       </div>`;
   }
   // History
-  const history=(S.challengeLogs||[]).slice().reverse().slice(0,30);
-  document.getElementById('dc-history').innerHTML=history.length?history.map(c=>`
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
-      <span style="font-size:18px;">${c.completed?'✅':'⬜'}</span>
-      <div style="flex:1;">
-        <div style="font-size:13px;font-weight:500;">${c.title}</div>
-        <div style="font-size:11px;color:var(--muted);">${c.date} · ${CAT_ICONS[c.cat]||'⚡'} ${c.cat}</div>
+  const history=(S.challengeLogs||[]).slice().reverse().slice(0,60);
+  const doneCount=history.filter(c=>c.completed).length;
+  const histEl=document.getElementById('dc-history');
+  if(histEl){
+    histEl.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-size:13px;font-weight:700;">📜 Past Challenges <span style="font-size:11px;color:var(--muted);font-weight:400;">(${history.length} total · ${doneCount} completed)</span></div>
+      ${history.length>8?`<button class="btn bg sm" id="dc-show-all-btn" onclick="document.getElementById('dc-hist-extra').classList.toggle('hidden');this.textContent=this.textContent.includes('Show')?'Show less ↑':'Show all (${history.length}) ↓'">Show all (${history.length}) ↓</button>`:''}
+    </div>
+    ${history.length?`
+    ${history.slice(0,8).map(c=>`
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:18px;flex-shrink:0;">${c.completed?'✅':'⬜'}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:500;">${esc(c.title)}</div>
+        ${c.why?`<div style="font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4;">${esc(c.why)}</div>`:''}
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;">${c.date} · ${CAT_ICONS[c.cat]||'⚡'} ${c.cat} · ${DIFF_LABELS[c.diff]||''}</div>
       </div>
-      <span style="font-size:11px;color:var(--muted);">${DIFF_LABELS[c.diff]||''}</span>
-    </div>`).join(''):'<div class="empty">No challenges yet. Accept one above!</div>';
+    </div>`).join('')}
+    ${history.length>8?`<div id="dc-hist-extra" class="hidden">${history.slice(8).map(c=>`
+    <div style="display:flex;align-items:flex-start;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:18px;flex-shrink:0;">${c.completed?'✅':'⬜'}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:500;">${esc(c.title)}</div>
+        ${c.why?`<div style="font-size:11px;color:var(--muted);margin-top:2px;">${esc(c.why)}</div>`:''}
+        <div style="font-size:11px;color:var(--muted);margin-top:3px;">${c.date} · ${CAT_ICONS[c.cat]||'⚡'} ${c.cat}</div>
+      </div>
+    </div>`).join('')}</div>`:''}
+    `:'<div class="empty">No challenges yet. Accept one above!</div>'}`;
+  }
   renderChallengeLeaderboard();
 }
 function acceptChallenge(libId){
@@ -4630,17 +4691,23 @@ function renderHistoryView(){
   el.innerHTML=hist.map(r=>{
     const snap=r.snapshot||{};
     const top=Object.entries(snap.byCategory||{}).filter(([,v])=>v>0).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    const notesPreview=r.weeklyNotes?r.weeklyNotes.slice(0,220)+(r.weeklyNotes.length>220?'…':''):'';
     return`<div class="rs">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:6px;">
         <div>
           <div style="font-weight:600;font-size:14px;">📅 Week of ${fd(r.weekOf)}</div>
-          ${snap.tasksCompleted!=null?`<div style="font-size:12px;color:var(--muted);margin-top:2px;">✅ ${snap.tasksCompleted} tasks completed · ${snap.totalActive||0} still active</div>`:''}
+          ${snap.tasksCompleted!=null?`<div style="font-size:12px;color:var(--muted);margin-top:2px;">✅ ${snap.tasksCompleted} tasks · ${snap.totalActive||0} active${snap.habitStreak!=null?' · 🏃 '+snap.habitStreak+'d habit streak':''}${snap.taskStreak!=null?' · 🔥 '+snap.taskStreak+'d task streak':''}</div>`:''}
         </div>
-        ${top.length?`<div style="display:flex;gap:5px;">${top.map(([c,n])=>`<span class="badge c${c[0]}">${CATS[c]?.e||'📌'} ${n}</span>`).join('')}</div>`:''}
+        ${top.length?`<div style="display:flex;gap:5px;flex-wrap:wrap;">${top.map(([c,n])=>`<span class="badge c${c[0]}">${CATS[c]?.e||'📌'} ${n}</span>`).join('')}</div>`:''}
       </div>
-      ${r.focus?`<div style="font-size:13px;margin-bottom:6px;"><span style="color:var(--accent);font-weight:600;">🎯 Focus:</span> ${r.focus}</div>`:''}
-      ${r.wentWell?`<div style="font-size:12px;color:var(--muted);margin-bottom:4px;"><strong style="color:var(--bb);">✅ Went well:</strong> ${r.wentWell}</div>`:''}
-      ${r.improve?`<div style="font-size:12px;color:var(--muted);"><strong style="color:var(--bm);">📈 Improve:</strong> ${r.improve}</div>`:''}
+      ${r.focus?`<div style="font-size:13px;margin-bottom:6px;"><span style="color:var(--accent);font-weight:600;">🎯 Focus:</span> ${esc(r.focus)}</div>`:''}
+      ${r.wentWell?`<div style="font-size:12px;color:var(--muted);margin-bottom:4px;"><strong style="color:var(--bb);">✅ Went well:</strong> ${esc(r.wentWell)}</div>`:''}
+      ${r.improve?`<div style="font-size:12px;color:var(--muted);margin-bottom:4px;"><strong style="color:var(--bm);">📈 Improve:</strong> ${esc(r.improve)}</div>`:''}
+      ${r.commitment?`<div style="font-size:12px;color:var(--muted);margin-bottom:4px;"><strong style="color:#a78bfa;">📜 Committed:</strong> ${esc(r.commitment)}</div>`:''}
+      ${notesPreview?`<div style="font-size:11px;color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--border);line-height:1.5;">
+        <strong style="color:var(--text);">📝 Weekly Notes:</strong><br>
+        <em>${esc(notesPreview)}</em>
+      </div>`:''}
     </div>`;
   }).join('');
 }
@@ -4689,6 +4756,8 @@ function toggleSB(){
 // ── INIT ──────────────────────────────────────────────────────
 load();seed();seedGoals();resetRecurring();_refillShields();
 document.addEventListener('click',e=>{const m=document.getElementById('dash-more-menu');if(m&&!m.contains(e.target)&&!m.previousElementSibling?.contains(e.target))m.classList.add('hidden');});
+document.addEventListener('visibilitychange',()=>{if(document.hidden)save();});
+window.addEventListener('pagehide',save);
 document.title='Task OS — '+profileName;
 const _lastP=localStorage.getItem('taskos_lastview');
 if(_lastP&&_lastP!=='dashboard'){nav(_lastP);}else{renderDash();}
@@ -5050,10 +5119,14 @@ function renderBooks(){
             <span style="font-size:11px;font-weight:700;color:${pctColor};white-space:nowrap;">${pct}% · p${b.currentPage}/${b.totalPages}</span>
           </div>`:''}
           ${b.summary?`<div style="font-size:12px;color:var(--muted);line-height:1.5;margin-top:6px;border-left:2px solid var(--accent);padding-left:8px;">${esc(b.summary)}</div>`:''}
+          ${b.highlights?`<div style="margin-top:8px;display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+            <span style="font-size:11px;color:var(--muted);">📖 ${b.highlights.split('\n').filter(l=>l.trim()).length} highlight lines</span>
+            <button class="btn bg sm" onclick="openBookHighlights('${b.id}')">📝 View Notes & Tasks</button>
+          </div>`:''}
         </div>
         <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0;">
           <button class="btn bg sm" onclick="openEditBook('${b.id}')">✏️</button>
-          <button class="btn bg sm" onclick="openBookHighlights('${b.id}')">✨ AI</button>
+          ${!b.highlights?`<button class="btn bg sm" onclick="openBookHighlights('${b.id}')">📝 Notes</button>`:''}
           ${!b.finishedAt?`<button class="btn bg sm" onclick="markBookDone('${b.id}')">✓ Done</button>`:''}
         </div>
       </div>
@@ -5972,10 +6045,20 @@ function _eodNext(){
   if(_eodStep===2){
     const mit=document.getElementById('eod-mit')?.value.trim();
     if(mit){
-      // Prepend MIT to this-week bucket
       S.tasks.unshift({id:uid(),title:'🎯 '+mit,notes:'',bucket:'this-week',category:'other',urgency:'high',importance:'high',energy:'high',status:'todo',isT3:false,t3s:null,createdAt:new Date().toISOString(),completedAt:null,goalId:null});
       save();toast('MIT added to This Week!');
     }
+  }
+  if(_eodStep===3){
+    const today=new Date().toISOString().slice(0,10);
+    if(!S.energyLog)S.energyLog=[];
+    S.energyLog=S.energyLog.filter(e=>e.date!==today);
+    S.energyLog.push({date:today,energy:_eodEnergy||3});
+    if(!S.eodLogs)S.eodLogs=[];
+    S.eodLogs.push({date:today,energy:_eodEnergy||3,completedAt:new Date().toISOString()});
+    save();
+    awardXP(20,'EOD ritual complete');
+    toast('🌙 EOD complete! Energy logged: '+(_eodEnergy||3)+'/5');
   }
   _eodStep=Math.min(_eodStep+1,EOD_STEPS.length-1);
   _renderEodStep();
@@ -6304,13 +6387,22 @@ function renderDecisions(){
   list.innerHTML=decs.slice().reverse().map(d=>`
     <div class="los-card" style="margin-bottom:12px;">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
-        <div style="font-weight:600;font-size:14px;">${d.decision}</div>
-        <div style="font-size:11px;color:var(--muted);">${d.date||''}</div>
+        <div style="font-weight:600;font-size:14px;flex:1;">${esc(d.decision)}</div>
+        <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+          <div style="font-size:11px;color:var(--muted);">${d.date||''}</div>
+          <button class="btn bg sm" onclick="deleteDecision(${d.id})" style="color:#ef4444;" title="Delete">🗑</button>
+        </div>
       </div>
-      ${d.alts?`<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Alternatives: ${d.alts}</div>`:''}
-      ${d.outcome?`<div style="font-size:12px;color:var(--muted);">Expected: ${d.outcome}</div>`:''}
+      ${d.alts?`<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Alternatives: ${esc(d.alts)}</div>`:''}
+      ${d.outcome?`<div style="font-size:12px;color:var(--muted);">Expected: ${esc(d.outcome)}</div>`:''}
+      ${d.r30||d.r90?`<div style="font-size:10px;color:var(--muted);margin-top:6px;">Review: ${[d.r30&&'30d',d.r90&&'90d'].filter(Boolean).join(', ')}</div>`:''}
     </div>
   `).join('');
+}
+function deleteDecision(id){
+  if(!confirm('Delete this decision?'))return;
+  S.decisions=(S.decisions||[]).filter(d=>d.id!==id);
+  save();renderDecisions();
 }
 
 function openAddDecision(){

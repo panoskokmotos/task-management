@@ -385,6 +385,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div class="ni" onclick="nav('goals')">🏆 Goals</div>
   <div class="ni" onclick="nav('wheel')">🎡 Wheel of Life</div>
   <div class="ni" onclick="nav('review')">📅 Weekly Review</div>
+  <div class="ni" onclick="nav('weeklynotes')">📔 Weekly Notes</div>
   <div class="ni" onclick="nav('focus')">🧠 Focus Now</div>
   <div class="ni" onclick="nav('history')">📚 Review History</div>
   <div class="ni" onclick="nav('eod')">🌙 End-of-Day</div>
@@ -679,6 +680,18 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
     <button class="btn bd sm" onclick="showConfirm('Clear all review history?',ok=>{if(ok){localStorage.removeItem('taskos_history');renderHistoryView();}},{okLabel:'Clear',icon:'🗑'})">🗑 Clear</button>
   </div>
   <div id="hist-list"></div>
+</div>
+
+<!-- WEEKLY NOTES JOURNAL -->
+<div id="v-weeklynotes" class="view">
+  <div class="ph">
+    <div><h1>📔 Weekly Notes</h1><p class="sub">Intentions, reflections, gratitude &amp; wins by week</p></div>
+    <div class="row">
+      <button class="btn bg sm" onclick="_aiBtn(this,aiExtractTasksFromNotes)">🤖 Extract Tasks</button>
+      <button class="btn bp" onclick="openAddWeeklyNote()">+ Add Note</button>
+    </div>
+  </div>
+  <div id="weekly-notes-list"></div>
 </div>
 
 <!-- END OF DAY RITUAL -->
@@ -1117,6 +1130,11 @@ Read 50 books this year"></textarea>
       <label style="font-size:11px;color:var(--muted);">📌 If-Then trigger (optional)</label>
       <input class="fc" id="t-ifthen" placeholder="When I finish lunch, I will work on this" style="font-size:12px;">
     </div>
+    <div class="fg" style="margin-top:4px;">
+      <label style="font-size:11px;color:var(--muted);">🍬 Temptation Bundle — reward task to do right after (optional)</label>
+      <input class="fc" id="t-bundle" placeholder="e.g. Watch YouTube, Check social media" style="font-size:12px;" list="bundle-suggestions">
+      <datalist id="bundle-suggestions"></datalist>
+    </div>
     <div class="fg">
       <label>🤝 Linked People (optional)</label>
       <select class="fc" id="t-people" multiple size="3" style="min-height:60px;"></select>
@@ -1447,6 +1465,12 @@ Read 50 books this year"></textarea>
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><h2 style="margin:0;">📈 Habit Compound Projector</h2><span style="font-size:11px;color:var(--muted);">What consistency builds</span></div>
     <div id="habit-projector"></div>
   </div>
+  <div style="margin-top:24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <h2 style="margin:0;">🔗 My Routines <span style="font-size:11px;font-weight:400;color:var(--muted);">(Hebb's Law — tasks that fire together)</span></h2>
+    </div>
+    <div id="hebb-routines" style="background:var(--surface);border-radius:10px;padding:12px;"></div>
+  </div>
 </div>
 
 <!-- DISCOMFORT LOG -->
@@ -1655,7 +1679,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false,dailyIntention:[],energyLog:[],xp:0,level:1,badges:[],dailyQuests:[],questsDate:'',wheelAssessments:[],socialProfiles:[],brandStatement:'',weeklyNotes:[]};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false,dailyIntention:[],energyLog:[],xp:0,level:1,badges:[],dailyQuests:[],questsDate:'',wheelAssessments:[],socialProfiles:[],brandStatement:'',weeklyNotes:[],taskPairs:{},brandAuditResult:''};
 let editT=null,editG=null,fCat='all';
 let profileName=localStorage.getItem('taskos_name')||'Panos';
 let _editChecklist=[];
@@ -1919,7 +1943,7 @@ function nav(v){
   document.getElementById('s-ov')?.classList.remove('open');
   document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
-function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,wheel:renderWheel,review:renderReview,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort,eod:renderEod,decisions:renderDecisions,challenge:renderChallenge,ladder:renderLadder,books:renderBooks,wins:renderWins,bucketlist:renderBucketList,wishlist:renderWishlist,projects:renderProjects})[v]?.();}
+function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,wheel:renderWheel,review:renderReview,weeklynotes:renderWeeklyNotes,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort,eod:renderEod,decisions:renderDecisions,challenge:renderChallenge,ladder:renderLadder,books:renderBooks,wins:renderWins,bucketlist:renderBucketList,wishlist:renderWishlist,projects:renderProjects})[v]?.();}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
 
 // ── DASHBOARD ─────────────────────────────────────────────────
@@ -2037,6 +2061,9 @@ function renderTop3(){
       ${t?`<div onclick="openEdit('${t.id}')" style="cursor:pointer;">
         <div style="font-size:13px;font-weight:500;line-height:1.4;margin-bottom:8px;">${t.title}</div>
         <div class="tm">${catB(t.category)}${eB(t)}</div>
+        ${t.ifThen?`<div style="font-size:11px;color:var(--muted);margin-top:5px;">📌 ${esc(t.ifThen)}</div>`:''}
+        ${t.bundledWith?`<div style="font-size:11px;color:var(--q2);margin-top:3px;">🍬 Then: ${esc(t.bundledWith)}</div>`:''}
+        ${_hebbSuggestNext(t.title)?`<div style="font-size:11px;color:var(--muted);margin-top:3px;">🔗 Often next: ${esc(_hebbSuggestNext(t.title))}</div>`:''}
         <div style="margin-top:9px;display:flex;gap:5px;">
           <button class="btn bg sm" onclick="event.stopPropagation();toggleDone('${t.id}')">✓ Done</button>
           <button class="btn bg sm" onclick="event.stopPropagation();rmT3('${t.id}')">× Remove</button>
@@ -2353,6 +2380,8 @@ function openAdd(bucket='inbox',goalId=null){
   _editChecklist=[];_renderChecklistEditor();
   fillBlockerDrop(null,[]);
   document.getElementById('t-ifthen').value='';
+  if(document.getElementById('t-bundle'))document.getElementById('t-bundle').value='';
+  _fillBundleDatalist();
   const peopSel=document.getElementById('t-people');
   if(peopSel){peopSel.innerHTML=(S.people||[]).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');}
   const aiImproveBtn=document.getElementById('ai-improve-btn');
@@ -2382,6 +2411,8 @@ function openEdit(id){
   _editChecklist=(t.checklist||[]).map(c=>({...c}));_renderChecklistEditor();
   fillBlockerDrop(t.id,t.blockedBy||[]);
   document.getElementById('t-ifthen').value=t.ifThen||'';
+  if(document.getElementById('t-bundle'))document.getElementById('t-bundle').value=t.bundledWith||'';
+  _fillBundleDatalist();
   const peopSel=document.getElementById('t-people');
   if(peopSel){peopSel.innerHTML=(S.people||[]).map(p=>`<option value="${p.id}"${(t.linkedPeople||[]).includes(p.id)?' selected':''}>${esc(p.name)}</option>`).join('');}
   const aiImproveBtn=document.getElementById('ai-improve-btn');
@@ -2396,7 +2427,7 @@ function openEdit(id){
 function saveTask(){
   const title=document.getElementById('t-title').value.trim();
   if(!title){alert('Enter a task title.');return;}
-  const d={title,notes:document.getElementById('t-notes').value,category:document.getElementById('t-cat').value,bucket:document.getElementById('t-bucket').value,urgency:document.getElementById('t-urg').value,importance:document.getElementById('t-imp').value,energy:document.getElementById('t-eng').value,depth:document.getElementById('t-depth').value||'medium',timeBlock:parseInt(document.getElementById('t-time').value)||null,dueDate:document.getElementById('t-due').value,recurring:document.getElementById('t-rec').value,goalId:document.getElementById('t-goal').value||null,checklist:_editChecklist,blockedBy:Array.from(document.getElementById('t-blocked').selectedOptions).map(o=>o.value),ifThen:document.getElementById('t-ifthen')?.value.trim()||'',linkedPeople:Array.from(document.getElementById('t-people').selectedOptions).map(o=>o.value)};
+  const d={title,notes:document.getElementById('t-notes').value,category:document.getElementById('t-cat').value,bucket:document.getElementById('t-bucket').value,urgency:document.getElementById('t-urg').value,importance:document.getElementById('t-imp').value,energy:document.getElementById('t-eng').value,depth:document.getElementById('t-depth').value||'medium',timeBlock:parseInt(document.getElementById('t-time').value)||null,dueDate:document.getElementById('t-due').value,recurring:document.getElementById('t-rec').value,goalId:document.getElementById('t-goal').value||null,checklist:_editChecklist,blockedBy:Array.from(document.getElementById('t-blocked').selectedOptions).map(o=>o.value),ifThen:document.getElementById('t-ifthen')?.value.trim()||'',bundledWith:document.getElementById('t-bundle')?.value.trim()||'',linkedPeople:Array.from(document.getElementById('t-people').selectedOptions).map(o=>o.value)};
   if(!editT&&d.bucket!=='inbox'&&S.hellYesFilter){
     // Hell Yes / No — ask asynchronously then save
     const capD=d,capTitle=title;
@@ -2467,6 +2498,10 @@ function toggleDone(id){
     }
   }
   _checkQuestCompletion();
+  if(t.status==='done'){
+    _hebbRecord(t.title);
+    if(t.bundledWith)setTimeout(()=>toast(`🍬 Reward unlocked: <strong>${esc(t.bundledWith)}</strong>`,4000),1200);
+  }
 }
 
 function cycleStatus(id){
@@ -3704,6 +3739,7 @@ function renderHabits(){
     <div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${h}</div>
     <div class="heat-grid">${days.map(d=>{const done=(S.habitLogs?.[d]||{})[h];return`<div class="heat-cell ${done?'h4':''}" title="${d}"></div>`;}).join('')}</div></div>`).join(''):'';
   renderHabitProjector();
+  renderRoutines();
 }
 function _habitStreak(){
   const habits=S.habits||[];if(!habits.length)return 0;
@@ -4846,6 +4882,7 @@ function openSocialProfileModal(id=null){
   const p=id?(S.socialProfiles||[]).find(x=>x.id===id):null;
   document.getElementById('sp-platform').value=p?.platform||'linkedin';
   document.getElementById('sp-handle').value=p?.handle||'';
+  if(document.getElementById('sp-url'))document.getElementById('sp-url').value=p?.url||'';
   document.getElementById('sp-bio').value=p?.bio||'';
   document.getElementById('social-profile-modal').dataset.editId=id||'';
   document.getElementById('social-profile-modal').classList.remove('hidden');
@@ -4857,6 +4894,7 @@ function saveSocialProfile(){
     id:editId||uid(),
     platform:document.getElementById('sp-platform').value,
     handle:document.getElementById('sp-handle').value.trim(),
+    url:document.getElementById('sp-url')?.value.trim()||'',
     bio:document.getElementById('sp-bio').value.trim(),
     lastChecked:new Date().toISOString().slice(0,10)
   };
@@ -4876,8 +4914,7 @@ function _renderSocialProfilesList(){
   if(!profiles.length){el.innerHTML='<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">No profiles added yet.</div>';return;}
   el.innerHTML=profiles.map(p=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 8px;background:var(--surface2);border-radius:8px;margin-bottom:6px;font-size:12px;">
     <span>${SOCIAL_ICONS[p.platform]||'🔗'}</span>
-    <span style="flex:1;font-weight:600;">${esc(p.handle||p.platform)}</span>
-    <span style="color:var(--muted);">${p.bio?p.bio.slice(0,40)+'…':''}</span>
+    <span style="flex:1;"><span style="font-weight:600;">${esc(p.handle||p.platform)}</span>${p.url?` <a href="${esc(p.url)}" target="_blank" style="color:var(--accent);font-size:10px;">↗</a>`:''}<div style="color:var(--muted);font-size:11px;">${p.bio?p.bio.slice(0,50)+'…':''}</div></span>
     <button class="btn bg sm" onclick="openSocialProfileModal('${p.id}')">✏</button>
     <button class="btn bd sm" onclick="(function(){S.socialProfiles=S.socialProfiles.filter(x=>x.id!=='${p.id}');save();_renderSocialProfilesList();})()">×</button>
   </div>`).join('');
@@ -4889,7 +4926,7 @@ async function aiSocialAudit(){
   const brand=S.brandStatement||'Not provided';
   const goals=(S.goals||[]).slice(0,5).map(g=>g.title).join(', ');
   const vals=(S.values||[]).join(', ');
-  const profStr=profiles.map(p=>`${p.platform} (${p.handle}): ${p.bio||'No bio provided'}`).join('\n');
+  const profStr=profiles.map(p=>`${p.platform}${p.handle?' ('+p.handle+')':''}: ${p.bio||'No bio provided'}`).join('\n');
   const prompt=`You are a personal brand strategist. Audit this person's brand presence:
 
 BRAND STATEMENT: ${brand}
@@ -4898,28 +4935,41 @@ ${profStr||'None provided'}
 GOALS: ${goals||'Not set'}
 VALUES: ${vals||'Not set'}
 
-Provide a structured audit:
-STRENGTHS: [list 3 specific strengths]
-OPPORTUNITIES: [list 3 specific improvement opportunities with concrete actions]
-PRIORITY_ACTION: [single most important thing to do this week]
-CONSISTENCY_SCORE: [1-10 score on brand consistency across platforms]
-INSIGHT: [1-sentence strategic insight]
+Respond with exactly these sections:
+STRENGTHS: [3 specific brand strengths, one per line starting with •]
+OPPORTUNITIES: [3 improvement opportunities with concrete action per line starting with •]
+PRIORITY_ACTION: [single most important thing to do THIS week, 1-2 sentences]
+CONSISTENCY_SCORE: [score 1-10]
+INSIGHT: [1 strategic insight sentence]
+CONTENT_IDEAS: [3 post/content ideas tailored to their brand and goals, one per line starting with •]
 
-Be specific and actionable. Reference their actual goals and values.`;
-  const text=await callClaude(prompt,600);
+Be specific. Reference their actual goals and values. Each section on its own line.`;
+  const text=await callClaude(prompt,700);
   if(!text)return;
   const parse=(key)=>{const m=text.match(new RegExp(key+':\\s*([\\s\\S]+?)(?=\\n[A-Z_]+:|$)'));return m?m[1].trim():'';};
+  const score=parseInt(parse('CONSISTENCY_SCORE'))||0;
+  const scoreColor=score>=8?'#22c55e':score>=5?'#fbbf24':'#ef4444';
   const html=`<div style="background:var(--surface2);border-radius:10px;padding:14px;margin-top:10px;">
-    <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px;">🤖 AI Brand Audit</div>
-    ${parse('STRENGTHS')?`<div style="margin-bottom:8px;"><strong style="font-size:11px;">✅ Strengths</strong><div style="font-size:12px;color:var(--muted);white-space:pre-line;">${esc(parse('STRENGTHS'))}</div></div>`:''}
-    ${parse('OPPORTUNITIES')?`<div style="margin-bottom:8px;"><strong style="font-size:11px;">🚀 Opportunities</strong><div style="font-size:12px;color:var(--muted);white-space:pre-line;">${esc(parse('OPPORTUNITIES'))}</div></div>`:''}
-    ${parse('PRIORITY_ACTION')?`<div style="margin-bottom:8px;background:rgba(88,166,255,.1);border-radius:8px;padding:8px;"><strong style="font-size:11px;">⚡ Priority Action</strong><div style="font-size:12px;">${esc(parse('PRIORITY_ACTION'))}</div></div>`:''}
-    ${parse('CONSISTENCY_SCORE')?`<div style="font-size:12px;color:var(--muted);">Consistency: ${esc(parse('CONSISTENCY_SCORE'))}/10</div>`:''}
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div style="font-size:13px;font-weight:700;color:var(--accent);">🤖 AI Brand Audit</div>
+      ${score?`<div style="font-size:12px;font-weight:700;color:${scoreColor};">Consistency ${score}/10</div>`:''}
+    </div>
+    ${parse('STRENGTHS')?`<div style="margin-bottom:10px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">✅ Strengths</div><div style="font-size:12px;white-space:pre-line;">${esc(parse('STRENGTHS'))}</div></div>`:''}
+    ${parse('OPPORTUNITIES')?`<div style="margin-bottom:10px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">🚀 Opportunities</div><div style="font-size:12px;white-space:pre-line;">${esc(parse('OPPORTUNITIES'))}</div></div>`:''}
+    ${parse('CONTENT_IDEAS')?`<div style="margin-bottom:10px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--muted);margin-bottom:4px;">✍️ Content Ideas</div><div style="font-size:12px;white-space:pre-line;">${esc(parse('CONTENT_IDEAS'))}</div></div>`:''}
+    ${parse('PRIORITY_ACTION')?`<div style="background:rgba(88,166,255,.12);border-radius:8px;padding:10px;margin-bottom:8px;"><div style="font-size:11px;font-weight:700;text-transform:uppercase;color:var(--accent);margin-bottom:4px;">⚡ This Week's Priority</div><div style="font-size:13px;">${esc(parse('PRIORITY_ACTION'))}</div></div>`:''}
+    ${parse('INSIGHT')?`<div style="font-size:12px;color:var(--muted);font-style:italic;">${esc(parse('INSIGHT'))}</div>`:''}
   </div>`;
   const el=document.getElementById('social-audit-result');
   if(el)el.innerHTML=html;
+  S.brandAuditResult=html;
+  save();
   awardXP(20,'brand-audit');
   toast('🌐 Brand audit complete! +20 XP');
+}
+function _restoreBrandAudit(){
+  const el=document.getElementById('social-audit-result');
+  if(el&&S.brandAuditResult&&!el.innerHTML.trim())el.innerHTML=S.brandAuditResult;
 }
 
 // ── WEEK PLAN WIZARD ───────────────────────────────────────────
@@ -4983,6 +5033,147 @@ function _wpNext(){
     return;
   }
   _wpShowStep(_wpCurrentStep+1);
+}
+
+// ── WEEKLY NOTES ───────────────────────────────────────────────
+function renderWeeklyNotes(){
+  const notes=(S.weeklyNotes||[]).slice().sort((a,b)=>b.weekOf?.localeCompare(a.weekOf||'')||0);
+  const el=document.getElementById('weekly-notes-list');if(!el)return;
+  if(!notes.length){el.innerHTML='<div class="empty" style="padding:40px;">No weekly notes yet.<br>Complete a Weekly Review or click "+ Add Note" to start.</div>';return;}
+  el.innerHTML=notes.map(n=>{
+    const dateLabel=n.weekOf?new Date(n.weekOf+'T12:00:00').toLocaleDateString('en',{month:'short',day:'numeric',year:'numeric'}):'';
+    return`<div class="los-card" style="margin-bottom:14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:700;">Week of ${dateLabel}</div>
+        <button class="btn bd sm" onclick="delWeeklyNote('${n.id}')">×</button>
+      </div>
+      ${n.intention?`<div style="margin-bottom:8px;background:rgba(88,166,255,.08);border-radius:8px;padding:8px 10px;"><span style="font-size:11px;color:var(--accent);font-weight:700;">🎯 INTENTION</span><div style="font-size:13px;margin-top:2px;">${esc(n.intention)}</div></div>`:''}
+      ${n.bigWin?`<div style="margin-bottom:6px;"><span style="font-size:11px;font-weight:700;color:var(--q2);">🏆 BIG WIN</span><div style="font-size:13px;">${esc(n.bigWin)}</div></div>`:''}
+      ${n.gratitude?`<div style="margin-bottom:6px;"><span style="font-size:11px;font-weight:700;color:var(--muted);">🙏 GRATITUDE</span><div style="font-size:12px;color:var(--muted);white-space:pre-line;">${esc(n.gratitude)}</div></div>`:''}
+      ${n.note?`<div><span style="font-size:11px;font-weight:700;color:var(--muted);">📔 JOURNAL</span><div style="font-size:12px;color:var(--muted);white-space:pre-line;margin-top:4px;">${esc(n.note.slice(0,400)+(n.note.length>400?'…':''))}</div></div>`:''}
+    </div>`;
+  }).join('');
+}
+function openAddWeeklyNote(){
+  const modal=document.getElementById('add-weekly-note-modal');
+  if(!modal)return;
+  const today=new Date().toISOString().slice(0,10);
+  const existing=(S.weeklyNotes||[]).find(n=>n.weekOf===today);
+  document.getElementById('wn-weekof').value=today;
+  document.getElementById('wn-intention').value=existing?.intention||'';
+  document.getElementById('wn-bigwin').value=existing?.bigWin||'';
+  document.getElementById('wn-gratitude').value=existing?.gratitude||'';
+  document.getElementById('wn-note').value=existing?.note||'';
+  modal.dataset.editId=existing?.id||'';
+  modal.classList.remove('hidden');
+}
+function saveWeeklyNote(){
+  const weekOf=document.getElementById('wn-weekof').value;
+  const editId=document.getElementById('add-weekly-note-modal').dataset.editId;
+  const obj={id:editId||uid(),weekOf,intention:document.getElementById('wn-intention').value.trim(),bigWin:document.getElementById('wn-bigwin').value.trim(),gratitude:document.getElementById('wn-gratitude').value.trim(),note:document.getElementById('wn-note').value.trim()};
+  S.weeklyNotes=S.weeklyNotes||[];
+  if(editId){const i=S.weeklyNotes.findIndex(n=>n.id===editId);if(i>=0)S.weeklyNotes[i]=obj;else S.weeklyNotes.push(obj);}
+  else{const existing=S.weeklyNotes.find(n=>n.weekOf===weekOf);if(existing)Object.assign(existing,obj);else S.weeklyNotes.push(obj);}
+  save();closeM('add-weekly-note-modal');renderWeeklyNotes();
+  toast('📔 Weekly note saved!');
+}
+function delWeeklyNote(id){
+  showConfirm('Delete this weekly note?',ok=>{if(ok){S.weeklyNotes=(S.weeklyNotes||[]).filter(n=>n.id!==id);save();renderWeeklyNotes();}},{okLabel:'Delete',icon:'🗑'});
+}
+async function aiExtractTasksFromNotes(){
+  const recent=(S.weeklyNotes||[]).slice().sort((a,b)=>b.weekOf?.localeCompare(a.weekOf||'')||0).slice(0,3);
+  if(!recent.length){toast('No weekly notes yet.');return;}
+  const notesText=recent.map(n=>`Week of ${n.weekOf}:\nIntention: ${n.intention||'—'}\nJournal: ${n.note||'—'}\nGratitude: ${n.gratitude||'—'}\nBig win: ${n.bigWin||'—'}`).join('\n\n');
+  const goals=(S.goals||[]).filter(g=>!g.complete).map(g=>g.title).join(', ');
+  const prompt=`From these weekly notes/reflections, extract 5 concrete tasks that should be on this person's task list next week.
+
+NOTES:
+${notesText}
+
+ACTIVE GOALS: ${goals||'Not set'}
+
+For each task:
+TASK: [specific title starting with a verb]
+BUCKET: [this-week or this-month]
+CATEGORY: [work/personal/health/finance/learning/other]
+REASON: [1 line — why this emerged from the notes]
+
+List exactly 5 tasks. Focus on unfinished intentions, patterns of concern, and growth opportunities mentioned.`;
+  const text=await callClaude(prompt,600);
+  if(!text)return;
+  const blocks=text.split(/(?=TASK:)/).filter(b=>b.trim());
+  const el=document.getElementById('weekly-notes-list');if(!el)return;
+  const extractDiv=document.createElement('div');
+  extractDiv.style.cssText='background:var(--surface2);border-radius:12px;padding:14px;margin-bottom:16px;';
+  extractDiv.innerHTML=`<div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;">🤖 Extracted Tasks from Your Notes</div>`+
+    blocks.map(b=>{
+      const t=(b.match(/TASK:\s*(.+)/)||[])[1]?.trim()||'';
+      const bucket=(b.match(/BUCKET:\s*(.+)/)||[])[1]?.trim()||'this-week';
+      const cat=(b.match(/CATEGORY:\s*(.+)/)||[])[1]?.trim()||'other';
+      const reason=(b.match(/REASON:\s*(.+)/)||[])[1]?.trim()||'';
+      if(!t)return'';
+      return`<div style="display:flex;align-items:flex-start;gap:8px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;">
+        <div style="flex:1;"><div style="font-weight:600;">${esc(t)}</div><div style="font-size:11px;color:var(--muted);">${esc(reason)}</div></div>
+        <button class="btn bp sm" onclick="S.tasks.push({id:uid(),title:'${t.replace(/'/g,"\\'").replace(/"/g,'&quot;')}',notes:'From weekly notes',bucket:'${bucket}',category:'${cat}',urgency:'low',importance:'high',energy:'medium',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,recurring:'',checklist:[],blockedBy:[],ifThen:'',bundledWith:'',linkedPeople:[],createdAt:new Date().toISOString(),completedAt:null});save();refresh();this.textContent='✓ Added';this.disabled=true;">+ Add</button>
+      </div>`;
+    }).join('');
+  el.prepend(extractDiv);
+  awardXP(10,'notes-extract');
+  toast('🤖 Tasks extracted from notes!');
+}
+
+// ── HEBB CO-OCCURRENCE ENGINE (fire together → wire together) ──
+function _hebbRecord(doneTitle){
+  // find tasks completed in the last 90 minutes
+  const now=Date.now();
+  const recent=S.tasks.filter(t=>t.status==='done'&&t.completedAt&&t.title!==doneTitle&&(now-new Date(t.completedAt).getTime())<5400000);
+  S.taskPairs=S.taskPairs||{};
+  recent.forEach(t=>{
+    const a=doneTitle<t.title?doneTitle:t.title;
+    const b=doneTitle<t.title?t.title:doneTitle;
+    const k=a+'|||'+b;
+    S.taskPairs[k]=(S.taskPairs[k]||0)+1;
+  });
+  save();
+  // surface suggestion if strong link (≥3 co-occurrences)
+  const best=_hebbSuggestNext(doneTitle);
+  if(best)setTimeout(()=>toast(`🔗 Routine: often next → <strong>${esc(best)}</strong>`,4000),800);
+}
+function _hebbSuggestNext(title){
+  const pairs=S.taskPairs||{};
+  let top=null,topCount=2; // min threshold 3
+  Object.entries(pairs).forEach(([k,count])=>{
+    const [a,b]=k.split('|||');
+    const partner=a===title?b:b===title?a:null;
+    if(partner&&count>topCount){topCount=count;top=partner;}
+  });
+  return top;
+}
+function _hebbTopPairs(limit=5){
+  const pairs=S.taskPairs||{};
+  return Object.entries(pairs).filter(([,c])=>c>=2).sort((x,y)=>y[1]-x[1]).slice(0,limit).map(([k,c])=>{const[a,b]=k.split('|||');return{a,b,count:c};});
+}
+function renderRoutines(){
+  const pairs=_hebbTopPairs(6);
+  const el=document.getElementById('hebb-routines');if(!el)return;
+  if(!pairs.length){el.innerHTML='<div style="color:var(--muted);font-size:13px;">Complete more tasks — patterns will emerge here. 🧠</div>';return;}
+  el.innerHTML=pairs.map(p=>`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);font-size:13px;">
+    <span style="flex:1;"><span style="opacity:.6;">${esc(p.a.slice(0,30))}</span> <span style="color:var(--accent);">→</span> <strong>${esc(p.b.slice(0,30))}</strong></span>
+    <span style="font-size:11px;background:var(--surface2);padding:2px 7px;border-radius:10px;color:var(--muted);">×${p.count}</span>
+  </div>`).join('');
+}
+
+// ── TEMPTATION BUNDLING ────────────────────────────────────────
+function _fillBundleDatalist(){
+  const dl=document.getElementById('bundle-suggestions');if(!dl)return;
+  // suggest fun/low-effort tasks as rewards
+  const candidates=S.tasks.filter(t=>t.status!=='done'&&(t.depth==='shallow'||t.energy==='low'||t.category==='personal')).map(t=>t.title).slice(0,8);
+  dl.innerHTML=candidates.map(c=>`<option value="${esc(c)}">`).join('');
+}
+function _applyBundle(taskId){
+  const t=S.tasks.find(x=>x.id===taskId);if(!t||!t.bundledWith)return;
+  const reward=S.tasks.find(x=>x.title===t.bundledWith&&x.status!=='done');
+  if(reward)toast(`🍬 Bundle: complete this, then enjoy → <strong>${esc(t.bundledWith)}</strong>`,5000);
 }
 
 // ── GOAL TASK ENGINE ───────────────────────────────────────────
@@ -5806,6 +5997,7 @@ function openSettings(){
   document.getElementById('set-hell-yes').value=S.hellYesFilter?'true':'false';
   if(document.getElementById('set-brand'))document.getElementById('set-brand').value=S.brandStatement||'';
   _renderSocialProfilesList();
+  setTimeout(_restoreBrandAudit,50);
   applyTheme(document.body.classList.contains('light'));
   document.getElementById('set-m').classList.remove('hidden');
 }
@@ -8105,7 +8297,8 @@ function closeModal(id){document.getElementById(id)?.classList.add('hidden');}
         <option value="other">Other</option>
       </select>
     </div>
-    <div class="fg"><label>Handle / URL</label><input class="fc" id="sp-handle" placeholder="@yourhandle or https://..."></div>
+    <div class="fg"><label>Handle</label><input class="fc" id="sp-handle" placeholder="@yourhandle or username"></div>
+    <div class="fg"><label>Profile URL</label><input class="fc" id="sp-url" placeholder="https://linkedin.com/in/yourname" type="url"></div>
     <div class="fg">
       <label>Current Bio / About (paste from platform)</label>
       <textarea class="fc" id="sp-bio" rows="4" placeholder="Paste your current bio or about section here..."></textarea>
@@ -8143,6 +8336,22 @@ function closeModal(id){document.getElementById(id)?.classList.add('hidden');}
     <div class="mf" style="margin-top:16px;">
       <button class="btn bg" id="wp-back-btn" onclick="_wpStep(_wpCurrentStep-1)" style="display:none;">← Back</button>
       <button class="btn bp" id="wp-next-btn" onclick="_wpNext()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD WEEKLY NOTE MODAL -->
+<div class="mo hidden" id="add-weekly-note-modal" onclick="if(event.target===this)closeM('add-weekly-note-modal')">
+  <div class="md" style="width:500px;max-width:94vw;max-height:85vh;overflow-y:auto;">
+    <div class="mh"><h3>📔 Weekly Note</h3><button class="mc" onclick="closeM('add-weekly-note-modal')">×</button></div>
+    <div class="fg"><label>Week of</label><input class="fc" id="wn-weekof" type="date"></div>
+    <div class="fg"><label>🎯 Intention — what is this week about?</label><input class="fc" id="wn-intention" placeholder="My focus this week is..."></div>
+    <div class="fg"><label>🏆 Biggest Win</label><input class="fc" id="wn-bigwin" placeholder="The most important thing I accomplished..."></div>
+    <div class="fg"><label>🙏 Gratitude (3 things)</label><textarea class="fc" id="wn-gratitude" rows="3" placeholder="1. ...&#10;2. ...&#10;3. ..."></textarea></div>
+    <div class="fg"><label>📔 Journal — free reflection</label><textarea class="fc" id="wn-note" rows="5" placeholder="What happened this week? What am I learning? What needs attention?"></textarea></div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('add-weekly-note-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveWeeklyNote()">Save Note</button>
     </div>
   </div>
 </div>

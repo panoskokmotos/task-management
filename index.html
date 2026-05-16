@@ -237,6 +237,17 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   .fp{padding:6px 12px;font-size:12px;}
   /* Larger modal close button */
   .mc{width:36px;height:36px;font-size:22px;padding:6px;}
+  /* dash-extra: hide non-essential header buttons on mobile */
+  .dash-extra{display:none;}
+  .dash-extra.shown{display:inline-flex;}
+  /* Task card tap targets */
+  .tc{padding:12px 14px;min-height:52px;}
+  .tb{padding:2px 0;}
+  /* Daily picks hero on mobile */
+  #daily-picks-card{border-color:rgba(88,166,255,.4);background:linear-gradient(135deg,rgba(88,166,255,.06),var(--surface));}
+  /* Hide heavy dashboard rows on mobile */
+  #momentum-row,#theme-exec-row{display:none;}
+  #dash-stats-toggle{display:flex;}
 }
 
 @media(max-width:480px){
@@ -424,19 +435,20 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
         <span id="xp-label">0 XP</span>
       </div>
       <button class="btn bg sm" id="start-day-btn" onclick="openStartDay()" style="display:none;">☀️ Start Day</button>
-      <button class="btn bg sm" onclick="openCmdK()" title="⌘K">⌘K</button>
-      <button class="btn bg sm" onclick="openChecklist('daily')" id="checklist-btn" title="Daily / Weekly / Monthly Checklist">📋 <span id="checklist-badge" style="display:none;background:#ef4444;color:#fff;border-radius:8px;padding:0 5px;font-size:10px;font-weight:700;"></span></button>
-      <button class="btn bg sm" onclick="openReminderSettings()" title="Reminders" id="remind-btn">🔔</button>
-      <button class="btn bg sm" onclick="showWeeklyDigest()">📊 Digest</button>
-      <button class="btn bg sm" onclick="openTweetGenerator()">🐦 Post</button>
-      <button class="btn bg sm" onclick="_aiBtn(this,aiSequenceTasks)">🔢 Sequence</button>
-      <button class="btn bg sm" onclick="_aiBtn(this,runPriorityAudit)">🤖 Audit</button>
-      <button class="btn bg sm" onclick="showValueAlignment()">🎯 Values</button>
-      <button class="btn bg sm" onclick="showCommitments()">📜 Commits</button>
-      <button class="btn bg sm" onclick="showContextReport()">🔀</button>
-      <button class="btn bg sm" onclick="nav('eod')">🌙 EOD</button>
+      <button class="btn bg sm dash-extra" onclick="openCmdK()" title="⌘K">⌘K</button>
+      <button class="btn bg sm dash-extra" onclick="openChecklist('daily')" id="checklist-btn" title="Daily / Weekly / Monthly Checklist">📋 <span id="checklist-badge" style="display:none;background:#ef4444;color:#fff;border-radius:8px;padding:0 5px;font-size:10px;font-weight:700;"></span></button>
+      <button class="btn bg sm dash-extra" onclick="openReminderSettings()" title="Reminders" id="remind-btn">🔔</button>
+      <button class="btn bg sm dash-extra" onclick="showWeeklyDigest()">📊 Digest</button>
+      <button class="btn bg sm dash-extra" onclick="openTweetGenerator()">🐦 Post</button>
+      <button class="btn bg sm dash-extra" onclick="_aiBtn(this,aiSequenceTasks)">🔢 Sequence</button>
+      <button class="btn bg sm dash-extra" onclick="_aiBtn(this,runPriorityAudit)">🤖 Audit</button>
+      <button class="btn bg sm dash-extra" onclick="showValueAlignment()">🎯 Values</button>
+      <button class="btn bg sm dash-extra" onclick="showCommitments()">📜 Commits</button>
+      <button class="btn bg sm dash-extra" onclick="showContextReport()">🔀</button>
+      <button class="btn bg sm dash-extra" onclick="nav('eod')">🌙 EOD</button>
       <button class="btn bg sm" onclick="openQuickAdd()">⚡ Quick Add</button>
-      <button class="btn bg sm" id="plan-week-btn" onclick="openWeekPlan()">📋 Plan Week</button>
+      <button class="btn bg sm dash-extra" id="plan-week-btn" onclick="openWeekPlan()">📋 Plan Week</button>
+      <button class="btn bg sm" id="dash-more-btn" onclick="_toggleDashMore()">⋯</button>
       <button class="btn bp" onclick="openAdd()">+ Add Task</button>
     </div>
   </div>
@@ -499,6 +511,18 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div id="xp-nudge" style="display:none;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.3);border-radius:8px;padding:8px 12px;font-size:12px;text-align:center;margin-bottom:10px;"></div>
   <!-- WEEK INTENTION BANNER -->
   <div id="week-intention-banner" style="display:none;"></div>
+  <!-- DAILY PICKS -->
+  <div id="daily-picks-card" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:14px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <span style="font-size:13px;font-weight:700;">🎯 Today's Picks</span>
+      <div style="display:flex;gap:6px;">
+        <button class="btn bg sm" onclick="renderDailyPicks()" title="Refresh">↺</button>
+        <button class="btn bg sm" onclick="_aiBtn(this,aiDailyPicks)">🤖 AI Pick</button>
+      </div>
+    </div>
+    <div id="daily-picks-list"></div>
+    <div id="daily-picks-ai-result" style="margin-top:10px;font-size:12px;"></div>
+  </div>
   <!-- NETWORK HEALTH WIDGET -->
   <div id="network-health-widget"></div>
   <!-- WHEEL DASH WIDGET -->
@@ -509,6 +533,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   <div id="streak-row" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;"></div>
   <!-- ANTI-PATTERN ALERTS -->
   <div id="anti-pattern-alerts"></div>
+  <button id="dash-stats-toggle" class="btn bg sm" style="display:none;width:100%;margin-bottom:10px;font-size:12px;" onclick="_toggleDashStats()">📊 Show Stats &amp; Scores</button>
   <div class="stats" id="stats"></div>
   <div class="rb" style="margin-bottom:10px;">
     <h2 style="margin:0">🎯 Today's Top 3</h2>
@@ -1026,10 +1051,10 @@ Read 50 books this year"></textarea>
 
 <nav class="bnav">
   <button class="bni active" data-v="dashboard" onclick="nav('dashboard')"><span class="bni-ic">🏠</span>Home</button>
-  <button class="bni" data-v="capture" onclick="nav('capture')"><span class="bni-ic">⚡</span>Capture</button>
-  <button class="bni" data-v="buckets" onclick="nav('buckets')"><span class="bni-ic">📦</span>Buckets</button>
   <button class="bni" data-v="all" onclick="nav('all')"><span class="bni-ic">✅</span>Tasks</button>
+  <button class="bni" data-v="focus" onclick="nav('focus')"><span class="bni-ic">🧠</span>Focus</button>
   <button class="bni" data-v="goals" onclick="nav('goals')"><span class="bni-ic">🏆</span>Goals</button>
+  <button class="bni" data-v="review" onclick="nav('review')"><span class="bni-ic">📅</span>Review</button>
 </nav>
 
 <!-- CMD+K -->
@@ -1975,6 +2000,7 @@ function renderDash(){
     <div class="sc"><div class="sn" style="color:var(--bb)">${bc}</div><div class="sl">Backlog</div></div>
     <div class="sc"><div class="sn" style="color:var(--accent)">${dc}</div><div class="sl">Done Today</div></div>`;
   renderTop3();
+  renderDailyPicks();
   const wt=a.filter(t=>t.bucket==='this-week').slice(0,6);
   document.getElementById('dash-week').innerHTML=wt.length?wt.map(t=>tcHTML(t,true)).join(''):'<div class="empty">No tasks this week. <span style="color:var(--accent);cursor:pointer;" onclick="nav(\'buckets\')">Add some →</span></div>';
   updIBadge();
@@ -2049,6 +2075,84 @@ function renderDash(){
       </div>`).join('')}
     </div>`:'';
   }
+}
+
+// ── DAILY PICKS ───────────────────────────────────────────────
+function _scoreTasks(){
+  const now=new Date();
+  const h=now.getHours();
+  const in3Days=new Date(now.getTime()+3*24*60*60*1000);
+  const in5DaysAgo=new Date(now.getTime()-5*24*60*60*1000);
+  const eligible=S.tasks.filter(t=>t.status!=='done'&&!t.isT3&&['this-week','this-month','inbox'].includes(t.bucket));
+  return eligible.map(t=>{
+    let score=0;
+    const g=t.goalId?S.goals.find(g=>g.id===t.goalId):null;
+    if(g&&g.isTop3)score+=4;
+    else if(g)score+=3;
+    if(t.importance==='high')score+=3;
+    if(t.urgency==='high')score+=2;
+    if(t.dueDate){const dd=new Date(t.dueDate);if(dd<=in3Days)score+=2;}
+    if(t.bucket==='this-week')score+=1;
+    if(t.createdAt&&new Date(t.createdAt)<in5DaysAgo)score+=1;
+    if((h<12&&t.energy==='high')||(h>14&&t.energy==='low'))score+=1;
+    return{...t,_score:score};
+  }).sort((a,b)=>b._score-a._score).slice(0,4);
+}
+
+function renderDailyPicks(){
+  const el=document.getElementById('daily-picks-list');
+  if(!el)return;
+  const picks=_scoreTasks();
+  if(!picks.length){el.innerHTML='<div style="font-size:12px;color:var(--muted);text-align:center;padding:8px 0;">No pending tasks — great job! 🎉</div>';return;}
+  el.innerHTML=picks.map(t=>{
+    const g=t.goalId?S.goals.find(g=>g.id===t.goalId):null;
+    const badge=g?`<span style="font-size:10px;padding:2px 7px;border-radius:10px;background:rgba(88,166,255,.15);color:var(--accent);flex-shrink:0;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${g.isTop3?'⭐ ':''}${esc(g.title.slice(0,20))}</span>`:'';
+    return`<div style="display:flex;align-items:center;gap:9px;padding:6px 0;border-bottom:1px solid var(--border);">
+      <div class="ck ${t.status==='done'?'on':''}" onclick="toggleDone('${t.id}');setTimeout(renderDailyPicks,200);" style="flex-shrink:0;"></div>
+      <div class="tb" style="cursor:pointer;min-width:0;" onclick="openEdit('${t.id}')"><div class="tt" style="font-size:13px;">${esc(t.title)}</div></div>
+      ${badge}
+    </div>`;
+  }).join('');
+}
+
+async function aiDailyPicks(){
+  const goals=(S.goals||[]).map(g=>{const s=goalStats(g.id);return`${g.isTop3?'[TOP3] ':''}${g.title}${g.description?' - '+g.description:''}(${s.done} tasks done)`;}).join('\n');
+  const today=new Date();
+  const dow=['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'][today.getDay()];
+  const dateStr=today.toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'});
+  const lastEnergy=(S.energyLog||[]).slice(-1)[0];
+  const energyStr=lastEnergy?'Last logged energy: '+(lastEnergy.level||lastEnergy):'(no energy log)';
+  const pendingTasks=S.tasks.filter(t=>t.status!=='done'&&['this-week','this-month'].includes(t.bucket)).slice(0,8).map(t=>{const g=t.goalId?S.goals.find(g=>g.id===t.goalId):null;return'- '+t.title+' [imp:'+( t.importance||'?')+', urg:'+(t.urgency||'?')+(g?' goal:'+g.title:'')+']';}).join('\n');
+  const values=(S.values||[]).join(', ');
+  const prompt='Today is '+dow+', '+dateStr+'. '+energyStr+'.\n\nMy active goals:\n'+(goals||'(none set)')+'\n\nMy top pending tasks:\n'+(pendingTasks||'(none)')+'\n\nMy values: '+values+'\n\nPick the 3 best tasks for me to focus on TODAY. For each task, give one line explaining WHY it\'s the right pick today, considering goal alignment, energy level, and day of week. Format as a numbered list like:\n1. [Task title] — [Why today]\n2. [Task title] — [Why today]\n3. [Task title] — [Why today]';
+  const res=await callClaude(prompt,400);
+  const el=document.getElementById('daily-picks-ai-result');
+  if(!el)return;
+  const lines=res.split('\n').filter(l=>/^\d+\./.test(l.trim()));
+  if(lines.length){
+    el.innerHTML='<div style="font-weight:600;font-size:11px;color:var(--muted);text-transform:uppercase;margin-bottom:6px;">🤖 AI Recommendation</div>'+lines.map(l=>'<div style="padding:4px 0;line-height:1.5;">'+esc(l.trim())+'</div>').join('');
+  } else {
+    el.innerHTML='<div style="white-space:pre-wrap;line-height:1.6;">'+esc(res)+'</div>';
+  }
+}
+
+// ── DASH MOBILE TOGGLES ───────────────────────────────────────
+function _toggleDashMore(){
+  const shown=document.querySelector('.dash-extra.shown');
+  document.querySelectorAll('.dash-extra').forEach(el=>el.classList.toggle('shown',!shown));
+  const btn=document.getElementById('dash-more-btn');
+  if(btn)btn.textContent=shown?'⋯':'✕';
+}
+
+let _dashStatsShown=false;
+function _toggleDashStats(){
+  _dashStatsShown=!_dashStatsShown;
+  ['momentum-row','theme-exec-row'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el)el.style.display=_dashStatsShown?'flex':'none';
+  });
+  const btn=document.getElementById('dash-stats-toggle');
+  if(btn)btn.textContent=_dashStatsShown?'✕ Hide Stats':'📊 Show Stats & Scores';
 }
 
 function renderTop3(){
@@ -5120,6 +5224,84 @@ List exactly 5 tasks. Focus on unfinished intentions, patterns of concern, and g
   el.prepend(extractDiv);
   awardXP(10,'notes-extract');
   toast('🤖 Tasks extracted from notes!');
+}
+
+// ── DAILY PICKS (goal-aligned suggestions) ─────────────────────
+function _scoreTasks(){
+  const now=new Date();const h=now.getHours();
+  const goals=S.goals||[];
+  return(S.tasks||[])
+    .filter(t=>t.status!=='done'&&!t.isT3&&['inbox','this-week','this-month'].includes(t.bucket))
+    .map(t=>{
+      let sc=0;
+      const g=t.goalId?goals.find(x=>x.id===t.goalId):null;
+      if(g&&g.isTop3)sc+=4;
+      else if(g&&!g.complete)sc+=3;
+      if(t.importance==='high')sc+=3;
+      if(t.urgency==='high')sc+=2;
+      if(t.dueDate){const dd=new Date(t.dueDate);const days=(dd-now)/86400000;if(days<=3&&days>=0)sc+=2;}
+      if(t.bucket==='this-week')sc+=1;
+      if(t.createdAt&&(now-new Date(t.createdAt))/86400000>5)sc+=1;
+      if(h<12&&t.energy==='high')sc+=1;
+      if(h>=14&&t.energy==='low')sc+=1;
+      return{t,sc};
+    })
+    .sort((a,b)=>b.sc-a.sc)
+    .slice(0,4)
+    .map(x=>x.t);
+}
+function renderDailyPicks(){
+  const el=document.getElementById('daily-picks-list');if(!el)return;
+  const picks=_scoreTasks();
+  const goals=S.goals||[];
+  if(!picks.length){el.innerHTML='<div style="color:var(--muted);font-size:13px;padding:4px 0;">No pending tasks. <span style="color:var(--accent);cursor:pointer;" onclick="openAdd()">Add your first task →</span></div>';return;}
+  el.innerHTML=picks.map(t=>{
+    const g=t.goalId?goals.find(x=>x.id===t.goalId):null;
+    return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
+      <div class="ck ${t.status==='done'?'checked':''}" onclick="toggleDone('${t.id}')" style="flex-shrink:0;"></div>
+      <div style="flex:1;min-width:0;cursor:pointer;" onclick="openEdit('${t.id}')">
+        <div style="font-size:13px;font-weight:500;${t.status==='done'?'text-decoration:line-through;color:var(--muted)':''}">${g?.isTop3?'⭐ ':''}${esc(t.title.slice(0,55))}</div>
+        ${g?`<div style="font-size:11px;color:var(--accent);margin-top:2px;">${esc(g.title.slice(0,25))}</div>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+async function aiDailyPicks(){
+  const goals=(S.goals||[]).filter(g=>!g.complete).slice(0,6).map(g=>{const s=goalStats(g.id);return`${g.isTop3?'⭐':''}${g.title}${g.description?' — '+g.description:''} [${s.done}/${s.total} tasks done]`;}).join('\n');
+  const tasks=(S.tasks||[]).filter(t=>t.status!=='done'&&['this-week','this-month','inbox'].includes(t.bucket)).slice(0,10).map(t=>`- ${t.title} [${t.importance||'med'} importance, ${t.bucket}${t.goalId?' → goal':''  }]`).join('\n');
+  const lastEnergy=((S.energyLog||[]).slice(-1)[0]||{}).level||'unknown';
+  const dow=new Date().toLocaleDateString('en',{weekday:'long'});
+  const prompt=`You are a productivity coach. Pick the 3 best tasks for today.
+
+ACTIVE GOALS:
+${goals||'No goals set'}
+
+PENDING TASKS:
+${tasks||'No tasks'}
+
+Context: Today is ${dow}. Energy level: ${lastEnergy}. Values: ${(S.values||[]).join(', ')}.
+
+For each of your 3 picks, respond with:
+1. [Task title] — [one-sentence reason why this is the priority today]
+
+Be direct. Choose tasks that move the most important goals forward given today's energy and day.`;
+  const text=await callClaude(prompt,350);
+  if(!text)return;
+  const el=document.getElementById('daily-picks-ai-result');
+  if(el)el.innerHTML=`<div style="background:rgba(88,166,255,.08);border-radius:8px;padding:10px;border-left:3px solid var(--accent);"><div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:6px;">🤖 AI Recommendation</div><div style="font-size:12px;line-height:1.7;white-space:pre-line;">${esc(text)}</div></div>`;
+}
+let _dashStatsShown=false;
+function _toggleDashStats(){
+  _dashStatsShown=!_dashStatsShown;
+  ['momentum-row','theme-exec-row'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=_dashStatsShown?'flex':'none';});
+  const btn=document.getElementById('dash-stats-toggle');
+  if(btn)btn.textContent=_dashStatsShown?'✕ Hide Stats':'📊 Show Stats & Scores';
+}
+function _toggleDashMore(){
+  const shown=document.querySelector('.dash-extra.shown');
+  document.querySelectorAll('.dash-extra').forEach(el=>el.classList.toggle('shown',!shown));
+  const btn=document.getElementById('dash-more-btn');
+  if(btn)btn.textContent=shown?'⋯':'✕';
 }
 
 // ── HEBB CO-OCCURRENCE ENGINE (fire together → wire together) ──

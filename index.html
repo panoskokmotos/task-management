@@ -165,7 +165,7 @@ select.fc option{background:var(--surface2);}
 .sidebar-bottom{margin-top:auto;padding:10px 6px 0;border-top:1px solid var(--border);}
 .app-lnk{padding:8px 16px;font-size:12px;display:flex;align-items:center;gap:7px;color:var(--muted);text-decoration:none;border-radius:6px;transition:background .12s;}
 .app-lnk:hover{background:var(--surface2);color:var(--text);}
-@media(max-width:768px){body{flex-direction:column;}.mob-bar{display:flex;}.sidebar{position:fixed;left:0;top:0;bottom:0;width:240px;z-index:300;transform:translateX(-100%);transition:transform .2s;}.sidebar.open{transform:translateX(0);}.sb-overlay{display:block;opacity:0;pointer-events:none;transition:opacity .2s;}.sb-overlay.open{opacity:1;pointer-events:auto;}.main{padding:14px;}.fr{grid-template-columns:1fr;}.goal-dash{grid-template-columns:1fr 1fr;}}
+@media(max-width:768px){body{flex-direction:column;}.mob-bar{display:flex;}.main{padding:14px;}.fr{grid-template-columns:1fr;}.goal-dash{grid-template-columns:1fr 1fr;}}
 .cmdk{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:flex-start;justify-content:center;padding-top:14vh;z-index:2000;backdrop-filter:blur(5px);}.cmdk.hidden{display:none;}
 .cmdk-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:540px;max-width:94vw;}
 .cmdk-ir{display:flex;align-items:center;gap:8px;padding:6px 14px;border-bottom:1px solid var(--border);}
@@ -198,12 +198,13 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 /* ── MOBILE ─────────────────────────────────────────────────── */
 .ham-btn{display:none;position:fixed;top:11px;left:11px;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:8px;width:38px;height:38px;cursor:pointer;align-items:center;justify-content:center;flex-direction:column;gap:5px;padding:0;}
 .ham-btn span{display:block;width:18px;height:2px;background:var(--text);border-radius:2px;transition:all .2s;}
-.s-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:155;}
+.s-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:195;}
 .bnav{display:none;}
 @media(max-width:768px){
   .ham-btn{display:flex;}
-  .sidebar{position:fixed;left:-220px;top:0;bottom:0;height:100%;z-index:160;transition:left .25s ease;overflow-y:auto;}
+  .sidebar{position:fixed;left:-240px;top:0;bottom:0;height:100%;width:240px;z-index:210;transition:left .25s ease;overflow-y:auto;}
   .sidebar.open{left:0;}
+  .s-ov.open{z-index:205;}
   .s-ov.open{display:block;}
   body{height:auto;overflow:auto;}
   .main{padding:60px 14px 72px;overflow-y:visible;height:auto;}
@@ -2103,7 +2104,7 @@ function renderTop3(){
 function doCapture(){
   const inp=document.getElementById('capi'),cat=document.getElementById('capcat');
   const title=inp.value.trim();if(!title)return;
-  S.tasks.push({id:uid(),title,notes:'',bucket:'inbox',category:cat.value||'other',urgency:'low',importance:'high',energy:'high',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,createdAt:new Date().toISOString(),completedAt:null});
+  S.tasks.push({id:uid(),title,notes:'',bucket:'inbox',category:cat.value||'other',urgency:'low',importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',createdAt:new Date().toISOString(),completedAt:null});
   save();inp.value='';cat.value='other';inp.focus();
   renderCapture();updIBadge();
 }
@@ -2716,7 +2717,7 @@ function handleCmdK(e){
     const title=document.getElementById('cmdk-i').value.trim();if(!title)return;
     const cat=document.getElementById('cmdk-cat').value;
     const bucket=document.getElementById('cmdk-bkt').value;
-    S.tasks.push({id:uid(),title,notes:'',bucket,category:cat,urgency:'low',importance:'high',energy:'high',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,recurring:'',createdAt:new Date().toISOString(),completedAt:null});
+    S.tasks.push({id:uid(),title,notes:'',bucket,category:cat,urgency:'low',importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',createdAt:new Date().toISOString(),completedAt:null});
     save();closeCmdK();refresh();updIBadge();
   }
 }
@@ -4637,7 +4638,7 @@ function clearOneThing(id){
 // QUICK ADD
 // ════════════════════════════════════════════════════════════════
 function openQuickAdd(){document.getElementById('qa-input').value='';document.getElementById('quick-add-modal').classList.remove('hidden');setTimeout(()=>document.getElementById('qa-input').focus(),50);}
-function doQuickAdd(){const lines=document.getElementById('qa-input').value.split('\n').map(l=>l.trim()).filter(Boolean);if(!lines.length)return;lines.forEach(title=>S.tasks.push({id:uid(),title,notes:'',bucket:'inbox',category:'other',urgency:'low',importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',createdAt:new Date().toISOString(),completedAt:null}));save();refresh();closeM('quick-add-modal');toast(`Added ${lines.length} task${lines.length>1?'s':''} to Inbox`);}
+function doQuickAdd(){const lines=document.getElementById('qa-input').value.split('\n').map(l=>l.trim()).filter(Boolean);if(!lines.length)return;lines.forEach(title=>S.tasks.push({id:uid(),title,notes:'',bucket:'inbox',category:'other',urgency:'low',importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',createdAt:new Date().toISOString(),completedAt:null}));save();refresh();closeM('quick-add-modal');toast(`Added ${lines.length} task${lines.length>1?'s':''} to Inbox`);}
 
 // ════════════════════════════════════════════════════════════════
 // START DAY MODAL
@@ -5180,7 +5181,7 @@ function renderDailyPicks(){
   el.innerHTML=picks.map(t=>{
     const g=t.goalId?goals.find(x=>x.id===t.goalId):null;
     return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
-      <div class="ck ${t.status==='done'?'checked':''}" onclick="toggleDone('${t.id}')" style="flex-shrink:0;"></div>
+      <div class="ck ${t.status==='done'?'on':''}" onclick="toggleDone('${t.id}')" style="flex-shrink:0;"></div>
       <div style="flex:1;min-width:0;cursor:pointer;" onclick="openEdit('${t.id}')">
         <div style="font-size:13px;font-weight:500;${t.status==='done'?'text-decoration:line-through;color:var(--muted)':''}">${g?.isTop3?'⭐ ':''}${esc(t.title.slice(0,55))}</div>
         ${g?`<div style="font-size:11px;color:var(--accent);margin-top:2px;">${esc(g.title.slice(0,25))}</div>`:''}
@@ -5317,7 +5318,7 @@ List exactly 5 tasks. Each must be completable in one focused session. Start eac
   }).join('');
 }
 function _addGoalTask(goalId,title,depth,timeBlock){
-  S.tasks.push({id:uid(),title,notes:'',bucket:'this-week',category:'other',urgency:'low',importance:'high',energy:'high',depth:depth||'medium',status:'todo',isT3:false,t3s:null,timeBlock:timeBlock||null,dueDate:'',goalId,recurring:'',checklist:[],blockedBy:[],createdAt:new Date().toISOString(),completedAt:null});
+  S.tasks.push({id:uid(),title,notes:'',bucket:'this-week',category:'other',urgency:'low',importance:'high',energy:'high',depth:depth||'medium',status:'todo',isT3:false,t3s:null,timeBlock:timeBlock||null,dueDate:'',goalId,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',createdAt:new Date().toISOString(),completedAt:null});
   save();refresh();
   toast('Task added to This Week!');
 }
@@ -6255,7 +6256,7 @@ function handleQC(e){
   const timeBlock=timeTag?parseInt(timeTag[1]):null;
   const title=raw.replace(/@\w+/g,'').replace(/![\w]+/g,'').replace(/~\d+m?/g,'').trim();
   if(!title){closeQuickCapture();return;}
-  S.tasks.push({id:uid(),title,notes:'',bucket,category:cat,urgency,importance:'high',energy:'high',status:'todo',isT3:false,t3s:null,timeBlock,dueDate:'',goalId:null,checklist:[],blockedBy:[],createdAt:new Date().toISOString(),completedAt:null});
+  S.tasks.push({id:uid(),title,notes:'',bucket,category:cat,urgency,importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock,dueDate:'',goalId:null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',createdAt:new Date().toISOString(),completedAt:null});
   save();updIBadge();
   inp.value='✓ Captured!';inp.style.color='var(--accent)';
   setTimeout(()=>{inp.style.color='';closeQuickCapture();},900);
@@ -6488,7 +6489,7 @@ function importCSVTasks(){
   let added=0;
   tasks.forEach((t,i)=>{
     if(!document.getElementById('csv-t-'+i)?.checked)return;
-    S.tasks.push({id:uid(),title:t.title,notes:t.notes||'',bucket:t.bucket||'inbox',category:t.category||'other',urgency:t.urgency||'low',importance:t.importance||'high',energy:'high',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:t.dueDate||'',goalId:null,createdAt:new Date().toISOString(),completedAt:null});
+    S.tasks.push({id:uid(),title:t.title,notes:t.notes||'',bucket:t.bucket||'inbox',category:t.category||'other',urgency:t.urgency||'low',importance:t.importance||'high',energy:t.energy||'high',depth:t.depth||'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:t.dueDate||'',goalId:null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',createdAt:new Date().toISOString(),completedAt:null});
     added++;
   });
   if(added){save();updIBadge();updateChecklistBadge();renderCapture();toast(`✅ ${added} tasks imported to inbox!`);}
@@ -6933,7 +6934,7 @@ function applyNotesSynthesis(addTasks){
   if(addTasks&&p.tasks){
     p.tasks.forEach((t,i)=>{
       if(!document.getElementById('ni-t-'+i)?.checked)return;
-      S.tasks.push({id:uid(),title:t.title,notes:'',bucket:'inbox',category:t.category||'other',urgency:t.urgency||'low',importance:t.importance||'high',energy:'high',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,createdAt:new Date().toISOString(),completedAt:null});
+      S.tasks.push({id:uid(),title:t.title,notes:'',bucket:'inbox',category:t.category||'other',urgency:t.urgency||'low',importance:t.importance||'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',createdAt:new Date().toISOString(),completedAt:null});
       added++;
     });
     if(added){save();updIBadge();updateChecklistBadge();toast(`✅ Review filled + ${added} tasks added to inbox!`);}
@@ -8429,7 +8430,7 @@ function closeModal(id){document.getElementById(id)?.classList.add('hidden');}
       <p style="font-size:14px;font-weight:600;margin-bottom:10px;">📥 Promote Tasks to This Week</p>
       <p style="font-size:12px;color:var(--muted);margin-bottom:8px;">Tasks from This Month &amp; Backlog — move the important ones:</p>
       <div id="wp-task-list" style="max-height:200px;overflow-y:auto;margin-bottom:10px;"></div>
-      <input class="fc" id="wp-quick-add" placeholder="Quick add a task to This Week..." onkeydown="if(event.key==='Enter'){const v=this.value.trim();if(v){S.tasks.push({id:uid(),title:v,notes:'',bucket:'this-week',category:'other',urgency:'low',importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,recurring:'',checklist:[],blockedBy:[],createdAt:new Date().toISOString(),completedAt:null});save();this.value='';_wpRenderTaskList();toast('Task added to This Week!');}}">
+      <input class="fc" id="wp-quick-add" placeholder="Quick add a task to This Week..." onkeydown="if(event.key==='Enter'){const v=this.value.trim();if(v){S.tasks.push({id:uid(),title:v,notes:'',bucket:'this-week',category:'other',urgency:'low',importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',createdAt:new Date().toISOString(),completedAt:null});save();this.value='';_wpRenderTaskList();toast('Task added to This Week!');}}">
     </div>
     <!-- Step 3: Intention -->
     <div class="wp-step" style="display:none;">

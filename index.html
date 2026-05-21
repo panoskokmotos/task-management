@@ -929,7 +929,7 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
         <span style="font-size:16px;font-weight:700;" id="paste-import-title">📋 Paste Import</span>
         <div style="font-size:11px;color:var(--muted);margin-top:2px;">One item per line. Claude will auto-categorize if you have an API key.</div>
       </div>
-      <button class="mc" onclick="closeModal('paste-import-modal')">×</button>
+      <button class="mc" aria-label="Close" onclick="closeModal('paste-import-modal')">×</button>
     </div>
     <div class="fg">
       <label>Paste your list</label>
@@ -957,7 +957,7 @@ Read 50 books this year"></textarea>
 <!-- ── WIN MODAL ─────────────────────────────────────────────── -->
 <div id="win-modal" class="mo hidden">
   <div class="md" style="max-width:480px;">
-    <div class="mh"><span style="font-size:16px;font-weight:700;">🏅 Log a Win</span><button class="mc" onclick="closeModal('win-modal')">×</button></div>
+    <div class="mh"><span style="font-size:16px;font-weight:700;">🏅 Log a Win</span><button class="mc" aria-label="Close" onclick="closeModal('win-modal')">×</button></div>
     <div class="fg"><label>Title *</label><input class="fc" id="win-title" placeholder="What did you achieve?"></div>
     <div class="fg"><label>Description</label><textarea class="fc" id="win-desc" rows="2" placeholder="Add some detail…"></textarea></div>
     <div class="fr">
@@ -984,7 +984,7 @@ Read 50 books this year"></textarea>
 <!-- ── BUCKET MODAL ───────────────────────────────────────────── -->
 <div id="bl-modal" class="mo hidden">
   <div class="md" style="max-width:480px;">
-    <div class="mh"><span style="font-size:16px;font-weight:700;" id="bl-modal-title">🌍 Add to Bucket List</span><button class="mc" onclick="closeModal('bl-modal')">×</button></div>
+    <div class="mh"><span style="font-size:16px;font-weight:700;" id="bl-modal-title">🌍 Add to Bucket List</span><button class="mc" aria-label="Close" onclick="closeModal('bl-modal')">×</button></div>
     <div class="fg"><label>Experience / Goal *</label><input class="fc" id="bl-title" placeholder="e.g. Hike the Camino de Santiago"></div>
     <div class="fg"><label>Why it matters (optional)</label><textarea class="fc" id="bl-desc" rows="2" placeholder="What excites you about this?"></textarea></div>
     <div class="fr">
@@ -1019,7 +1019,7 @@ Read 50 books this year"></textarea>
 <!-- ── WISH MODAL ─────────────────────────────────────────────── -->
 <div id="wish-modal" class="mo hidden">
   <div class="md" style="max-width:480px;">
-    <div class="mh"><span style="font-size:16px;font-weight:700;" id="wish-modal-title">🛒 Add to Wishlist</span><button class="mc" onclick="closeModal('wish-modal')">×</button></div>
+    <div class="mh"><span style="font-size:16px;font-weight:700;" id="wish-modal-title">🛒 Add to Wishlist</span><button class="mc" aria-label="Close" onclick="closeModal('wish-modal')">×</button></div>
     <div class="fg"><label>Item *</label><input class="fc" id="wish-title" placeholder="e.g. Mechanical keyboard"></div>
     <div class="fg"><label>Why / notes</label><textarea class="fc" id="wish-desc" rows="2" placeholder="Why do you want this?"></textarea></div>
     <div class="fr">
@@ -1057,7 +1057,7 @@ Read 50 books this year"></textarea>
 <!-- ── PROJECT MODAL ──────────────────────────────────────────── -->
 <div id="proj-modal" class="mo hidden">
   <div class="md" style="max-width:520px;">
-    <div class="mh"><span style="font-size:16px;font-weight:700;" id="proj-modal-title">🚀 Add Project</span><button class="mc" onclick="closeModal('proj-modal')">×</button></div>
+    <div class="mh"><span style="font-size:16px;font-weight:700;" id="proj-modal-title">🚀 Add Project</span><button class="mc" aria-label="Close" onclick="closeModal('proj-modal')">×</button></div>
     <div class="fg"><label>Project Name *</label><input class="fc" id="proj-title" placeholder="e.g. Task OS"></div>
     <div class="fg"><label>Description</label><textarea class="fc" id="proj-desc" rows="2" placeholder="What does it do / what's the idea?"></textarea></div>
     <div class="fr">
@@ -1112,7 +1112,7 @@ Read 50 books this year"></textarea>
     <div class="cmdk-ir">
       <span style="color:var(--muted);font-size:16px;">⚡</span>
       <input class="cmdk-i" id="cmdk-i" placeholder="Quick capture… press Enter" onkeydown="handleCmdK(event)">
-      <button class="mc" onclick="closeCmdK()">×</button>
+      <button class="mc" aria-label="Close" onclick="closeCmdK()">×</button>
     </div>
     <div class="cmdk-opts">
       <select class="fc" id="cmdk-cat" style="width:auto;padding:4px 8px;font-size:12px;">
@@ -1133,7 +1133,7 @@ Read 50 books this year"></textarea>
 <!-- TASK MODAL -->
 <div class="mo hidden" id="tm">
   <div class="md">
-    <div class="mh"><h3 id="tm-title">Add Task</h3><button class="mc" onclick="closeM('tm')">×</button></div>
+    <div class="mh"><h3 id="tm-title">Add Task</h3><button class="mc" aria-label="Close" onclick="closeM('tm')">×</button></div>
     <div class="fg"><label>Task Title *</label><input class="fc" id="t-title" placeholder="What needs to be done?"></div>
     <div class="fg"><label>Notes</label><textarea class="fc" id="t-notes" placeholder="Context, links, details..."></textarea></div>
     <div class="fr">
@@ -1234,7 +1234,7 @@ Read 50 books this year"></textarea>
 <!-- GOAL MODAL -->
 <div class="mo hidden" id="gm">
   <div class="md" style="width:460px;">
-    <div class="mh"><h3 id="gm-title">Add Goal</h3><button class="mc" onclick="closeM('gm')">×</button></div>
+    <div class="mh"><h3 id="gm-title">Add Goal</h3><button class="mc" aria-label="Close" onclick="closeM('gm')">×</button></div>
     <div class="fg"><label>Goal Title *</label><input class="fc" id="g-title" placeholder="e.g. Scale Givelink to 100 nonprofits"></div>
     <div class="fg"><label>Why it matters</label><textarea class="fc" id="g-desc" placeholder="Why is this important to you?"></textarea></div>
     <div class="fr">
@@ -1302,7 +1302,7 @@ Read 50 books this year"></textarea>
 <!-- VALUES MODAL -->
 <div class="mo hidden" id="vm">
   <div class="md" style="width:420px;">
-    <div class="mh"><h3>💎 Core Values</h3><button class="mc" onclick="closeM('vm')">×</button></div>
+    <div class="mh"><h3>💎 Core Values</h3><button class="mc" aria-label="Close" onclick="closeM('vm')">×</button></div>
     <div class="fg"><label>One value per line</label><textarea class="fc" id="v-inp" style="min-height:150px;" placeholder="Impact&#10;Ownership&#10;Growth&#10;Health&#10;Deep Work"></textarea></div>
     <div class="mf"><button class="btn bg" onclick="closeM('vm')">Cancel</button><button class="btn bp" onclick="saveVals()">Save</button></div>
   </div>
@@ -1311,7 +1311,7 @@ Read 50 books this year"></textarea>
 <!-- SETTINGS MODAL -->
 <div class="mo hidden" id="set-m">
   <div class="md" style="width:400px;">
-    <div class="mh"><h3>⚙️ Settings</h3><button class="mc" onclick="closeM('set-m')">×</button></div>
+    <div class="mh"><h3>⚙️ Settings</h3><button class="mc" aria-label="Close" onclick="closeM('set-m')">×</button></div>
     <div class="fg">
       <label>Your Name (used in greeting)</label>
       <input class="fc" id="set-name" placeholder="e.g. Panos">
@@ -1578,7 +1578,7 @@ Read 50 books this year"></textarea>
 <!-- HEALTH MODAL -->
 <div class="mo hidden" id="health-modal">
   <div class="md" style="width:440px;">
-    <div class="mh"><h3 id="health-modal-title">📋 Log Health Entry</h3><button class="mc" onclick="closeM('health-modal')">×</button></div>
+    <div class="mh"><h3 id="health-modal-title">📋 Log Health Entry</h3><button class="mc" aria-label="Close" onclick="closeM('health-modal')">×</button></div>
     <div class="fg"><label>Date</label><input class="fc" id="h-date" type="date"></div>
     <div class="fr">
       <div class="fg"><label>Type</label>
@@ -1608,7 +1608,7 @@ Read 50 books this year"></textarea>
 <!-- FINANCE MODAL -->
 <div class="mo hidden" id="finance-modal">
   <div class="md" style="width:440px;">
-    <div class="mh"><h3 id="finance-modal-title">💰 Log Finance Entry</h3><button class="mc" onclick="closeM('finance-modal')">×</button></div>
+    <div class="mh"><h3 id="finance-modal-title">💰 Log Finance Entry</h3><button class="mc" aria-label="Close" onclick="closeM('finance-modal')">×</button></div>
     <div class="fg"><label>Date</label><input class="fc" id="f-date" type="date"></div>
     <div class="fr">
       <div class="fg"><label>Type</label>
@@ -1631,7 +1631,7 @@ Read 50 books this year"></textarea>
 <!-- INVESTMENT MODAL -->
 <div class="mo hidden" id="invest-modal">
   <div class="md" style="width:440px;">
-    <div class="mh"><h3>📈 Add Investment</h3><button class="mc" onclick="closeM('invest-modal')">×</button></div>
+    <div class="mh"><h3>📈 Add Investment</h3><button class="mc" aria-label="Close" onclick="closeM('invest-modal')">×</button></div>
     <div class="fg"><label>Name</label><input class="fc" id="iv-name" placeholder="e.g. S&P500 ETF, BTC"></div>
     <div class="fr">
       <div class="fg"><label>Amount Invested (€)</label><input class="fc" id="iv-amount" type="number" step="0.01" placeholder="0.00"></div>
@@ -1648,7 +1648,7 @@ Read 50 books this year"></textarea>
 <!-- AI LAB MODAL -->
 <div class="mo hidden" id="ailab-modal">
   <div class="md" style="width:480px;">
-    <div class="mh"><h3 id="ailab-modal-title">🤖 Add Automation</h3><button class="mc" onclick="closeM('ailab-modal')">×</button></div>
+    <div class="mh"><h3 id="ailab-modal-title">🤖 Add Automation</h3><button class="mc" aria-label="Close" onclick="closeM('ailab-modal')">×</button></div>
     <div class="fg"><label>Name</label><input class="fc" id="al-name" placeholder="e.g. Daily standup generator"></div>
     <div class="fg"><label>Description</label><textarea class="fc" id="al-desc" style="min-height:56px;" placeholder="What does it do?"></textarea></div>
     <div class="fr">
@@ -1682,7 +1682,7 @@ Read 50 books this year"></textarea>
 <!-- RELATIONSHIPS MODAL -->
 <div class="mo hidden" id="rel-modal">
   <div class="md" style="width:480px;">
-    <div class="mh"><h3 id="rel-modal-title">🤝 Add Person</h3><button class="mc" onclick="closeM('rel-modal')">×</button></div>
+    <div class="mh"><h3 id="rel-modal-title">🤝 Add Person</h3><button class="mc" aria-label="Close" onclick="closeM('rel-modal')">×</button></div>
     <div class="fg"><label>Name</label><input class="fc" id="rel-name" placeholder="e.g. Alex Andreou"></div>
     <div class="fr">
       <div class="fg"><label>Type</label>
@@ -1722,7 +1722,7 @@ Read 50 books this year"></textarea>
 <!-- HABIT SETTINGS MODAL -->
 <div class="mo hidden" id="habit-settings-modal">
   <div class="md" style="width:440px;">
-    <div class="mh"><h3>⚙️ Manage Habits</h3><button class="mc" onclick="closeM('habit-settings-modal')">×</button></div>
+    <div class="mh"><h3>⚙️ Manage Habits</h3><button class="mc" aria-label="Close" onclick="closeM('habit-settings-modal')">×</button></div>
     <div id="habit-rows" style="margin-bottom:14px;"></div>
     <button class="btn bg sm" onclick="addHabitRow()">+ Add Habit</button>
     <div class="mf">
@@ -1735,7 +1735,7 @@ Read 50 books this year"></textarea>
 <!-- DISCOMFORT MODAL -->
 <div class="mo hidden" id="dis-modal">
   <div class="md" style="width:440px;">
-    <div class="mh"><h3>🔥 Log Challenge</h3><button class="mc" onclick="closeM('dis-modal')">×</button></div>
+    <div class="mh"><h3>🔥 Log Challenge</h3><button class="mc" aria-label="Close" onclick="closeM('dis-modal')">×</button></div>
     <div class="fg"><label>Date</label><input class="fc" id="dis-date" type="date"></div>
     <div class="fg"><label>Type</label>
       <select class="fc" id="dis-type">
@@ -1769,7 +1769,7 @@ Read 50 books this year"></textarea>
 <!-- AI SUGGESTION MODAL -->
 <div class="mo hidden" id="ai-out-modal">
   <div class="md" style="width:520px;">
-    <div class="mh"><h3 id="ai-out-title">🤖 AI Output</h3><button class="mc" onclick="closeM('ai-out-modal')">×</button></div>
+    <div class="mh"><h3 id="ai-out-title">🤖 AI Output</h3><button class="mc" aria-label="Close" onclick="closeM('ai-out-modal')">×</button></div>
     <div id="ai-out-body" style="font-size:13px;line-height:1.6;white-space:pre-wrap;max-height:400px;overflow-y:auto;"></div>
     <div class="mf"><button class="btn bp" onclick="closeM('ai-out-modal')">Done</button></div>
   </div>
@@ -5022,7 +5022,7 @@ const BADGES=[
   {id:'streak-7',name:'🔥 Week Warrior',desc:'Achieve a 7-day habit streak',check:()=>(S.habits||[]).some(h=>(h.streak||0)>=7)},
   {id:'centurion',name:'💯 Centurion',desc:'Complete 100 tasks',check:()=>(S.tasks||[]).filter(t=>t.status==='done').length>=100},
   {id:'goal-getter',name:'🏆 Goal Getter',desc:'Mark a goal as complete',check:()=>(S.goals||[]).some(g=>g.status==='done'||g.complete)},
-  {id:'challenger',name:'⚡ Challenger',desc:'Complete a full challenge',check:()=>(S.challengeHistory||[]).length>=1||(S.completedChallenges||[]).length>=1},
+  {id:'challenger',name:'⚡ Challenger',desc:'Complete a full challenge',check:()=>(S.challengeLogs||[]).some(c=>c.completed)},
   {id:'win-logger',name:'🏅 Win Logger',desc:'Log 10 wins',check:()=>(S.wins||[]).length>=10},
   {id:'ladder-climber',name:'🪜 Ladder Climber',desc:'Complete discomfort ladder week 4',check:()=>(S.discomfortLadder?.completedWeeks||[]).length>=4},
   {id:'wheel-master',name:'🎡 Self-Aware',desc:'Complete 4 wheel assessments',check:()=>(S.wheelAssessments||[]).length>=4},
@@ -5087,18 +5087,21 @@ async function aiWheelInsight(entryId,scores,cadence){
   const goals=(S.goals||[]).slice(0,5).map(g=>g.title).join(', ');
   const vals=(S.values||[]).join(', ');
   const scoreStr=WHEEL_AREAS.map(a=>`${a.label}: ${scores[a.id]}/10`).join(', ');
-  const prompt=`A person rated their life balance (${cadence} assessment):
+  const about=getAboutMe()||'Panos — 20s founder building Givelink (B2B SaaS for nonprofits), targeting financial freedom and an SF move.';
+  const prompt=`${about}
+
+${profileName} rated their life balance (${cadence} assessment):
 ${scoreStr}
 
 Their goals: ${goals||'Not set'}
 Their values: ${vals||'Not set'}
 
 Give a brief, honest, energizing insight (3-4 sentences):
-1. Name their top 2 lowest-scoring areas
-2. Give ONE specific action for each low area
-3. Highlight ONE strength or positive trend
+1. Name their top 2 lowest-scoring areas and give ONE specific action for each — tie actions to Givelink traction or financial freedom where relevant
+2. Highlight ONE strength or positive trend
+3. End with a direct challenge for this week
 
-Be direct and personal, not generic.`;
+Be personal and specific to who they are, not generic.`;
   const text=await callClaude(prompt,400);
   if(!text)return;
   const entry=(S.wheelAssessments||[]).find(e=>e.id===entryId);
@@ -5459,7 +5462,10 @@ async function aiDailyPicks(){
   const tasks=(S.tasks||[]).filter(t=>t.status!=='done'&&['this-week','this-month','inbox'].includes(t.bucket)).slice(0,10).map(t=>`- ${t.title} [${t.importance||'med'} importance, ${t.bucket}${t.goalId?' → goal':''  }]`).join('\n');
   const lastEnergy=((S.energyLog||[]).slice(-1)[0]||{}).level||'unknown';
   const dow=new Date().toLocaleDateString('en',{weekday:'long'});
-  const prompt=`You are a productivity coach. Pick the 3 best tasks for today.
+  const about=getAboutMe()||'Panos — 20s founder building Givelink (B2B SaaS for nonprofits), targeting financial freedom and an SF move.';
+  const prompt=`You are a productivity coach for ${profileName}. ${about}
+
+Pick the 3 best tasks for today.
 
 ACTIVE GOALS:
 ${goals||'No goals set'}
@@ -5470,9 +5476,9 @@ ${tasks||'No tasks'}
 Context: Today is ${dow}. Energy level: ${lastEnergy}. Values: ${(S.values||[]).join(', ')}.
 
 For each of your 3 picks, respond with:
-1. [Task title] — [one-sentence reason why this is the priority today]
+1. [Task title] — [one-sentence reason why this is the priority today, tied to Givelink traction or life goals]
 
-Be direct. Choose tasks that move the most important goals forward given today's energy and day.`;
+Be direct. Prioritize tasks that drive Givelink revenue/nonprofits or unlock financial freedom.`;
   const text=await callClaude(prompt,350);
   if(!text)return;
   const el=document.getElementById('daily-picks-ai-result');
@@ -9874,7 +9880,7 @@ function _goalMomentum(goalId){
 <!-- DECISION MODAL -->
 <div class="mo hidden" id="dec-modal">
   <div class="md" style="width:520px;">
-    <div class="mh"><h3 id="dec-modal-title">🧠 Log Decision</h3><button class="mc" onclick="closeM('dec-modal')">×</button></div>
+    <div class="mh"><h3 id="dec-modal-title">🧠 Log Decision</h3><button class="mc" aria-label="Close" onclick="closeM('dec-modal')">×</button></div>
     <div class="fg"><label>Date</label><input class="fc" id="dec-date" type="date"></div>
     <div class="fg"><label>Decision Made</label><input class="fc" id="dec-decision" placeholder="e.g. Switch to annual pricing for Givelink"></div>
     <div class="fg"><label>Alternatives Considered</label><textarea class="fc" id="dec-alts" style="min-height:44px;" placeholder="What other options did you consider?"></textarea></div>
@@ -9895,7 +9901,7 @@ function _goalMomentum(goalId){
 <!-- TWITTER/X POST MODAL -->
 <div class="mo hidden" id="tweet-modal">
   <div class="md" style="width:500px;">
-    <div class="mh"><h3>🐦 Generate Post from Wins</h3><button class="mc" onclick="closeM('tweet-modal')">×</button></div>
+    <div class="mh"><h3>🐦 Generate Post from Wins</h3><button class="mc" aria-label="Close" onclick="closeM('tweet-modal')">×</button></div>
     <div class="fg"><label>Select wins to feature (last 7 days)</label><div id="tweet-wins-list" style="max-height:180px;overflow-y:auto;"></div></div>
     <div class="fg"><label>Angle</label>
       <select class="fc" id="tweet-angle">
@@ -9922,7 +9928,7 @@ function _goalMomentum(goalId){
 <!-- WEEKLY DIGEST MODAL -->
 <div class="mo hidden" id="digest-modal">
   <div class="md" style="width:560px;">
-    <div class="mh"><h3>📊 Weekly Metrics Digest</h3><button class="mc" onclick="closeM('digest-modal')">×</button></div>
+    <div class="mh"><h3>📊 Weekly Metrics Digest</h3><button class="mc" aria-label="Close" onclick="closeM('digest-modal')">×</button></div>
     <div id="digest-body" style="font-size:13px;line-height:1.7;white-space:pre-wrap;font-family:monospace;background:var(--surface2);border-radius:8px;padding:14px;max-height:420px;overflow-y:auto;"></div>
     <div class="mf">
       <button class="btn bg" onclick="closeM('digest-modal')">Close</button>
@@ -9950,7 +9956,7 @@ function _goalMomentum(goalId){
 <!-- BATCH SUGGESTIONS MODAL -->
 <div class="mo hidden" id="batch-modal">
   <div class="md" style="width:520px;">
-    <div class="mh"><h3>🔗 Smart Batching Suggestions</h3><button class="mc" onclick="closeM('batch-modal')">×</button></div>
+    <div class="mh"><h3>🔗 Smart Batching Suggestions</h3><button class="mc" aria-label="Close" onclick="closeM('batch-modal')">×</button></div>
     <div id="batch-body" style="font-size:13px;line-height:1.6;white-space:pre-wrap;min-height:80px;"></div>
     <div class="mf"><button class="btn bp" onclick="closeM('batch-modal')">Got it</button></div>
   </div>
@@ -9959,7 +9965,7 @@ function _goalMomentum(goalId){
 <!-- CHALLENGE MODAL -->
 <div class="mo hidden" id="dc-modal">
   <div class="md" style="width:480px;">
-    <div class="mh"><h3>⚡ Set Daily Challenge</h3><button class="mc" onclick="closeM('dc-modal')">×</button></div>
+    <div class="mh"><h3>⚡ Set Daily Challenge</h3><button class="mc" aria-label="Close" onclick="closeM('dc-modal')">×</button></div>
     <div class="fg"><label>Challenge Title *</label><input class="fc" id="dc-title" placeholder="e.g. Cold call 3 nonprofits today"></div>
     <div class="fg"><label>Why it matters</label><input class="fc" id="dc-why" placeholder="Connect to your purpose or goal..."></div>
     <div class="fr">
@@ -9993,7 +9999,7 @@ function _goalMomentum(goalId){
 <!-- PHOTO LOG MODAL -->
 <div class="mo hidden" id="photo-modal">
   <div class="md" style="width:440px;">
-    <div class="mh"><h3>📸 Log Progress Entry</h3><button class="mc" onclick="closeM('photo-modal')">×</button></div>
+    <div class="mh"><h3>📸 Log Progress Entry</h3><button class="mc" aria-label="Close" onclick="closeM('photo-modal')">×</button></div>
     <div class="fg"><label>Date</label><input class="fc" id="ph-date" type="date"></div>
     <div class="fg"><label>Weight (kg)</label><input class="fc" id="ph-weight" type="number" step="0.1" placeholder="82.5"></div>
     <div class="fg"><label>Body Fat %</label><input class="fc" id="ph-bf" type="number" step="0.1" placeholder="15.2"></div>
@@ -10014,7 +10020,7 @@ function _goalMomentum(goalId){
 <!-- CHALLENGE DIGEST MODAL -->
 <div class="mo hidden" id="cdigest-modal">
   <div class="md" style="width:480px;">
-    <div class="mh"><h3>📊 Weekly Challenge Digest</h3><button class="mc" onclick="closeM('cdigest-modal')">×</button></div>
+    <div class="mh"><h3>📊 Weekly Challenge Digest</h3><button class="mc" aria-label="Close" onclick="closeM('cdigest-modal')">×</button></div>
     <div id="cdigest-body" style="font-size:13px;line-height:1.7;white-space:pre-wrap;font-family:monospace;background:var(--surface2);border-radius:8px;padding:14px;max-height:380px;overflow-y:auto;"></div>
     <div class="mf">
       <button class="btn bg" onclick="closeM('cdigest-modal')">Close</button>
@@ -10027,7 +10033,7 @@ function _goalMomentum(goalId){
 <!-- COMMITMENT REVIEW MODAL -->
 <div class="mo hidden" id="commit-modal">
   <div class="md" style="width:500px;">
-    <div class="mh"><h3>📜 Weekly Commitments</h3><button class="mc" onclick="closeM('commit-modal')">×</button></div>
+    <div class="mh"><h3>📜 Weekly Commitments</h3><button class="mc" aria-label="Close" onclick="closeM('commit-modal')">×</button></div>
     <div id="commit-body" style="max-height:420px;overflow-y:auto;"></div>
     <div class="mf"><button class="btn bp" onclick="closeM('commit-modal')">Done</button></div>
   </div>
@@ -10035,7 +10041,7 @@ function _goalMomentum(goalId){
 <!-- VALUE ALIGNMENT MODAL -->
 <div class="mo hidden" id="values-modal">
   <div class="md" style="width:540px;">
-    <div class="mh"><h3>🎯 Value Alignment Check</h3><button class="mc" onclick="closeM('values-modal')">×</button></div>
+    <div class="mh"><h3>🎯 Value Alignment Check</h3><button class="mc" aria-label="Close" onclick="closeM('values-modal')">×</button></div>
     <div id="values-body"></div>
     <div class="mf"><button class="btn bp" onclick="closeM('values-modal')">Done</button></div>
   </div>
@@ -10043,7 +10049,7 @@ function _goalMomentum(goalId){
 <!-- SOMEDAY AUDIT MODAL -->
 <div class="mo hidden" id="someday-modal">
   <div class="md" style="width:560px;">
-    <div class="mh"><h3>📋 Someday Audit</h3><button class="mc" onclick="closeM('someday-modal')">×</button></div>
+    <div class="mh"><h3>📋 Someday Audit</h3><button class="mc" aria-label="Close" onclick="closeM('someday-modal')">×</button></div>
     <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Tasks in Someday for 30+ days. Promote, schedule, or delete each one.</p>
     <div id="someday-audit-body" style="max-height:380px;overflow-y:auto;"></div>
     <div class="mf"><button class="btn bg" onclick="closeM('someday-modal')">Close</button><button class="btn bp" onclick="save();closeM('someday-modal');refresh();toast('Audit saved!')">Save Changes</button></div>
@@ -10052,7 +10058,7 @@ function _goalMomentum(goalId){
 <!-- AI PRIORITY AUDIT MODAL -->
 <div class="mo hidden" id="priority-audit-modal">
   <div class="md" style="width:560px;">
-    <div class="mh"><h3>🤖 AI Priority Audit</h3><button class="mc" onclick="closeM('priority-audit-modal')">×</button></div>
+    <div class="mh"><h3>🤖 AI Priority Audit</h3><button class="mc" aria-label="Close" onclick="closeM('priority-audit-modal')">×</button></div>
     <div id="priority-audit-body" style="font-size:13px;line-height:1.7;white-space:pre-wrap;min-height:120px;max-height:420px;overflow-y:auto;background:var(--surface2);border-radius:8px;padding:14px;"></div>
     <div class="mf"><button class="btn bg" onclick="closeM('priority-audit-modal')">Close</button></div>
   </div>
@@ -10060,7 +10066,7 @@ function _goalMomentum(goalId){
 <!-- CONTEXT SWITCH MODAL -->
 <div class="mo hidden" id="context-modal">
   <div class="md" style="width:440px;">
-    <div class="mh"><h3>🔀 Context Switches Today</h3><button class="mc" onclick="closeM('context-modal')">×</button></div>
+    <div class="mh"><h3>🔀 Context Switches Today</h3><button class="mc" aria-label="Close" onclick="closeM('context-modal')">×</button></div>
     <div id="context-body"></div>
     <div class="mf"><button class="btn bp" onclick="closeM('context-modal')">Got it</button></div>
   </div>
@@ -10069,7 +10075,7 @@ function _goalMomentum(goalId){
 <!-- INBOX AI TRIAGE MODAL -->
 <div class="mo hidden" id="inbox-ai-modal">
   <div class="md" style="width:580px;">
-    <div class="mh"><h3>🤖 AI Inbox Triage</h3><button class="mc" onclick="closeM('inbox-ai-modal')">×</button></div>
+    <div class="mh"><h3>🤖 AI Inbox Triage</h3><button class="mc" aria-label="Close" onclick="closeM('inbox-ai-modal')">×</button></div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">Review AI suggestions. Uncheck any you want to skip, then Apply.</div>
     <div id="inbox-ai-body" style="max-height:420px;overflow-y:auto;"></div>
     <div class="mf" id="inbox-ai-footer" style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;"></div>
@@ -10079,7 +10085,7 @@ function _goalMomentum(goalId){
 <!-- GOAL DIGEST MODAL -->
 <div class="mo hidden" id="goal-digest-modal">
   <div class="md" style="width:560px;">
-    <div class="mh"><h3>🤖 AI Goal Analysis</h3><button class="mc" onclick="closeM('goal-digest-modal')">×</button></div>
+    <div class="mh"><h3>🤖 AI Goal Analysis</h3><button class="mc" aria-label="Close" onclick="closeM('goal-digest-modal')">×</button></div>
     <div id="goal-digest-body" style="font-size:13px;line-height:1.7;max-height:440px;overflow-y:auto;min-height:80px;"></div>
     <div class="mf"><button class="btn bg" onclick="closeM('goal-digest-modal')">Close</button></div>
   </div>
@@ -10113,7 +10119,7 @@ function _goalMomentum(goalId){
 <div id="rel-draft-sheet" style="position:fixed;bottom:0;left:0;right:0;transform:translateY(100%);transition:transform .25s ease;background:var(--surface);border-top:1px solid var(--border);padding:20px;z-index:1400;max-height:50vh;overflow-y:auto;">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
     <span id="rel-draft-name" style="font-size:14px;font-weight:700;"></span>
-    <button class="mc" onclick="closeRelDraft()">×</button>
+    <button class="mc" aria-label="Close" onclick="closeRelDraft()">×</button>
   </div>
   <textarea id="rel-draft-text" style="width:100%;min-height:100px;font-size:13px;line-height:1.6;resize:vertical;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:inherit;"></textarea>
   <div style="display:flex;gap:8px;margin-top:10px;">
@@ -10126,7 +10132,7 @@ function _goalMomentum(goalId){
 <!-- CSV IMPORT MODAL -->
 <div class="mo hidden" id="csv-import-modal">
   <div class="md" style="width:640px;">
-    <div class="mh"><h3>📋 Import Tasks</h3><button class="mc" onclick="closeM('csv-import-modal')">×</button></div>
+    <div class="mh"><h3>📋 Import Tasks</h3><button class="mc" aria-label="Close" onclick="closeM('csv-import-modal')">×</button></div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Paste tasks from Notion, Google Sheets, Excel, or just one task per line. Headers are auto-detected.<br>
     <strong>Supported columns:</strong> title, category, bucket, urgency, importance, notes, due</div>
     <textarea id="csv-input" style="width:100%;min-height:120px;max-height:180px;font-size:12px;line-height:1.6;resize:vertical;background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:10px;color:var(--text);font-family:monospace;margin-bottom:10px;" placeholder="Paste here — tab-separated (from Notion/Sheets) or one task per line:&#10;&#10;title&#9;category&#9;bucket&#10;Research 5 new nonprofits&#9;givelink&#9;this-week&#10;Book dentist appointment&#9;health&#9;this-month&#10;&#10;Or just:&#10;Research 5 new nonprofits&#10;Book dentist appointment"></textarea>
@@ -10138,7 +10144,7 @@ function _goalMomentum(goalId){
 <!-- BOOK ADD/EDIT MODAL -->
 <div class="mo hidden" id="book-modal">
   <div class="md" style="width:460px;">
-    <div class="mh"><h3 id="book-modal-title">📚 Add Book</h3><button class="mc" onclick="closeM('book-modal')">×</button></div>
+    <div class="mh"><h3 id="book-modal-title">📚 Add Book</h3><button class="mc" aria-label="Close" onclick="closeM('book-modal')">×</button></div>
     <input type="hidden" id="book-id">
     <div class="fg"><label>Title</label><input class="fc" id="book-title" placeholder="e.g. Atomic Habits"></div>
     <div class="fg"><label>Author (optional)</label><input class="fc" id="book-author" placeholder="e.g. James Clear"></div>
@@ -10156,7 +10162,7 @@ function _goalMomentum(goalId){
 <!-- DAILY / WEEKLY / MONTHLY CHECKLIST MODAL -->
 <div class="mo hidden" id="checklist-modal">
   <div class="md" style="width:540px;">
-    <div class="mh"><h3 id="checklist-modal-title">📋 Daily Checklist</h3><button class="mc" onclick="closeM('checklist-modal')">×</button></div>
+    <div class="mh"><h3 id="checklist-modal-title">📋 Daily Checklist</h3><button class="mc" aria-label="Close" onclick="closeM('checklist-modal')">×</button></div>
     <div style="display:flex;gap:6px;margin-bottom:14px;">
       <button class="fp active" id="cb-tab-daily" onclick="openChecklist('daily')">☀️ Daily</button>
       <button class="fp" id="cb-tab-weekly" onclick="openChecklist('weekly')">📅 Weekly</button>
@@ -10173,7 +10179,7 @@ function _goalMomentum(goalId){
 <!-- READWISE IMPORT MODAL -->
 <div class="mo hidden" id="readwise-modal">
   <div class="md" style="width:580px;">
-    <div class="mh"><h3>📖 Import from Readwise</h3><button class="mc" onclick="closeM('readwise-modal')">×</button></div>
+    <div class="mh"><h3>📖 Import from Readwise</h3><button class="mc" aria-label="Close" onclick="closeM('readwise-modal')">×</button></div>
     <div id="readwise-body" style="max-height:460px;overflow-y:auto;min-height:80px;"></div>
     <div class="mf" id="readwise-footer" style="display:flex;gap:8px;justify-content:flex-end;margin-top:10px;"></div>
   </div>
@@ -10182,7 +10188,7 @@ function _goalMomentum(goalId){
 <!-- REMINDERS SETTINGS MODAL -->
 <div class="mo hidden" id="remind-modal">
   <div class="md" style="width:500px;">
-    <div class="mh"><h3>🔔 Smart Reminders</h3><button class="mc" onclick="closeM('remind-modal')">×</button></div>
+    <div class="mh"><h3>🔔 Smart Reminders</h3><button class="mc" aria-label="Close" onclick="closeM('remind-modal')">×</button></div>
     <div id="remind-body" style="max-height:480px;overflow-y:auto;"></div>
     <div class="mf"><button class="btn bp" onclick="closeM('remind-modal')">Done</button></div>
   </div>
@@ -10191,7 +10197,7 @@ function _goalMomentum(goalId){
 <!-- WEEKLY NOTES SYNTHESIS MODAL -->
 <div class="mo hidden" id="notes-import-modal">
   <div class="md" style="width:620px;">
-    <div class="mh"><h3>📥 Weekly Notes Synthesis</h3><button class="mc" onclick="closeM('notes-import-modal')">×</button></div>
+    <div class="mh"><h3>📥 Weekly Notes Synthesis</h3><button class="mc" aria-label="Close" onclick="closeM('notes-import-modal')">×</button></div>
     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
       <span style="font-size:12px;color:var(--muted);flex:1;">Paste notes from Apple Notes, Notion, or anywhere — or pull directly.</span>
       <button class="btn bg sm" onclick="fetchFromNotion()">📋 Pull from Notion</button>
@@ -10205,7 +10211,7 @@ function _goalMomentum(goalId){
 <!-- BOOK HIGHLIGHTS → TASKS MODAL -->
 <div class="mo hidden" id="highlights-modal">
   <div class="md" style="width:620px;">
-    <div class="mh"><h3>📚 Book Highlights → Tasks</h3><button class="mc" onclick="closeM('highlights-modal')">×</button></div>
+    <div class="mh"><h3>📚 Book Highlights → Tasks</h3><button class="mc" aria-label="Close" onclick="closeM('highlights-modal')">×</button></div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Paste highlights from Readwise, Kindle, or any book. Claude extracts the most actionable tasks for you.</div>
     <input type="hidden" id="hl-book-id">
     <input id="hl-book-title" class="fc" placeholder="Book title (optional, e.g. Atomic Habits)" style="margin-bottom:8px;">
@@ -10219,7 +10225,7 @@ function _goalMomentum(goalId){
 <!-- QUICK ADD MODAL -->
 <div class="mo hidden" id="quick-add-modal" onclick="if(event.target===this)closeM('quick-add-modal')">
   <div class="md" style="width:460px;max-width:94vw;">
-    <div class="mh"><h3>⚡ Quick Add Tasks</h3><button class="mc" onclick="closeM('quick-add-modal')">×</button></div>
+    <div class="mh"><h3>⚡ Quick Add Tasks</h3><button class="mc" aria-label="Close" onclick="closeM('quick-add-modal')">×</button></div>
     <p style="font-size:12px;color:var(--muted);margin-bottom:8px;">One task per line — all land in Inbox</p>
     <textarea id="qa-input" class="fc" style="min-height:120px;resize:vertical;" placeholder="Buy groceries&#10;Call dentist&#10;Review Q3 report"></textarea>
     <div class="mf" style="margin-top:12px;">
@@ -10232,7 +10238,7 @@ function _goalMomentum(goalId){
 <!-- START DAY MODAL -->
 <div class="mo hidden" id="start-day-modal" onclick="if(event.target===this)closeM('start-day-modal')">
   <div class="md" style="width:480px;max-width:94vw;">
-    <div class="mh"><h3>☀️ Start Your Day</h3><button class="mc" onclick="closeM('start-day-modal')">×</button></div>
+    <div class="mh"><h3>☀️ Start Your Day</h3><button class="mc" aria-label="Close" onclick="closeM('start-day-modal')">×</button></div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:14px;" id="sd-step-indicator">Step 1 of 4</div>
     <!-- Step 1: Yesterday wins -->
     <div class="sd-step">
@@ -10276,7 +10282,7 @@ function _goalMomentum(goalId){
 <!-- WEEKLY WRAPPED MODAL -->
 <div class="mo hidden" id="weekly-wrapped-modal" onclick="if(event.target===this)closeM('weekly-wrapped-modal')">
   <div class="md" style="width:400px;max-width:94vw;">
-    <div class="mh"><h3>🎊 Weekly Wrapped</h3><button class="mc" onclick="closeM('weekly-wrapped-modal')">×</button></div>
+    <div class="mh"><h3>🎊 Weekly Wrapped</h3><button class="mc" aria-label="Close" onclick="closeM('weekly-wrapped-modal')">×</button></div>
     <div id="weekly-wrapped-body"></div>
   </div>
 </div>
@@ -10284,7 +10290,7 @@ function _goalMomentum(goalId){
 <!-- WHEEL OF LIFE MODAL -->
 <div class="mo hidden" id="wheel-modal" onclick="if(event.target===this)closeM('wheel-modal')">
   <div class="md" style="width:500px;max-width:94vw;">
-    <div class="mh"><h3>🎡 Rate Your Life Areas</h3><button class="mc" onclick="closeM('wheel-modal')">×</button></div>
+    <div class="mh"><h3>🎡 Rate Your Life Areas</h3><button class="mc" aria-label="Close" onclick="closeM('wheel-modal')">×</button></div>
     <div style="margin-bottom:12px;">
       <label style="font-size:12px;color:var(--muted);">Assessment cadence:</label>
       <select id="wheel-cadence" class="fc" style="width:auto;font-size:12px;padding:4px 8px;margin-left:8px;">
@@ -10304,7 +10310,7 @@ function _goalMomentum(goalId){
 <!-- SOCIAL PROFILE MODAL -->
 <div class="mo hidden" id="social-profile-modal" onclick="if(event.target===this)closeM('social-profile-modal')">
   <div class="md" style="width:460px;max-width:94vw;">
-    <div class="mh"><h3>🌐 Add Social Profile</h3><button class="mc" onclick="closeM('social-profile-modal')">×</button></div>
+    <div class="mh"><h3>🌐 Add Social Profile</h3><button class="mc" aria-label="Close" onclick="closeM('social-profile-modal')">×</button></div>
     <div class="fg">
       <label>Platform</label>
       <select id="sp-platform" class="fc">
@@ -10332,7 +10338,7 @@ function _goalMomentum(goalId){
 <!-- PLAN MY WEEK MODAL -->
 <div class="mo hidden" id="week-plan-modal" onclick="if(event.target===this)closeM('week-plan-modal')">
   <div class="md" style="width:520px;max-width:94vw;max-height:80vh;overflow-y:auto;">
-    <div class="mh"><h3>📋 Plan My Week</h3><button class="mc" onclick="closeM('week-plan-modal')">×</button></div>
+    <div class="mh"><h3>📋 Plan My Week</h3><button class="mc" aria-label="Close" onclick="closeM('week-plan-modal')">×</button></div>
     <div id="wp-step-indicator" style="font-size:11px;color:var(--muted);margin-bottom:12px;">Step 1 of 3</div>
     <!-- Step 1: Goals check -->
     <div class="wp-step">
@@ -10362,7 +10368,7 @@ function _goalMomentum(goalId){
 <!-- ADD WEEKLY NOTE MODAL -->
 <div class="mo hidden" id="add-weekly-note-modal" onclick="if(event.target===this)closeM('add-weekly-note-modal')">
   <div class="md" style="width:500px;max-width:94vw;max-height:85vh;overflow-y:auto;">
-    <div class="mh"><h3>📔 Weekly Note</h3><button class="mc" onclick="closeM('add-weekly-note-modal')">×</button></div>
+    <div class="mh"><h3>📔 Weekly Note</h3><button class="mc" aria-label="Close" onclick="closeM('add-weekly-note-modal')">×</button></div>
     <div class="fg"><label>Week of</label><input class="fc" id="wn-weekof" type="date"></div>
     <div class="fg"><label>🎯 Intention — what is this week about?</label><input class="fc" id="wn-intention" placeholder="My focus this week is..."></div>
     <div class="fg"><label>🏆 Biggest Win</label><input class="fc" id="wn-bigwin" placeholder="The most important thing I accomplished..."></div>
@@ -10501,7 +10507,7 @@ function _goalMomentum(goalId){
 <!-- CONTENT MODAL -->
 <div class="mo hidden" id="content-modal" onclick="if(event.target===this)closeM('content-modal')">
   <div class="md" style="width:480px;">
-    <div class="mh"><h3 id="content-modal-title">📝 New Content Idea</h3><button class="mc" onclick="closeM('content-modal')">×</button></div>
+    <div class="mh"><h3 id="content-modal-title">📝 New Content Idea</h3><button class="mc" aria-label="Close" onclick="closeM('content-modal')">×</button></div>
     <div class="fg"><label>Title *</label><input class="fc" id="content-title" placeholder="e.g. How I raised $50K without a pitch deck"></div>
     <div class="fr">
       <div class="fg"><label>Type</label><select class="fc" id="content-type"><option value="idea">Idea</option><option value="draft">Draft</option><option value="scheduled">Scheduled</option><option value="published">Published</option></select></div>
@@ -10523,7 +10529,7 @@ function _goalMomentum(goalId){
 <!-- SKILL MODAL -->
 <div class="mo hidden" id="skill-modal" onclick="if(event.target===this)closeM('skill-modal')">
   <div class="md" style="width:480px;">
-    <div class="mh"><h3 id="skill-modal-title">🧠 Add Skill</h3><button class="mc" onclick="closeM('skill-modal')">×</button></div>
+    <div class="mh"><h3 id="skill-modal-title">🧠 Add Skill</h3><button class="mc" aria-label="Close" onclick="closeM('skill-modal')">×</button></div>
     <div class="fg"><label>Skill Name *</label><input class="fc" id="skill-name" placeholder="e.g. Public Speaking"></div>
     <div class="fr">
       <div class="fg"><label>Category</label><select class="fc" id="skill-category"><option value="technical">Technical</option><option value="soft">Soft Skill</option><option value="domain">Domain</option></select></div>
@@ -10541,7 +10547,7 @@ function _goalMomentum(goalId){
 <!-- SKILL SESSION MODAL -->
 <div class="mo hidden" id="skill-session-modal" onclick="if(event.target===this)closeM('skill-session-modal')">
   <div class="md" style="width:420px;">
-    <div class="mh"><h3>⏱ Log Skill Session</h3><button class="mc" onclick="closeM('skill-session-modal')">×</button></div>
+    <div class="mh"><h3>⏱ Log Skill Session</h3><button class="mc" aria-label="Close" onclick="closeM('skill-session-modal')">×</button></div>
     <div class="fg"><label>Skill</label><select class="fc" id="ss-skill-id"></select></div>
     <div class="fr">
       <div class="fg"><label>Duration (minutes)</label><input class="fc" id="ss-duration" type="number" value="30" min="1"></div>
@@ -10558,7 +10564,7 @@ function _goalMomentum(goalId){
 <!-- EXPERIENCE MODAL -->
 <div class="mo hidden" id="exp-modal" onclick="if(event.target===this)closeM('exp-modal')">
   <div class="md" style="width:480px;">
-    <div class="mh"><h3>🌟 Log Experience</h3><button class="mc" onclick="closeM('exp-modal')">×</button></div>
+    <div class="mh"><h3>🌟 Log Experience</h3><button class="mc" aria-label="Close" onclick="closeM('exp-modal')">×</button></div>
     <div class="fg"><label>Title *</label><input class="fc" id="exp-title" placeholder="e.g. Hiked Olympus summit"></div>
     <div class="fr">
       <div class="fg"><label>Category</label><select class="fc" id="exp-category"><option value="travel">Travel</option><option value="social">Social</option><option value="learning">Learning</option><option value="challenge">Challenge</option><option value="creative">Creative</option><option value="other">Other</option></select></div>
@@ -10577,7 +10583,7 @@ function _goalMomentum(goalId){
 <!-- SLEEP MODAL -->
 <div class="mo hidden" id="sleep-modal" onclick="if(event.target===this)closeM('sleep-modal')">
   <div class="md" style="width:480px;">
-    <div class="mh"><h3>😴 Log Sleep</h3><button class="mc" onclick="closeM('sleep-modal')">×</button></div>
+    <div class="mh"><h3>😴 Log Sleep</h3><button class="mc" aria-label="Close" onclick="closeM('sleep-modal')">×</button></div>
     <div class="fg"><label>Date</label><input class="fc" id="sl-date" type="date"></div>
     <div class="fr">
       <div class="fg"><label>Bed Time</label><input class="fc" id="sl-bed" type="time" value="23:00"></div>
@@ -10602,7 +10608,7 @@ function _goalMomentum(goalId){
 <!-- BODY COMPOSITION MODAL -->
 <div class="mo hidden" id="body-modal" onclick="if(event.target===this)closeM('body-modal')">
   <div class="md" style="width:420px;">
-    <div class="mh"><h3>🏋️ Log Weigh-in</h3><button class="mc" onclick="closeM('body-modal')">×</button></div>
+    <div class="mh"><h3>🏋️ Log Weigh-in</h3><button class="mc" aria-label="Close" onclick="closeM('body-modal')">×</button></div>
     <div class="fg"><label>Date</label><input class="fc" id="body-date" type="date"></div>
     <div class="fr">
       <div class="fg"><label>Weight (kg)</label><input class="fc" id="body-weight" type="number" step="0.1" placeholder="e.g. 78.5"></div>
@@ -10620,7 +10626,7 @@ function _goalMomentum(goalId){
 <!-- PORTFOLIO MODAL -->
 <div class="mo hidden" id="portfolio-modal" onclick="if(event.target===this)closeM('portfolio-modal')">
   <div class="md" style="width:480px;">
-    <div class="mh"><h3>📈 Log Portfolio Value</h3><button class="mc" onclick="closeM('portfolio-modal')">×</button></div>
+    <div class="mh"><h3>📈 Log Portfolio Value</h3><button class="mc" aria-label="Close" onclick="closeM('portfolio-modal')">×</button></div>
     <div class="fg"><label>Date</label><input class="fc" id="port-date" type="date"></div>
     <div class="fr">
       <div class="fg"><label>Stocks (€)</label><input class="fc" id="port-stocks" type="number" min="0" placeholder="0"></div>
@@ -10643,7 +10649,7 @@ function _goalMomentum(goalId){
 <!-- MENTOR MODAL -->
 <div class="mo hidden" id="mentor-modal" onclick="if(event.target===this)closeM('mentor-modal')">
   <div class="md" style="width:480px;">
-    <div class="mh"><h3 id="mentor-modal-title">🎓 Add Mentor</h3><button class="mc" onclick="closeM('mentor-modal')">×</button></div>
+    <div class="mh"><h3 id="mentor-modal-title">🎓 Add Mentor</h3><button class="mc" aria-label="Close" onclick="closeM('mentor-modal')">×</button></div>
     <div class="fg"><label>Name *</label><input class="fc" id="mentor-name" placeholder="e.g. Naval Ravikant"></div>
     <div class="fr">
       <div class="fg"><label>Life Area</label><select class="fc" id="mentor-area"><option value="career">Career</option><option value="finance">Finance</option><option value="health">Health</option><option value="relationships">Relationships</option><option value="business">Business</option></select></div>
@@ -10662,7 +10668,7 @@ function _goalMomentum(goalId){
 <!-- ANTI-GOAL SECTION (inline modal) -->
 <div class="mo hidden" id="antigoal-modal" onclick="if(event.target===this)closeM('antigoal-modal')">
   <div class="md" style="width:440px;">
-    <div class="mh"><h3>🚫 Add Anti-Goal</h3><button class="mc" onclick="closeM('antigoal-modal')">×</button></div>
+    <div class="mh"><h3>🚫 Add Anti-Goal</h3><button class="mc" aria-label="Close" onclick="closeM('antigoal-modal')">×</button></div>
     <div class="fg"><label>What you won't do *</label><input class="fc" id="ag-title" placeholder="e.g. Consulting projects that distract from Givelink"></div>
     <div class="fg"><label>Why (reason)</label><textarea class="fc" id="ag-reason" rows="2" placeholder="Why this is off-limits..."></textarea></div>
     <div class="mf">
@@ -10675,7 +10681,7 @@ function _goalMomentum(goalId){
 <!-- CONTRACT MODAL -->
 <div class="mo hidden" id="contract-modal" onclick="if(event.target===this)closeM('contract-modal')">
   <div class="md" style="width:480px;">
-    <div class="mh"><h3>⛓️ New Commitment Contract</h3><button class="mc" onclick="closeM('contract-modal')">×</button></div>
+    <div class="mh"><h3>⛓️ New Commitment Contract</h3><button class="mc" aria-label="Close" onclick="closeM('contract-modal')">×</button></div>
     <div class="fg"><label>I commit to... *</label><textarea class="fc" id="ct-commitment" rows="2" placeholder="e.g. Ship Givelink MVP in 30 days"></textarea></div>
     <div class="fg"><label>Or I will (stake)...</label><input class="fc" id="ct-stake" placeholder="e.g. donate €100 to a cause I dislike"></div>
     <div class="fg"><label>Witness</label><input class="fc" id="ct-witness" placeholder="e.g. Alex, my co-founder"></div>
@@ -10691,7 +10697,7 @@ function _goalMomentum(goalId){
 <!-- HINDSIGHT MODAL -->
 <div class="mo hidden" id="hindsight-modal" onclick="if(event.target===this)closeM('hindsight-modal')">
   <div class="md" style="width:420px;">
-    <div class="mh"><h3 id="hindsight-title">⏰ Rate This Decision</h3><button class="mc" onclick="closeM('hindsight-modal')">×</button></div>
+    <div class="mh"><h3 id="hindsight-title">⏰ Rate This Decision</h3><button class="mc" aria-label="Close" onclick="closeM('hindsight-modal')">×</button></div>
     <div style="margin-bottom:14px;">
       <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:8px;">Was this the right call? (1-5 stars)</label>
       <div style="display:flex;gap:8px;">
@@ -10712,7 +10718,7 @@ function _goalMomentum(goalId){
 <!-- GIVELINK METRICS MODAL -->
 <div class="mo hidden" id="givelink-metrics-modal">
   <div class="md" style="width:480px;">
-    <div class="mh"><h3>🟣 Update Givelink Metrics</h3><button class="mc" onclick="closeM('givelink-metrics-modal')">×</button></div>
+    <div class="mh"><h3>🟣 Update Givelink Metrics</h3><button class="mc" aria-label="Close" onclick="closeM('givelink-metrics-modal')">×</button></div>
     <div class="fr">
       <div class="fg"><label>Nonprofits Onboarded</label><input class="fc" id="gl-nonprofits" type="number" min="0" placeholder="0"></div>
       <div class="fg"><label>Pipeline Deals</label><input class="fc" id="gl-pipeline" type="number" min="0" placeholder="0"></div>
@@ -10733,7 +10739,7 @@ function _goalMomentum(goalId){
 <!-- NET WORTH MODAL -->
 <div class="mo hidden" id="networth-modal">
   <div class="md" style="width:480px;">
-    <div class="mh"><h3 id="nw-modal-title">💎 Log Net Worth Entry</h3><button class="mc" onclick="closeM('networth-modal')">×</button></div>
+    <div class="mh"><h3 id="nw-modal-title">💎 Log Net Worth Entry</h3><button class="mc" aria-label="Close" onclick="closeM('networth-modal')">×</button></div>
     <div class="fg"><label>Date</label><input class="fc" id="nw-date" type="date"></div>
     <div class="fr">
       <div class="fg"><label>Cash / Liquid (€)</label><input class="fc" id="nw-cash" type="number" min="0" placeholder="0"></div>
@@ -10756,7 +10762,7 @@ function _goalMomentum(goalId){
 <!-- OKR MODAL -->
 <div class="mo hidden" id="okr-modal">
   <div class="md" style="width:540px;">
-    <div class="mh"><h3 id="okr-modal-title">🎯 Add OKR</h3><button class="mc" onclick="closeM('okr-modal')">×</button></div>
+    <div class="mh"><h3 id="okr-modal-title">🎯 Add OKR</h3><button class="mc" aria-label="Close" onclick="closeM('okr-modal')">×</button></div>
     <div class="fr">
       <div class="fg"><label>Goal</label><select class="fc" id="okr-goal-id"><option value="">— No goal —</option></select></div>
       <div class="fg"><label>Quarter</label>
@@ -10785,7 +10791,7 @@ function _goalMomentum(goalId){
 <!-- BIOMARKER MODAL -->
 <div class="mo hidden" id="biomarker-modal">
   <div class="md" style="width:520px;">
-    <div class="mh"><h3>🧬 Log Biomarkers</h3><button class="mc" onclick="closeM('biomarker-modal')">×</button></div>
+    <div class="mh"><h3>🧬 Log Biomarkers</h3><button class="mc" aria-label="Close" onclick="closeM('biomarker-modal')">×</button></div>
     <div class="fg"><label>Date</label><input class="fc" id="bm-date" type="date"></div>
     <div class="fr">
       <div class="fg"><label>HRV (ms)</label><input class="fc" id="bm-hrv" type="number" placeholder="e.g. 65"></div>
@@ -10815,7 +10821,7 @@ function _goalMomentum(goalId){
 <!-- QUARTERLY REVIEW MODAL -->
 <div class="mo hidden" id="qreview-modal">
   <div class="md" style="width:560px;">
-    <div class="mh"><h3 id="qrm-title">📊 Quarterly Review</h3><button class="mc" onclick="closeM('qreview-modal')">×</button></div>
+    <div class="mh"><h3 id="qrm-title">📊 Quarterly Review</h3><button class="mc" aria-label="Close" onclick="closeM('qreview-modal')">×</button></div>
     <div id="qrm-body"></div>
     <div class="mf" id="qrm-footer"></div>
   </div>
@@ -10824,7 +10830,7 @@ function _goalMomentum(goalId){
 <!-- AGI ITEM MODAL -->
 <div class="mo hidden" id="agi-modal">
   <div class="md" style="width:480px;">
-    <div class="mh"><h3 id="agi-modal-title">🤖 Add AGI Item</h3><button class="mc" onclick="closeM('agi-modal')">×</button></div>
+    <div class="mh"><h3 id="agi-modal-title">🤖 Add AGI Item</h3><button class="mc" aria-label="Close" onclick="closeM('agi-modal')">×</button></div>
     <div id="agi-modal-body"></div>
     <div class="mf" id="agi-modal-footer"></div>
   </div>

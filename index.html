@@ -6436,6 +6436,46 @@ function renderGivelinkDash(){
     const glTasks=S.tasks.filter(t=>t.category==='givelink'&&t.status!=='done').slice(0,10);
     tasksEl.innerHTML=`<div class="rb" style="margin-bottom:10px;"><h2 style="margin:0;font-size:14px;">📋 Open Givelink Tasks</h2><button class="btn bg sm" onclick="openAdd('inbox','')">+ Task</button></div>${glTasks.length?glTasks.map(t=>tcHTML(t)).join(''):'<div class="empty">No open Givelink tasks!</div>'}`;
   }
+  // 1M People Model
+  const modelEl=document.getElementById('gl-1m-model');
+  if(modelEl){
+    const im=S.givelinkMetrics?.impactModel||{currentNonprofits:0,avgDonationsPerNonprofit:0,avgDonationSize:0,viralCoeff:1.1,targetPeople:1000000};
+    const nonprofits=m.nonprofits||im.currentNonprofits||0;
+    const avgDon=im.avgDonationsPerNonprofit||10;
+    const avgSize=im.avgDonationSize||50;
+    const totalDonations=nonprofits*avgDon*avgSize;
+    const peopleImpacted=Math.round(totalDonations/50);
+    const target=im.targetPeople||1000000;
+    const hist2=S.givelinkHistory||[];
+    let monthsToTarget=null;
+    if(hist2.length>=2){
+      const first=hist2[0];const last=hist2[hist2.length-1];
+      const monthsDiff=Math.max(1,(new Date(last.date)-new Date(first.date))/(30*864e5));
+      const growthRate=(last.nonprofits-first.nonprofits)/monthsDiff;
+      if(growthRate>0){
+        const npNeeded=(target/avgDon/avgSize);
+        monthsToTarget=Math.round((npNeeded-nonprofits)/growthRate);
+      }
+    }
+    const milestones=[{label:'10K people',target:10000},{label:'100K people',target:100000},{label:'500K people',target:500000},{label:'1M people',target:1000000}];
+    modelEl.innerHTML=`<div style="background:linear-gradient(135deg,rgba(167,139,250,.08),var(--surface));border:1px solid rgba(167,139,250,.2);border-radius:14px;padding:18px;">
+      <div style="font-size:13px;font-weight:700;color:#a78bfa;margin-bottom:14px;">🌍 1M People Impact Model</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+        <div class="los-card" style="flex:1;min-width:120px;"><div style="font-size:11px;color:var(--muted);">Nonprofits</div><input class="fc" id="gl-im-np" type="number" value="${nonprofits}" style="font-size:18px;font-weight:800;border:none;background:transparent;color:var(--accent);padding:0;width:80px;" oninput="calcImpactModel()"></div>
+        <div class="los-card" style="flex:1;min-width:120px;"><div style="font-size:11px;color:var(--muted);">Avg donations/NP/yr</div><input class="fc" id="gl-im-don" type="number" value="${avgDon}" style="font-size:18px;font-weight:800;border:none;background:transparent;color:var(--accent);padding:0;width:80px;" oninput="calcImpactModel()"></div>
+        <div class="los-card" style="flex:1;min-width:120px;"><div style="font-size:11px;color:var(--muted);">Avg donation size ($)</div><input class="fc" id="gl-im-size" type="number" value="${avgSize}" style="font-size:18px;font-weight:800;border:none;background:transparent;color:var(--accent);padding:0;width:80px;" oninput="calcImpactModel()"></div>
+      </div>
+      <div style="text-align:center;margin-bottom:12px;">
+        <div id="gl-im-people" style="font-size:36px;font-weight:800;color:#a78bfa;">${peopleImpacted.toLocaleString()}</div>
+        <div style="font-size:13px;color:var(--muted);">people impacted</div>
+        ${monthsToTarget?`<div style="font-size:12px;color:var(--muted);margin-top:4px;">At current growth: 1M people in <strong style="color:#a78bfa;">${monthsToTarget} months</strong></div>`:'<div style="font-size:11px;color:var(--muted);">Add history snapshots to see growth rate</div>'}
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">${milestones.map(ms=>`<div style="flex:1;min-width:80px;text-align:center;padding:6px;background:${peopleImpacted>=ms.target?'rgba(167,139,250,.2)':'var(--surface2)'};border-radius:8px;">
+        <div style="font-size:10px;color:${peopleImpacted>=ms.target?'#a78bfa':'var(--muted)'};">${peopleImpacted>=ms.target?'✅':''} ${ms.label}</div>
+        <div style="font-size:11px;font-weight:600;">${Math.min(100,Math.round(peopleImpacted/ms.target*100))}%</div>
+      </div>`).join('')}</div>
+    </div>`;
+  }
   // Sparklines
   const hist=S.givelinkHistory||[];
   const glSparkEl=document.getElementById('gl-sparklines');
@@ -9757,6 +9797,20 @@ function _sparklineSVG(values,width=80,height=24){
   }).join(' ');
   return`<svg width="${width}" height="${height}" style="overflow:visible;"><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 }
+function calcImpactModel(){
+  const np=parseFloat(document.getElementById('gl-im-np')?.value)||0;
+  const don=parseFloat(document.getElementById('gl-im-don')?.value)||10;
+  const sz=parseFloat(document.getElementById('gl-im-size')?.value)||50;
+  const people=Math.round(np*don*sz/50);
+  const el=document.getElementById('gl-im-people');
+  if(el)el.textContent=people.toLocaleString();
+  if(S.givelinkMetrics){
+    if(!S.givelinkMetrics.impactModel)S.givelinkMetrics.impactModel={currentNonprofits:0,avgDonationsPerNonprofit:0,avgDonationSize:0,viralCoeff:1.1,targetPeople:1000000};
+    S.givelinkMetrics.impactModel.avgDonationsPerNonprofit=don;
+    S.givelinkMetrics.impactModel.avgDonationSize=sz;
+    save();
+  }
+}
 function snapshotGivelinkToday(){
   if(!S.givelinkHistory)S.givelinkHistory=[];
   const m=S.givelinkMetrics||{};
@@ -10331,6 +10385,8 @@ function _goalMomentum(goalId){
   <div id="gl-sparklines" style="margin-top:12px;"></div>
   <div style="margin-bottom:12px;"><button class="btn bg sm" onclick="snapshotGivelinkToday()">📸 Snapshot Today</button></div>
   <div id="gl-impact-counter" style="margin:20px 0;"></div>
+  <!-- 1M PEOPLE MODEL -->
+  <div id="gl-1m-model" style="margin-bottom:20px;"></div>
   <div id="gl-impact-stories" style="margin-bottom:20px;"></div>
   <div id="gl-tasks"></div>
 </div>

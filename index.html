@@ -396,6 +396,7 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
   <div class="ni active" onclick="nav('dashboard')">🏠 Dashboard</div>
   <div class="ni" onclick="nav('capture')">⚡ Capture <span id="ib"></span></div>
   <div class="ni" onclick="nav('givelink-dash')">🟣 Givelink OS</div>
+  <div class="ni" onclick="nav('content')">📝 Content Pipeline</div>
   <div class="ns">Views</div>
   <div class="ni" onclick="nav('buckets')">📦 Buckets</div>
   <div class="ni" onclick="nav('eisenhower')">🎯 Eisenhower</div>
@@ -415,16 +416,20 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
   <div class="ns">Life OS</div>
   <div class="ni" onclick="nav('books')">📚 Books</div>
   <div class="ni" onclick="nav('health')">💪 Health</div>
+  <div class="ni" onclick="nav('sleep')">😴 Sleep</div>
   <div class="ni" onclick="nav('finance')">💰 Finance</div>
   <div class="ni" onclick="nav('networth')">💎 Net Worth</div>
   <div class="ni" onclick="nav('ailab')">🤖 AI Lab</div>
   <div class="ni" onclick="nav('relationships')">🤝 Relationships</div>
+  <div class="ni" onclick="nav('mentors')">🎓 Mentors</div>
   <div class="ni" onclick="nav('deepwork')">🧠 Deep Work</div>
   <div class="ni" onclick="nav('habits')">✅ Habits</div>
   <div class="ni" onclick="nav('discomfort')">🔥 Discomfort</div>
   <div class="ni" onclick="nav('ladder')">🪜 Ladder</div>
   <div class="ni" onclick="nav('agi')">🤖 AGI Prep</div>
   <div class="ns">Personal</div>
+  <div class="ni" onclick="nav('skills')">🧠 Skills XP</div>
+  <div class="ni" onclick="nav('calendar')">📅 Calendar</div>
   <div class="ni" onclick="nav('wins')">🏅 Wins</div>
   <div class="ni" onclick="nav('bucketlist')">🌍 Bucket List</div>
   <div class="ni" onclick="nav('wishlist')">🛒 Wishlist</div>
@@ -589,9 +594,11 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
     <div style="display:flex;gap:6px;">
       <button class="btn bg sm" onclick="openCSVImport()">📋 Import</button>
       <button class="btn bg sm" onclick="_aiBtn(this,autoProcessInbox)">🤖 AI Triage</button>
+      <button class="btn bg sm" onclick="_aiBtn(this,aiSmartRoute)">🤖 Smart Route</button>
       <button class="btn bg sm" id="proc-toggle" onclick="toggleProc()">⚡ Process Mode</button>
     </div>
   </div>
+  <div id="smart-route-out" style="display:none;margin-bottom:14px;"></div>
   <div id="proc-area" style="display:none;"></div>
   <div id="inbox-list"></div>
 </div>
@@ -696,6 +703,8 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
     <div id="sf-timeline-body"></div>
   </div>
   <button class="btn bg sm" id="sf-toggle-btn" onclick="document.getElementById('sf-timeline-section').style.display='';document.getElementById('sf-toggle-btn').style.display='none';renderSFTimeline();" style="margin-top:16px;">🌉 SF Move Plan</button>
+  <!-- Anti-Goals Section -->
+  <div id="anti-goals-section"></div>
 </div>
 
 <!-- WHEEL OF LIFE -->
@@ -731,6 +740,8 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
     <div id="kt-prompt-card"></div>
     <div id="kt-history" style="margin-top:16px;"></div>
   </div>
+  <!-- MANIFESTO SECTION -->
+  <div id="manifesto-section"></div>
 </div>
 
 <!-- REVIEW HISTORY -->
@@ -810,6 +821,8 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
     </div>
     <div id="dc-leaderboard-body"></div>
   </div>
+  <!-- Commitment Contracts Section -->
+  <div id="contracts-section"></div>
 </div>
 
 
@@ -836,6 +849,7 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
   <div id="wins-stats" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px;"></div>
   <div class="fb" id="wins-filter-bar"></div>
   <div id="wins-list"></div>
+  <div id="exp-section"></div>
 </div>
 
 <!-- ── BUCKET LIST ────────────────────────────────────────────── -->
@@ -1411,6 +1425,8 @@ Read 50 books this year"></textarea>
     </div>
     <div id="biomarkers-list"></div>
   </div>
+  <!-- BODY COMPOSITION SECTION -->
+  <div id="body-section"></div>
 </div>
 
 <!-- FINANCE DASHBOARD -->
@@ -1433,6 +1449,8 @@ Read 50 books this year"></textarea>
       <div id="investment-list"></div>
     </div>
   </div>
+  <!-- PORTFOLIO SECTION -->
+  <div id="portfolio-section"></div>
 </div>
 
 <!-- AI LAB -->
@@ -2124,7 +2142,7 @@ function nav(v){
   document.getElementById('s-ov')?.classList.remove('open');
   document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
-function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,wheel:renderWheel,review:renderReview,weeklynotes:renderWeeklyNotes,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort,eod:renderEod,decisions:renderDecisions,challenge:renderChallenge,ladder:renderLadder,books:renderBooks,wins:renderWins,bucketlist:renderBucketList,wishlist:renderWishlist,projects:renderProjects,'givelink-dash':renderGivelinkDash,networth:renderNetWorth,okrs:renderOKRs,qreview:renderQReview,agi:renderAGI})[v]?.();}
+function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,wheel:renderWheel,review:renderReview,weeklynotes:renderWeeklyNotes,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort,eod:renderEod,decisions:renderDecisions,challenge:renderChallenge,ladder:renderLadder,books:renderBooks,wins:renderWins,bucketlist:renderBucketList,wishlist:renderWishlist,projects:renderProjects,'givelink-dash':renderGivelinkDash,networth:renderNetWorth,okrs:renderOKRs,qreview:renderQReview,agi:renderAGI,content:renderContent,skills:renderSkills,sleep:renderSleep,mentors:renderMentors,calendar:renderCalendar})[v]?.();}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
 
 // ── DASHBOARD ─────────────────────────────────────────────────
@@ -2231,7 +2249,7 @@ function renderDash(){
       <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">⚔️ Daily Quests</div>
       ${quests.map(q=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;${q.done?'opacity:0.5;text-decoration:line-through;':''}">
         <span>${q.done?'✅':'⬜'}</span>
-        <span style="flex:1;">${esc(q.text)}</span>
+        <span style="flex:1;">${esc(q.text)}${q.linkedOKR?`<span style="font-size:10px;background:rgba(105,219,124,.15);color:#69db7c;padding:1px 5px;border-radius:5px;margin-left:4px;">OKR</span>`:''}</span>
         <span style="font-size:11px;color:var(--accent);">+${q.xp} XP</span>
       </div>`).join('')}
     </div>`:'';
@@ -2413,6 +2431,7 @@ function renderGoals(){
   document.getElementById('vals').innerHTML=S.values.length?`<div style="display:flex;flex-wrap:wrap;gap:7px;">${S.values.map(v=>`<span class="badge co" style="font-size:12px;padding:5px 12px;">💎 ${v}</span>`).join('')}</div>`:'<p style="color:var(--muted);">No values set.</p>';
   fillGoalDrop();
   renderSFTimeline();
+  _renderAntiGoalsSection();
 }
 
 function goalHTML(g){
@@ -2440,8 +2459,14 @@ function goalHTML(g){
     const pct=tgt?Math.min(100,Math.round(ld.financeTotal/tgt*100)):null;
     finHTML=`<div style="margin-top:6px;font-size:11px;"><span style="color:var(--muted);">Income ${new Date().getFullYear()}:</span> <span style="font-weight:600;color:#69db7c;">€${ld.financeTotal.toLocaleString()}</span>${tgt?` / €${tgt.toLocaleString()}`:''}${pct!==null?`<div class="gp" style="margin-top:3px;"><div class="gp-fill" style="width:${pct}%;background:#69db7c;"></div></div>`:''}</div>`;
   }
+  const momentum=_goalMomentum(g.id);
+  const momentumDot={'green':'🟢','yellow':'🟡','red':'🔴'}[momentum]||'⚪';
+  const momentumTip={'green':'Task done this week','yellow':'Task done this month','red':'No recent task in 30d'}[momentum]||'';
   return`<div class="gc ${g.isTop3?'top':''}" onclick="openEditGoal('${g.id}')">
-    ${g.isTop3?'<span style="float:right;">⭐</span>':''}
+    <div style="display:flex;justify-content:space-between;align-items:center;">
+      ${g.isTop3?'<span>⭐</span>':'<span></span>'}
+      <span title="${momentumTip}" style="cursor:default;">${momentumDot}</span>
+    </div>
     <div style="font-weight:600;margin-bottom:5px;">${g.title}</div>
     ${g.description?`<div style="font-size:12px;color:var(--muted);margin-bottom:7px;">${g.description}</div>`:''}
     <span class="badge c${g.category[0]}">${c.e} ${c.l}</span>
@@ -2455,7 +2480,7 @@ function goalHTML(g){
 // ── REVIEW WIZARD ─────────────────────────────────────────────
 let wizStep=0;
 const WIZ_STEPS=['✅ Done','📥 Inbox','🟢 Backlog','🏆 Goals','📝 Notes'];
-function renderReview(){wizStep=0;renderWizBar();renderWizPanel();setTimeout(()=>{if(!document.getElementById('kt-prompt-card')?.innerHTML)renderKnowThyself();_renderKTHistory();},100);}
+function renderReview(){wizStep=0;renderWizBar();renderWizPanel();setTimeout(()=>{if(!document.getElementById('kt-prompt-card')?.innerHTML)renderKnowThyself();_renderKTHistory();_renderManifestoSection();},100);}
 function renderWizBar(){
   document.getElementById('wiz-bar').innerHTML=WIZ_STEPS.map((s,i)=>`<div class="wiz-step ${i===wizStep?'cur':i<wizStep?'done':''}" onclick="goStep(${i})">${i<wizStep?'✓ ':''}${s}</div>`).join('');
   document.getElementById('wiz-prog').textContent=`Step ${wizStep+1}/${WIZ_STEPS.length}`;
@@ -2902,12 +2927,51 @@ function closeCmdK(){document.getElementById('cmdk').classList.add('hidden');}
 function handleCmdK(e){
   if(e.key==='Escape'){closeCmdK();return;}
   if(e.key==='Enter'){
-    const title=document.getElementById('cmdk-i').value.trim();if(!title)return;
+    const input=document.getElementById('cmdk-i').value.trim();if(!input)return;
+    if(_handleCmdKNL(input))return;
     const cat=document.getElementById('cmdk-cat').value;
     const bucket=document.getElementById('cmdk-bkt').value;
-    S.tasks.push({id:uid(),title,notes:'',bucket,category:cat,urgency:'low',importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',createdAt:new Date().toISOString(),completedAt:null});
+    S.tasks.push({id:uid(),title:input,notes:'',bucket,category:cat,urgency:'low',importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',createdAt:new Date().toISOString(),completedAt:null});
     save();closeCmdK();refresh();updIBadge();
   }
+}
+function _handleCmdKNL(input){
+  const lower=input.toLowerCase();
+  // "add task [title]"
+  if(lower.startsWith('add task ')){
+    const title=input.slice(9).trim();
+    closeCmdK();
+    setTimeout(()=>{openAdd('inbox','');setTimeout(()=>{const el=document.getElementById('t-title');if(el){el.value=title;}},100);},100);
+    return true;
+  }
+  // "show [view]"
+  if(lower.startsWith('show ')){
+    const vname=lower.slice(5).trim().replace(/\s+/g,'-');
+    const views={dashboard:'dashboard',capture:'capture',goals:'goals',health:'health',finance:'finance',habits:'habits','deep work':'deepwork',calendar:'calendar',sleep:'sleep',skills:'skills',content:'content',mentors:'mentors',wins:'wins',decisions:'decisions',books:'books',wheel:'wheel',review:'review',okrs:'okrs'};
+    const match=Object.entries(views).find(([k])=>vname.includes(k)||lower.includes(k));
+    if(match){closeCmdK();nav(match[1]);return true;}
+  }
+  // "log [N] minutes deep work"
+  const dwMatch=lower.match(/log\s+(\d+)\s+min/);
+  if(dwMatch){
+    closeCmdK();nav('deepwork');return true;
+  }
+  // "complete [task partial]"
+  if(lower.startsWith('complete ')){
+    const q=lower.slice(9).trim();
+    const t=S.tasks.find(x=>x.status!=='done'&&x.title.toLowerCase().includes(q));
+    if(t){toggleDone(t.id);closeCmdK();toast('✅ Completed: '+t.title);return true;}
+  }
+  // "move [task] to [bucket]"
+  const mvMatch=lower.match(/^move\s+(.+)\s+to\s+(this.?week|this.?month|backlog|someday|inbox)/);
+  if(mvMatch){
+    const q=mvMatch[1].trim();
+    const bktMap={'this-week':'this-week','thisweek':'this-week','this-month':'this-month','thismonth':'this-month',backlog:'backlog',someday:'someday',inbox:'inbox'};
+    const bkt=bktMap[mvMatch[2].replace(/\s/g,'')];
+    const t=S.tasks.find(x=>x.status!=='done'&&x.title.toLowerCase().includes(q));
+    if(t&&bkt){mvB(t.id,bkt);closeCmdK();toast(`Moved "${t.title}" to ${bkt}`);return true;}
+  }
+  return false;
 }
 
 // ── FOCUS NOW ─────────────────────────────────────────────────
@@ -3593,6 +3657,7 @@ function renderHealth(){
   renderSleepCorrelation();
   renderPRBoard();
   renderBiomarkers();
+  _renderBodySection();
 }
 function openAddHealth(id=null){
   document.getElementById('h-date').value=new Date().toISOString().slice(0,10);
@@ -3682,6 +3747,7 @@ function renderFinance(){
     const g=i.current-i.amount;const pct=i.amount?((g/i.amount)*100).toFixed(1):0;
     return`<div class="fin-row"><span>📈 ${i.name}<br><span style="font-size:10px;color:var(--muted);">Invested: €${i.amount.toLocaleString()}</span></span><span style="text-align:right;"><div style="font-weight:600;">€${i.current.toLocaleString()}</div><div style="font-size:10px;color:${g>=0?'#69db7c':'#ff6b6b'};">${g>=0?'+':''}${pct}%</div></span></div>`;
   }).join('')||'<div class="empty" style="padding:12px 0;">No investments yet</div>';
+  _renderPortfolioSection();
 }
 function openAddFinance(id=null){
   document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
@@ -4410,6 +4476,7 @@ function renderChallenge(){
       <span style="font-size:11px;color:var(--muted);">${DIFF_LABELS[c.diff]||''}</span>
     </div>`).join(''):'<div class="empty">No challenges yet. Accept one above!</div>';
   renderChallengeLeaderboard();
+  _renderContractsSection();
 }
 function acceptChallenge(libId){
   const c=DAILY_CHALLENGES.find(x=>x.id===libId);if(!c)return;
@@ -5613,7 +5680,14 @@ function _genDailyQuests(){
   const today=new Date().toISOString().slice(0,10);
   if(S.questsDate===today)return;
   const shuffled=[...QUEST_TEMPLATES].sort(()=>Math.random()-.5).slice(0,3);
-  S.dailyQuests=shuffled.map(q=>({id:q.id,text:q.text,xp:q.xp,done:false}));
+  const quests=shuffled.map(q=>({id:q.id,text:q.text,xp:q.xp,done:false}));
+  // OKR-connected quests
+  const activeOKRs=(S.okrs||[]).filter(o=>o.objective&&(!o.completed));
+  if(activeOKRs.length&&quests.length<5){
+    const okr=activeOKRs[Math.floor(Math.random()*activeOKRs.length)];
+    quests.push({id:'q-okr-'+uid(),text:`Complete 1 task linked to OKR: ${okr.objective.slice(0,40)}`,xp:20,done:false,linkedOKR:okr.id});
+  }
+  S.dailyQuests=quests;
   S.questsDate=today;
   save();
 }
@@ -6296,8 +6370,21 @@ function renderHistoryView(){
       ${wn?.bigWin?`<div style="font-size:12px;margin-top:4px;">🏆 <em>${esc(wn.bigWin)}</em></div>`:''}
       ${wn?.note?`<div style="font-size:12px;color:var(--muted);margin-top:4px;">📔 ${esc(wn.note.slice(0,120))}${wn.note.length>120?'…':''}</div>`:''}
       ${r.goalSnapshot&&r.goalSnapshot.length?`<details style="margin-top:8px;"><summary style="font-size:12px;color:var(--accent);cursor:pointer;font-weight:600;">📊 Goal Snapshot (${r.goalSnapshot.length})</summary><div style="margin-top:8px;display:flex;flex-direction:column;gap:4px;">${r.goalSnapshot.map(g=>`<div style="display:flex;align-items:center;gap:8px;font-size:12px;"><span style="flex:1;color:var(--text);">${esc(g.title.slice(0,30))}</span><div style="width:80px;height:4px;background:var(--surface2);border-radius:2px;"><div style="height:100%;background:var(--accent);border-radius:2px;width:${g.pct}%;"></div></div><span style="color:var(--muted);font-size:11px;min-width:42px;text-align:right;">${g.done}/${g.total} (${g.pct}%)</span></div>`).join('')}</div></details>`:''}
+      ${r.wentWell||r.improve||r.focus?`<div style="margin-top:8px;"><button class="btn bg sm" onclick="_aiBtn(this,()=>aiGenerateNewsletter(${JSON.stringify({weekOf:r.weekOf,wentWell:r.wentWell,improve:r.improve,focus:r.focus}).replace(/"/g,'&quot;')}))">📰 Generate Newsletter</button></div>`:''}
     </div>`;
   }).join('');
+}
+async function aiGenerateNewsletter(review){
+  const recentWins=(S.wins||[]).slice(-5).map(w=>w.title||w.text).join(', ');
+  const prompt=`Write a personal weekly newsletter (200 words) for Panos, a startup founder.
+Week of: ${review.weekOf||'this week'}
+Wins: ${review.wentWell||'none noted'}
+Lessons learned: ${review.improve||'none noted'}
+Next week focus: ${review.focus||'not set'}
+Recent wins: ${recentWins}
+Format: engaging, personal voice. Sections: 1) This week's win (1-2 sentences), 2) Lesson (1-2 sentences), 3) Next week focus (1 sentence), 4) One insight to share. Use clear paragraph breaks.`;
+  const out=await callClaude(prompt,500);
+  showAiOut('📰 Weekly Newsletter',out);
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -6349,6 +6436,17 @@ function renderGivelinkDash(){
     const glTasks=S.tasks.filter(t=>t.category==='givelink'&&t.status!=='done').slice(0,10);
     tasksEl.innerHTML=`<div class="rb" style="margin-bottom:10px;"><h2 style="margin:0;font-size:14px;">📋 Open Givelink Tasks</h2><button class="btn bg sm" onclick="openAdd('inbox','')">+ Task</button></div>${glTasks.length?glTasks.map(t=>tcHTML(t)).join(''):'<div class="empty">No open Givelink tasks!</div>'}`;
   }
+  // Sparklines
+  const hist=S.givelinkHistory||[];
+  const glSparkEl=document.getElementById('gl-sparklines');
+  if(glSparkEl&&hist.length>=2){
+    const metrics=['nonprofits','mrr','arr','users','pipeline'];
+    const labels={nonprofits:'Nonprofits',mrr:'MRR',arr:'ARR',users:'Users',pipeline:'Pipeline'};
+    glSparkEl.innerHTML=`<div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px;">${metrics.map(k=>`<div style="text-align:center;">
+      <div style="font-size:10px;color:var(--muted);margin-bottom:4px;">${labels[k]}</div>
+      ${_sparklineSVG(hist.slice(-8).map(h=>h[k]||0))}
+    </div>`).join('')}</div>`;
+  } else if(glSparkEl){glSparkEl.innerHTML='';}
 }
 function openGivelinkMetrics(){
   const m=S.givelinkMetrics||{};
@@ -6554,7 +6652,22 @@ function renderBiomarkers(){
     </div>
     ${latest.notes?`<div style="font-size:12px;color:var(--muted);margin-top:10px;">📝 ${esc(latest.notes)}</div>`:''}
   </div>
-  ${bms.slice(1,4).map(b=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted);">${b.date}<span>${Object.entries(b.markers||{}).filter(([,v])=>v).length} markers logged</span></div>`).join('')}`;
+  ${bms.slice(1,4).map(b=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px;color:var(--muted);">${b.date}<span>${Object.entries(b.markers||{}).filter(([,v])=>v).length} markers logged</span></div>`).join('')}
+  <div style="margin-top:14px;"><button class="btn bg sm" onclick="_aiBtn(this,aiBioLongevity)">🧬 AI Longevity Analysis</button><div id="bio-longevity-out" style="display:none;margin-top:10px;"></div></div>`;
+}
+async function aiBioLongevity(){
+  const bms=(S.biomarkers||[]);
+  if(!bms.length)return toast('Log biomarkers first');
+  const latest=bms.slice().sort((a,b)=>b.date>a.date?1:-1)[0];
+  const markerStr=Object.entries(latest.markers||{}).filter(([,v])=>v!==undefined).map(([k,v])=>`${k}: ${v}`).join(', ');
+  const prompt=`Based on these biomarkers for a 25-year-old male: ${markerStr}
+1. Estimate biological age vs chronological age (25)
+2. Top 3 longevity interventions to optimize based on these values
+3. The biggest risk factor shown in this data
+Be specific with values and actionable with recommendations.`;
+  const out=await callClaude(prompt,500);
+  const el=document.getElementById('bio-longevity-out');
+  if(el){el.style.display='';el.innerHTML=`<div style="background:var(--surface2);border-radius:8px;padding:12px;font-size:12px;white-space:pre-wrap;">${esc(out)}</div>`;}
 }
 function openAddBiomarker(){
   const today=new Date().toISOString().slice(0,10);
@@ -6975,12 +7088,21 @@ function _renderKTCard(){
 function _renderKTHistory(){
   const el=document.getElementById('kt-history');if(!el)return;
   const recents=(S.selfKnowledge||[]).slice().reverse().slice(0,3);
+  const hasMany=(S.selfKnowledge||[]).length>=5;
   if(!recents.length){el.innerHTML='';return;}
   el.innerHTML=`<div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;text-transform:uppercase;">Recent Reflections</div>${recents.map(r=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;">
     <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${r.date} · ${r.category}</div>
     <div style="font-size:12px;color:var(--muted);font-style:italic;">"${esc(r.prompt.slice(0,60))}…"</div>
     <div style="font-size:13px;margin-top:6px;">${esc(r.reflection.slice(0,120))}${r.reflection.length>120?'…':''}</div>
-  </div>`).join('')}`;
+  </div>`).join('')}
+  ${hasMany?`<div style="margin-top:10px;"><button class="btn bg sm" onclick="_aiBtn(this,aiKTPatterns)">🔍 AI Find My Patterns</button><div id="kt-patterns-out" style="display:none;margin-top:10px;"></div></div>`:''}`;
+}
+async function aiKTPatterns(){
+  const entries=(S.selfKnowledge||[]).slice(-10).map(r=>`[${r.category}] Q: ${r.prompt}\nA: ${r.reflection}`).join('\n\n');
+  const prompt=`Analyze these self-reflections and identify:\n1. The 3 recurring themes or patterns\n2. The core belief or assumption that drives this person\n3. A blind spot that appears repeatedly\n\nReflections:\n${entries}`;
+  const out=await callClaude(prompt,500);
+  const el=document.getElementById('kt-patterns-out');
+  if(el){el.style.display='';el.innerHTML=`<div style="background:var(--surface2);border-radius:8px;padding:12px;font-size:12px;white-space:pre-wrap;">${esc(out)}</div>`;}
 }
 function saveKTReflection(){
   const text=document.getElementById('kt-reflection-text')?.value.trim();
@@ -8425,16 +8547,34 @@ function renderDecisions(){
   if(!list)return;
   const decs=(S.decisions||[]);
   if(!decs.length){list.innerHTML='<div style="text-align:center;padding:40px;color:var(--muted);">No decisions logged yet. Click "+ Log Decision" to start.</div>';return;}
-  list.innerHTML=decs.slice().reverse().map(d=>`
-    <div class="los-card" style="margin-bottom:12px;">
+  const now=new Date();
+  const ratedDecs=decs.filter(d=>d.hindsight30?.rating||d.hindsight60?.rating||d.hindsight90?.rating);
+  const avgQuality=ratedDecs.length?Math.round(ratedDecs.reduce((a,d)=>{const r=d.hindsight90?.rating||d.hindsight60?.rating||d.hindsight30?.rating||0;return a+r;},0)/ratedDecs.length*20):null;
+  list.innerHTML=(avgQuality!==null?`<div style="background:var(--surface2);border-radius:10px;padding:10px 14px;margin-bottom:14px;font-size:13px;">📊 Decision Quality Score: <strong style="color:var(--accent);">${avgQuality}/100</strong> (${ratedDecs.length} rated)</div>`:'')+
+  decs.slice().reverse().map(d=>{
+    const daysSince=d.date?Math.floor((now-new Date(d.date))/864e5):0;
+    const due30=daysSince>=30&&!d.hindsight30;
+    const due60=daysSince>=60&&!d.hindsight60;
+    const due90=daysSince>=90&&!d.hindsight90;
+    const anyDue=due30||due60||due90;
+    return`<div class="los-card" style="margin-bottom:12px;${anyDue?'border-left:3px solid #fbbf24;':''}">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
-        <div style="font-weight:600;font-size:14px;">${d.decision}</div>
+        <div style="font-weight:600;font-size:14px;">${esc(d.decision||d.title||'')}</div>
         <div style="font-size:11px;color:var(--muted);">${d.date||''}</div>
       </div>
-      ${d.alts?`<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Alternatives: ${d.alts}</div>`:''}
-      ${d.outcome?`<div style="font-size:12px;color:var(--muted);">Expected: ${d.outcome}</div>`:''}
-    </div>
-  `).join('');
+      ${d.alts?`<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Alternatives: ${esc(d.alts)}</div>`:''}
+      ${d.outcome?`<div style="font-size:12px;color:var(--muted);">Expected: ${esc(d.outcome)}</div>`:''}
+      ${d.hindsight30?.rating?`<div style="font-size:11px;color:var(--muted);margin-top:4px;">30d: ${'★'.repeat(d.hindsight30.rating)} — ${esc(d.hindsight30.notes||'')}</div>`:''}
+      ${d.hindsight60?.rating?`<div style="font-size:11px;color:var(--muted);">60d: ${'★'.repeat(d.hindsight60.rating)}</div>`:''}
+      ${d.hindsight90?.rating?`<div style="font-size:11px;color:var(--muted);">90d: ${'★'.repeat(d.hindsight90.rating)}</div>`:''}
+      ${anyDue?`<div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+        <span style="font-size:11px;color:#fbbf24;">⏰ Rate hindsight:</span>
+        ${due30?`<button class="btn bg sm" onclick="openHindsightModal('${d.id}','30')">30-day</button>`:''}
+        ${due60?`<button class="btn bg sm" onclick="openHindsightModal('${d.id}','60')">60-day</button>`:''}
+        ${due90?`<button class="btn bg sm" onclick="openHindsightModal('${d.id}','90')">90-day</button>`:''}
+      </div>`:''}
+    </div>`;
+  }).join('');
 }
 
 function openAddDecision(prefill){
@@ -8503,6 +8643,7 @@ function renderWins(){
       </div>
     </div>`;
   }).join(''):'<div class="empty">No wins logged yet. Start celebrating!</div>';
+  renderExperienceSection();
 }
 function openAddWin(){
   document.getElementById('win-title').value='';
@@ -8931,6 +9072,748 @@ function closeModal(id){document.getElementById(id)?.classList.add('hidden');}
 window.addEventListener('online',()=>{const p=document.getElementById('offline-pill');if(p)p.style.display='none';});
 window.addEventListener('offline',()=>{const p=document.getElementById('offline-pill');if(p)p.style.display='';});
 if(!navigator.onLine){const p=document.getElementById('offline-pill');if(p)p.style.display='';}
+
+// ── CONTENT PIPELINE ──────────────────────────────────────────
+function renderContent(){
+  if(!S.contentPipeline)S.contentPipeline=[];
+  const now=new Date();
+  const thisMonth=now.toISOString().slice(0,7);
+  const total=S.contentPipeline.length;
+  const pubMonth=S.contentPipeline.filter(c=>c.type==='published'&&(c.date||'').startsWith(thisMonth)).length;
+  const totalPub=S.contentPipeline.filter(c=>c.type==='published').length;
+  const convRate=total?Math.round(totalPub/total*100):0;
+  const statsEl=document.getElementById('content-stats');
+  if(statsEl)statsEl.innerHTML=`<div style="display:flex;gap:10px;flex-wrap:wrap;">
+    <div class="los-card los-stat"><div class="los-stat-n">${total}</div><div class="los-stat-l">Total Ideas</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:var(--q2);">${pubMonth}</div><div class="los-stat-l">Published This Month</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:var(--accent);">${convRate}%</div><div class="los-stat-l">Conversion Rate</div></div>
+  </div>`;
+  const cols=['idea','draft','scheduled','published'];
+  const colLabels={idea:'💡 Ideas',draft:'✍️ Drafts',scheduled:'📅 Scheduled',published:'✅ Published'};
+  const kanban=document.getElementById('content-kanban');
+  if(kanban)kanban.innerHTML=cols.map(col=>{
+    const items=S.contentPipeline.filter(c=>c.type===col);
+    return`<div style="background:var(--surface2);border-radius:10px;padding:12px;">
+      <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;">${colLabels[col]} (${items.length})</div>
+      ${items.map(c=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;cursor:pointer;" onclick="openContentModal('${c.id}')">
+        <div style="font-size:13px;font-weight:600;margin-bottom:4px;">${esc(c.title)}</div>
+        <div style="display:flex;gap:4px;flex-wrap:wrap;">
+          <span style="font-size:10px;padding:2px 6px;border-radius:8px;background:var(--surface2);color:var(--muted);">${c.platform||'other'}</span>
+          ${c.date?`<span style="font-size:10px;color:var(--muted);">${c.date}</span>`:''}
+        </div>
+        ${c.notes?`<div style="font-size:11px;color:var(--muted);margin-top:4px;">${esc(c.notes).slice(0,60)}${c.notes.length>60?'...':''}</div>`:''}
+      </div>`).join('')}
+    </div>`;
+  }).join('');
+}
+function openContentModal(id){
+  const c=id?(S.contentPipeline||[]).find(x=>x.id===id):null;
+  document.getElementById('content-modal-title').textContent=c?'✏️ Edit Content':'📝 New Content Idea';
+  document.getElementById('content-title').value=c?.title||'';
+  document.getElementById('content-type').value=c?.type||'idea';
+  document.getElementById('content-platform').value=c?.platform||'linkedin';
+  document.getElementById('content-notes').value=c?.notes||'';
+  document.getElementById('content-date').value=c?.date||new Date().toISOString().slice(0,10);
+  document.getElementById('content-url').value=c?.url||'';
+  document.getElementById('content-edit-id').value=c?.id||'';
+  document.getElementById('content-modal').classList.remove('hidden');
+}
+function saveContent(){
+  const title=document.getElementById('content-title').value.trim();
+  if(!title)return toast('Title required');
+  if(!S.contentPipeline)S.contentPipeline=[];
+  const editId=document.getElementById('content-edit-id').value;
+  const obj={id:editId||uid(),title,type:document.getElementById('content-type').value,platform:document.getElementById('content-platform').value,notes:document.getElementById('content-notes').value.trim(),date:document.getElementById('content-date').value,url:document.getElementById('content-url').value.trim(),createdAt:editId?undefined:new Date().toISOString()};
+  if(editId){const i=S.contentPipeline.findIndex(c=>c.id===editId);if(i>=0)S.contentPipeline[i]={...S.contentPipeline[i],...obj};}
+  else S.contentPipeline.push(obj);
+  save();closeM('content-modal');renderContent();toast('Content saved!');
+}
+async function aiContentIdeas(){
+  const prompt=`You are a content strategist for Panos, founder of Givelink (nonprofit fundraising platform). His brand: ${S.brandStatement||'founder building nonprofit tech, personal finance, productivity'}.
+His goals: ${(S.goals||[]).slice(0,3).map(g=>g.title).join(', ')}.
+Generate 5 high-value content ideas for LinkedIn/Twitter that match his expertise (Givelink, personal finance, productivity, founder journey). For each: Title, Platform, Hook (1 sentence). Format as numbered list.`;
+  const out=await callClaude(prompt,500);
+  const el=document.getElementById('content-ai-out');
+  if(el){el.style.display='';el.innerHTML=`<div style="background:var(--surface2);border-radius:10px;padding:12px 14px;"><div style="font-size:12px;font-weight:700;margin-bottom:8px;">🤖 AI Content Ideas</div><div style="font-size:13px;white-space:pre-wrap;">${esc(out)}</div></div>`;}
+}
+
+// ── SKILL XP TREE ─────────────────────────────────────────────
+function _ensureSkills(){
+  if(!S.skills)S.skills=[];
+  if(!S.skills.length){
+    S.skills=[
+      {id:uid(),name:'Fundraising Tech',category:'domain',hoursLogged:0,targetHours:500,xpGained:0,notes:'',sessions:[],color:'#a78bfa'},
+      {id:uid(),name:'Public Speaking',category:'soft',hoursLogged:0,targetHours:200,xpGained:0,notes:'',sessions:[],color:'#fbbf24'},
+      {id:uid(),name:'Personal Finance',category:'domain',hoursLogged:0,targetHours:300,xpGained:0,notes:'',sessions:[],color:'#22c55e'}
+    ];
+    save();
+  }
+}
+function renderSkills(){
+  _ensureSkills();
+  const el=document.getElementById('skills-list');
+  if(!el)return;
+  if(!S.skills.length){el.innerHTML='<div class="empty">No skills yet. Add your first skill!</div>';return;}
+  el.innerHTML=S.skills.map(sk=>{
+    const level=Math.min(10,Math.floor(sk.hoursLogged/50)+1);
+    const nextLevelH=(level)*50;
+    const pct=Math.min(100,Math.round((sk.hoursLogged%50)/50*100));
+    const catColors={technical:'#58a6ff',soft:'#fbbf24',domain:'#a78bfa'};
+    return`<div class="los-card" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <div style="width:36px;height:36px;border-radius:50%;background:${sk.color||catColors[sk.category]||'#58a6ff'};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#000;">${level}</div>
+            <div>
+              <div style="font-weight:600;font-size:14px;">${esc(sk.name)}</div>
+              <div style="font-size:11px;color:var(--muted);">${sk.category} · ${sk.hoursLogged.toFixed(1)}h logged</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+            <div style="flex:1;height:8px;background:var(--surface);border-radius:4px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${sk.color||'#58a6ff'};border-radius:4px;transition:width .4s;"></div></div>
+            <div style="font-size:11px;color:var(--muted);">${sk.hoursLogged%50 < 50?`${(50-sk.hoursLogged%50).toFixed(0)}h to Lv${Math.min(10,level+1)}`:'Max Lv'}</div>
+          </div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <span style="font-size:10px;padding:2px 8px;border-radius:8px;background:${sk.color||'#58a6ff'}22;color:${sk.color||'#58a6ff'};border:1px solid ${sk.color||'#58a6ff'}44;">${sk.category}</span>
+            <span style="font-size:11px;color:var(--muted);">Target: ${sk.targetHours}h</span>
+            <span style="font-size:11px;color:var(--accent);">XP: ${sk.xpGained||0}</span>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <button class="btn bg sm" onclick="openSkillSessionModal('${sk.id}')">⏱ Log 30min</button>
+          <button class="btn bg sm" onclick="openSkillModal('${sk.id}')">✏️ Edit</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function openSkillModal(id){
+  const sk=id?(S.skills||[]).find(s=>s.id===id):null;
+  document.getElementById('skill-modal-title').textContent=sk?'✏️ Edit Skill':'🧠 Add Skill';
+  document.getElementById('skill-name').value=sk?.name||'';
+  document.getElementById('skill-category').value=sk?.category||'domain';
+  document.getElementById('skill-target').value=sk?.targetHours||500;
+  document.getElementById('skill-color').value=sk?.color||'#58a6ff';
+  document.getElementById('skill-edit-id').value=sk?.id||'';
+  document.getElementById('skill-modal').classList.remove('hidden');
+}
+function saveSkill(){
+  const name=document.getElementById('skill-name').value.trim();
+  if(!name)return toast('Name required');
+  if(!S.skills)S.skills=[];
+  const editId=document.getElementById('skill-edit-id').value;
+  const obj={id:editId||uid(),name,category:document.getElementById('skill-category').value,targetHours:parseInt(document.getElementById('skill-target').value)||500,color:document.getElementById('skill-color').value,hoursLogged:0,xpGained:0,sessions:[],notes:''};
+  if(editId){const i=S.skills.findIndex(s=>s.id===editId);if(i>=0)S.skills[i]={...S.skills[i],...obj,hoursLogged:S.skills[i].hoursLogged,xpGained:S.skills[i].xpGained,sessions:S.skills[i].sessions};}
+  else S.skills.push(obj);
+  save();closeM('skill-modal');renderSkills();toast('Skill saved!');
+}
+function openSkillSessionModal(skillId){
+  if(!S.skills||!S.skills.length){toast('No skills added yet');return;}
+  const sel=document.getElementById('ss-skill-id');
+  sel.innerHTML=S.skills.map(s=>`<option value="${s.id}" ${s.id===skillId?'selected':''}>${esc(s.name)}</option>`).join('');
+  document.getElementById('ss-duration').value=30;
+  document.getElementById('ss-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('ss-notes').value='';
+  document.getElementById('skill-session-modal').classList.remove('hidden');
+}
+function saveSkillSession(){
+  const skillId=document.getElementById('ss-skill-id').value;
+  const duration=parseInt(document.getElementById('ss-duration').value)||30;
+  const date=document.getElementById('ss-date').value;
+  const notes=document.getElementById('ss-notes').value.trim();
+  const sk=(S.skills||[]).find(s=>s.id===skillId);
+  if(!sk)return;
+  if(!sk.sessions)sk.sessions=[];
+  sk.sessions.push({id:uid(),date,duration,notes,createdAt:new Date().toISOString()});
+  sk.hoursLogged=(sk.hoursLogged||0)+duration/60;
+  sk.xpGained=(sk.xpGained||0)+10;
+  save();closeM('skill-session-modal');renderSkills();
+  awardXP(10,'skill session');
+  toast(`⏱ ${duration}min logged for ${sk.name}! +10 XP`);
+}
+
+// ── EXPERIENCE LOG ─────────────────────────────────────────────
+function renderExperienceSection(){
+  const el=document.getElementById('exp-section');
+  if(!el)return;
+  const now=new Date();
+  const thisYear=now.getFullYear();
+  const exps=(S.experiences||[]).filter(e=>(e.date||'').startsWith(thisYear));
+  const goal=12;
+  const months=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const byMonth=months.map((_,i)=>({month:months[i],count:exps.filter(e=>{const d=new Date(e.date||'');return d.getMonth()===i;}).length}));
+  el.innerHTML=`<details style="margin-top:20px;">
+    <summary style="cursor:pointer;font-size:14px;font-weight:700;padding:10px 0;border-top:1px solid var(--border);">🌟 Experience Log <span style="font-weight:400;color:var(--muted);">(${exps.length}/${goal} this year)</span></summary>
+    <div style="margin-top:12px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+        <div style="flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;"><div style="height:100%;width:${Math.min(100,exps.length/goal*100)}%;background:var(--accent);border-radius:4px;"></div></div>
+        <span style="font-size:12px;color:var(--muted);">${exps.length}/${goal}</span>
+        <button class="btn bg sm" onclick="openExpModal()">➕ Log</button>
+      </div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:12px;">
+        ${byMonth.map(m=>`<div style="text-align:center;min-width:36px;"><div style="font-size:14px;font-weight:700;color:${m.count>0?'var(--accent)':'var(--muted)'};">${m.count}</div><div style="font-size:9px;color:var(--muted);">${m.month}</div></div>`).join('')}
+      </div>
+      ${(S.experiences||[]).slice().reverse().slice(0,10).map(e=>`<div style="background:var(--surface2);border-radius:8px;padding:10px 12px;margin-bottom:6px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div style="font-weight:600;font-size:13px;">${esc(e.title)}</div>
+          <div style="font-size:11px;color:var(--muted);">${e.date||''}</div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:4px;">
+          <span style="font-size:10px;padding:2px 6px;border-radius:8px;background:var(--surface);color:var(--muted);">${e.category||'other'}</span>
+          <span style="font-size:11px;color:#fbbf24;">${'★'.repeat(e.impact||3)}</span>
+        </div>
+        ${e.notes?`<div style="font-size:11px;color:var(--muted);margin-top:4px;">${esc(e.notes)}</div>`:''}
+      </div>`).join('')}
+    </div>
+  </details>`;
+}
+function openExpModal(id){
+  const e=id?(S.experiences||[]).find(x=>x.id===id):null;
+  document.getElementById('exp-title').value=e?.title||'';
+  document.getElementById('exp-category').value=e?.category||'other';
+  document.getElementById('exp-date').value=e?.date||new Date().toISOString().slice(0,10);
+  document.getElementById('exp-impact').value=e?.impact||3;
+  document.getElementById('exp-impact-val').textContent=e?.impact||3;
+  document.getElementById('exp-notes').value=e?.notes||'';
+  document.getElementById('exp-edit-id').value=e?.id||'';
+  document.getElementById('exp-modal').classList.remove('hidden');
+}
+function saveExperience(){
+  const title=document.getElementById('exp-title').value.trim();
+  if(!title)return toast('Title required');
+  if(!S.experiences)S.experiences=[];
+  const editId=document.getElementById('exp-edit-id').value;
+  const obj={id:editId||uid(),title,category:document.getElementById('exp-category').value,date:document.getElementById('exp-date').value,impact:parseInt(document.getElementById('exp-impact').value)||3,notes:document.getElementById('exp-notes').value.trim(),createdAt:editId?undefined:new Date().toISOString()};
+  if(editId){const i=S.experiences.findIndex(e=>e.id===editId);if(i>=0)S.experiences[i]={...S.experiences[i],...obj};}
+  else S.experiences.push(obj);
+  save();closeM('exp-modal');renderExperienceSection();renderWins();toast('Experience logged! 🌟');
+}
+
+// ── SLEEP TRACKER ──────────────────────────────────────────────
+function renderSleep(){
+  if(!S.sleepLogs)S.sleepLogs=[];
+  const summaryEl=document.getElementById('sleep-summary');
+  const logEl=document.getElementById('sleep-log');
+  const week7=new Date(Date.now()-7*864e5);
+  const recent=S.sleepLogs.filter(l=>new Date(l.date)>=week7);
+  const avgH=recent.length?recent.reduce((a,l)=>a+(l.hoursSlept||0),0)/recent.length:0;
+  const avgQ=recent.length?recent.reduce((a,l)=>a+(l.quality||3),0)/recent.length:0;
+  const avgReady=recent.length?recent.reduce((a,l)=>a+(l.readinessScore||0),0)/recent.length:0;
+  const checkCompletion=recent.length?Math.round(recent.reduce((a,l)=>{const c=l.preChecklist||{};return a+(Object.values(c).filter(Boolean).length/4);},0)/recent.length*100):0;
+  if(summaryEl)summaryEl.innerHTML=`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px;">
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:var(--accent);">${avgH.toFixed(1)}h</div><div class="los-stat-l">Avg Sleep/Night<br><span style="font-size:9px;">(7 days)</span></div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#fbbf24;">${avgQ.toFixed(1)}/5</div><div class="los-stat-l">Avg Quality</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#22c55e;">${Math.round(avgReady)}</div><div class="los-stat-l">Avg Readiness</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#a78bfa;">${checkCompletion}%</div><div class="los-stat-l">Pre-Sleep Checklist</div></div>
+  </div>`;
+  const last7=S.sleepLogs.slice().reverse().slice(0,7);
+  if(logEl)logEl.innerHTML=last7.length?`<div style="font-size:13px;font-weight:600;margin-bottom:10px;">Last 7 nights</div>
+    <div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead><tr style="color:var(--muted);">
+        <th style="text-align:left;padding:6px 8px;">Date</th>
+        <th style="text-align:center;">Hours</th>
+        <th style="text-align:center;">Quality</th>
+        <th style="text-align:center;">Readiness</th>
+        <th style="text-align:center;">Checklist</th>
+      </tr></thead>
+      <tbody>${last7.map(l=>{
+        const c=l.preChecklist||{};const done=Object.values(c).filter(Boolean).length;
+        return`<tr style="border-top:1px solid var(--border);">
+          <td style="padding:6px 8px;">${l.date||''}</td>
+          <td style="text-align:center;font-weight:600;">${(l.hoursSlept||0).toFixed(1)}</td>
+          <td style="text-align:center;">${'★'.repeat(l.quality||0)}</td>
+          <td style="text-align:center;color:${(l.readinessScore||0)>=80?'var(--q2)':(l.readinessScore||0)>=60?'#fbbf24':'#ef4444'};">${l.readinessScore||0}</td>
+          <td style="text-align:center;">${done}/4</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`:'<div class="empty">No sleep logs yet. Start tracking!</div>';
+}
+function openSleepModal(){
+  document.getElementById('sl-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('sl-bed').value='23:00';
+  document.getElementById('sl-wake').value='07:00';
+  document.getElementById('sl-quality').value=3;
+  document.getElementById('sl-quality-val').textContent=3;
+  document.getElementById('sl-noscreen').checked=false;
+  document.getElementById('sl-noalcohol').checked=false;
+  document.getElementById('sl-read').checked=false;
+  document.getElementById('sl-nofood').checked=false;
+  document.getElementById('sl-notes').value='';
+  document.getElementById('sl-edit-id').value='';
+  document.getElementById('sleep-modal').classList.remove('hidden');
+}
+function saveSleep(){
+  const date=document.getElementById('sl-date').value;
+  const bed=document.getElementById('sl-bed').value;
+  const wake=document.getElementById('sl-wake').value;
+  const quality=parseInt(document.getElementById('sl-quality').value)||3;
+  let hoursSlept=0;
+  if(bed&&wake){
+    const [bh,bm]=bed.split(':').map(Number);
+    const [wh,wm]=wake.split(':').map(Number);
+    let mins=(wh*60+wm)-(bh*60+bm);
+    if(mins<0)mins+=24*60;
+    hoursSlept=mins/60;
+  }
+  const readinessScore=quality*20;
+  const preChecklist={noScreen:document.getElementById('sl-noscreen').checked,noAlcohol:document.getElementById('sl-noalcohol').checked,read:document.getElementById('sl-read').checked,noFood2h:document.getElementById('sl-nofood').checked};
+  if(!S.sleepLogs)S.sleepLogs=[];
+  const editId=document.getElementById('sl-edit-id').value;
+  const obj={id:editId||uid(),date,bedTime:bed,wakeTime:wake,hoursSlept,quality,preChecklist,notes:document.getElementById('sl-notes').value.trim(),readinessScore};
+  if(editId){const i=S.sleepLogs.findIndex(l=>l.id===editId);if(i>=0)S.sleepLogs[i]=obj;}
+  else S.sleepLogs.push(obj);
+  save();closeM('sleep-modal');renderSleep();toast('😴 Sleep logged!');
+}
+
+// ── BODY COMPOSITION ──────────────────────────────────────────
+function _renderBodySection(){
+  const el=document.getElementById('body-section');
+  if(!el)return;
+  if(!S.bodyLogs)S.bodyLogs=[];
+  const sorted=S.bodyLogs.slice().sort((a,b)=>a.date>b.date?1:-1);
+  const latest=sorted.slice(-1)[0];
+  const prev=sorted.slice(-2,-1)[0];
+  const goalBF=12;
+  const weightDiff=latest&&prev?((latest.weightKg||0)-(prev.weightKg||0)):null;
+  const bfDiff=latest&&prev?((latest.bodyFatPct||0)-(prev.bodyFatPct||0)):null;
+  el.innerHTML=`<details style="margin-top:20px;">
+    <summary style="cursor:pointer;font-size:14px;font-weight:700;padding:10px 0;border-top:1px solid var(--border);">🏋️ Body Composition <button class="btn bg sm" onclick="event.stopPropagation();openBodyModal()" style="margin-left:10px;">➕ Log</button></summary>
+    <div style="margin-top:12px;">
+      ${latest?`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+        <div class="los-card" style="flex:1;min-width:120px;">
+          <div style="font-size:22px;font-weight:800;color:var(--accent);">${latest.weightKg||'-'}kg</div>
+          <div style="font-size:11px;color:var(--muted);">Weight ${weightDiff!==null?`<span style="color:${weightDiff>0?'#ef4444':'#22c55e'};">${weightDiff>0?'+':''}${weightDiff.toFixed(1)}kg</span>`:'(first entry)'}</div>
+        </div>
+        <div class="los-card" style="flex:1;min-width:120px;">
+          <div style="font-size:22px;font-weight:800;color:${(latest.bodyFatPct||0)<=goalBF?'#22c55e':'#fbbf24'};">${latest.bodyFatPct||'-'}%</div>
+          <div style="font-size:11px;color:var(--muted);">Body Fat ${bfDiff!==null?`<span style="color:${bfDiff<0?'#22c55e':'#ef4444'};">${bfDiff>0?'+':''}${bfDiff.toFixed(1)}%</span>`:'(first entry)'}</div>
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">
+        <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">BF% Progress to ${goalBF}% target</div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div style="flex:1;height:8px;background:var(--surface2);border-radius:4px;overflow:hidden;"><div style="height:100%;width:${Math.min(100,Math.max(0,(1-(((latest.bodyFatPct||20)-goalBF)/Math.max(1,(latest.bodyFatPct||20)-goalBF))*0))*100)}%;background:${(latest.bodyFatPct||0)<=goalBF?'#22c55e':'#fbbf24'};border-radius:4px;"></div></div>
+          <span style="font-size:11px;">${(latest.bodyFatPct||0)<=goalBF?'✅ Goal reached!':'→ '+goalBF+'% goal'}</span>
+        </div>
+      </div>`:'<div style="color:var(--muted);font-size:13px;margin-bottom:12px;">No entries yet. Log your first weigh-in!</div>'}
+      <table style="width:100%;font-size:12px;border-collapse:collapse;">
+        <thead><tr style="color:var(--muted);"><th style="text-align:left;padding:5px;">Date</th><th style="text-align:center;">Weight</th><th style="text-align:center;">BF%</th></tr></thead>
+        <tbody>${sorted.slice(-5).reverse().map(l=>`<tr style="border-top:1px solid var(--border);"><td style="padding:5px;">${l.date}</td><td style="text-align:center;">${l.weightKg}kg</td><td style="text-align:center;">${l.bodyFatPct}%</td></tr>`).join('')}</tbody>
+      </table>
+    </div>
+  </details>`;
+}
+function openBodyModal(){
+  document.getElementById('body-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('body-weight').value='';
+  document.getElementById('body-bf').value='';
+  document.getElementById('body-notes').value='';
+  document.getElementById('body-edit-id').value='';
+  document.getElementById('body-modal').classList.remove('hidden');
+}
+function saveBodyLog(){
+  if(!S.bodyLogs)S.bodyLogs=[];
+  const editId=document.getElementById('body-edit-id').value;
+  const obj={id:editId||uid(),date:document.getElementById('body-date').value,weightKg:parseFloat(document.getElementById('body-weight').value)||0,bodyFatPct:parseFloat(document.getElementById('body-bf').value)||0,notes:document.getElementById('body-notes').value.trim()};
+  if(editId){const i=S.bodyLogs.findIndex(l=>l.id===editId);if(i>=0)S.bodyLogs[i]=obj;}
+  else S.bodyLogs.push(obj);
+  save();closeM('body-modal');_renderBodySection();toast('🏋️ Weigh-in logged!');
+}
+
+// ── PORTFOLIO SNAPSHOTS ────────────────────────────────────────
+function _renderPortfolioSection(){
+  const el=document.getElementById('portfolio-section');
+  if(!el)return;
+  if(!S.portfolioEntries)S.portfolioEntries=[];
+  const sorted=S.portfolioEntries.slice().sort((a,b)=>a.date>b.date?1:-1);
+  const latest=sorted.slice(-1)[0];
+  const first=sorted[0];
+  const growth=latest&&first&&first.totalValue?Math.round((latest.totalValue-first.totalValue)/first.totalValue*100):null;
+  const alloc=latest?.breakdown||{};
+  const total=latest?.totalValue||0;
+  el.innerHTML=`<details style="margin-top:20px;">
+    <summary style="cursor:pointer;font-size:14px;font-weight:700;padding:10px 0;border-top:1px solid var(--border);">📈 Portfolio Snapshots <button class="btn bg sm" onclick="event.stopPropagation();openPortfolioModal()" style="margin-left:10px;">➕ Log</button></summary>
+    <div style="margin-top:12px;">
+      ${latest?`<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+        <div class="los-card" style="flex:1;">
+          <div style="font-size:22px;font-weight:800;color:var(--accent);">€${(total).toLocaleString()}</div>
+          <div style="font-size:11px;color:var(--muted);">Total Portfolio ${growth!==null?`· Growth: <span style="color:${growth>=0?'#22c55e':'#ef4444'};">${growth>=0?'+':''}${growth}%</span>`:'(first entry)'}</div>
+        </div>
+      </div>
+      <div style="margin-bottom:12px;">${Object.entries(alloc).filter(([,v])=>v>0).map(([k,v])=>`<div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+        <div style="font-size:11px;color:var(--muted);width:90px;text-transform:capitalize;">${k}</div>
+        <div style="flex:1;height:10px;background:var(--surface2);border-radius:5px;overflow:hidden;"><div style="height:100%;width:${total?Math.round(v/total*100):0}%;background:var(--accent);border-radius:5px;"></div></div>
+        <div style="font-size:11px;width:80px;text-align:right;">€${v.toLocaleString()} (${total?Math.round(v/total*100):0}%)</div>
+      </div>`).join('')}</div>`:'<div style="color:var(--muted);font-size:13px;margin-bottom:12px;">No snapshots yet. Log your first portfolio value!</div>'}
+      ${sorted.slice(-5).reverse().map(e=>`<div style="font-size:12px;padding:6px 8px;border-radius:6px;background:var(--surface2);margin-bottom:4px;display:flex;justify-content:space-between;"><span>${e.date}</span><span style="font-weight:600;">€${(e.totalValue||0).toLocaleString()}</span></div>`).join('')}
+    </div>
+  </details>`;
+}
+function openPortfolioModal(){
+  document.getElementById('port-date').value=new Date().toISOString().slice(0,10);
+  ['stocks','crypto','realestate','bonds','cash'].forEach(k=>{document.getElementById('port-'+k).value='';});
+  document.getElementById('port-notes').value='';
+  document.getElementById('port-edit-id').value='';
+  document.getElementById('portfolio-modal').classList.remove('hidden');
+}
+function savePortfolio(){
+  if(!S.portfolioEntries)S.portfolioEntries=[];
+  const breakdown={stocks:parseFloat(document.getElementById('port-stocks').value)||0,crypto:parseFloat(document.getElementById('port-crypto').value)||0,realEstate:parseFloat(document.getElementById('port-realestate').value)||0,bonds:parseFloat(document.getElementById('port-bonds').value)||0,cash:parseFloat(document.getElementById('port-cash').value)||0};
+  const totalValue=Object.values(breakdown).reduce((a,b)=>a+b,0);
+  const editId=document.getElementById('port-edit-id').value;
+  const obj={id:editId||uid(),date:document.getElementById('port-date').value,totalValue,breakdown,notes:document.getElementById('port-notes').value.trim()};
+  if(editId){const i=S.portfolioEntries.findIndex(e=>e.id===editId);if(i>=0)S.portfolioEntries[i]=obj;}
+  else S.portfolioEntries.push(obj);
+  save();closeM('portfolio-modal');_renderPortfolioSection();toast('📈 Portfolio snapshot logged!');
+}
+
+// ── ANTI-GOALS ────────────────────────────────────────────────
+function _renderAntiGoalsSection(){
+  const el=document.getElementById('anti-goals-section');
+  if(!el)return;
+  if(!S.antiGoals)S.antiGoals=[];
+  el.innerHTML=`<details style="margin-top:20px;">
+    <summary style="cursor:pointer;font-size:14px;font-weight:700;padding:10px 0;border-top:1px solid var(--border);">🚫 Anti-Goals — What I Won't Do</summary>
+    <div style="margin-top:12px;">
+      <div style="display:flex;gap:8px;margin-bottom:12px;">
+        <button class="btn bg sm" onclick="openAntiGoalModal()">➕ Add Anti-Goal</button>
+        <button class="btn bg sm" onclick="_aiBtn(this,aiAntiGoals)">🤖 AI Suggest</button>
+      </div>
+      <div id="anti-goals-ai-out" style="display:none;margin-bottom:10px;"></div>
+      ${S.antiGoals.length?S.antiGoals.map(ag=>`<div style="border-left:3px solid #ef4444;background:var(--surface2);border-radius:0 8px 8px 0;padding:10px 14px;margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+          <div style="font-weight:600;font-size:13px;">${esc(ag.title)}</div>
+          <button class="btn bd sm" onclick="deleteAntiGoal('${ag.id}')">🗑</button>
+        </div>
+        ${ag.reason?`<div style="font-size:12px;color:var(--muted);margin-top:4px;">${esc(ag.reason)}</div>`:''}
+      </div>`).join(''):'<div style="color:var(--muted);font-size:13px;">No anti-goals yet. What won\'t you do?</div>'}
+    </div>
+  </details>`;
+}
+function openAntiGoalModal(){
+  document.getElementById('ag-title').value='';
+  document.getElementById('ag-reason').value='';
+  document.getElementById('antigoal-modal').classList.remove('hidden');
+}
+function saveAntiGoal(){
+  const title=document.getElementById('ag-title').value.trim();
+  if(!title)return toast('Title required');
+  if(!S.antiGoals)S.antiGoals=[];
+  S.antiGoals.push({id:uid(),title,reason:document.getElementById('ag-reason').value.trim(),addedAt:new Date().toISOString()});
+  save();closeM('antigoal-modal');_renderAntiGoalsSection();toast('🚫 Anti-goal added!');
+}
+function deleteAntiGoal(id){
+  S.antiGoals=(S.antiGoals||[]).filter(ag=>ag.id!==id);
+  save();_renderAntiGoalsSection();
+}
+async function aiAntiGoals(){
+  const prompt=`Based on these values: ${(S.values||[]).join(', ')} and goals: ${(S.goals||[]).slice(0,5).map(g=>g.title).join(', ')}, suggest 5 specific anti-goals for Panos — things he should explicitly NOT do or commit to in order to protect his focus and values. Format as numbered list with brief reasoning.`;
+  const out=await callClaude(prompt,400);
+  const el=document.getElementById('anti-goals-ai-out');
+  if(el){el.style.display='';el.innerHTML=`<div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);border-radius:8px;padding:10px 12px;font-size:12px;white-space:pre-wrap;">${esc(out)}</div>`;}
+}
+
+// ── COMMITMENT CONTRACTS ──────────────────────────────────────
+function _renderContractsSection(){
+  const el=document.getElementById('contracts-section');
+  if(!el)return;
+  if(!S.contracts)S.contracts=[];
+  el.innerHTML=`<details style="margin-top:20px;">
+    <summary style="cursor:pointer;font-size:14px;font-weight:700;padding:10px 0;border-top:1px solid var(--border);">⛓️ Commitment Contracts (Ulysses Contracts)</summary>
+    <div style="margin-top:12px;">
+      <button class="btn bg sm" onclick="openContractModal()" style="margin-bottom:12px;">➕ New Contract</button>
+      ${S.contracts.map(ct=>`<div style="background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+          <div style="font-weight:600;font-size:13px;">I commit to ${esc(ct.commitment)}</div>
+          <span style="font-size:11px;padding:2px 8px;border-radius:8px;background:${ct.status==='active'?'rgba(34,197,94,.15)':ct.status==='completed'?'rgba(88,166,255,.15)':'rgba(239,68,68,.15)'};color:${ct.status==='active'?'#22c55e':ct.status==='completed'?'var(--accent)':'#ef4444'};">${ct.status}</span>
+        </div>
+        ${ct.stake?`<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">Or I will: ${esc(ct.stake)}</div>`:''}
+        ${ct.deadline?`<div style="font-size:11px;color:var(--muted);">Deadline: ${ct.deadline}${ct.witness?' · Witness: '+esc(ct.witness):''}</div>`:''}
+        ${ct.status==='active'?`<div style="display:flex;gap:6px;margin-top:8px;">
+          <button class="btn bg sm" onclick="updateContract('${ct.id}','completed')">✅ Mark Complete</button>
+          <button class="btn bd sm" onclick="updateContract('${ct.id}','broken')">❌ Mark Broken</button>
+        </div>`:''}
+      </div>`).join('')}
+      ${!S.contracts.length?'<div style="color:var(--muted);font-size:13px;">No contracts yet. Make a bold commitment!</div>':''}
+    </div>
+  </details>`;
+}
+function openContractModal(){
+  document.getElementById('ct-commitment').value='';
+  document.getElementById('ct-stake').value='';
+  document.getElementById('ct-witness').value='';
+  document.getElementById('ct-deadline').value='';
+  document.getElementById('ct-edit-id').value='';
+  document.getElementById('contract-modal').classList.remove('hidden');
+}
+function saveContract(){
+  const commitment=document.getElementById('ct-commitment').value.trim();
+  if(!commitment)return toast('Commitment required');
+  if(!S.contracts)S.contracts=[];
+  S.contracts.push({id:uid(),commitment,stake:document.getElementById('ct-stake').value.trim(),witness:document.getElementById('ct-witness').value.trim(),deadline:document.getElementById('ct-deadline').value,status:'active',createdAt:new Date().toISOString()});
+  save();closeM('contract-modal');_renderContractsSection();toast('⛓️ Contract created!');
+}
+function updateContract(id,status){
+  const ct=(S.contracts||[]).find(c=>c.id===id);
+  if(ct){ct.status=status;save();_renderContractsSection();}
+}
+
+// ── PERSONAL MANIFESTO ────────────────────────────────────────
+function _renderManifestoSection(){
+  const el=document.getElementById('manifesto-section');
+  if(!el)return;
+  if(!S.manifesto)S.manifesto={principles:[],identityStatements:[],rules:[],lastUpdated:''};
+  const m=S.manifesto;
+  el.innerHTML=`<div style="margin-top:20px;padding-top:16px;border-top:1px solid var(--border);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <h2 style="margin:0;font-size:15px;">📜 Personal Manifesto</h2>
+      <div style="display:flex;gap:6px;">
+        <button class="btn bg sm" onclick="_aiBtn(this,aiDraftManifesto)">🤖 AI Draft</button>
+        <button class="btn bp sm" onclick="saveManifesto()">💾 Save</button>
+      </div>
+    </div>
+    <div id="manifesto-ai-out" style="display:none;margin-bottom:12px;"></div>
+    <div style="margin-bottom:14px;"><label style="font-size:12px;font-weight:700;color:var(--muted);display:block;margin-bottom:6px;">My Principles</label>
+      <textarea class="fc" id="manifesto-principles" rows="5" placeholder="1. I value deep work over busywork\n2. ...">${(m.principles||[]).join('\n')}</textarea>
+    </div>
+    <div style="margin-bottom:14px;"><label style="font-size:12px;font-weight:700;color:var(--muted);display:block;margin-bottom:6px;">I am... (Identity Statements)</label>
+      <textarea class="fc" id="manifesto-identity" rows="4" placeholder="I am someone who ships before perfect\nI am a builder, not a talker\n...">${(m.identityStatements||[]).join('\n')}</textarea>
+    </div>
+    <div style="margin-bottom:14px;"><label style="font-size:12px;font-weight:700;color:var(--muted);display:block;margin-bottom:6px;">My Rules (Specific Behaviors)</label>
+      <textarea class="fc" id="manifesto-rules" rows="4" placeholder="No meetings before 10am\nReview goals every Sunday\n...">${(m.rules||[]).join('\n')}</textarea>
+    </div>
+    ${m.lastUpdated?`<div style="font-size:11px;color:var(--muted);">Last updated: ${new Date(m.lastUpdated).toLocaleDateString()}</div>`:''}
+  </div>`;
+}
+function saveManifesto(){
+  if(!S.manifesto)S.manifesto={principles:[],identityStatements:[],rules:[],lastUpdated:''};
+  S.manifesto.principles=(document.getElementById('manifesto-principles')?.value||'').split('\n').filter(l=>l.trim());
+  S.manifesto.identityStatements=(document.getElementById('manifesto-identity')?.value||'').split('\n').filter(l=>l.trim());
+  S.manifesto.rules=(document.getElementById('manifesto-rules')?.value||'').split('\n').filter(l=>l.trim());
+  S.manifesto.lastUpdated=new Date().toISOString();
+  save();toast('📜 Manifesto saved!');
+}
+async function aiDraftManifesto(){
+  const prompt=`Draft a personal manifesto for Panos, a founder in his 20s building Givelink (nonprofit fundraising platform).
+Values: ${(S.values||[]).join(', ')}
+Goals: ${(S.goals||[]).slice(0,5).map(g=>g.title).join(', ')}
+Recent wins: ${(S.wins||[]).slice(-3).map(w=>w.text||w.title||'').join(', ')}
+Generate: 5 core Principles, 4 Identity Statements (I am...), 5 specific behavioral Rules. Keep each line concise (under 12 words).`;
+  const out=await callClaude(prompt,600);
+  const el=document.getElementById('manifesto-ai-out');
+  if(el){el.style.display='';el.innerHTML=`<div style="background:var(--surface2);border-radius:8px;padding:12px;font-size:12px;white-space:pre-wrap;">${esc(out)}</div>`;}
+}
+
+// ── MENTORS ────────────────────────────────────────────────────
+function renderMentors(){
+  if(!S.mentors)S.mentors=[];
+  const areaColors={career:'#58a6ff',finance:'#22c55e',health:'#f472b6',relationships:'#fbbf24',business:'#a78bfa'};
+  const areaIcons={career:'💼',finance:'💰',health:'💪',relationships:'🤝',business:'🚀'};
+  const el=document.getElementById('mentors-list');
+  if(!el)return;
+  if(!S.mentors.length){el.innerHTML='<div class="empty">No mentors yet. Add your board of advisors!</div>';return;}
+  const now=new Date();
+  el.innerHTML=S.mentors.map(m=>{
+    const freqDays={monthly:30,quarterly:90,adhoc:365};
+    const daysLimit=freqDays[m.contactFreq||'quarterly']||90;
+    const lastD=m.lastContact?new Date(m.lastContact):null;
+    const daysSince=lastD?Math.floor((now-lastD)/864e5):999;
+    const overdue=daysSince>daysLimit;
+    return`<div class="los-card" style="margin-bottom:12px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+            <span style="font-size:24px;">${areaIcons[m.area]||'🎓'}</span>
+            <div>
+              <div style="font-weight:700;font-size:14px;">${esc(m.name)}</div>
+              <span style="font-size:10px;padding:2px 8px;border-radius:8px;background:${areaColors[m.area]||'#58a6ff'}22;color:${areaColors[m.area]||'#58a6ff'};border:1px solid ${areaColors[m.area]||'#58a6ff'}44;">${m.area||'career'}</span>
+            </div>
+          </div>
+          <div style="font-size:12px;color:${overdue?'#ef4444':'var(--muted)'};">Last contact: ${m.lastContact||'Never'} ${overdue?'⚠️ Overdue':''}</div>
+          <div style="font-size:11px;color:var(--muted);">Frequency: ${m.contactFreq||'quarterly'}</div>
+          ${m.notes?`<div style="font-size:12px;color:var(--muted);margin-top:4px;">${esc(m.notes)}</div>`:''}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:5px;">
+          <button class="btn bg sm" onclick="logMentorContact('${m.id}')">📞 Log Contact</button>
+          <button class="btn bg sm" onclick="openMentorModal('${m.id}')">✏️ Edit</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+function openMentorModal(id){
+  const m=id?(S.mentors||[]).find(x=>x.id===id):null;
+  document.getElementById('mentor-modal-title').textContent=m?'✏️ Edit Mentor':'🎓 Add Mentor';
+  document.getElementById('mentor-name').value=m?.name||'';
+  document.getElementById('mentor-area').value=m?.area||'career';
+  document.getElementById('mentor-freq').value=m?.contactFreq||'quarterly';
+  document.getElementById('mentor-last').value=m?.lastContact||'';
+  document.getElementById('mentor-notes').value=m?.notes||'';
+  document.getElementById('mentor-edit-id').value=m?.id||'';
+  document.getElementById('mentor-modal').classList.remove('hidden');
+}
+function saveMentor(){
+  const name=document.getElementById('mentor-name').value.trim();
+  if(!name)return toast('Name required');
+  if(!S.mentors)S.mentors=[];
+  const editId=document.getElementById('mentor-edit-id').value;
+  const obj={id:editId||uid(),name,area:document.getElementById('mentor-area').value,contactFreq:document.getElementById('mentor-freq').value,lastContact:document.getElementById('mentor-last').value,notes:document.getElementById('mentor-notes').value.trim(),keyInsights:[]};
+  if(editId){const i=S.mentors.findIndex(x=>x.id===editId);if(i>=0)S.mentors[i]={...S.mentors[i],...obj,keyInsights:S.mentors[i].keyInsights||[]};}
+  else S.mentors.push(obj);
+  save();closeM('mentor-modal');renderMentors();toast('🎓 Mentor saved!');
+}
+function logMentorContact(id){
+  const m=(S.mentors||[]).find(x=>x.id===id);
+  if(!m)return;
+  m.lastContact=new Date().toISOString().slice(0,10);
+  const insight=prompt('Key insight from this conversation? (optional)');
+  if(insight){if(!m.keyInsights)m.keyInsights=[];m.keyInsights.push({date:m.lastContact,insight});}
+  save();renderMentors();toast('📞 Contact logged!');
+}
+async function aiSuggestMentors(){
+  const prompt=`Panos is a founder in his 20s building Givelink (nonprofit fundraising platform). Goals: ${(S.goals||[]).slice(0,5).map(g=>g.title).join(', ')}.
+Suggest 5 ideal mentor profiles (one per life area: career, finance, health, relationships, business). For each: Area, Ideal Profile, Why they'd be valuable, How to find them. Keep each concise.`;
+  const out=await callClaude(prompt,500);
+  const el=document.getElementById('mentors-ai-out');
+  if(el){el.style.display='';el.innerHTML=`<div style="background:var(--surface2);border-radius:10px;padding:12px;font-size:12px;white-space:pre-wrap;">${esc(out)}</div>`;}
+}
+
+// ── CALENDAR WEEK VIEW ────────────────────────────────────────
+let _calWeekOffset=0;
+function renderCalendar(){
+  _calWeekOffset=_calWeekOffset||0;
+  _renderCalGrid();
+}
+function _calNav(dir){
+  if(dir===0)_calWeekOffset=0;
+  else _calWeekOffset+=dir;
+  _renderCalGrid();
+}
+function _renderCalGrid(){
+  const el=document.getElementById('cal-week-grid');
+  if(!el)return;
+  const now=new Date();
+  const monday=new Date(now);
+  const dow=monday.getDay();
+  monday.setDate(monday.getDate()-(dow===0?6:dow-1)+_calWeekOffset*7);
+  const days=[];
+  for(let i=0;i<7;i++){const d=new Date(monday);d.setDate(monday.getDate()+i);days.push(d);}
+  const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const bucketColors={'this-week':'#ef4444','this-month':'#f59e0b',inbox:'#6366f1',backlog:'#22c55e',someday:'#3b82f6'};
+  el.innerHTML=`<div style="font-size:13px;font-weight:600;text-align:center;margin-bottom:12px;">${days[0].toLocaleDateString('en-US',{month:'short',day:'numeric'})} – ${days[6].toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">
+    ${days.map((d,i)=>{
+      const iso=d.toISOString().slice(0,10);
+      const isToday=d.toDateString()===now.toDateString();
+      const dayTasks=S.tasks.filter(t=>t.status!=='done'&&t.dueDate===iso);
+      return`<div style="background:${isToday?'rgba(88,166,255,.1)':'var(--surface2)'};border:1px solid ${isToday?'var(--accent)':'var(--border)'};border-radius:8px;padding:8px;">
+        <div style="font-size:11px;font-weight:700;color:${isToday?'var(--accent)':'var(--muted)'};margin-bottom:6px;text-align:center;">${dayNames[i]}<br><span style="font-size:13px;color:${isToday?'var(--accent)':'var(--text)'};">${d.getDate()}</span></div>
+        ${dayTasks.map(t=>`<div onclick="openEdit('${t.id}')" style="cursor:pointer;background:${bucketColors[t.bucket]||'#6366f1'}22;border-left:3px solid ${bucketColors[t.bucket]||'#6366f1'};border-radius:0 5px 5px 0;padding:4px 6px;margin-bottom:4px;font-size:11px;font-weight:500;">${esc(t.title).slice(0,25)}${t.title.length>25?'...':''}</div>`).join('')}
+        ${!dayTasks.length?`<div style="font-size:10px;color:var(--muted);text-align:center;">—</div>`:''}
+      </div>`;
+    }).join('')}
+  </div>
+  <div style="margin-top:16px;"><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;">📋 This Week (no due date)</div>
+    <div style="display:flex;flex-wrap:wrap;gap:6px;">${S.tasks.filter(t=>t.bucket==='this-week'&&t.status!=='done'&&!t.dueDate).map(t=>`<div onclick="openEdit('${t.id}')" style="cursor:pointer;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;">${esc(t.title).slice(0,30)}</div>`).join('')||'<div style="color:var(--muted);font-size:12px;">None</div>'}</div>
+  </div>`;
+}
+
+// ── HINDSIGHT RATINGS ────────────────────────────────────────
+let _hsStarVal=0;
+function _hsSelectStar(n){
+  _hsStarVal=n;
+  for(let i=1;i<=5;i++){const b=document.getElementById('hs-star-'+i);if(b)b.style.color=i<=n?'#fbbf24':'var(--muted)';}
+  document.getElementById('hs-star-val').textContent=['','Poor call','Mediocre','OK','Good call','Excellent call'][n]||'';
+}
+function openHindsightModal(decId,period){
+  _hsStarVal=0;
+  document.getElementById('hs-dec-id').value=decId;
+  document.getElementById('hs-period').value=period;
+  document.getElementById('hs-notes').value='';
+  document.getElementById('hindsight-title').textContent=`⏰ Rate Decision (${period}-day hindsight)`;
+  for(let i=1;i<=5;i++){const b=document.getElementById('hs-star-'+i);if(b)b.style.color='var(--muted)';}
+  document.getElementById('hs-star-val').textContent='';
+  document.getElementById('hindsight-modal').classList.remove('hidden');
+}
+function saveHindsight(){
+  if(!_hsStarVal)return toast('Please select a rating');
+  const decId=document.getElementById('hs-dec-id').value;
+  const period=document.getElementById('hs-period').value;
+  const notes=document.getElementById('hs-notes').value.trim();
+  const dec=(S.decisions||[]).find(d=>d.id===decId);
+  if(dec){dec['hindsight'+period]={rating:_hsStarVal,notes,date:new Date().toISOString()};save();closeM('hindsight-modal');renderDecisions();toast('⏰ Hindsight rating saved!');}
+}
+
+// ── GIVELINK SPARKLINES + HISTORY ────────────────────────────
+function _sparklineSVG(values,width=80,height=24){
+  if(!values||values.length<2)return`<svg width="${width}" height="${height}"></svg>`;
+  const max=Math.max(...values)||1;
+  const min=Math.min(...values);
+  const range=max-min||1;
+  const pts=values.map((v,i)=>{
+    const x=Math.round(i/(values.length-1)*width);
+    const y=Math.round((1-(v-min)/range)*(height-4)+2);
+    return`${x},${y}`;
+  }).join(' ');
+  return`<svg width="${width}" height="${height}" style="overflow:visible;"><polyline points="${pts}" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+function snapshotGivelinkToday(){
+  if(!S.givelinkHistory)S.givelinkHistory=[];
+  const m=S.givelinkMetrics||{};
+  const today=new Date().toISOString().slice(0,10);
+  S.givelinkHistory=S.givelinkHistory.filter(h=>h.date!==today);
+  S.givelinkHistory.push({date:today,nonprofits:m.nonprofits||0,pipeline:m.pipeline||0,arr:m.arr||0,users:m.users||0,mrr:m.mrr||0});
+  save();toast('📸 Snapshot saved!');
+}
+
+// ── SMART ROUTE AI (CAPTURE) ──────────────────────────────────
+async function aiSmartRoute(){
+  const inbox=active().filter(t=>t.bucket==='inbox').slice(0,10);
+  if(!inbox.length)return toast('No inbox tasks to route');
+  const taskList=inbox.map((t,i)=>`${i+1}. ${t.title}`).join('\n');
+  const prompt=`For each inbox task below, suggest: bucket (this-week/this-month/backlog/someday) and priority (high/medium/low).
+Context: Panos is a startup founder. His top goals: ${(S.goals||[]).slice(0,3).map(g=>g.title).join(', ')}.
+Tasks:
+${taskList}
+Respond with exactly one line per task: [number]. [bucket] | [priority] | [1-sentence reason]`;
+  const out=await callClaude(prompt,400);
+  if(!out)return;
+  const lines=out.split('\n').filter(l=>/^\d+\./.test(l));
+  const el=document.getElementById('smart-route-out');
+  if(el){
+    el.style.display='';
+    el.innerHTML=`<div style="background:var(--surface2);border-radius:10px;padding:12px 14px;">
+      <div style="font-size:12px;font-weight:700;margin-bottom:10px;">🤖 Smart Route Suggestions</div>
+      ${lines.map((line,i)=>{
+        const t=inbox[i];if(!t)return'';
+        const m=line.match(/\d+\.\s*([\w-]+)\s*\|\s*([\w]+)\s*\|(.*)/);
+        if(!m)return`<div style="font-size:12px;padding:4px 0;">${esc(line)}</div>`;
+        const bucket=m[1].trim();const prio=m[2].trim();const reason=m[3].trim();
+        const validBuckets=['this-week','this-month','backlog','someday'];
+        const bkt=validBuckets.find(b=>bucket.includes(b.replace('-','')))||bucket;
+        return`<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);flex-wrap:wrap;">
+          <span style="font-size:12px;font-weight:500;flex:1;">${esc(t.title).slice(0,40)}</span>
+          <span style="font-size:11px;background:var(--surface);padding:2px 6px;border-radius:5px;">${bkt}</span>
+          <span style="font-size:11px;color:var(--muted);">${prio}</span>
+          <button class="btn bg sm" onclick="mvB('${t.id}','${bkt}');this.textContent='✓';this.disabled=true;">Apply</button>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+}
+
+// ── GOAL MOMENTUM ─────────────────────────────────────────────
+function _goalMomentum(goalId){
+  const now=new Date();
+  const weekAgo=new Date(now-7*864e5);
+  const monthAgo=new Date(now-30*864e5);
+  const done=S.tasks.filter(t=>t.goalId===goalId&&t.status==='done'&&t.completedAt);
+  const thisWeek=done.some(t=>new Date(t.completedAt)>=weekAgo);
+  if(thisWeek)return'green';
+  const thisMonth=done.some(t=>new Date(t.completedAt)>=monthAgo);
+  if(thisMonth)return'yellow';
+  return'red';
+}
 
 </script>
 
@@ -9445,6 +10328,8 @@ if(!navigator.onLine){const p=document.getElementById('offline-pill');if(p)p.sty
     <button class="btn bp" onclick="openGivelinkMetrics()">Update Metrics</button>
   </div>
   <div class="los-grid" id="gl-stats"></div>
+  <div id="gl-sparklines" style="margin-top:12px;"></div>
+  <div style="margin-bottom:12px;"><button class="btn bg sm" onclick="snapshotGivelinkToday()">📸 Snapshot Today</button></div>
   <div id="gl-impact-counter" style="margin:20px 0;"></div>
   <div id="gl-impact-stories" style="margin-bottom:20px;"></div>
   <div id="gl-tasks"></div>
@@ -9496,6 +10381,276 @@ if(!navigator.onLine){const p=document.getElementById('offline-pill');if(p)p.sty
     <button class="fp" onclick="setAGITab('scenarios',this)">Scenarios</button>
   </div>
   <div id="agi-body"></div>
+</div>
+
+<!-- CONTENT PIPELINE VIEW -->
+<div id="v-content" class="view">
+  <div class="ph">
+    <div><h1>📝 Content Pipeline</h1><p class="sub">Manage your content from idea to published</p></div>
+    <div style="display:flex;gap:6px;">
+      <button class="btn bg sm" onclick="_aiBtn(this,aiContentIdeas)">🤖 AI Content Ideas</button>
+      <button class="btn bp" onclick="openContentModal()">➕ New Idea</button>
+    </div>
+  </div>
+  <div id="content-stats" style="margin-bottom:14px;"></div>
+  <div id="content-ai-out" style="display:none;margin-bottom:14px;"></div>
+  <div id="content-kanban" style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;"></div>
+</div>
+
+<!-- SKILLS VIEW -->
+<div id="v-skills" class="view">
+  <div class="ph">
+    <div><h1>🧠 Skill XP Tree</h1><p class="sub">Level up your abilities — 50h = Level Up</p></div>
+    <button class="btn bp" onclick="openSkillModal()">➕ Add Skill</button>
+  </div>
+  <div id="skills-list"></div>
+</div>
+
+<!-- SLEEP TRACKER VIEW -->
+<div id="v-sleep" class="view">
+  <div class="ph">
+    <div><h1>😴 Sleep Tracker</h1><p class="sub">Track sleep quality and build better sleep habits</p></div>
+    <button class="btn bp" onclick="openSleepModal()">➕ Log Sleep</button>
+  </div>
+  <div id="sleep-summary" style="margin-bottom:16px;"></div>
+  <div id="sleep-log"></div>
+</div>
+
+<!-- MENTORS VIEW -->
+<div id="v-mentors" class="view">
+  <div class="ph">
+    <div><h1>🎓 Mentor Tracker</h1><p class="sub">Your board of advisors — one per life area</p></div>
+    <div style="display:flex;gap:6px;">
+      <button class="btn bg sm" onclick="_aiBtn(this,aiSuggestMentors)">🤖 AI Suggest Mentors</button>
+      <button class="btn bp" onclick="openMentorModal()">➕ Add Mentor</button>
+    </div>
+  </div>
+  <div id="mentors-ai-out" style="display:none;margin-bottom:14px;"></div>
+  <div id="mentors-list"></div>
+</div>
+
+<!-- CALENDAR WEEK VIEW -->
+<div id="v-calendar" class="view">
+  <div class="ph">
+    <div><h1>📅 Calendar Week</h1><p class="sub">Tasks by day — weekly view</p></div>
+    <div style="display:flex;gap:6px;">
+      <button class="btn bg sm" onclick="_calNav(-1)">← Prev</button>
+      <button class="btn bg sm" onclick="_calNav(0)">Today</button>
+      <button class="btn bg sm" onclick="_calNav(1)">Next →</button>
+    </div>
+  </div>
+  <div id="cal-week-grid"></div>
+</div>
+
+<!-- CONTENT MODAL -->
+<div class="mo hidden" id="content-modal" onclick="if(event.target===this)closeM('content-modal')">
+  <div class="md" style="width:480px;">
+    <div class="mh"><h3 id="content-modal-title">📝 New Content Idea</h3><button class="mc" onclick="closeM('content-modal')">×</button></div>
+    <div class="fg"><label>Title *</label><input class="fc" id="content-title" placeholder="e.g. How I raised $50K without a pitch deck"></div>
+    <div class="fr">
+      <div class="fg"><label>Type</label><select class="fc" id="content-type"><option value="idea">Idea</option><option value="draft">Draft</option><option value="scheduled">Scheduled</option><option value="published">Published</option></select></div>
+      <div class="fg"><label>Platform</label><select class="fc" id="content-platform"><option value="linkedin">LinkedIn</option><option value="twitter">Twitter/X</option><option value="newsletter">Newsletter</option><option value="youtube">YouTube</option><option value="other">Other</option></select></div>
+    </div>
+    <div class="fg"><label>Notes</label><textarea class="fc" id="content-notes" rows="2" placeholder="Key points, angle, hook..."></textarea></div>
+    <div class="fr">
+      <div class="fg"><label>Date</label><input class="fc" id="content-date" type="date"></div>
+      <div class="fg"><label>URL (if published)</label><input class="fc" id="content-url" placeholder="https://..."></div>
+    </div>
+    <input type="hidden" id="content-edit-id">
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('content-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveContent()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- SKILL MODAL -->
+<div class="mo hidden" id="skill-modal" onclick="if(event.target===this)closeM('skill-modal')">
+  <div class="md" style="width:480px;">
+    <div class="mh"><h3 id="skill-modal-title">🧠 Add Skill</h3><button class="mc" onclick="closeM('skill-modal')">×</button></div>
+    <div class="fg"><label>Skill Name *</label><input class="fc" id="skill-name" placeholder="e.g. Public Speaking"></div>
+    <div class="fr">
+      <div class="fg"><label>Category</label><select class="fc" id="skill-category"><option value="technical">Technical</option><option value="soft">Soft Skill</option><option value="domain">Domain</option></select></div>
+      <div class="fg"><label>Target Hours</label><input class="fc" id="skill-target" type="number" value="500" min="1"></div>
+    </div>
+    <div class="fg"><label>Color</label><input class="fc" id="skill-color" type="color" value="#58a6ff"></div>
+    <input type="hidden" id="skill-edit-id">
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('skill-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveSkill()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- SKILL SESSION MODAL -->
+<div class="mo hidden" id="skill-session-modal" onclick="if(event.target===this)closeM('skill-session-modal')">
+  <div class="md" style="width:420px;">
+    <div class="mh"><h3>⏱ Log Skill Session</h3><button class="mc" onclick="closeM('skill-session-modal')">×</button></div>
+    <div class="fg"><label>Skill</label><select class="fc" id="ss-skill-id"></select></div>
+    <div class="fr">
+      <div class="fg"><label>Duration (minutes)</label><input class="fc" id="ss-duration" type="number" value="30" min="1"></div>
+      <div class="fg"><label>Date</label><input class="fc" id="ss-date" type="date"></div>
+    </div>
+    <div class="fg"><label>Notes</label><textarea class="fc" id="ss-notes" rows="2" placeholder="What did you practice? Key insight?"></textarea></div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('skill-session-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveSkillSession()">Log Session</button>
+    </div>
+  </div>
+</div>
+
+<!-- EXPERIENCE MODAL -->
+<div class="mo hidden" id="exp-modal" onclick="if(event.target===this)closeM('exp-modal')">
+  <div class="md" style="width:480px;">
+    <div class="mh"><h3>🌟 Log Experience</h3><button class="mc" onclick="closeM('exp-modal')">×</button></div>
+    <div class="fg"><label>Title *</label><input class="fc" id="exp-title" placeholder="e.g. Hiked Olympus summit"></div>
+    <div class="fr">
+      <div class="fg"><label>Category</label><select class="fc" id="exp-category"><option value="travel">Travel</option><option value="social">Social</option><option value="learning">Learning</option><option value="challenge">Challenge</option><option value="creative">Creative</option><option value="other">Other</option></select></div>
+      <div class="fg"><label>Date</label><input class="fc" id="exp-date" type="date"></div>
+    </div>
+    <div class="fg"><label>Impact (1-5)</label><input class="fc" id="exp-impact" type="range" min="1" max="5" value="3" oninput="document.getElementById('exp-impact-val').textContent=this.value"><span id="exp-impact-val">3</span>/5</div>
+    <div class="fg"><label>Notes</label><textarea class="fc" id="exp-notes" rows="3" placeholder="What made it memorable? What did you learn?"></textarea></div>
+    <input type="hidden" id="exp-edit-id">
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('exp-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveExperience()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- SLEEP MODAL -->
+<div class="mo hidden" id="sleep-modal" onclick="if(event.target===this)closeM('sleep-modal')">
+  <div class="md" style="width:480px;">
+    <div class="mh"><h3>😴 Log Sleep</h3><button class="mc" onclick="closeM('sleep-modal')">×</button></div>
+    <div class="fg"><label>Date</label><input class="fc" id="sl-date" type="date"></div>
+    <div class="fr">
+      <div class="fg"><label>Bed Time</label><input class="fc" id="sl-bed" type="time" value="23:00"></div>
+      <div class="fg"><label>Wake Time</label><input class="fc" id="sl-wake" type="time" value="07:00"></div>
+    </div>
+    <div class="fg"><label>Quality (1-5)</label><input class="fc" id="sl-quality" type="range" min="1" max="5" value="3" oninput="document.getElementById('sl-quality-val').textContent=this.value"><span id="sl-quality-val">3</span>/5</div>
+    <div style="margin-bottom:14px;"><label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:8px;">Pre-Sleep Checklist</label>
+      <div><label><input type="checkbox" id="sl-noscreen"> No screens 1hr before bed</label></div>
+      <div><label><input type="checkbox" id="sl-noalcohol"> No alcohol</label></div>
+      <div><label><input type="checkbox" id="sl-read"> Read or journal</label></div>
+      <div><label><input type="checkbox" id="sl-nofood"> No food 2h before bed</label></div>
+    </div>
+    <div class="fg"><label>Notes</label><textarea class="fc" id="sl-notes" rows="2" placeholder="Dreams, how you felt..."></textarea></div>
+    <input type="hidden" id="sl-edit-id">
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('sleep-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveSleep()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- BODY COMPOSITION MODAL -->
+<div class="mo hidden" id="body-modal" onclick="if(event.target===this)closeM('body-modal')">
+  <div class="md" style="width:420px;">
+    <div class="mh"><h3>🏋️ Log Weigh-in</h3><button class="mc" onclick="closeM('body-modal')">×</button></div>
+    <div class="fg"><label>Date</label><input class="fc" id="body-date" type="date"></div>
+    <div class="fr">
+      <div class="fg"><label>Weight (kg)</label><input class="fc" id="body-weight" type="number" step="0.1" placeholder="e.g. 78.5"></div>
+      <div class="fg"><label>Body Fat %</label><input class="fc" id="body-bf" type="number" step="0.1" placeholder="e.g. 15.2"></div>
+    </div>
+    <div class="fg"><label>Notes</label><textarea class="fc" id="body-notes" rows="2" placeholder="Context..."></textarea></div>
+    <input type="hidden" id="body-edit-id">
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('body-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveBodyLog()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- PORTFOLIO MODAL -->
+<div class="mo hidden" id="portfolio-modal" onclick="if(event.target===this)closeM('portfolio-modal')">
+  <div class="md" style="width:480px;">
+    <div class="mh"><h3>📈 Log Portfolio Value</h3><button class="mc" onclick="closeM('portfolio-modal')">×</button></div>
+    <div class="fg"><label>Date</label><input class="fc" id="port-date" type="date"></div>
+    <div class="fr">
+      <div class="fg"><label>Stocks (€)</label><input class="fc" id="port-stocks" type="number" min="0" placeholder="0"></div>
+      <div class="fg"><label>Crypto (€)</label><input class="fc" id="port-crypto" type="number" min="0" placeholder="0"></div>
+    </div>
+    <div class="fr">
+      <div class="fg"><label>Real Estate (€)</label><input class="fc" id="port-realestate" type="number" min="0" placeholder="0"></div>
+      <div class="fg"><label>Bonds (€)</label><input class="fc" id="port-bonds" type="number" min="0" placeholder="0"></div>
+    </div>
+    <div class="fg"><label>Cash (€)</label><input class="fc" id="port-cash" type="number" min="0" placeholder="0"></div>
+    <div class="fg"><label>Notes</label><textarea class="fc" id="port-notes" rows="2" placeholder="Market context..."></textarea></div>
+    <input type="hidden" id="port-edit-id">
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('portfolio-modal')">Cancel</button>
+      <button class="btn bp" onclick="savePortfolio()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MENTOR MODAL -->
+<div class="mo hidden" id="mentor-modal" onclick="if(event.target===this)closeM('mentor-modal')">
+  <div class="md" style="width:480px;">
+    <div class="mh"><h3 id="mentor-modal-title">🎓 Add Mentor</h3><button class="mc" onclick="closeM('mentor-modal')">×</button></div>
+    <div class="fg"><label>Name *</label><input class="fc" id="mentor-name" placeholder="e.g. Naval Ravikant"></div>
+    <div class="fr">
+      <div class="fg"><label>Life Area</label><select class="fc" id="mentor-area"><option value="career">Career</option><option value="finance">Finance</option><option value="health">Health</option><option value="relationships">Relationships</option><option value="business">Business</option></select></div>
+      <div class="fg"><label>Contact Freq</label><select class="fc" id="mentor-freq"><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="adhoc">Ad-hoc</option></select></div>
+    </div>
+    <div class="fg"><label>Last Contact</label><input class="fc" id="mentor-last" type="date"></div>
+    <div class="fg"><label>Notes</label><textarea class="fc" id="mentor-notes" rows="2" placeholder="How you met, key insights..."></textarea></div>
+    <input type="hidden" id="mentor-edit-id">
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('mentor-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveMentor()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ANTI-GOAL SECTION (inline modal) -->
+<div class="mo hidden" id="antigoal-modal" onclick="if(event.target===this)closeM('antigoal-modal')">
+  <div class="md" style="width:440px;">
+    <div class="mh"><h3>🚫 Add Anti-Goal</h3><button class="mc" onclick="closeM('antigoal-modal')">×</button></div>
+    <div class="fg"><label>What you won't do *</label><input class="fc" id="ag-title" placeholder="e.g. Consulting projects that distract from Givelink"></div>
+    <div class="fg"><label>Why (reason)</label><textarea class="fc" id="ag-reason" rows="2" placeholder="Why this is off-limits..."></textarea></div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('antigoal-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveAntiGoal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTRACT MODAL -->
+<div class="mo hidden" id="contract-modal" onclick="if(event.target===this)closeM('contract-modal')">
+  <div class="md" style="width:480px;">
+    <div class="mh"><h3>⛓️ New Commitment Contract</h3><button class="mc" onclick="closeM('contract-modal')">×</button></div>
+    <div class="fg"><label>I commit to... *</label><textarea class="fc" id="ct-commitment" rows="2" placeholder="e.g. Ship Givelink MVP in 30 days"></textarea></div>
+    <div class="fg"><label>Or I will (stake)...</label><input class="fc" id="ct-stake" placeholder="e.g. donate €100 to a cause I dislike"></div>
+    <div class="fg"><label>Witness</label><input class="fc" id="ct-witness" placeholder="e.g. Alex, my co-founder"></div>
+    <div class="fg"><label>Deadline</label><input class="fc" id="ct-deadline" type="date"></div>
+    <input type="hidden" id="ct-edit-id">
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('contract-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveContract()">Save Contract</button>
+    </div>
+  </div>
+</div>
+
+<!-- HINDSIGHT MODAL -->
+<div class="mo hidden" id="hindsight-modal" onclick="if(event.target===this)closeM('hindsight-modal')">
+  <div class="md" style="width:420px;">
+    <div class="mh"><h3 id="hindsight-title">⏰ Rate This Decision</h3><button class="mc" onclick="closeM('hindsight-modal')">×</button></div>
+    <div style="margin-bottom:14px;">
+      <label style="font-size:12px;font-weight:600;color:var(--muted);display:block;margin-bottom:8px;">Was this the right call? (1-5 stars)</label>
+      <div style="display:flex;gap:8px;">
+        ${[1,2,3,4,5].map(n=>`<button class="btn bg" id="hs-star-${n}" onclick="_hsSelectStar(${n})" style="font-size:18px;padding:6px 12px;">★</button>`).join('')}
+      </div>
+      <div id="hs-star-val" style="font-size:12px;color:var(--muted);margin-top:6px;"></div>
+    </div>
+    <div class="fg"><label>Notes / Outcome</label><textarea class="fc" id="hs-notes" rows="3" placeholder="What happened? What would you do differently?"></textarea></div>
+    <input type="hidden" id="hs-dec-id">
+    <input type="hidden" id="hs-period">
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('hindsight-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveHindsight()">Save Rating</button>
+    </div>
+  </div>
 </div>
 
 <!-- GIVELINK METRICS MODAL -->

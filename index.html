@@ -380,6 +380,7 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
 <body>
 
 <button class="ham-btn" onclick="toggleSB()" aria-label="Menu"><span></span><span></span><span></span></button>
+<span id="offline-pill" class="hidden" style="position:fixed;top:10px;right:14px;z-index:9999;background:#ef4444;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;display:none;">📡 Offline</span>
 <div class="s-ov" id="s-ov" onclick="toggleSB()"></div>
 
 <nav class="sidebar">
@@ -536,6 +537,8 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
   </div>
   <!-- BOOK INSIGHT CARD -->
   <div id="book-insight-card" style="display:none;"></div>
+  <!-- LIFE SCORE WIDGET -->
+  <div id="life-score-widget"></div>
   <!-- NETWORK HEALTH WIDGET -->
   <div id="network-health-widget"></div>
   <!-- WHEEL DASH WIDGET -->
@@ -1309,6 +1312,7 @@ Read 50 books this year"></textarea>
         <label class="btn bg sm" style="flex:1;text-align:center;cursor:pointer;">⬆️ Import JSON<input type="file" accept=".json" style="display:none;" onchange="importData(event)"></label>
         <button class="btn bg sm" onclick="exportCSV()" style="flex:1;">📊 Export CSV</button>
         <button class="btn bg sm" onclick="exportMarkdown()" style="flex:1;">📝 Export MD</button>
+        <button class="btn bg sm" onclick="exportFullJSON()" style="flex:1;">📦 Export All (JSON)</button>
       </div>
     </div>
     <div class="fg"><label>Claude API Key (for AI features)</label><input class="fc" id="set-claude-key" type="password" placeholder="sk-ant-api03-..."></div>
@@ -1760,7 +1764,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false,dailyIntention:[],energyLog:[],xp:0,level:1,badges:[],dailyQuests:[],questsDate:'',wheelAssessments:[],socialProfiles:[],brandStatement:'',weeklyNotes:[],taskPairs:{},brandAuditResult:'',givelinkMetrics:{nonprofits:0,pipeline:0,arr:0,users:0,impactStories:[],mrr:0},netWorthEntries:[],okrs:[],biomarkers:[],selfKnowledge:[],quarterlyReviews:[],annualReviews:[],agiPrep:{timeline:{},decisions:[],resources:[],scenarios:[]},sfTimeline:{targetDate:'',durationMonths:6,status:'planning',budget:0,milestones:[],network:[],notes:''}};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false,dailyIntention:[],energyLog:[],xp:0,level:1,badges:[],dailyQuests:[],questsDate:'',wheelAssessments:[],socialProfiles:[],brandStatement:'',weeklyNotes:[],taskPairs:{},brandAuditResult:'',givelinkMetrics:{nonprofits:0,pipeline:0,arr:0,users:0,impactStories:[],mrr:0,impactModel:{currentNonprofits:0,avgDonationsPerNonprofit:0,avgDonationSize:0,viralCoeff:1.1,targetPeople:1000000}},netWorthEntries:[],okrs:[],biomarkers:[],selfKnowledge:[],quarterlyReviews:[],annualReviews:[],agiPrep:{timeline:{},decisions:[],resources:[],scenarios:[]},sfTimeline:{targetDate:'',durationMonths:6,status:'planning',budget:0,milestones:[],network:[],notes:''},lifeScore:{score:0,breakdown:{},lastCalc:''},contentPipeline:[],skills:[],experiences:[],antiGoals:[],contracts:[],manifesto:{principles:[],identityStatements:[],rules:[],lastUpdated:''},bodyLogs:[],sleepLogs:[],portfolioEntries:[],givelinkHistory:[],dashWidgetOrder:['lifescore','daily-picks','daily-quests','habits','routines','deepwork','wheel-mini'],mentors:[]};
 let editT=null,editG=null,fCat='all';
 let profileName=localStorage.getItem('taskos_name')||'Panos';
 let _editChecklist=[];
@@ -1863,6 +1867,102 @@ function exportMarkdown(){
   a.download='taskos-tasks-'+new Date().toISOString().slice(0,10)+'.md';
   a.click();URL.revokeObjectURL(a.href);
   toast('📝 Markdown exported!');
+}
+function exportFullJSON(){
+  const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='taskos-full-export-'+new Date().toISOString().slice(0,10)+'.json';
+  a.click();URL.revokeObjectURL(a.href);
+  toast('📦 Full JSON exported!');
+}
+
+// ── LIFE SCORE ────────────────────────────────────────────────
+function calcLifeScore(){
+  const now=new Date();
+  const weekAgo=new Date(now-7*864e5);
+  const monthAgo=new Date(now-30*864e5);
+  // Habits streak
+  let habitsScore=0;
+  if((S.habits||[]).length>0){
+    const streakPcts=(S.habits||[]).map(h=>{
+      let streak=0;
+      for(let i=0;i<21;i++){
+        const d=new Date(now-i*864e5).toISOString().slice(0,10);
+        if((S.habitLogs||{})[d]?.[h.id])streak++;
+        else break;
+      }
+      return Math.min(streak/21,1);
+    });
+    habitsScore=streakPcts.reduce((a,b)=>a+b,0)/streakPcts.length;
+  }
+  // Deep work hours this week
+  const dwHours=(S.deepWorkSessions||[]).filter(s=>new Date(s.date||s.startTime)>=weekAgo).reduce((a,s)=>a+(s.duration||s.minutes||0),0)/60;
+  const deepWorkScore=Math.min(dwHours/20,1);
+  // Sleep readiness
+  let sleepScore=0;
+  const recentLogs=(S.healthLogs||[]).filter(l=>new Date(l.date)>=weekAgo&&l.sleepH);
+  if(recentLogs.length>0){
+    const avgSleep=recentLogs.reduce((a,l)=>a+(parseFloat(l.sleepH)||0),0)/recentLogs.length;
+    sleepScore=Math.min(avgSleep/8,1);
+  }
+  // Goal velocity
+  const doneTW=S.tasks.filter(t=>t.status==='done'&&t.completedAt&&new Date(t.completedAt)>=weekAgo);
+  const goalDoneTW=doneTW.filter(t=>t.goalId).length;
+  const goalVelocityScore=doneTW.length>0?Math.min(goalDoneTW/doneTW.length,1):0;
+  // Wheel of life
+  let wheelScore=0;
+  const latestWheel=(S.wheelAssessments||[]).slice(-1)[0];
+  if(latestWheel){
+    const vals=Object.values(latestWheel.scores||{});
+    if(vals.length>0)wheelScore=vals.reduce((a,b)=>a+b,0)/vals.length/10;
+  }
+  // Network health
+  let networkScore=0;
+  const totalPeople=(S.people||[]).length;
+  if(totalPeople>0){
+    const recentPeople=(S.people||[]).filter(p=>{
+      const logs=(p.touchpoints||p.logs||[]);
+      if(!logs.length)return false;
+      const last=logs.slice(-1)[0];
+      return new Date(last.date||last)>=monthAgo;
+    }).length;
+    networkScore=Math.min(recentPeople/totalPeople,1);
+  }
+  const breakdown={habits:habitsScore,deepWork:deepWorkScore,sleep:sleepScore,goalVelocity:goalVelocityScore,wheel:wheelScore,network:networkScore};
+  const score=Math.round((habitsScore*20+deepWorkScore*20+sleepScore*15+goalVelocityScore*20+wheelScore*15+networkScore*10));
+  S.lifeScore={score,breakdown,lastCalc:new Date().toISOString()};
+  return S.lifeScore;
+}
+function _renderLifeScoreWidget(){
+  const ls=S.lifeScore||{score:0,breakdown:{},lastCalc:''};
+  const score=ls.score||0;
+  const color=score>=70?'#22c55e':score>=40?'#f59e0b':'#ef4444';
+  const bd=ls.breakdown||{};
+  const bars=[
+    {k:'habits',label:'Habits',w:20},
+    {k:'deepWork',label:'Deep Work',w:20},
+    {k:'sleep',label:'Sleep',w:15},
+    {k:'goalVelocity',label:'Goals',w:20},
+    {k:'wheel',label:'Wheel',w:15},
+    {k:'network',label:'Network',w:10}
+  ];
+  const barHTML=bars.map(b=>`<div style="flex:1;min-width:60px;">
+    <div style="font-size:10px;color:var(--muted);margin-bottom:3px;">${b.label}</div>
+    <div style="height:5px;background:var(--surface);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${Math.round((bd[b.k]||0)*100)}%;background:${color};border-radius:3px;transition:width .4s;"></div></div>
+    <div style="font-size:10px;color:var(--muted);margin-top:2px;">${Math.round((bd[b.k]||0)*100)}%</div>
+  </div>`).join('');
+  const lastCalc=ls.lastCalc?new Date(ls.lastCalc).toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}):'never';
+  return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 18px;margin-bottom:14px;">
+    <div style="display:flex;align-items:center;gap:16px;">
+      <div style="width:64px;height:64px;border-radius:50%;border:4px solid ${color};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:22px;font-weight:900;color:${color};">${score}</div>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">⭐ Life Score</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">${barHTML}</div>
+      </div>
+      <button class="btn bg sm" onclick="calcLifeScore();save();refresh();">↺</button>
+    </div>
+    <div style="font-size:10px;color:var(--muted);margin-top:6px;">Last calculated: ${lastCalc}</div>
+  </div>`;
 }
 
 // ── UTILS ─────────────────────────────────────────────────────
@@ -2093,6 +2193,9 @@ function renderDash(){
       intentBanner.style.display='none';
     }
   }
+  // Life score widget
+  const lsEl=document.getElementById('life-score-widget');
+  if(lsEl){lsEl.innerHTML=_renderLifeScoreWidget();}
   // Network health widget
   const {score:nhScore,overdue:nhOverdue,recent:nhRecent}=_calcNetworkScore();
   const nhEl=document.getElementById('network-health-widget');
@@ -8823,6 +8926,11 @@ function confirmPasteImport(){
 
 // shared close helper (some modals use closeModal, some closeM — unify)
 function closeModal(id){document.getElementById(id)?.classList.add('hidden');}
+
+// ── OFFLINE INDICATOR ─────────────────────────────────────────
+window.addEventListener('online',()=>{const p=document.getElementById('offline-pill');if(p)p.style.display='none';});
+window.addEventListener('offline',()=>{const p=document.getElementById('offline-pill');if(p)p.style.display='';});
+if(!navigator.onLine){const p=document.getElementById('offline-pill');if(p)p.style.display='';}
 
 </script>
 

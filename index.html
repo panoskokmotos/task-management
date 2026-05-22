@@ -3962,10 +3962,21 @@ function renderDeepWork(){
   const todaySecs=sessions.filter(s=>s.date===today).reduce((sum,s)=>sum+s.duration,0);
   const weekSecs=sessions.filter(s=>{const d=new Date(s.date);const now=new Date();const mon=new Date(now);mon.setDate(now.getDate()-((now.getDay()+6)%7));return d>=mon;}).reduce((sum,s)=>sum+s.duration,0);
   const allSecs=sessions.reduce((sum,s)=>sum+s.duration,0);
+  // Focus effectiveness: tasks completed within 2h after each session
+  const doneTasks=(S.tasks||[]).filter(t=>t.status==='done'&&t.completedAt);
+  let _effSessions=0,_effHits=0;
+  sessions.forEach(s=>{
+    if(!s.completedAt)return;
+    _effSessions++;
+    const end=new Date(s.completedAt).getTime();
+    if(doneTasks.some(t=>{const ct=new Date(t.completedAt).getTime();return ct>=end&&ct<=end+7200000;}))_effHits++;
+  });
+  const _effPct=_effSessions>0?Math.round(_effHits/_effSessions*100):null;
   document.getElementById('dw-stats').innerHTML=`
     <div class="los-card los-stat"><div class="los-stat-n" style="color:#58a6ff;">${Math.round(todaySecs/3600*10)/10}h</div><div class="los-stat-l">Today</div></div>
     <div class="los-card los-stat"><div class="los-stat-n" style="color:#22d3ee;">${Math.round(weekSecs/3600*10)/10}h</div><div class="los-stat-l">This Week</div></div>
-    <div class="los-card los-stat"><div class="los-stat-n" style="color:#a78bfa;">${Math.round(allSecs/3600*10)/10}h</div><div class="los-stat-l">Total</div></div>`;
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#a78bfa;">${Math.round(allSecs/3600*10)/10}h</div><div class="los-stat-l">Total</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#69db7c;">${_effPct!==null?_effPct+'%':'—'}</div><div class="los-stat-l">Focus effectiveness<br><span style="font-size:9px;">tasks done within 2h</span></div></div>`;
   // Weekly bar chart (last 7 days)
   const dwChartEl=document.getElementById('dw-week-chart');
   if(dwChartEl){
@@ -4062,14 +4073,27 @@ function renderHabits(){
   if(!habits.length){
     document.getElementById('habits-checklist').innerHTML='<div class="empty">No habits yet. Click ⚙️ Manage Habits to add some.</div>';
   } else {
-    document.getElementById('habits-checklist').innerHTML=`<h3 style="margin-bottom:12px;">Today's Habits</h3>`+habits.map(h=>`
-      <div class="habit-row">
-        <div class="habit-ck ${todayLog[h]?'on':''}" onclick="toggleHabit('${h.replace(/'/g,"\'")}')">
-          ${todayLog[h]?'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':''}
+    const _DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    document.getElementById('habits-checklist').innerHTML=`<h3 style="margin-bottom:12px;">Today's Habits</h3>`+habits.map(h=>{
+      // day-of-week completion counts
+      const dowCounts=[0,0,0,0,0,0,0];const dowTotals=[0,0,0,0,0,0,0];
+      Object.entries(S.habitLogs||{}).forEach(([dateStr,log])=>{const dow=new Date(dateStr+'T12:00:00').getDay();dowTotals[dow]++;if(log[h])dowCounts[dow]++;});
+      const dowRates=dowCounts.map((c,i)=>dowTotals[i]>0?c/dowTotals[i]:null);
+      const validRates=dowRates.map((r,i)=>({r,i})).filter(x=>x.r!==null);
+      const bestDay=validRates.length?validRates.reduce((a,b)=>b.r>a.r?b:a):null;
+      const worstDay=validRates.length?validRates.reduce((a,b)=>b.r<a.r?b:a):null;
+      const dowHint=bestDay&&worstDay&&bestDay.i!==worstDay.i?`<div style="font-size:11px;color:var(--muted);margin-top:2px;">Best: ${_DOW[bestDay.i]} · Needs work: ${_DOW[worstDay.i]}</div>`:'';
+      return`<div class="habit-row" style="flex-direction:column;align-items:flex-start;gap:2px;">
+        <div style="display:flex;align-items:center;width:100%;gap:8px;">
+          <div class="habit-ck ${todayLog[h]?'on':''}" onclick="toggleHabit('${h.replace(/'/g,"\\\'")}')">
+            ${todayLog[h]?'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':''}
+          </div>
+          <span style="font-size:13px;flex:1;">${h}</span>
+          ${todayLog[h]?'<span style="font-size:12px;color:#69db7c;">✓ Done</span>':''}
         </div>
-        <span style="font-size:13px;flex:1;">${h}</span>
-        ${todayLog[h]?'<span style="font-size:12px;color:#69db7c;">✓ Done</span>':''}
-      </div>`).join('');
+        ${dowHint}
+      </div>`;
+    }).join('');
   }
   // Heatmap (last 28 days)
   const days=[];for(let i=27;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10));}
@@ -5097,6 +5121,8 @@ const BADGES=[
   {id:'ladder-climber',name:'🪜 Ladder Climber',desc:'Complete discomfort ladder week 4',check:()=>(S.discomfortLadder?.completedWeeks||[]).length>=4},
   {id:'wheel-master',name:'🎡 Self-Aware',desc:'Complete 4 wheel assessments',check:()=>(S.wheelAssessments||[]).length>=4},
   {id:'content-creator',name:'✍️ Content Creator',desc:'Publish 5 pieces of content',check:()=>(S.contentPipeline||[]).filter(c=>c.type==='published').length>=5},
+  {id:'bookworm',name:'📚 Bookworm',desc:'Finish 5 books',check:()=>(S.books||[]).filter(b=>b.finishedAt).length>=5},
+  {id:'reader-100',name:'📖 Avid Reader',desc:'Finish 10 books',check:()=>(S.books||[]).filter(b=>b.finishedAt).length>=10},
 ];
 
 function checkBadges(){
@@ -5554,7 +5580,7 @@ Be direct. Prioritize tasks that drive Givelink revenue/nonprofits or unlock fin
   const text=await callClaude(prompt,350);
   if(!text)return;
   const el=document.getElementById('daily-picks-ai-result');
-  if(el)el.innerHTML=`<div style="background:rgba(88,166,255,.08);border-radius:8px;padding:10px;border-left:3px solid var(--accent);"><div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:6px;">🤖 AI Recommendation</div><div style="font-size:12px;line-height:1.7;white-space:pre-line;">${esc(text)}</div></div>`;
+  if(el){el.innerHTML=`<div style="background:rgba(88,166,255,.08);border-radius:8px;padding:10px;border-left:3px solid var(--accent);"><div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:6px;">🤖 AI Recommendation</div><div style="font-size:12px;line-height:1.7;white-space:pre-line;">${esc(text)}</div></div>`;awardXP(2,'ai-picks');}
 }
 let _dashStatsShown=false;
 function _toggleDashStats(){
@@ -5629,19 +5655,22 @@ async function aiBreakdownGoal(goalId){
   const g=(S.goals||[]).find(x=>x.id===goalId);if(!g)return;
   const existing=S.tasks.filter(t=>t.goalId===goalId&&t.status!=='done').map(t=>t.title).join(', ');
   const vals=(S.values||[]).join(', ');
+  const activeOKRs=(S.okrs||[]).filter(o=>o.status!=='done').map(o=>o.objective).join('; ')||'None';
   const prompt=`Break down this goal into 5 concrete, actionable tasks:
 
 GOAL: ${g.title}
 DESCRIPTION: ${g.description||'None'}
 EXISTING TASKS: ${existing||'None'}
 VALUES: ${vals}
+ACTIVE OKRs: ${activeOKRs}
 
 For each task:
 TASK: [specific action title starting with a verb]
 DEPTH: [shallow/medium/deep]
 TIME: [estimated minutes]
+OKR: [which active OKR this maps to, or "none" if no match]
 
-List exactly 5 tasks. Each must be completable in one focused session. Start each title with an action verb.`;
+List exactly 5 tasks. Each must be completable in one focused session. Start each title with an action verb. If a task maps to an active OKR, note the linkage.`;
   const text=await callClaude(prompt,500);
   if(!text)return;
   const tasks=text.split(/(?=TASK:)/).filter(b=>b.trim());
@@ -6492,7 +6521,7 @@ Format: engaging, personal voice. Sections: 1) This week's win (1-2 sentences), 
 function renderGivelinkDash(){
   const m=S.givelinkMetrics||{nonprofits:0,pipeline:0,arr:0,users:0,impactStories:[],mrr:0};
   const statsEl=document.getElementById('gl-stats');
-  if(statsEl)statsEl.innerHTML=`
+  if(statsEl){statsEl.style.gridTemplateColumns='repeat(auto-fit,minmax(90px,1fr))';statsEl.innerHTML=`
     <div class="los-card los-stat" style="cursor:pointer;" onclick="openGivelinkMetrics()">
       <div class="los-stat-n" style="color:#a78bfa;">${m.nonprofits}</div>
       <div class="los-stat-l">Nonprofits<br><span style="font-size:9px;">goal: 100</span></div>
@@ -6513,7 +6542,7 @@ function renderGivelinkDash(){
     <div class="los-card los-stat" onclick="openGivelinkMetrics()" style="cursor:pointer;">
       <div class="los-stat-n" style="color:#f783ac;">${(m.users||0).toLocaleString()}</div>
       <div class="los-stat-l">Users Reached</div>
-    </div>`;
+    </div>`;}
   const impactEl=document.getElementById('gl-impact-counter');
   if(impactEl){
     const pct=Math.min(100,Math.round((m.users||0)/1000000*100));
@@ -6806,7 +6835,7 @@ async function aiBioLongevity(){
 Be specific with values and actionable with recommendations.`;
   const out=await callClaude(prompt,500);
   const el=document.getElementById('bio-longevity-out');
-  if(el){el.style.display='';el.innerHTML=`<div style="background:var(--surface2);border-radius:8px;padding:12px;font-size:12px;white-space:pre-wrap;">${esc(out)}</div>`;}
+  if(el){el.style.display='';el.innerHTML=`<div style="background:var(--surface2);border-radius:8px;padding:12px;font-size:12px;white-space:pre-wrap;">${esc(out)}</div>`;awardXP(2,'ai-bio');}
 }
 function openAddBiomarker(){
   const today=new Date().toISOString().slice(0,10);
@@ -7800,7 +7829,7 @@ function saveBook(){
   if(!S.books)S.books=[];
   if(id){const i=S.books.findIndex(x=>x.id===id);if(i>=0)S.books[i]={...S.books[i],...b};}
   else{S.books.push({id:uid(),...b,startedAt:b.currentPage>0?new Date().toISOString().slice(0,10):null,finishedAt:null,highlights:'',summary:''});}
-  save();closeM('book-modal');renderBooks();toast('Book saved!');
+  save();closeM('book-modal');renderBooks();toast('📚 Book saved!');
 }
 function markBookDone(id){
   const b=(S.books||[]).find(x=>x.id===id);if(!b)return;
@@ -8806,8 +8835,8 @@ function deleteWin(id){softDelete('wins',id,renderWins,'Win');}
 async function aiSuggestWins(){
   const wins=(S.wins||[]).slice(-10).map(w=>w.title).join(', ');
   const goals=(S.goals||[]).slice(0,5).map(g=>g.title).join(', ');
-  const about=getAboutMe();
-  const prompt=`${about?`About this person: ${about}\n\n`:''}Based on these recent wins: ${wins||'none yet'}\nAnd these goals: ${goals||'none set'}\n\nWrite a short, motivating reflection (3-4 sentences) on the progress and patterns you see. Be specific and personal. Then suggest 2 areas where the user might look for their next win.`;
+  const about=getAboutMe()||'Panos — Greek founder in his 20s building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';
+  const prompt=`About Panos: ${about}\n\nBased on these recent wins: ${wins||'none yet'}\nAnd these goals: ${goals||'none set'}\n\nWrite a short, motivating reflection (3-4 sentences) on Panos's progress and patterns you see. Be specific to Givelink/his journey. Then suggest 2 areas where Panos might look for his next win.`;
   const txt=await callClaude(prompt,600);
   if(txt)showAiOut('Your Win Reflection ✨',txt);
 }
@@ -9277,7 +9306,8 @@ function saveContent(){
   const obj={id:editId||uid(),title,type:document.getElementById('content-type').value,platform:document.getElementById('content-platform').value,notes:document.getElementById('content-notes').value.trim(),date:document.getElementById('content-date').value,url:document.getElementById('content-url').value.trim(),createdAt:editId?undefined:new Date().toISOString()};
   if(editId){const i=S.contentPipeline.findIndex(c=>c.id===editId);if(i>=0)S.contentPipeline[i]={...S.contentPipeline[i],...obj};}
   else S.contentPipeline.push(obj);
-  save();closeM('content-modal');renderContent();toast('Content saved! 📝 +10 XP');awardXP(10,'content');
+  const _cxp={published:20,scheduled:8,draft:5,idea:2};const _cxpVal=_cxp[obj.type]||5;
+  save();closeM('content-modal');renderContent();toast(`Content saved! 📝 +${_cxpVal} XP`);awardXP(_cxpVal,'content');
 }
 async function aiContentIdeas(){
   const brand=S.brandStatement||'Greek founder building Givelink (nonprofit fundraising SaaS), personal finance & productivity';
@@ -9563,7 +9593,7 @@ async function aiSleepInsight(){
   const el=document.getElementById('sleep-ai-out');
   if(el)el.innerHTML='<div style="font-size:12px;color:var(--muted);">⏳ Analyzing your sleep data...</div>';
   const result=await callClaude(prompt,400);
-  if(el&&result)el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(88,166,255,.07),rgba(116,192,252,.05));border:1px solid rgba(88,166,255,.2);border-radius:10px;padding:12px 14px;"><div style="font-size:11px;font-weight:700;color:#74c0fc;text-transform:uppercase;margin-bottom:6px;">😴 AI Sleep Analysis</div><div style="font-size:13px;line-height:1.6;white-space:pre-wrap;">${esc(result)}</div></div>`;
+  if(el&&result){el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(88,166,255,.07),rgba(116,192,252,.05));border:1px solid rgba(88,166,255,.2);border-radius:10px;padding:12px 14px;"><div style="font-size:11px;font-weight:700;color:#74c0fc;text-transform:uppercase;margin-bottom:6px;">😴 AI Sleep Analysis</div><div style="font-size:13px;line-height:1.6;white-space:pre-wrap;">${esc(result)}</div></div>`;awardXP(2,'ai-sleep');}
   else if(el)el.innerHTML='';
 }
 

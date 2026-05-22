@@ -4111,7 +4111,7 @@ function renderHabits(){
     const toggleHtml=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><div style="font-size:12px;font-weight:600;color:var(--muted);">Heatmap</div><div style="display:flex;gap:3px;background:var(--surface2);border-radius:6px;padding:2px;"><button onclick="_habitHeatmapDays=28;renderHabits()" style="padding:2px 9px;border-radius:4px;border:none;cursor:pointer;font-size:11px;font-weight:600;background:${heatDays===28?'var(--accent)':'transparent'};color:${heatDays===28?'#000':'var(--muted)'};">28d</button><button onclick="_habitHeatmapDays=90;renderHabits()" style="padding:2px 9px;border-radius:4px;border:none;cursor:pointer;font-size:11px;font-weight:600;background:${heatDays===90?'var(--accent)':'transparent'};color:${heatDays===90?'#000':'var(--muted)'};">90d</button></div></div>`;
     heatEl.innerHTML=toggleHtml+(habits.length?habits.map(h=>`
     <div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${h}</div>
-    <div style="display:grid;grid-template-columns:repeat(${heatDays===90?13:7},1fr);gap:3px;">${days.map(d=>{const done=(S.habitLogs?.[d]||{})[h];return`<div class="heat-cell ${done?'h4':''}" title="${d}"></div>`;}).join('')}</div></div>`).join(''):'');
+    ${heatDays===90?'<div style="overflow-x:auto;">':''}<div style="display:grid;grid-template-columns:repeat(${heatDays===90?13:7},1fr);gap:3px;${heatDays===90?'min-width:520px;':''}">${days.map(d=>{const done=(S.habitLogs?.[d]||{})[h];return`<div class="heat-cell ${done?'h4':''}" title="${d}"></div>`;}).join('')}</div>${heatDays===90?'</div>':''}</div>`).join(''):'');
   }
   renderHabitProjector();
   renderRoutines();
@@ -5579,6 +5579,8 @@ async function aiDailyPicks(){
   const lastEnergy=((S.energyLog||[]).slice(-1)[0]||{}).level||'unknown';
   const dow=new Date().toLocaleDateString('en',{weekday:'long'});
   const about=getAboutMe()||'Panos — 20s founder building Givelink (B2B SaaS for nonprofits), targeting financial freedom and an SF move.';
+  const activeOKRs=(S.okrs||[]).filter(o=>o.status==='active').map(o=>{const krs=o.keyResults||[];const avgPct=krs.length?Math.round(krs.reduce((a,k)=>a+(k.target?Math.min(100,Math.round((k.current||0)/(k.target)*100)):0),0)/krs.length):0;return`${o.title} (KR progress: ${avgPct}%)`;}).join('\n');
+  const todayDate=new Date().toISOString().slice(0,10);
   const prompt=`You are a productivity coach for ${profileName}. ${about}
 
 Pick the 3 best tasks for today.
@@ -5586,10 +5588,13 @@ Pick the 3 best tasks for today.
 ACTIVE GOALS:
 ${goals||'No goals set'}
 
+ACTIVE OKRs:
+${activeOKRs||'No active OKRs'}
+
 PENDING TASKS:
 ${tasks||'No tasks'}
 
-Context: Today is ${dow}. Energy level: ${lastEnergy}. Values: ${(S.values||[]).join(', ')}.
+Context: Today is ${dow}, ${todayDate}. Energy level: ${lastEnergy}. Values: ${(S.values||[]).join(', ')}.
 
 For each of your 3 picks, respond with:
 1. [Task title] — [one-sentence reason why this is the priority today, tied to Givelink traction or life goals]
@@ -6553,13 +6558,13 @@ Format: engaging, personal voice. Sections: 1) This week's win (1-2 sentences), 
 function renderGivelinkDash(){
   const m=S.givelinkMetrics||{nonprofits:0,pipeline:0,arr:0,users:0,impactStories:[],mrr:0};
   const _glHistSnap=S.givelinkHistory||[];
-  const _prevSnap=_glHistSnap.length>=2?_glHistSnap[_glHistSnap.length-2]:_glHistSnap[0]||null;
+  const _prevSnap=_glHistSnap.length>=2?_glHistSnap[_glHistSnap.length-2]:null;
   function _glTrend(key,cur){
     if(!_prevSnap||_prevSnap[key]===undefined)return'';
     const prev=_prevSnap[key]||0;
     if(cur>prev)return`<span style="color:#69db7c;font-size:12px;">↑</span>`;
     if(cur<prev)return`<span style="color:#ef4444;font-size:12px;">↓</span>`;
-    return`<span style="color:var(--muted);font-size:12px;">→</span>`;
+    return'';
   }
   const statsEl=document.getElementById('gl-stats');
   if(statsEl){statsEl.style.gridTemplateColumns='repeat(auto-fit,minmax(90px,1fr))';statsEl.innerHTML=`
@@ -6771,7 +6776,7 @@ function renderOKRs(){
         </div>
       </div>
       ${krs.map(kr=>{const pct=kr.target?Math.min(100,Math.round(kr.current/kr.target*100)):0;return`<div style="margin-bottom:10px;">
-        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:3px;"><span>${esc(kr.title)}</span><div style="display:flex;align-items:center;gap:6px;"><span style="color:var(--muted);">${kr.current||0}/${kr.target||0} ${kr.unit||''}</span><button onclick="event.stopPropagation();_krBump('${o.id}','${kr.id}')" style="padding:1px 7px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;">+1</button></div></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:3px;"><span>${esc(kr.title)}</span><div style="display:flex;align-items:center;gap:6px;"><span style="color:var(--muted);">${kr.current||0}/${kr.target||0} ${kr.unit||''}</span><button onclick="event.stopPropagation();_krBump('${o.id}','${kr.id}')" style="padding:4px 8px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;min-width:32px;min-height:32px;">+1</button></div></div>
         <div class="gp"><div class="gp-fill" style="width:${pct}%;background:${pct>=expectedPct?'#69db7c':pct>=expectedPct*0.7?'#fbbf24':'#ff6b6b'};"></div></div>
         <div style="font-size:10px;color:var(--muted);margin-top:2px;text-align:right;">${pct}% · expected ${expectedPct}%</div>
       </div>`;}).join('')}
@@ -6819,7 +6824,7 @@ function deleteOKR(id){if(!id)return;showConfirm('Delete this OKR?',ok=>{if(!ok)
 function _krBump(okrId,krId){
   const okr=(S.okrs||[]).find(o=>o.id===okrId);if(!okr)return;
   const kr=(okr.keyResults||[]).find(k=>k.id===krId);if(!kr)return;
-  kr.current=Math.min(kr.target||Infinity,(kr.current||0)+1);
+  kr.current=(kr.target>0)?Math.min(kr.target,(kr.current||0)+1):(kr.current||0)+1;
   save();renderOKRs();toast('📈 KR updated! +1');awardXP(2,'kr-bump');
 }
 
@@ -8433,7 +8438,7 @@ function renderMorningBriefing(){
   const cacheKey='taskos_briefing_'+today;
   const cached=localStorage.getItem(cacheKey);
   if(cached){
-    try{const d=JSON.parse(cached);_renderAIBriefing(d,el);}catch(e){}
+    try{const d=JSON.parse(cached);_renderAIBriefing(d,el);}catch(e){console.warn('Morning briefing cache error:',e);}
     return;
   }
   _fetchAIBriefing(ctx,el,cacheKey);
@@ -9636,7 +9641,11 @@ async function aiSleepInsight(){
   }).join('\n');
   const avgH=logs.reduce((a,l)=>a+(l.hoursSlept||0),0)/logs.length;
   const avgQ=logs.reduce((a,l)=>a+(l.quality||0),0)/logs.length;
-  const prompt=`Context: ${about}\n\nSleep + Deep Work log (last 14 nights):\n${summary}\n\nAvg sleep: ${avgH.toFixed(1)}h, avg quality: ${avgQ.toFixed(1)}/5.\n\nAs a sleep performance coach, give Panos:\n1. 2-sentence assessment of his sleep quality pattern\n2. Note any correlation between sleep quality and deep work hours in the data\n3. The single most impactful change to make this week (be specific)\n4. How optimizing sleep will impact his Givelink execution and energy\n\nBe concrete and concise (5-7 sentences total).`;
+  const lastBody=(S.bodyLogs||[]).slice(-1)[0]||null;
+  const bodyCtx=lastBody?`Body comp (${lastBody.date}): weight ${lastBody.weight||'?'}kg, BF% ${lastBody.bodyFat||'?'}%`:'No body comp data';
+  const latestHRV=(S.biomarkers||[]).slice().reverse().find(b=>b.hrv!=null);
+  const hrvCtx=latestHRV?`Latest HRV: ${latestHRV.hrv}ms (${latestHRV.date})`:'No HRV data';
+  const prompt=`Context: ${about}\n\n${bodyCtx}\n${hrvCtx}\n\nSleep + Deep Work log (last 14 nights):\n${summary}\n\nAvg sleep: ${avgH.toFixed(1)}h, avg quality: ${avgQ.toFixed(1)}/5.\n\nAs a sleep performance coach, give Panos:\n1. 2-sentence assessment of his sleep quality pattern\n2. Note any correlation between sleep quality and deep work hours in the data\n3. The single most impactful change to make this week (be specific)\n4. How optimizing sleep will impact his Givelink execution and energy\n\nBe concrete and concise (5-7 sentences total).`;
   const el=document.getElementById('sleep-ai-out');
   if(el)el.innerHTML='<div style="font-size:12px;color:var(--muted);">⏳ Analyzing your sleep data...</div>';
   const result=await callClaude(prompt,400);
@@ -10013,7 +10022,7 @@ function _renderCalGrid(){
   const dayNames=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   const bucketColors={'this-week':'#ef4444','this-month':'#f59e0b',inbox:'#6366f1',backlog:'#22c55e',someday:'#3b82f6'};
   el.innerHTML=`<div style="font-size:13px;font-weight:600;text-align:center;margin-bottom:12px;">${days[0].toLocaleDateString('en-US',{month:'short',day:'numeric'})} – ${days[6].toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}</div>
-  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">
+  <div style="overflow-x:auto;"><div style="display:grid;grid-template-columns:repeat(7,minmax(90px,1fr));gap:6px;min-width:480px;">
     ${days.map((d,i)=>{
       const iso=d.toISOString().slice(0,10);
       const isToday=d.toDateString()===now.toDateString();
@@ -10024,7 +10033,7 @@ function _renderCalGrid(){
         ${!dayTasks.length?`<div style="font-size:10px;color:var(--muted);text-align:center;">—</div>`:''}
       </div>`;
     }).join('')}
-  </div>
+  </div></div>
   <div style="margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
     <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">📋 This Week — no due date</div>
     <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:5px;">${S.tasks.filter(t=>t.bucket==='this-week'&&t.status!=='done'&&!t.dueDate).map(t=>`<div onclick="openEdit('${t.id}')" style="cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:5px 8px;font-size:11px;font-weight:500;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${esc(t.title).slice(0,35)}</div>`).join('')||'<div style="color:var(--muted);font-size:12px;grid-column:1/-1;">All this-week tasks have a due date assigned.</div>'}</div>
@@ -10090,7 +10099,7 @@ function snapshotGivelinkToday(){
   const today=new Date().toISOString().slice(0,10);
   S.givelinkHistory=S.givelinkHistory.filter(h=>h.date!==today);
   S.givelinkHistory.push({date:today,nonprofits:m.nonprofits||0,pipeline:m.pipeline||0,arr:m.arr||0,users:m.users||0,mrr:m.mrr||0});
-  save();toast('📸 Snapshot saved!');
+  save();renderGivelinkDash();checkBadges();toast('📸 Snapshot saved!');
 }
 
 // ── SMART ROUTE AI (CAPTURE) ──────────────────────────────────

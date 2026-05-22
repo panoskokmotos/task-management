@@ -7146,7 +7146,8 @@ function _renderKTHistory(){
 }
 async function aiKTPatterns(){
   const entries=(S.selfKnowledge||[]).slice(-10).map(r=>`[${r.category}] Q: ${r.prompt}\nA: ${r.reflection}`).join('\n\n');
-  const prompt=`Analyze these self-reflections and identify:\n1. The 3 recurring themes or patterns\n2. The core belief or assumption that drives this person\n3. A blind spot that appears repeatedly\n\nReflections:\n${entries}`;
+  const about=getAboutMe()||'Panos — Greek founder in his 20s building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';
+  const prompt=`About this person: ${about}\n\nAnalyze these self-reflections and identify:\n1. The 3 recurring themes or patterns\n2. The core belief or assumption that drives this person\n3. A blind spot that appears repeatedly\n\nReflections:\n${entries}`;
   const out=await callClaude(prompt,500);
   const el=document.getElementById('kt-patterns-out');
   if(el){el.style.display='';el.innerHTML=`<div style="background:var(--surface2);border-radius:8px;padding:12px;font-size:12px;white-space:pre-wrap;">${esc(out)}</div>`;}
@@ -9138,10 +9139,20 @@ function renderContent(){
   const cols=['idea','draft','scheduled','published'];
   const colLabels={idea:'💡 Ideas',draft:'✍️ Drafts',scheduled:'📅 Scheduled',published:'✅ Published'};
   const kanban=document.getElementById('content-kanban');
+  if(total===0){
+    if(kanban)kanban.innerHTML=`<div style="grid-column:1/-1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;">
+      <div style="font-size:40px;margin-bottom:12px;">✍️</div>
+      <div style="font-size:16px;font-weight:700;margin-bottom:6px;">Your content pipeline is empty</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:16px;">Capture ideas, track drafts, and schedule posts — all in one place.</div>
+      <button class="btn accent" onclick="openContentModal()">➕ Add your first idea</button>
+    </div>`;
+    return;
+  }
   if(kanban)kanban.innerHTML=cols.map(col=>{
     const items=S.contentPipeline.filter(c=>c.type===col);
     return`<div style="background:var(--surface2);border-radius:10px;padding:12px;">
       <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px;text-transform:uppercase;">${colLabels[col]} (${items.length})</div>
+      ${items.length===0?`<div style="color:var(--muted);font-size:12px;text-align:center;padding:16px 8px;">No items yet</div>`:''}
       ${items.map(c=>`<div style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;cursor:pointer;" onclick="openContentModal('${c.id}')">
         <div style="font-size:13px;font-weight:600;margin-bottom:4px;">${esc(c.title)}</div>
         <div style="display:flex;gap:4px;flex-wrap:wrap;">
@@ -9663,8 +9674,8 @@ function renderMentors(){
   el.innerHTML=S.mentors.map(m=>{
     const freqDays={monthly:30,quarterly:90,adhoc:365};
     const daysLimit=freqDays[m.contactFreq||'quarterly']||90;
-    const lastD=m.lastContact?new Date(m.lastContact):null;
-    const daysSince=lastD?Math.floor((now-lastD)/864e5):999;
+    const lastD=(m.lastContact&&m.lastContact.trim())?new Date(m.lastContact):null;
+    const daysSince=(lastD&&!isNaN(lastD))?Math.floor((now-lastD)/864e5):999;
     const overdue=daysSince>daysLimit;
     return`<div class="los-card" style="margin-bottom:12px;">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">

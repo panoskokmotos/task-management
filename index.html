@@ -1568,10 +1568,12 @@ Read 50 books this year"></textarea>
     <div><h1>🔥 Voluntary Discomfort</h1><p class="sub">Intentional challenges that build resilience</p></div>
     <div class="row">
       <button class="btn bg sm" onclick="nav('ladder')">🪜 12-Week Ladder</button>
+      <button class="btn bg sm" onclick="_aiBtn(this,aiDiscomfortInsight)">🤖 AI Insight</button>
       <button class="btn bp" onclick="openAddDiscomfort()">+ Log Challenge</button>
     </div>
   </div>
   <div class="los-grid" id="dis-stats"></div>
+  <div id="dis-ai-out" style="margin-bottom:14px;"></div>
   <div id="dis-list"></div>
 </div>
 
@@ -3831,9 +3833,8 @@ async function aiSuggestAutomations(){
   toast('⏳ Thinking...');
   const existing=(S.automations||[]).map(a=>a.name).join(', ')||'none yet';
   const tasks=S.tasks.filter(t=>t.status!=='done').slice(0,10).map(t=>t.title).join(', ');
-  const prompt=`I'm building 100 AI automations. I already have: ${existing}.
-My current active tasks: ${tasks}.
-Suggest 5 NEW automation ideas I haven't built yet. Format: numbered list, each with name + one-line description. Focus on personal productivity, Givelink B2B SaaS for nonprofits, and content creation.`;
+  const about=getAboutMe()||'Panos — Greek founder building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';
+  const prompt=`Context: ${about}\n\nI'm building 100 AI automations. I already have: ${existing}.\nMy current active tasks: ${tasks}.\nSuggest 5 NEW automation ideas I haven't built yet. Format: numbered list, each with name + one-line description. Focus on personal productivity, Givelink B2B SaaS for nonprofits, and content creation. Be specific to my situation as a founder.`;
   const result=await callClaude(prompt,600);
   if(result)showAiOut('✨ Automation Ideas',result);
   }finally{_aiUnlock('aiSuggestAutomations');}
@@ -3920,7 +3921,8 @@ async function aiRelNudge(){
   toast('⏳ Thinking...');
   const people=S.people||[];
   const list=people.map(p=>`${p.name} (${p.type}, ${daysSinceDate(p.lastContact)}d since contact, interval: ${p.interval||30}d${p.isTop?' TOP':''})${p.notes?', '+p.notes:''}`).join('\n');
-  const prompt='Here are my relationships:\n'+(list||'No people logged yet.')+'\n\nToday is '+new Date().toLocaleDateString()+'. Who should I reach out to this week and why? Suggest 3 people with specific reason and conversation starter.';
+  const about=getAboutMe()||'Panos — Greek founder building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';
+  const prompt=`${about?`Context: ${about}\n\n`:''}Here are my relationships:\n${list||'No people logged yet.'}\n\nToday is ${new Date().toLocaleDateString()}. Who should Panos reach out to this week and why? Consider his Givelink fundraising platform and startup journey. Suggest 3 people with specific reason and a concrete conversation starter.`;
   const result=await callClaude(prompt,500);
   if(result)showAiOut('🤝 Who to Reach Out To',result);
   }finally{_aiUnlock('aiRelNudge');}
@@ -3985,12 +3987,13 @@ function _dwComplete(){
   const dur=_dwDuration;
   if(!S.deepWorkSessions)S.deepWorkSessions=[];
   S.deepWorkSessions.push({id:uid(),label,duration:dur,date:new Date().toISOString().slice(0,10),completedAt:new Date().toISOString()});
-  save();
-  toast('🧠 Session complete! '+Math.round(dur/60)+'m logged');
+  save();renderDeepWork();
+  const xpEarned=dur>=5400?30:dur>=3000?20:10;
+  awardXP(xpEarned,'deepwork');
+  toast('🧠 Session complete! '+Math.round(dur/60)+'m logged · +'+xpEarned+' XP');
   _dwSecsLeft=_dwDuration;
   document.getElementById('dw-btn').textContent='▶ Start';
   document.getElementById('dw-label').textContent='Session complete! Great work.';
-  renderDeepWork();
 }
 function dwReset(){
   clearInterval(_dwInterval);_dwRunning=false;_dwStartTime=null;
@@ -4104,13 +4107,28 @@ function saveDiscomfort(){
   const desc=document.getElementById('dis-desc').value.trim();
   if(!date)return toast('Date required');
   if(!S.discomfortLogs)S.discomfortLogs=[];
-  S.discomfortLogs.push({id:uid(),date,type:document.getElementById('dis-type').value,desc,difficulty:parseInt(document.getElementById('dis-difficulty').value)||3,notes:document.getElementById('dis-notes').value.trim(),createdAt:new Date().toISOString()});
-  save();closeM('dis-modal');renderDiscomfort();toast('Challenge logged! 💪');
+  const diff=parseInt(document.getElementById('dis-difficulty').value)||3;
+  S.discomfortLogs.push({id:uid(),date,type:document.getElementById('dis-type').value,desc,difficulty:diff,notes:document.getElementById('dis-notes').value.trim(),createdAt:new Date().toISOString()});
+  save();closeM('dis-modal');renderDiscomfort();
+  const xpD=diff*4;awardXP(xpD,'discomfort');
+  toast(`Challenge logged! 💪 +${xpD} XP`);
 }
 function deleteDiscomfort(id){
   S.discomfortLogs=(S.discomfortLogs||[]).filter(l=>l.id!==id);save();renderDiscomfort();
 }
-
+async function aiDiscomfortInsight(){
+  const logs=(S.discomfortLogs||[]).slice(-20);
+  if(!logs.length){toast('Log some challenges first!');return;}
+  const about=getAboutMe()||'Panos — Greek founder building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';
+  const summary=logs.map(l=>`${l.date}: ${l.type} — ${l.desc} (difficulty ${l.difficulty}/5)`).join('\n');
+  const streak=_discomfortStreak();
+  const prompt=`Context: ${about}\n\nVoluntary discomfort log (most recent 20):\n${summary}\n\nCurrent streak: ${streak} days.\n\nAs a performance coach, give Panos:\n1. A 2-sentence pattern analysis of his discomfort practice\n2. One specific escalation recommendation for his next challenge\n3. How this practice is building the resilience he needs for the SF move and Givelink growth\n\nBe concise and founder-specific.`;
+  const el=document.getElementById('dis-ai-out');
+  if(el)el.innerHTML='<div style="font-size:12px;color:var(--muted);">⏳ Analyzing your discomfort practice...</div>';
+  const result=await callClaude(prompt,400);
+  if(el&&result)el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(255,107,107,.07),rgba(251,191,36,.05));border:1px solid rgba(255,107,107,.2);border-radius:10px;padding:12px 14px;"><div style="font-size:11px;font-weight:700;color:#ff6b6b;text-transform:uppercase;margin-bottom:6px;">🔥 AI Discomfort Analysis</div><div style="font-size:13px;line-height:1.6;white-space:pre-wrap;">${esc(result)}</div></div>`;
+  else if(el)el.innerHTML='';
+}
 
 function _dwStreakDays(){
   const sessions=S.deepWorkSessions||[];if(!sessions.length)return 0;
@@ -5019,7 +5037,7 @@ function _levelUp(n){
 const BADGES=[
   {id:'first-task',name:'🎯 First Step',desc:'Complete your first task',check:()=>(S.tasks||[]).filter(t=>t.status==='done').length>=1},
   {id:'deep-thinker',name:'🧠 Deep Thinker',desc:'Complete 10 deep tasks',check:()=>(S.tasks||[]).filter(t=>t.status==='done'&&t.depth==='deep').length>=10},
-  {id:'streak-7',name:'🔥 Week Warrior',desc:'Achieve a 7-day habit streak',check:()=>(S.habits||[]).some(h=>(h.streak||0)>=7)},
+  {id:'streak-7',name:'🔥 Week Warrior',desc:'Achieve a 7-day habit streak',check:()=>_habitStreak()>=7},
   {id:'centurion',name:'💯 Centurion',desc:'Complete 100 tasks',check:()=>(S.tasks||[]).filter(t=>t.status==='done').length>=100},
   {id:'goal-getter',name:'🏆 Goal Getter',desc:'Mark a goal as complete',check:()=>(S.goals||[]).some(g=>g.status==='done'||g.complete)},
   {id:'challenger',name:'⚡ Challenger',desc:'Complete a full challenge',check:()=>(S.challengeLogs||[]).some(c=>c.completed)},
@@ -7892,7 +7910,7 @@ function checkReminders(){
     try{
       const n=new Notification(`${r.emoji} ${r.label}`,{body:r.msg,icon:'./icons/icon-192.png',tag:r.id});
       n.onclick=()=>{window.focus();n.close();};
-    }catch(e){}
+    }catch(e){console.warn('Notification failed:',e);}
     postToNtfy(r);
   });
 }
@@ -8037,7 +8055,7 @@ Extract 3-8 specific, actionable tasks. Only include real tasks mentioned or imp
   const text=await callClaude(prompt,800);
   if(!text){result.innerHTML='<div style="padding:16px;color:#ef4444;">Could not analyze. Check your API key.</div>';footer.innerHTML=`<button class="btn bg" onclick="closeM('notes-import-modal')">Close</button>`;return;}
   let parsed=null;
-  try{const json=text.match(/\{[\s\S]*\}/)?.[0];parsed=json?JSON.parse(json):null;}catch(e){}
+  try{const json=text.match(/\{[\s\S]*\}/)?.[0];parsed=json?JSON.parse(json):null;}catch(e){console.warn('Notes synthesis parse failed:',e);}
   if(!parsed){result.innerHTML='<div style="padding:16px;color:#ef4444;">Parse error. Try again.</div>';footer.innerHTML=`<button class="btn bg" onclick="closeM('notes-import-modal')">Close</button>`;return;}
   window._notesSynthResult=parsed;
   const tasks=parsed.tasks||[];
@@ -8651,7 +8669,8 @@ function saveDecision(){
   save();
   closeM('dec-modal');
   renderDecisions();
-  toast('Decision logged!');
+  awardXP(10,'decision');
+  toast('Decision logged! +10 XP');
 }
 
 // ── WINS ─────────────────────────────────────────────────────────
@@ -8768,7 +8787,7 @@ function toggleBucket(id){
   S.bucketlist[i].done=!S.bucketlist[i].done;
   S.bucketlist[i].doneAt=S.bucketlist[i].done?new Date().toISOString().slice(0,10):null;
   save();renderBucketList();
-  if(S.bucketlist[i].done)toast('Bucket item completed! 🎉');
+  if(S.bucketlist[i].done){awardXP(25,'bucket-complete');toast('Bucket item completed! 🎉 +25 XP');}
 }
 function openAddBucket(prefill){
   document.getElementById('bl-edit-id').value='';
@@ -9421,6 +9440,20 @@ function saveSleep(){
   if(editId){const i=S.sleepLogs.findIndex(l=>l.id===editId);if(i>=0)S.sleepLogs[i]=obj;}
   else S.sleepLogs.push(obj);
   save();closeM('sleep-modal');renderSleep();toast('😴 Sleep logged! +5 XP');awardXP(5,'sleep');
+}
+async function aiSleepInsight(){
+  const logs=(S.sleepLogs||[]).slice(-14);
+  if(!logs.length){toast('Log some sleep data first!');return;}
+  const about=getAboutMe()||'Panos — Greek founder building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';
+  const summary=logs.map(l=>`${l.date}: ${(l.hoursSlept||0).toFixed(1)}h, quality ${l.quality||'?'}/5, readiness ${l.readinessScore||'?'}, pre-sleep checklist: ${Object.entries(l.preChecklist||{}).filter(([,v])=>v).map(([k])=>k).join(',')}`).join('\n');
+  const avgH=logs.reduce((a,l)=>a+(l.hoursSlept||0),0)/logs.length;
+  const avgQ=logs.reduce((a,l)=>a+(l.quality||0),0)/logs.length;
+  const prompt=`Context: ${about}\n\nSleep log (last 14 nights):\n${summary}\n\nAvg hours: ${avgH.toFixed(1)}, avg quality: ${avgQ.toFixed(1)}/5.\n\nAs a sleep performance coach, give Panos:\n1. 2-sentence assessment of his sleep quality pattern\n2. The single most impactful change to make this week (be specific)\n3. How optimizing sleep will impact his Givelink execution and energy\n\nBe concrete and concise (4-6 sentences total).`;
+  const el=document.getElementById('sleep-ai-out');
+  if(el)el.innerHTML='<div style="font-size:12px;color:var(--muted);">⏳ Analyzing your sleep data...</div>';
+  const result=await callClaude(prompt,400);
+  if(el&&result)el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(88,166,255,.07),rgba(116,192,252,.05));border:1px solid rgba(88,166,255,.2);border-radius:10px;padding:12px 14px;"><div style="font-size:11px;font-weight:700;color:#74c0fc;text-transform:uppercase;margin-bottom:6px;">😴 AI Sleep Analysis</div><div style="font-size:13px;line-height:1.6;white-space:pre-wrap;">${esc(result)}</div></div>`;
+  else if(el)el.innerHTML='';
 }
 
 // ── BODY COMPOSITION ──────────────────────────────────────────
@@ -10498,8 +10531,12 @@ function _goalMomentum(goalId){
 <div id="v-sleep" class="view">
   <div class="ph">
     <div><h1>😴 Sleep Tracker</h1><p class="sub">Track sleep quality and build better sleep habits</p></div>
-    <button class="btn bp" onclick="openSleepModal()">➕ Log Sleep</button>
+    <div class="row" style="gap:6px;">
+      <button class="btn bg sm" onclick="_aiBtn(this,aiSleepInsight)">🤖 AI Analysis</button>
+      <button class="btn bp" onclick="openSleepModal()">➕ Log Sleep</button>
+    </div>
   </div>
+  <div id="sleep-ai-out" style="margin-bottom:14px;"></div>
   <div id="sleep-summary" style="margin-bottom:16px;"></div>
   <div id="sleep-log"></div>
 </div>

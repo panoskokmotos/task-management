@@ -1531,6 +1531,7 @@ Read 50 books this year"></textarea>
     <div class="los-grid" id="dw-stats"></div>
     <div id="dw-depth-stats"></div>
   </div>
+  <div id="dw-week-chart" style="margin-top:16px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;"></div>
   <div style="margin-top:16px;">
     <h2>📋 Session Log</h2>
     <div id="dw-log"></div>
@@ -1786,7 +1787,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededV2:false,seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false,dailyIntention:[],energyLog:[],xp:0,level:1,badges:[],dailyQuests:[],questsDate:'',wheelAssessments:[],socialProfiles:[],brandStatement:'',weeklyNotes:[],taskPairs:{},brandAuditResult:'',givelinkMetrics:{nonprofits:0,pipeline:0,arr:0,users:0,impactStories:[],mrr:0,impactModel:{currentNonprofits:0,avgDonationsPerNonprofit:0,avgDonationSize:0,viralCoeff:1.1,targetPeople:1000000}},netWorthEntries:[],okrs:[],biomarkers:[],selfKnowledge:[],quarterlyReviews:[],annualReviews:[],agiPrep:{timeline:{},decisions:[],resources:[],scenarios:[]},sfTimeline:{targetDate:'',durationMonths:6,status:'planning',budget:0,milestones:[],network:[],notes:''},lifeScore:{score:0,breakdown:{},lastCalc:''},contentPipeline:[],skills:[],experiences:[],antiGoals:[],contracts:[],manifesto:{principles:[],identityStatements:[],rules:[],lastUpdated:''},bodyLogs:[],sleepLogs:[],portfolioEntries:[],givelinkHistory:[],dashWidgetOrder:['lifescore','daily-picks','daily-quests','habits','routines','deepwork','wheel-mini'],mentors:[]};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededV2:false,seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false,dailyIntention:[],energyLog:[],xp:0,level:1,badges:[],dailyQuests:[],questsDate:'',wheelAssessments:[],socialProfiles:[],brandStatement:'',weeklyNotes:[],taskPairs:{},brandAuditResult:'',givelinkMetrics:{nonprofits:0,pipeline:0,arr:0,users:0,impactStories:[],mrr:0,impactModel:{currentNonprofits:0,avgDonationsPerNonprofit:0,avgDonationSize:0,viralCoeff:1.1,targetPeople:1000000}},netWorthEntries:[],okrs:[],biomarkers:[],selfKnowledge:[],quarterlyReviews:[],annualReviews:[],agiPrep:{timeline:{},decisions:[],resources:[],scenarios:[]},sfTimeline:{targetDate:'',durationMonths:6,status:'planning',budget:0,milestones:[],network:[],notes:''},lifeScore:{score:0,breakdown:{},lastCalc:''},contentPipeline:[],skills:[],experiences:[],antiGoals:[],contracts:[],manifesto:{principles:[],identityStatements:[],rules:[],lastUpdated:''},bodyLogs:[],sleepLogs:[],portfolioEntries:[],givelinkHistory:[],dashWidgetOrder:['lifescore','daily-picks','daily-quests','habits','routines','deepwork','wheel-mini'],mentors:[],_allQuestsBonusDate:''};
 let editT=null,editG=null,fCat='all';
 let profileName=localStorage.getItem('taskos_name')||'Panos';
 let _editChecklist=[];
@@ -3763,14 +3764,15 @@ function renderFinance(){
     const px2=(i)=>pad+(i/(n-1))*(W-pad*2);
     const py2=(v)=>H-pad-(v*(H-pad*2));
     const hasData=vals.some(v=>v>0);
+    const HH=H+16;
     ptEl.innerHTML=`<div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--muted);">📈 Passive Income — 6-Month Trend (goal: €300/mo)</div>`+
-      (hasData?`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:60px;overflow:visible;">
+      (hasData?`<svg viewBox="0 0 ${W} ${HH}" style="width:100%;height:${HH}px;overflow:visible;">
         <path d="${norm.map((v,i)=>`${i===0?'M':'L'}${px2(i).toFixed(1)},${py2(v).toFixed(1)}`).join(' ')}" fill="none" stroke="#74c0fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         ${norm.map((v,i)=>`<circle cx="${px2(i).toFixed(1)}" cy="${py2(v).toFixed(1)}" r="3.5" fill="#74c0fc"/>
           <text x="${px2(i).toFixed(1)}" y="${(py2(v)-7).toFixed(1)}" text-anchor="middle" font-size="8" fill="#74c0fc" font-weight="600">€${vals[i]||0}</text>`).join('')}
         <line x1="${px2(0)}" y1="${py2(300/maxV)}" x2="${px2(n-1)}" y2="${py2(300/maxV)}" stroke="#69db7c" stroke-width="1" stroke-dasharray="3 2" opacity="0.5"/>
-      </svg>
-      <div style="display:flex;justify-content:space-between;margin-top:2px;">${months.map(m=>`<span style="font-size:9px;color:var(--muted);">${m.label}</span>`).join('')}</div>`
+        ${months.map((m,i)=>`<text x="${px2(i).toFixed(1)}" y="${HH-1}" text-anchor="middle" font-size="9" fill="var(--muted)">${m.label}</text>`).join('')}
+      </svg>`
       :`<div style="font-size:12px;color:var(--muted);text-align:center;padding:14px 0;">No passive income logged yet — add entries with type "passive"</div>`);
   }
   _renderPortfolioSection();
@@ -3788,7 +3790,7 @@ function saveFinanceEntry(){
   if(!date||isNaN(amount))return toast('Date and amount required');
   if(!S.financeEntries)S.financeEntries=[];
   S.financeEntries.push({id:uid(),date,type,amount,desc,createdAt:new Date().toISOString()});
-  save();closeM('finance-modal');renderFinance();toast('Finance entry saved!');
+  save();closeM('finance-modal');renderFinance();toast('Finance entry saved! +3 XP');awardXP(3,'finance-log');
 }
 function openAddInvestment(){
   document.getElementById('iv-name').value='';document.getElementById('iv-amount').value='';
@@ -3964,6 +3966,26 @@ function renderDeepWork(){
     <div class="los-card los-stat"><div class="los-stat-n" style="color:#58a6ff;">${Math.round(todaySecs/3600*10)/10}h</div><div class="los-stat-l">Today</div></div>
     <div class="los-card los-stat"><div class="los-stat-n" style="color:#22d3ee;">${Math.round(weekSecs/3600*10)/10}h</div><div class="los-stat-l">This Week</div></div>
     <div class="los-card los-stat"><div class="los-stat-n" style="color:#a78bfa;">${Math.round(allSecs/3600*10)/10}h</div><div class="los-stat-l">Total</div></div>`;
+  // Weekly bar chart (last 7 days)
+  const dwChartEl=document.getElementById('dw-week-chart');
+  if(dwChartEl){
+    const days7=[];for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days7.push(d.toISOString().slice(0,10));}
+    const dayHours=days7.map(d=>sessions.filter(s=>s.date===d).reduce((sum,s)=>sum+s.duration,0)/3600);
+    const maxH=Math.max(...dayHours,0.5);
+    const W=280,H=60,barW=28,gap=12,n=7;
+    const labels=['M','T','W','T','F','S','S'];
+    const bars=dayHours.map((h,i)=>{
+      const barH=Math.max(2,Math.round((h/maxH)*(H-16)));
+      const x=i*(barW+gap);
+      const y=H-16-barH;
+      const dayLabel=new Date(days7[i]).toLocaleDateString('en',{weekday:'narrow'});
+      return`<rect x="${x}" y="${y}" width="${barW}" height="${barH}" rx="4" fill="var(--accent)" opacity="${h>0?1:.2}"/>
+        <text x="${x+barW/2}" y="${H-2}" text-anchor="middle" font-size="8" fill="var(--muted)">${dayLabel}</text>
+        ${h>0?`<text x="${x+barW/2}" y="${y-3}" text-anchor="middle" font-size="7" fill="var(--accent)">${h.toFixed(1)}h</text>`:''}`;
+    }).join('');
+    dwChartEl.innerHTML=`<div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;">📊 Last 7 Days (hours/day)</div>
+      <svg viewBox="0 0 ${(barW+gap)*n-gap} ${H}" style="width:100%;height:${H}px;overflow:visible;">${bars}</svg>`;
+  }
   document.getElementById('dw-log').innerHTML=sessions.slice().sort((a,b)=>a.date>b.date?-1:1).slice(0,20).map(s=>`
     <div class="dis-row"><div style="display:flex;justify-content:space-between;"><span style="font-weight:500;">🧠 ${s.label||'Deep Work'}</span><span style="color:var(--accent);font-weight:600;">${Math.round(s.duration/60)}m</span></div><div style="font-size:11px;color:var(--muted);">${s.date}</div></div>`).join('')||'<div class="empty">No sessions yet. Start a timer!</div>';
   // Depth breakdown of completed tasks
@@ -5074,6 +5096,7 @@ const BADGES=[
   {id:'win-logger',name:'🏅 Win Logger',desc:'Log 10 wins',check:()=>(S.wins||[]).length>=10},
   {id:'ladder-climber',name:'🪜 Ladder Climber',desc:'Complete discomfort ladder week 4',check:()=>(S.discomfortLadder?.completedWeeks||[]).length>=4},
   {id:'wheel-master',name:'🎡 Self-Aware',desc:'Complete 4 wheel assessments',check:()=>(S.wheelAssessments||[]).length>=4},
+  {id:'content-creator',name:'✍️ Content Creator',desc:'Publish 5 pieces of content',check:()=>(S.contentPipeline||[]).filter(c=>c.type==='published').length>=5},
 ];
 
 function checkBadges(){
@@ -5127,6 +5150,7 @@ function saveWheelAssessment(){
   closeM('wheel-modal');
   renderWheel();
   awardXP(30,'wheel');
+  checkBadges();
   toast('🎡 Assessment saved! +30 XP');
   aiWheelInsight(entry.id,scores,cadence);
 }
@@ -5416,7 +5440,7 @@ function saveWeeklyNote(){
   if(editId){const i=S.weeklyNotes.findIndex(n=>n.id===editId);if(i>=0)S.weeklyNotes[i]=obj;else S.weeklyNotes.push(obj);}
   else{const existing=S.weeklyNotes.find(n=>n.weekOf===weekOf);if(existing)Object.assign(existing,obj);else S.weeklyNotes.push(obj);}
   save();closeM('add-weekly-note-modal');renderWeeklyNotes();
-  toast('📔 Weekly note saved!');
+  toast('📔 Weekly note saved! +5 XP');awardXP(5,'weekly-note');
 }
 function delWeeklyNote(id){
   showConfirm('Delete this weekly note?',ok=>{if(ok){S.weeklyNotes=(S.weeklyNotes||[]).filter(n=>n.id!==id);save();renderWeeklyNotes();}},{okLabel:'Delete',icon:'🗑'});
@@ -5749,15 +5773,22 @@ function _checkQuestCompletion(){
   if(!S.dailyQuests)return;
   const today=new Date().toISOString().slice(0,10);
   if(S.questsDate!==today)return;
+  let newlyDone=false;
   QUEST_TEMPLATES.forEach(qt=>{
     const q=S.dailyQuests.find(x=>x.id===qt.id);
     if(q&&!q.done&&qt.check()){
       q.done=true;
+      newlyDone=true;
       save();
       awardXP(q.xp,'quest');
       toast('Quest complete: <strong>'+q.text+'</strong> +'+q.xp+' XP',3500);
     }
   });
+  if(newlyDone&&S.dailyQuests.every(q=>q.done)&&S._allQuestsBonusDate!==today){
+    S._allQuestsBonusDate=today;
+    save();
+    setTimeout(()=>{toast('🎉 All quests complete! +50 XP bonus',4000);awardXP(50,'all quests complete');_fireConfetti('deep');},400);
+  }
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -6011,23 +6042,35 @@ async function runPriorityAudit(){
     .map(([c,n]) => `${c}: ${n} tasks`).join(', ') || 'none';
 
   const goals  = S.goals.slice(0, 5).map(g => g.title).join('; ') || 'none set';
-  const active_tasks = active().filter(t => t.bucket === 'this-week').slice(0, 10).map(t => `${t.title} [${t.category}]`).join('\n');
+  const activeOKRs=(S.okrs||[]).filter(o=>o.objective&&!o.completed).slice(0,3).map(o=>o.objective).join('; ')||'none';
+  const weekTasks=active().filter(t=>t.bucket==='this-week').slice(0,10);
+  const active_tasks=weekTasks.map(t=>{
+    const okrTag=t.linkedOKR||(t.goalId?'goal-linked':'');
+    return`${t.title} [${t.category}]${okrTag?' ⭐OKR-LINKED':''}`;
+  }).join('\n');
+  const okrLinkedCount=weekTasks.filter(t=>t.linkedOKR||t.goalId).length;
   const top3   = S.tasks.filter(t => t.isT3 && t.status !== 'done').sort((a,b) => a.t3s - b.t3s).map(t => t.title).join('; ') || 'none set';
   const inbox  = active().filter(t => t.bucket === 'inbox').length;
   const someday = active().filter(t => t.bucket === 'someday').length;
 
-  const prompt = `You are a brutally honest productivity coach auditing a startup founder's week.
+  const prompt = `You are a brutally honest productivity coach auditing a founder's week.
 
+ACTIVE OKRs: ${activeOKRs}
 GOALS: ${goals}
 TOP 3 THIS WEEK: ${top3}
 DEEP WORK THIS WEEK: ${dwH}h
 TASKS COMPLETED BY CATEGORY: ${catBreakdown}
-INBOX PENDING: ${inbox}
-SOMEDAY BUCKET: ${someday} items
-THIS WEEK TASKS:
+INBOX PENDING: ${inbox} | SOMEDAY: ${someday} items
+OKR-LINKED TASKS THIS WEEK: ${okrLinkedCount}/${weekTasks.length}
+THIS WEEK TASKS (⭐ = OKR-linked, prioritize these):
 ${active_tasks}
 
-Give a direct priority audit (5-7 bullet points). For each point: flag misalignment between effort and goals, identify highest-leverage tasks being ignored, call out low-value work. End with ONE specific recommendation for next week. Be direct, no fluff, max 300 words.`;
+Give a direct priority audit (5-7 bullet points):
+- Flag tasks that don't map to any active OKR — call them out by name
+- Highlight OKR-linked work being neglected (if any)
+- Flag misalignment between effort and goals
+- Call out low-value work blocking deep execution
+End with ONE specific recommendation for next week. Be direct, no fluff, max 300 words.`;
 
   const result = await callClaude(prompt, 400);
   body.textContent = result || 'Could not generate audit. Check your API key.';
@@ -6241,16 +6284,17 @@ function showContextReport(){
 function renderSleepCorrelation(){
   const el = document.getElementById('sleep-correlation');
   if (!el) return;
-  const sleepLogs = (S.healthLogs || []).filter(l => l.type === 'sleep' && l.value);
+  // Use S.sleepLogs (readinessScore 0-100) as the sleep quality metric
+  const sleepLogs = (S.sleepLogs || []).filter(l => l.readinessScore != null);
   if (sleepLogs.length < 7) {
-    el.innerHTML = `<div style="font-size:11px;color:var(--muted);margin-top:4px;">Log 7+ sleep scores to unlock correlation with productivity.</div>`;
+    el.innerHTML = `<div style="font-size:11px;color:var(--muted);margin-top:4px;">Log 7+ sleep entries to unlock sleep → output correlation.</div>`;
     return;
   }
-  // Build day map: date -> { sleep, tasksCompleted }
+  // Build day map: date -> { sleep (readiness 0-100), tasksCompleted }
   const dayMap = {};
   sleepLogs.forEach(l => {
     if (!dayMap[l.date]) dayMap[l.date] = { sleep: 0, tasks: 0 };
-    dayMap[l.date].sleep = l.value;
+    dayMap[l.date].sleep = l.readinessScore;
   });
   S.tasks.filter(t => t.completedAt).forEach(t => {
     const d = t.completedAt.slice(0,10);
@@ -7195,7 +7239,7 @@ function _renderKTHistory(){
 async function aiKTPatterns(){
   const entries=(S.selfKnowledge||[]).slice(-10).map(r=>`[${r.category}] Q: ${r.prompt}\nA: ${r.reflection}`).join('\n\n');
   const about=getAboutMe()||'Panos — Greek founder in his 20s building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';
-  const prompt=`About this person: ${about}\n\nAnalyze these self-reflections and identify:\n1. The 3 recurring themes or patterns\n2. The core belief or assumption that drives this person\n3. A blind spot that appears repeatedly\n\nReflections:\n${entries}`;
+  const prompt=`About Panos: ${about}\n\nAnalyze these self-reflections from Panos (Greek founder building Givelink, targeting financial freedom + SF move) and identify:\n1. The 3 recurring themes or patterns in his thinking\n2. The core belief or assumption that drives him as a founder\n3. A blind spot that appears repeatedly — be direct and specific\n\nReflections:\n${entries}`;
   const out=await callClaude(prompt,500);
   const el=document.getElementById('kt-patterns-out');
   if(el){el.style.display='';el.innerHTML=`<div style="background:var(--surface2);border-radius:8px;padding:12px;font-size:12px;white-space:pre-wrap;">${esc(out)}</div>`;}
@@ -7762,7 +7806,7 @@ function markBookDone(id){
   const b=(S.books||[]).find(x=>x.id===id);if(!b)return;
   b.finishedAt=new Date().toISOString().slice(0,10);
   if(b.totalPages)b.currentPage=b.totalPages;
-  save();renderBooks();toast('📖 Book finished! Great work.');
+  save();renderBooks();toast('📖 Book finished! Great work. +20 XP');awardXP(20,'book-done');checkBadges();
 }
 function deleteBook(id){
   S.books=(S.books||[]).filter(b=>b.id!==id);save();renderBooks();
@@ -9420,6 +9464,7 @@ function renderSleep(){
   // Trend chart
   const chartEl=document.getElementById('sleep-trend-chart');
   if(chartEl){
+    chartEl.style.display=last7.length>=2?'':'none';
     if(last7.length>=2){
       const pts=last7.slice().reverse();
       const W=280,H=60,pad=4;
@@ -9507,10 +9552,14 @@ async function aiSleepInsight(){
   const logs=(S.sleepLogs||[]).slice(-14);
   if(!logs.length){toast('Log some sleep data first!');return;}
   const about=getAboutMe()||'Panos — Greek founder building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';
-  const summary=logs.map(l=>`${l.date}: ${(l.hoursSlept||0).toFixed(1)}h, quality ${l.quality||'?'}/5, readiness ${l.readinessScore||'?'}, pre-sleep checklist: ${Object.entries(l.preChecklist||{}).filter(([,v])=>v).map(([k])=>k).join(',')}`).join('\n');
+  const dwSessions=S.deepWorkSessions||[];
+  const summary=logs.map(l=>{
+    const dwH=(dwSessions.filter(s=>s.date===l.date).reduce((a,s)=>a+s.duration,0)/3600).toFixed(1);
+    return`${l.date}: ${(l.hoursSlept||0).toFixed(1)}h sleep, quality ${l.quality||'?'}/5, readiness ${l.readinessScore||'?'}, deep work ${dwH}h, pre-sleep: ${Object.entries(l.preChecklist||{}).filter(([,v])=>v).map(([k])=>k).join(',')||'none'}`;
+  }).join('\n');
   const avgH=logs.reduce((a,l)=>a+(l.hoursSlept||0),0)/logs.length;
   const avgQ=logs.reduce((a,l)=>a+(l.quality||0),0)/logs.length;
-  const prompt=`Context: ${about}\n\nSleep log (last 14 nights):\n${summary}\n\nAvg hours: ${avgH.toFixed(1)}, avg quality: ${avgQ.toFixed(1)}/5.\n\nAs a sleep performance coach, give Panos:\n1. 2-sentence assessment of his sleep quality pattern\n2. The single most impactful change to make this week (be specific)\n3. How optimizing sleep will impact his Givelink execution and energy\n\nBe concrete and concise (4-6 sentences total).`;
+  const prompt=`Context: ${about}\n\nSleep + Deep Work log (last 14 nights):\n${summary}\n\nAvg sleep: ${avgH.toFixed(1)}h, avg quality: ${avgQ.toFixed(1)}/5.\n\nAs a sleep performance coach, give Panos:\n1. 2-sentence assessment of his sleep quality pattern\n2. Note any correlation between sleep quality and deep work hours in the data\n3. The single most impactful change to make this week (be specific)\n4. How optimizing sleep will impact his Givelink execution and energy\n\nBe concrete and concise (5-7 sentences total).`;
   const el=document.getElementById('sleep-ai-out');
   if(el)el.innerHTML='<div style="font-size:12px;color:var(--muted);">⏳ Analyzing your sleep data...</div>';
   const result=await callClaude(prompt,400);
@@ -9835,7 +9884,7 @@ function saveMentorContact(){
   m.lastContact=date;
   if(notes&&!m.notes)m.notes=notes;
   if(insight){if(!m.keyInsights)m.keyInsights=[];m.keyInsights.push({date,insight});}
-  save();closeM('mentor-contact-modal');renderMentors();toast('📞 Contact logged!');
+  save();closeM('mentor-contact-modal');renderMentors();toast('📞 Contact logged! +5 XP');awardXP(5,'mentor-contact');
 }
 async function aiSuggestMentors(){
   const about=getAboutMe()||'Panos — Greek founder in his 20s building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';

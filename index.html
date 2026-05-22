@@ -1782,7 +1782,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false,dailyIntention:[],energyLog:[],xp:0,level:1,badges:[],dailyQuests:[],questsDate:'',wheelAssessments:[],socialProfiles:[],brandStatement:'',weeklyNotes:[],taskPairs:{},brandAuditResult:'',givelinkMetrics:{nonprofits:0,pipeline:0,arr:0,users:0,impactStories:[],mrr:0,impactModel:{currentNonprofits:0,avgDonationsPerNonprofit:0,avgDonationSize:0,viralCoeff:1.1,targetPeople:1000000}},netWorthEntries:[],okrs:[],biomarkers:[],selfKnowledge:[],quarterlyReviews:[],annualReviews:[],agiPrep:{timeline:{},decisions:[],resources:[],scenarios:[]},sfTimeline:{targetDate:'',durationMonths:6,status:'planning',budget:0,milestones:[],network:[],notes:''},lifeScore:{score:0,breakdown:{},lastCalc:''},contentPipeline:[],skills:[],experiences:[],antiGoals:[],contracts:[],manifesto:{principles:[],identityStatements:[],rules:[],lastUpdated:''},bodyLogs:[],sleepLogs:[],portfolioEntries:[],givelinkHistory:[],dashWidgetOrder:['lifescore','daily-picks','daily-quests','habits','routines','deepwork','wheel-mini'],mentors:[]};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededV2:false,seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false,dailyIntention:[],energyLog:[],xp:0,level:1,badges:[],dailyQuests:[],questsDate:'',wheelAssessments:[],socialProfiles:[],brandStatement:'',weeklyNotes:[],taskPairs:{},brandAuditResult:'',givelinkMetrics:{nonprofits:0,pipeline:0,arr:0,users:0,impactStories:[],mrr:0,impactModel:{currentNonprofits:0,avgDonationsPerNonprofit:0,avgDonationSize:0,viralCoeff:1.1,targetPeople:1000000}},netWorthEntries:[],okrs:[],biomarkers:[],selfKnowledge:[],quarterlyReviews:[],annualReviews:[],agiPrep:{timeline:{},decisions:[],resources:[],scenarios:[]},sfTimeline:{targetDate:'',durationMonths:6,status:'planning',budget:0,milestones:[],network:[],notes:''},lifeScore:{score:0,breakdown:{},lastCalc:''},contentPipeline:[],skills:[],experiences:[],antiGoals:[],contracts:[],manifesto:{principles:[],identityStatements:[],rules:[],lastUpdated:''},bodyLogs:[],sleepLogs:[],portfolioEntries:[],givelinkHistory:[],dashWidgetOrder:['lifescore','daily-picks','daily-quests','habits','routines','deepwork','wheel-mini'],mentors:[]};
 let editT=null,editG=null,fCat='all';
 let profileName=localStorage.getItem('taskos_name')||'Panos';
 let _editChecklist=[];
@@ -5721,7 +5721,8 @@ async function aiSuggestDecisions(){
     const goals=(S.goals||[]).slice(0,6).map(g=>g.title).join(', ');
     const vals=(S.values||[]).slice(0,6).join(', ');
     const recent=(S.decisions||[]).slice(-5).map(d=>d.decision||d.title||'').join(', ');
-    const prompt='You are a life strategy advisor. Based on this person\'s goals and values, suggest 5 meaningful decisions they should consider making.\n\nGoals: '+(goals||'Not set')+'\nValues: '+(vals||'Not set')+'\nRecent decisions: '+(recent||'None')+'\n\nFor each decision, provide:\nDECISION: [title]\nOPTION_A: [option A]\nOPTION_B: [option B]\nINSIGHT: [1-sentence strategic insight]\nLEAN: [A or B — your recommendation]\n\nList exactly 5 decisions. Be specific and actionable.';
+    const about=getAboutMe()||'Panos — Greek founder in his 20s building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';
+    const prompt='You are a strategic advisor for '+about+'\n\nHis goals: '+(goals||'Not set')+'\nHis values: '+(vals||'Not set')+'\nRecent decisions made: '+(recent||'None')+'\n\nSuggest 5 high-leverage decisions Panos should actively make right now — focus on Givelink growth, financial independence, health, and the SF move. Be concrete and founder-specific, not generic.\n\nFor each decision, provide:\nDECISION: [title]\nOPTION_A: [option A]\nOPTION_B: [option B]\nINSIGHT: [1-sentence strategic insight specific to his situation]\nLEAN: [A or B — your recommendation]\n\nList exactly 5 decisions. Be specific and actionable.';
     const text=await callClaude(prompt,1500);
     const el=document.getElementById('ai-decisions-result');
     if(!el)return;
@@ -9332,7 +9333,7 @@ function saveExperience(){
   const obj={id:editId||uid(),title,category:document.getElementById('exp-category').value,date:document.getElementById('exp-date').value,impact:parseInt(document.getElementById('exp-impact').value)||3,notes:document.getElementById('exp-notes').value.trim(),createdAt:editId?undefined:new Date().toISOString()};
   if(editId){const i=S.experiences.findIndex(e=>e.id===editId);if(i>=0)S.experiences[i]={...S.experiences[i],...obj};}
   else S.experiences.push(obj);
-  save();closeM('exp-modal');renderExperienceSection();renderWins();toast('Experience logged! 🌟');
+  save();closeM('exp-modal');renderExperienceSection();renderWins();toast('Experience logged! 🌟 +10 XP');awardXP(10,'experience');
 }
 
 // ── SLEEP TRACKER ──────────────────────────────────────────────
@@ -9408,7 +9409,7 @@ function saveSleep(){
   const obj={id:editId||uid(),date,bedTime:bed,wakeTime:wake,hoursSlept,quality,preChecklist,notes:document.getElementById('sl-notes').value.trim(),readinessScore};
   if(editId){const i=S.sleepLogs.findIndex(l=>l.id===editId);if(i>=0)S.sleepLogs[i]=obj;}
   else S.sleepLogs.push(obj);
-  save();closeM('sleep-modal');renderSleep();toast('😴 Sleep logged!');
+  save();closeM('sleep-modal');renderSleep();toast('😴 Sleep logged! +5 XP');awardXP(5,'sleep');
 }
 
 // ── BODY COMPOSITION ──────────────────────────────────────────
@@ -9463,7 +9464,7 @@ function saveBodyLog(){
   const obj={id:editId||uid(),date:document.getElementById('body-date').value,weightKg:parseFloat(document.getElementById('body-weight').value)||0,bodyFatPct:parseFloat(document.getElementById('body-bf').value)||0,notes:document.getElementById('body-notes').value.trim()};
   if(editId){const i=S.bodyLogs.findIndex(l=>l.id===editId);if(i>=0)S.bodyLogs[i]=obj;}
   else S.bodyLogs.push(obj);
-  save();closeM('body-modal');_renderBodySection();toast('🏋️ Weigh-in logged!');
+  save();closeM('body-modal');_renderBodySection();toast('🏋️ Weigh-in logged! +5 XP');awardXP(5,'body-log');
 }
 
 // ── PORTFOLIO SNAPSHOTS ────────────────────────────────────────
@@ -9510,7 +9511,7 @@ function savePortfolio(){
   const obj={id:editId||uid(),date:document.getElementById('port-date').value,totalValue,breakdown,notes:document.getElementById('port-notes').value.trim()};
   if(editId){const i=S.portfolioEntries.findIndex(e=>e.id===editId);if(i>=0)S.portfolioEntries[i]=obj;}
   else S.portfolioEntries.push(obj);
-  save();closeM('portfolio-modal');_renderPortfolioSection();toast('📈 Portfolio snapshot logged!');
+  save();closeM('portfolio-modal');_renderPortfolioSection();toast('📈 Portfolio snapshot logged! +5 XP');awardXP(5,'portfolio');
 }
 
 // ── ANTI-GOALS ────────────────────────────────────────────────
@@ -10501,7 +10502,7 @@ function _goalMomentum(goalId){
       <button class="btn bg sm" onclick="_calNav(1)">Next →</button>
     </div>
   </div>
-  <div id="cal-week-grid"></div>
+  <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;"><div id="cal-week-grid" style="min-width:560px;"></div></div>
 </div>
 
 <!-- CONTENT MODAL -->

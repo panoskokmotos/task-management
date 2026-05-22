@@ -5220,7 +5220,7 @@ async function aiSocialAudit(){
   const goals=(S.goals||[]).slice(0,5).map(g=>g.title).join(', ');
   const vals=(S.values||[]).join(', ');
   const profStr=profiles.map(p=>`${p.platform}${p.handle?' ('+p.handle+')':''}: ${p.bio||'No bio provided'}`).join('\n');
-  const prompt=`You are a personal brand strategist. Audit this person's brand presence:
+  const prompt=`You are a personal brand strategist. Audit Panos's brand presence (Panos is a Greek founder in his 20s building Givelink, a nonprofit fundraising SaaS, targeting financial freedom and an SF move):
 
 BRAND STATEMENT: ${brand}
 SOCIAL PROFILES:
@@ -5378,7 +5378,7 @@ async function aiExtractTasksFromNotes(){
   if(!recent.length){toast('No weekly notes yet.');return;}
   const notesText=recent.map(n=>`Week of ${n.weekOf}:\nIntention: ${n.intention||'—'}\nJournal: ${n.note||'—'}\nGratitude: ${n.gratitude||'—'}\nBig win: ${n.bigWin||'—'}`).join('\n\n');
   const goals=(S.goals||[]).filter(g=>!g.complete).map(g=>g.title).join(', ');
-  const prompt=`From these weekly notes/reflections, extract 5 concrete tasks that should be on this person's task list next week.
+  const prompt=`From these weekly notes/reflections, extract 5 concrete tasks that should be on Panos's task list next week. (Panos is a Greek founder building Givelink, a nonprofit fundraising SaaS. His priorities are Givelink growth, financial freedom, and moving to SF.)
 
 NOTES:
 ${notesText}
@@ -7935,7 +7935,7 @@ async function saveNtfySettings(){
   try{
     const res=await _ntfyPost(topic,'✅ Life OS Connected','You will receive reminders here. Setup complete!',['tada']);
     S.ntfy.subscribed=res.ok;save();
-  }catch(_){}
+  }catch(e){console.warn('ntfy connection failed:',e);}
   openReminderSettings();
   toast('✅ Saved! Check your ntfy app for a confirmation message.');
 }
@@ -9712,10 +9712,24 @@ function saveMentor(){
 function logMentorContact(id){
   const m=(S.mentors||[]).find(x=>x.id===id);
   if(!m)return;
-  m.lastContact=new Date().toISOString().slice(0,10);
-  const insight=prompt('Key insight from this conversation? (optional)');
-  if(insight){if(!m.keyInsights)m.keyInsights=[];m.keyInsights.push({date:m.lastContact,insight});}
-  save();renderMentors();toast('📞 Contact logged!');
+  document.getElementById('mc-mentor-id').value=id;
+  document.getElementById('mc-mentor-name').textContent=m.name;
+  document.getElementById('mc-date').value=new Date().toISOString().slice(0,10);
+  document.getElementById('mc-notes').value='';
+  document.getElementById('mc-insight').value='';
+  document.getElementById('mentor-contact-modal').classList.remove('hidden');
+}
+function saveMentorContact(){
+  const id=document.getElementById('mc-mentor-id').value;
+  const m=(S.mentors||[]).find(x=>x.id===id);
+  if(!m)return;
+  const date=document.getElementById('mc-date').value||new Date().toISOString().slice(0,10);
+  const notes=document.getElementById('mc-notes').value.trim();
+  const insight=document.getElementById('mc-insight').value.trim();
+  m.lastContact=date;
+  if(notes&&!m.notes)m.notes=notes;
+  if(insight){if(!m.keyInsights)m.keyInsights=[];m.keyInsights.push({date,insight});}
+  save();closeM('mentor-contact-modal');renderMentors();toast('📞 Contact logged!');
 }
 async function aiSuggestMentors(){
   const prompt=`Panos is a founder in his 20s building Givelink (nonprofit fundraising platform). Goals: ${(S.goals||[]).slice(0,5).map(g=>g.title).join(', ')}.
@@ -10662,6 +10676,22 @@ function _goalMomentum(goalId){
     <div class="mf">
       <button class="btn bg" onclick="closeM('mentor-modal')">Cancel</button>
       <button class="btn bp" onclick="saveMentor()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MENTOR CONTACT LOG MODAL -->
+<div class="mo hidden" id="mentor-contact-modal" onclick="if(event.target===this)closeM('mentor-contact-modal')">
+  <div class="md" style="width:440px;">
+    <div class="mh"><h3>📞 Log Mentor Contact</h3><button class="mc" aria-label="Close" onclick="closeM('mentor-contact-modal')">×</button></div>
+    <div style="font-size:13px;font-weight:600;color:var(--accent);margin-bottom:12px;" id="mc-mentor-name"></div>
+    <input type="hidden" id="mc-mentor-id">
+    <div class="fg"><label>Date</label><input class="fc" id="mc-date" type="date"></div>
+    <div class="fg"><label>Notes (optional)</label><textarea class="fc" id="mc-notes" rows="2" placeholder="What did you discuss?"></textarea></div>
+    <div class="fg"><label>Key Insight (optional)</label><textarea class="fc" id="mc-insight" rows="2" placeholder="What's the most valuable thing you took away?"></textarea></div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('mentor-contact-modal')">Cancel</button>
+      <button class="btn bp" onclick="saveMentorContact()">Save</button>
     </div>
   </div>
 </div>

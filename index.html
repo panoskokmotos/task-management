@@ -1439,6 +1439,7 @@ Read 50 books this year"></textarea>
     </div>
   </div>
   <div class="los-grid" id="finance-stats"></div>
+  <div id="passive-trend-chart" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px;"></div>
   <div class="g2">
     <div class="los-card">
       <h3>💸 Income Entries</h3>
@@ -1573,6 +1574,7 @@ Read 50 books this year"></textarea>
     </div>
   </div>
   <div class="los-grid" id="dis-stats"></div>
+  <div id="dis-breakdown" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:10px 14px;margin-bottom:14px;"></div>
   <div id="dis-ai-out" style="margin-bottom:14px;"></div>
   <div id="dis-list"></div>
 </div>
@@ -3749,6 +3751,28 @@ function renderFinance(){
     const g=i.current-i.amount;const pct=i.amount?((g/i.amount)*100).toFixed(1):0;
     return`<div class="fin-row"><span>📈 ${i.name}<br><span style="font-size:10px;color:var(--muted);">Invested: €${i.amount.toLocaleString()}</span></span><span style="text-align:right;"><div style="font-weight:600;">€${i.current.toLocaleString()}</div><div style="font-size:10px;color:${g>=0?'#69db7c':'#ff6b6b'};">${g>=0?'+':''}${pct}%</div></span></div>`;
   }).join('')||'<div class="empty" style="padding:12px 0;">No investments yet</div>';
+  // Passive income 6-month trend chart
+  const ptEl=document.getElementById('passive-trend-chart');
+  if(ptEl){
+    const months=[];const today2=new Date();
+    for(let i=5;i>=0;i--){const d=new Date(today2.getFullYear(),today2.getMonth()-i,1);months.push({yr:d.getFullYear(),mo:d.getMonth(),label:d.toLocaleString('default',{month:'short'})});}
+    const vals=months.map(m=>entries.filter(e=>e.type==='passive'&&new Date(e.date).getFullYear()===m.yr&&new Date(e.date).getMonth()===m.mo).reduce((s,e)=>s+e.amount,0));
+    const maxV=Math.max(...vals,1);
+    const W=320,H=60,pad=4,n=vals.length;
+    const norm=vals.map(v=>v/maxV);
+    const px2=(i)=>pad+(i/(n-1))*(W-pad*2);
+    const py2=(v)=>H-pad-(v*(H-pad*2));
+    const hasData=vals.some(v=>v>0);
+    ptEl.innerHTML=`<div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--muted);">📈 Passive Income — 6-Month Trend (goal: €300/mo)</div>`+
+      (hasData?`<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:60px;overflow:visible;">
+        <path d="${norm.map((v,i)=>`${i===0?'M':'L'}${px2(i).toFixed(1)},${py2(v).toFixed(1)}`).join(' ')}" fill="none" stroke="#74c0fc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        ${norm.map((v,i)=>`<circle cx="${px2(i).toFixed(1)}" cy="${py2(v).toFixed(1)}" r="3.5" fill="#74c0fc"/>
+          <text x="${px2(i).toFixed(1)}" y="${(py2(v)-7).toFixed(1)}" text-anchor="middle" font-size="8" fill="#74c0fc" font-weight="600">€${vals[i]||0}</text>`).join('')}
+        <line x1="${px2(0)}" y1="${py2(300/maxV)}" x2="${px2(n-1)}" y2="${py2(300/maxV)}" stroke="#69db7c" stroke-width="1" stroke-dasharray="3 2" opacity="0.5"/>
+      </svg>
+      <div style="display:flex;justify-content:space-between;margin-top:2px;">${months.map(m=>`<span style="font-size:9px;color:var(--muted);">${m.label}</span>`).join('')}</div>`
+      :`<div style="font-size:12px;color:var(--muted);text-align:center;padding:14px 0;">No passive income logged yet — add entries with type "passive"</div>`);
+  }
   _renderPortfolioSection();
 }
 function openAddFinance(id=null){
@@ -4081,10 +4105,16 @@ function renderDiscomfort(){
   const mo=now.getMonth(),yr=now.getFullYear();
   const thisMonth=logs.filter(l=>{const d=new Date(l.date);return d.getMonth()===mo&&d.getFullYear()===yr;});
   const avgDiff=thisMonth.length?Math.round(thisMonth.reduce((s,l)=>s+l.difficulty,0)/thisMonth.length*10)/10:0;
+  // Breakdown by type
+  const TYPE_LABELS={cold:'❄️ Cold',fast:'🍽️ Fasting','hard-convo':'💬 Hard Convo',public:'🎤 Public',physical:'🏃 Physical',social:'👥 Social',other:'📌 Other'};
+  const byType={};logs.forEach(l=>{const t=l.type||'other';byType[t]=(byType[t]||0)+1;});
+  const typeBreakdown=Object.entries(byType).sort((a,b)=>b[1]-a[1]).map(([t,c])=>`<span style="font-size:11px;background:rgba(255,107,107,.1);color:#ff6b6b;padding:2px 7px;border-radius:8px;">${TYPE_LABELS[t]||t}: ${c}</span>`).join(' ');
   document.getElementById('dis-stats').innerHTML=`
     <div class="los-card los-stat"><div class="los-stat-n" style="color:#ff6b6b;">${thisMonth.length}</div><div class="los-stat-l">Challenges this month</div></div>
     <div class="los-card los-stat"><div class="los-stat-n" style="color:#fbbf24;">${avgDiff||'—'}</div><div class="los-stat-l">Avg difficulty</div></div>
     <div class="los-card los-stat"><div class="los-stat-n" style="color:#da77f2;">${logs.length}</div><div class="los-stat-l">Total challenges</div></div>`;
+  const breakdownEl=document.getElementById('dis-breakdown');
+  if(breakdownEl)breakdownEl.innerHTML=logs.length?`<div style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px;">Breakdown by Type</div><div style="display:flex;flex-wrap:wrap;gap:5px;">${typeBreakdown}</div>`:'';
   document.getElementById('dis-list').innerHTML=logs.slice().sort((a,b)=>a.date>b.date?-1:1).map(l=>`
     <div class="dis-row">
       <div style="display:flex;align-items:center;justify-content:space-between;">
@@ -5036,7 +5066,7 @@ function _levelUp(n){
 
 const BADGES=[
   {id:'first-task',name:'🎯 First Step',desc:'Complete your first task',check:()=>(S.tasks||[]).filter(t=>t.status==='done').length>=1},
-  {id:'deep-thinker',name:'🧠 Deep Thinker',desc:'Complete 10 deep tasks',check:()=>(S.tasks||[]).filter(t=>t.status==='done'&&t.depth==='deep').length>=10},
+  {id:'deep-thinker',name:'🧠 Deep Thinker',desc:'Complete 10 deep work sessions',check:()=>(S.deepWorkSessions||[]).length>=10},
   {id:'streak-7',name:'🔥 Week Warrior',desc:'Achieve a 7-day habit streak',check:()=>_habitStreak()>=7},
   {id:'centurion',name:'💯 Centurion',desc:'Complete 100 tasks',check:()=>(S.tasks||[]).filter(t=>t.status==='done').length>=100},
   {id:'goal-getter',name:'🏆 Goal Getter',desc:'Mark a goal as complete',check:()=>(S.goals||[]).some(g=>g.status==='done'||g.complete)},
@@ -5705,11 +5735,11 @@ function _genDailyQuests(){
   if(S.questsDate===today)return;
   const shuffled=[...QUEST_TEMPLATES].sort(()=>Math.random()-.5).slice(0,3);
   const quests=shuffled.map(q=>({id:q.id,text:q.text,xp:q.xp,done:false}));
-  // OKR-connected quests
+  // OKR-connected quests — always add one if active OKRs exist
   const activeOKRs=(S.okrs||[]).filter(o=>o.objective&&(!o.completed));
-  if(activeOKRs.length&&quests.length<5){
+  if(activeOKRs.length){
     const okr=activeOKRs[Math.floor(Math.random()*activeOKRs.length)];
-    quests.push({id:'q-okr-'+uid(),text:`Complete 1 task linked to OKR: ${okr.objective.slice(0,40)}`,xp:20,done:false,linkedOKR:okr.id});
+    quests.push({id:'q-okr-'+uid(),text:`Work on OKR: ${okr.objective.slice(0,45)}`,xp:20,done:false,linkedOKR:okr.id});
   }
   S.dailyQuests=quests;
   S.questsDate=today;
@@ -8891,7 +8921,7 @@ function renderWishlist(){
     </div>`;
   }).join(''):'<div class="empty">No wishlist items yet. Add something!</div>';
 }
-function markWishBought(id){const i=(S.wishlist||[]).findIndex(x=>x.id===id);if(i<0)return;S.wishlist[i].bought=true;save();renderWishlist();toast('Bought! 🎉');}
+function markWishBought(id){const i=(S.wishlist||[]).findIndex(x=>x.id===id);if(i<0)return;S.wishlist[i].bought=true;save();renderWishlist();toast('Bought! 🎉 +5 XP');awardXP(5,'wishlist-bought');}
 function openAddWish(prefill){
   document.getElementById('wish-edit-id').value='';
   document.getElementById('wish-title').value=prefill||'';
@@ -9203,12 +9233,15 @@ function saveContent(){
   const obj={id:editId||uid(),title,type:document.getElementById('content-type').value,platform:document.getElementById('content-platform').value,notes:document.getElementById('content-notes').value.trim(),date:document.getElementById('content-date').value,url:document.getElementById('content-url').value.trim(),createdAt:editId?undefined:new Date().toISOString()};
   if(editId){const i=S.contentPipeline.findIndex(c=>c.id===editId);if(i>=0)S.contentPipeline[i]={...S.contentPipeline[i],...obj};}
   else S.contentPipeline.push(obj);
-  save();closeM('content-modal');renderContent();toast('Content saved!');
+  save();closeM('content-modal');renderContent();toast('Content saved! 📝 +10 XP');awardXP(10,'content');
 }
 async function aiContentIdeas(){
-  const prompt=`You are a content strategist for Panos, founder of Givelink (nonprofit fundraising platform). His brand: ${S.brandStatement||'founder building nonprofit tech, personal finance, productivity'}.
-His goals: ${(S.goals||[]).slice(0,3).map(g=>g.title).join(', ')}.
-Generate 5 high-value content ideas for LinkedIn/Twitter that match his expertise (Givelink, personal finance, productivity, founder journey). For each: Title, Platform, Hook (1 sentence). Format as numbered list.`;
+  const brand=S.brandStatement||'Greek founder building Givelink (nonprofit fundraising SaaS), personal finance & productivity';
+  const goals=(S.goals||[]).slice(0,3).map(g=>g.title).join(', ')||'scale Givelink, financial freedom, SF move';
+  const recentWins=(S.wins||[]).slice(-5).map(w=>w.title||w.text).filter(Boolean).join(', ')||'none logged yet';
+  const recent=(S.contentPipeline||[]).slice(-3).map(c=>c.title).join(', ');
+  const prompt=`You are a content strategist for Panos. Brand: ${brand}.\nGoals: ${goals}.\nRecent wins: ${recentWins}.\n${recent?`Recent content (avoid repeating): ${recent}.\n`:''}
+Generate 5 high-value content ideas for LinkedIn/X that showcase his expertise and build an audience of nonprofit leaders + founders. For each: Title, Platform, Hook (1 sentence), Why it resonates. Format as numbered list.`;
   const out=await callClaude(prompt,500);
   const el=document.getElementById('content-ai-out');
   if(el){el.style.display='';el.innerHTML=`<div style="background:var(--surface2);border-radius:10px;padding:12px 14px;"><div style="font-size:12px;font-weight:700;margin-bottom:8px;">🤖 AI Content Ideas</div><div style="font-size:13px;white-space:pre-wrap;">${esc(out)}</div></div>`;}
@@ -9384,6 +9417,35 @@ function renderSleep(){
     <div class="los-card los-stat"><div class="los-stat-n" style="color:#a78bfa;">${checkCompletion}%</div><div class="los-stat-l">Pre-Sleep Checklist</div></div>
   </div>`;
   const last7=S.sleepLogs.slice().reverse().slice(0,7);
+  // Trend chart
+  const chartEl=document.getElementById('sleep-trend-chart');
+  if(chartEl){
+    if(last7.length>=2){
+      const pts=last7.slice().reverse();
+      const W=280,H=60,pad=4;
+      const n=pts.length;
+      const hoursNorm=pts.map(l=>Math.min(1,(l.hoursSlept||0)/9));
+      const qualNorm=pts.map(l=>Math.min(1,(l.quality||0)/5));
+      const px=(i)=>pad+(i/(n-1))*(W-pad*2);
+      const py=(v)=>H-pad-(v*(H-pad*2));
+      const hLine=hoursNorm.map((v,i)=>`${i===0?'M':'L'}${px(i).toFixed(1)},${py(v).toFixed(1)}`).join(' ');
+      const qLine=qualNorm.map((v,i)=>`${i===0?'M':'L'}${px(i).toFixed(1)},${py(v).toFixed(1)}`).join(' ');
+      chartEl.innerHTML=`<div style="font-size:12px;font-weight:600;margin-bottom:6px;color:var(--muted);">📊 7-Night Trend</div>
+      <svg viewBox="0 0 ${W} ${H}" style="width:100%;height:60px;overflow:visible;">
+        <path d="${hLine}" fill="none" stroke="#58a6ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="${qLine}" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4 2"/>
+        ${hoursNorm.map((v,i)=>`<circle cx="${px(i).toFixed(1)}" cy="${py(v).toFixed(1)}" r="3" fill="#58a6ff"/>`).join('')}
+        ${qualNorm.map((v,i)=>`<circle cx="${px(i).toFixed(1)}" cy="${py(v).toFixed(1)}" r="3" fill="#fbbf24"/>`).join('')}
+      </svg>
+      <div style="display:flex;gap:14px;margin-top:4px;font-size:10px;color:var(--muted);">
+        <span><span style="color:#58a6ff;">●</span> Hours (÷9)</span>
+        <span><span style="color:#fbbf24;">●</span> Quality (÷5)</span>
+        <span style="margin-left:auto;">${pts[0]?.date?.slice(5)||''} → ${pts[pts.length-1]?.date?.slice(5)||''}</span>
+      </div>`;
+    } else {
+      chartEl.innerHTML='';
+    }
+  }
   if(logEl)logEl.innerHTML=last7.length?`<div style="font-size:13px;font-weight:600;margin-bottom:10px;">Last 7 nights</div>
     <div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;">
       <thead><tr style="color:var(--muted);">
@@ -9751,7 +9813,7 @@ function saveMentor(){
   const obj={id:editId||uid(),name,area:document.getElementById('mentor-area').value,contactFreq:document.getElementById('mentor-freq').value,lastContact:document.getElementById('mentor-last').value,notes:document.getElementById('mentor-notes').value.trim(),keyInsights:[]};
   if(editId){const i=S.mentors.findIndex(x=>x.id===editId);if(i>=0)S.mentors[i]={...S.mentors[i],...obj,keyInsights:S.mentors[i].keyInsights||[]};}
   else S.mentors.push(obj);
-  save();closeM('mentor-modal');renderMentors();toast('🎓 Mentor saved!');
+  save();closeM('mentor-modal');renderMentors();toast('🎓 Mentor saved! +10 XP');awardXP(10,'mentor');
 }
 function logMentorContact(id){
   const m=(S.mentors||[]).find(x=>x.id===id);
@@ -9776,8 +9838,11 @@ function saveMentorContact(){
   save();closeM('mentor-contact-modal');renderMentors();toast('📞 Contact logged!');
 }
 async function aiSuggestMentors(){
-  const prompt=`Panos is a founder in his 20s building Givelink (nonprofit fundraising platform). Goals: ${(S.goals||[]).slice(0,5).map(g=>g.title).join(', ')}.
-Suggest 5 ideal mentor profiles (one per life area: career, finance, health, relationships, business). For each: Area, Ideal Profile, Why they'd be valuable, How to find them. Keep each concise.`;
+  const about=getAboutMe()||'Panos — Greek founder in his 20s building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';
+  const goals=(S.goals||[]).slice(0,5).map(g=>g.title).join(', ')||'financial freedom, SF move, scale Givelink';
+  const existing=(S.mentors||[]).map(m=>m.area).join(', ');
+  const prompt=`Context: ${about}\nGoals: ${goals}.\n${existing?`Existing mentor areas: ${existing}. Avoid duplicates.\n`:''}
+Suggest 5 ideal mentor profiles for Panos right now. Focus on areas most impactful for a SaaS founder targeting nonprofit clients, financial freedom, and relocating to SF. For each: Area, Ideal Profile (role/background), Why valuable for Panos specifically, Where to find them (specific communities/platforms). Keep each concise and actionable.`;
   const out=await callClaude(prompt,500);
   const el=document.getElementById('mentors-ai-out');
   if(el){el.style.display='';el.innerHTML=`<div style="background:var(--surface2);border-radius:10px;padding:12px;font-size:12px;white-space:pre-wrap;">${esc(out)}</div>`;}
@@ -10538,6 +10603,7 @@ function _goalMomentum(goalId){
   </div>
   <div id="sleep-ai-out" style="margin-bottom:14px;"></div>
   <div id="sleep-summary" style="margin-bottom:16px;"></div>
+  <div id="sleep-trend-chart" style="background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:16px;"></div>
   <div id="sleep-log"></div>
 </div>
 

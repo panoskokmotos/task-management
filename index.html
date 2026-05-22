@@ -2152,6 +2152,8 @@ function refresh(){const a=document.querySelector('.view.active');if(a)renderVie
 
 // ── DASHBOARD ─────────────────────────────────────────────────
 function renderDash(){
+  // Auto-recalc Life Score once per day
+  if(!S.lifeScore||new Date(S.lifeScore.lastCalc||0).toDateString()!==new Date().toDateString()){calcLifeScore();save();}
   _updateXPBar();
   if(!sessionStorage.getItem('xp_animated')){
     sessionStorage.setItem('xp_animated','1');
@@ -2634,6 +2636,11 @@ function openAdd(bucket='inbox',goalId=null){
   document.getElementById('tm').classList.remove('hidden');
   setTimeout(()=>_trapFocus(document.getElementById('tm')),50);
   document.getElementById('t-title').focus();
+}
+function _openAddWithTitle(bucket,title){
+  openAdd(bucket);
+  const el=document.getElementById('t-title');
+  if(el){el.value=title;el.focus();}
 }
 
 function openEdit(id){
@@ -4060,6 +4067,7 @@ function dwReset(){
 }
 
 // ── HABITS ─────────────────────────────────────────────────────
+let _habitHeatmapDays=28;
 function renderHabits(){
   const today=new Date().toISOString().slice(0,10);
   document.getElementById('habits-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
@@ -4095,11 +4103,16 @@ function renderHabits(){
       </div>`;
     }).join('');
   }
-  // Heatmap (last 28 days)
-  const days=[];for(let i=27;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10));}
-  document.getElementById('habits-heat').innerHTML=habits.length?habits.map(h=>`
+  // Heatmap (last _habitHeatmapDays days) with toggle
+  const heatDays=_habitHeatmapDays||28;
+  const days=[];for(let i=heatDays-1;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days.push(d.toISOString().slice(0,10));}
+  const heatEl=document.getElementById('habits-heat');
+  if(heatEl){
+    const toggleHtml=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;"><div style="font-size:12px;font-weight:600;color:var(--muted);">Heatmap</div><div style="display:flex;gap:3px;background:var(--surface2);border-radius:6px;padding:2px;"><button onclick="_habitHeatmapDays=28;renderHabits()" style="padding:2px 9px;border-radius:4px;border:none;cursor:pointer;font-size:11px;font-weight:600;background:${heatDays===28?'var(--accent)':'transparent'};color:${heatDays===28?'#000':'var(--muted)'};">28d</button><button onclick="_habitHeatmapDays=90;renderHabits()" style="padding:2px 9px;border-radius:4px;border:none;cursor:pointer;font-size:11px;font-weight:600;background:${heatDays===90?'var(--accent)':'transparent'};color:${heatDays===90?'#000':'var(--muted)'};">90d</button></div></div>`;
+    heatEl.innerHTML=toggleHtml+(habits.length?habits.map(h=>`
     <div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${h}</div>
-    <div class="heat-grid">${days.map(d=>{const done=(S.habitLogs?.[d]||{})[h];return`<div class="heat-cell ${done?'h4':''}" title="${d}"></div>`;}).join('')}</div></div>`).join(''):'';
+    <div style="display:grid;grid-template-columns:repeat(${heatDays===90?13:7},1fr);gap:3px;">${days.map(d=>{const done=(S.habitLogs?.[d]||{})[h];return`<div class="heat-cell ${done?'h4':''}" title="${d}"></div>`;}).join('')}</div></div>`).join(''):'');
+  }
   renderHabitProjector();
   renderRoutines();
 }
@@ -5123,6 +5136,11 @@ const BADGES=[
   {id:'content-creator',name:'✍️ Content Creator',desc:'Publish 5 pieces of content',check:()=>(S.contentPipeline||[]).filter(c=>c.type==='published').length>=5},
   {id:'bookworm',name:'📚 Bookworm',desc:'Finish 5 books',check:()=>(S.books||[]).filter(b=>b.finishedAt).length>=5},
   {id:'reader-100',name:'📖 Avid Reader',desc:'Finish 10 books',check:()=>(S.books||[]).filter(b=>b.finishedAt).length>=10},
+  {id:'okr-crusher',name:'🎯 OKR Crusher',desc:'Complete all KRs in one OKR',check:()=>(S.okrs||[]).some(o=>(o.keyResults||[]).length>0&&(o.keyResults||[]).every(kr=>(kr.current||0)>=(kr.target||1)))},
+  {id:'gl-10',name:'🌱 10 Nonprofits',desc:'Onboard 10 nonprofits to Givelink',check:()=>(S.givelinkMetrics?.nonprofits||0)>=10},
+  {id:'gl-50',name:'🌿 50 Nonprofits',desc:'Onboard 50 nonprofits to Givelink',check:()=>(S.givelinkMetrics?.nonprofits||0)>=50},
+  {id:'gl-100',name:'🌳 100 Nonprofits',desc:'Onboard 100 nonprofits to Givelink',check:()=>(S.givelinkMetrics?.nonprofits||0)>=100},
+  {id:'sleep-streak',name:'😴 Sleep Streak',desc:'Log 7+ hours for 7 consecutive nights',check:()=>{const logs=(S.sleepLogs||[]).slice().sort((a,b)=>a.date>b.date?1:-1).slice(-7);return logs.length>=7&&logs.every(l=>(l.hoursSlept||0)>=7);}},
 ];
 
 function checkBadges(){
@@ -5580,7 +5598,21 @@ Be direct. Prioritize tasks that drive Givelink revenue/nonprofits or unlock fin
   const text=await callClaude(prompt,350);
   if(!text)return;
   const el=document.getElementById('daily-picks-ai-result');
-  if(el){el.innerHTML=`<div style="background:rgba(88,166,255,.08);border-radius:8px;padding:10px;border-left:3px solid var(--accent);"><div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:6px;">🤖 AI Recommendation</div><div style="font-size:12px;line-height:1.7;white-space:pre-line;">${esc(text)}</div></div>`;awardXP(2,'ai-picks');}
+  if(el){
+    // Parse numbered lines to add "+ Add" buttons
+    const lines=text.split('\n').filter(l=>/^\d+[\.\)]/.test(l.trim()));
+    const itemsHtml=lines.map(line=>{
+      const titleMatch=line.match(/^\d+[\.\)]\s*(.+?)(?:\s*—|\s*-|\s*:|$)/);
+      const title=titleMatch?titleMatch[1].trim():line.replace(/^\d+[\.\)]\s*/,'').split('—')[0].trim();
+      return`<div style="display:flex;align-items:flex-start;gap:8px;margin-bottom:6px;font-size:12px;line-height:1.6;">
+        <div style="flex:1;">${esc(line.trim())}</div>
+        ${title?`<button onclick="_openAddWithTitle('this-week',${JSON.stringify(title)})" style="flex-shrink:0;padding:2px 8px;border-radius:5px;border:none;background:var(--accent);color:#000;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">+ Add</button>`:''}
+      </div>`;
+    }).join('');
+    const body=lines.length?itemsHtml:`<div style="font-size:12px;line-height:1.7;white-space:pre-line;">${esc(text)}</div>`;
+    el.innerHTML=`<div style="background:rgba(88,166,255,.08);border-radius:8px;padding:10px;border-left:3px solid var(--accent);"><div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:6px;">🤖 AI Recommendation</div>${body}</div>`;
+    awardXP(2,'ai-picks');
+  }
 }
 let _dashStatsShown=false;
 function _toggleDashStats(){
@@ -6520,27 +6552,36 @@ Format: engaging, personal voice. Sections: 1) This week's win (1-2 sentences), 
 // ════════════════════════════════════════════════════════════════
 function renderGivelinkDash(){
   const m=S.givelinkMetrics||{nonprofits:0,pipeline:0,arr:0,users:0,impactStories:[],mrr:0};
+  const _glHistSnap=S.givelinkHistory||[];
+  const _prevSnap=_glHistSnap.length>=2?_glHistSnap[_glHistSnap.length-2]:_glHistSnap[0]||null;
+  function _glTrend(key,cur){
+    if(!_prevSnap||_prevSnap[key]===undefined)return'';
+    const prev=_prevSnap[key]||0;
+    if(cur>prev)return`<span style="color:#69db7c;font-size:12px;">↑</span>`;
+    if(cur<prev)return`<span style="color:#ef4444;font-size:12px;">↓</span>`;
+    return`<span style="color:var(--muted);font-size:12px;">→</span>`;
+  }
   const statsEl=document.getElementById('gl-stats');
   if(statsEl){statsEl.style.gridTemplateColumns='repeat(auto-fit,minmax(90px,1fr))';statsEl.innerHTML=`
     <div class="los-card los-stat" style="cursor:pointer;" onclick="openGivelinkMetrics()">
-      <div class="los-stat-n" style="color:#a78bfa;">${m.nonprofits}</div>
+      <div class="los-stat-n" style="color:#a78bfa;">${m.nonprofits} ${_glTrend('nonprofits',m.nonprofits||0)}</div>
       <div class="los-stat-l">Nonprofits<br><span style="font-size:9px;">goal: 100</span></div>
       <div class="gp" style="margin-top:6px;"><div class="gp-fill" style="width:${Math.min(100,m.nonprofits)}%;background:#a78bfa;"></div></div>
     </div>
     <div class="los-card los-stat" onclick="openGivelinkMetrics()" style="cursor:pointer;">
-      <div class="los-stat-n" style="color:#fbbf24;">${m.pipeline}</div>
+      <div class="los-stat-n" style="color:#fbbf24;">${m.pipeline} ${_glTrend('pipeline',m.pipeline||0)}</div>
       <div class="los-stat-l">Pipeline Deals</div>
     </div>
     <div class="los-card los-stat" onclick="openGivelinkMetrics()" style="cursor:pointer;">
-      <div class="los-stat-n" style="color:#69db7c;">€${(m.mrr||0).toLocaleString()}</div>
+      <div class="los-stat-n" style="color:#69db7c;">€${(m.mrr||0).toLocaleString()} ${_glTrend('mrr',m.mrr||0)}</div>
       <div class="los-stat-l">MRR</div>
     </div>
     <div class="los-card los-stat" onclick="openGivelinkMetrics()" style="cursor:pointer;">
-      <div class="los-stat-n" style="color:#22d3ee;">€${(m.arr||0).toLocaleString()}</div>
+      <div class="los-stat-n" style="color:#22d3ee;">€${(m.arr||0).toLocaleString()} ${_glTrend('arr',m.arr||0)}</div>
       <div class="los-stat-l">ARR</div>
     </div>
     <div class="los-card los-stat" onclick="openGivelinkMetrics()" style="cursor:pointer;">
-      <div class="los-stat-n" style="color:#f783ac;">${(m.users||0).toLocaleString()}</div>
+      <div class="los-stat-n" style="color:#f783ac;">${(m.users||0).toLocaleString()} ${_glTrend('users',m.users||0)}</div>
       <div class="los-stat-l">Users Reached</div>
     </div>`;}
   const impactEl=document.getElementById('gl-impact-counter');
@@ -6635,7 +6676,7 @@ function saveGivelinkMetrics(){
   S.givelinkMetrics.users=parseInt(document.getElementById('gl-users').value)||0;
   const story=document.getElementById('gl-story').value.trim();
   if(story){if(!S.givelinkMetrics.impactStories)S.givelinkMetrics.impactStories=[];S.givelinkMetrics.impactStories.push(story);}
-  save();closeM('givelink-metrics-modal');renderGivelinkDash();toast('Givelink metrics updated!');
+  save();closeM('givelink-metrics-modal');renderGivelinkDash();toast('Givelink metrics updated!');checkBadges();
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -6730,7 +6771,7 @@ function renderOKRs(){
         </div>
       </div>
       ${krs.map(kr=>{const pct=kr.target?Math.min(100,Math.round(kr.current/kr.target*100)):0;return`<div style="margin-bottom:10px;">
-        <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px;"><span>${esc(kr.title)}</span><span style="color:var(--muted);">${kr.current||0}/${kr.target||0} ${kr.unit||''}</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;margin-bottom:3px;"><span>${esc(kr.title)}</span><div style="display:flex;align-items:center;gap:6px;"><span style="color:var(--muted);">${kr.current||0}/${kr.target||0} ${kr.unit||''}</span><button onclick="event.stopPropagation();_krBump('${o.id}','${kr.id}')" style="padding:1px 7px;border-radius:5px;border:1px solid var(--border);background:var(--surface2);color:var(--accent);font-size:11px;font-weight:700;cursor:pointer;">+1</button></div></div>
         <div class="gp"><div class="gp-fill" style="width:${pct}%;background:${pct>=expectedPct?'#69db7c':pct>=expectedPct*0.7?'#fbbf24':'#ff6b6b'};"></div></div>
         <div style="font-size:10px;color:var(--muted);margin-top:2px;text-align:right;">${pct}% · expected ${expectedPct}%</div>
       </div>`;}).join('')}
@@ -6775,6 +6816,12 @@ function saveOKR(){
   save();closeM('okr-modal');renderOKRs();toast('OKR saved!');awardXP(10,'okr');
 }
 function deleteOKR(id){if(!id)return;showConfirm('Delete this OKR?',ok=>{if(!ok)return;S.okrs=(S.okrs||[]).filter(x=>x.id!==id);save();closeM('okr-modal');renderOKRs();toast('OKR deleted');},{okLabel:'Delete'});}
+function _krBump(okrId,krId){
+  const okr=(S.okrs||[]).find(o=>o.id===okrId);if(!okr)return;
+  const kr=(okr.keyResults||[]).find(k=>k.id===krId);if(!kr)return;
+  kr.current=Math.min(kr.target||Infinity,(kr.current||0)+1);
+  save();renderOKRs();toast('📈 KR updated! +1');awardXP(2,'kr-bump');
+}
 
 // ════════════════════════════════════════════════════════════════
 // FEATURE 5 — LONGEVITY BIOMARKERS
@@ -9576,7 +9623,7 @@ function saveSleep(){
   const obj={id:editId||uid(),date,bedTime:bed,wakeTime:wake,hoursSlept,quality,preChecklist,notes:document.getElementById('sl-notes').value.trim(),readinessScore};
   if(editId){const i=S.sleepLogs.findIndex(l=>l.id===editId);if(i>=0)S.sleepLogs[i]=obj;}
   else S.sleepLogs.push(obj);
-  save();closeM('sleep-modal');renderSleep();toast('😴 Sleep logged! +5 XP');awardXP(5,'sleep');
+  save();closeM('sleep-modal');renderSleep();toast('😴 Sleep logged! +5 XP');awardXP(5,'sleep');checkBadges();
 }
 async function aiSleepInsight(){
   const logs=(S.sleepLogs||[]).slice(-14);
@@ -9593,8 +9640,24 @@ async function aiSleepInsight(){
   const el=document.getElementById('sleep-ai-out');
   if(el)el.innerHTML='<div style="font-size:12px;color:var(--muted);">⏳ Analyzing your sleep data...</div>';
   const result=await callClaude(prompt,400);
-  if(el&&result){el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(88,166,255,.07),rgba(116,192,252,.05));border:1px solid rgba(88,166,255,.2);border-radius:10px;padding:12px 14px;"><div style="font-size:11px;font-weight:700;color:#74c0fc;text-transform:uppercase;margin-bottom:6px;">😴 AI Sleep Analysis</div><div style="font-size:13px;line-height:1.6;white-space:pre-wrap;">${esc(result)}</div></div>`;awardXP(2,'ai-sleep');}
+  if(el&&result){
+    el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(88,166,255,.07),rgba(116,192,252,.05));border:1px solid rgba(88,166,255,.2);border-radius:10px;padding:12px 14px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="font-size:11px;font-weight:700;color:#74c0fc;text-transform:uppercase;">😴 AI Sleep Analysis</div>
+        <button onclick="_saveSleepInsight(${JSON.stringify(result)})" style="padding:3px 9px;border-radius:5px;border:1px solid rgba(116,192,252,.3);background:rgba(116,192,252,.1);color:#74c0fc;font-size:11px;font-weight:600;cursor:pointer;">💾 Save Insight</button>
+      </div>
+      <div style="font-size:13px;line-height:1.6;white-space:pre-wrap;">${esc(result)}</div>
+    </div>`;
+    awardXP(2,'ai-sleep');
+  }
   else if(el)el.innerHTML='';
+}
+function _saveSleepInsight(text){
+  if(!S.sleepLogs||!S.sleepLogs.length){toast('No sleep log to attach insight to');return;}
+  const last=S.sleepLogs[S.sleepLogs.length-1];
+  last.aiInsight=text;
+  save();
+  toast('💾 Insight saved to sleep log!');
 }
 
 // ── BODY COMPOSITION ──────────────────────────────────────────
@@ -9962,8 +10025,9 @@ function _renderCalGrid(){
       </div>`;
     }).join('')}
   </div>
-  <div style="margin-top:16px;"><div style="font-size:12px;font-weight:600;color:var(--muted);margin-bottom:8px;">📋 This Week (no due date)</div>
-    <div style="display:flex;flex-wrap:wrap;gap:6px;">${S.tasks.filter(t=>t.bucket==='this-week'&&t.status!=='done'&&!t.dueDate).map(t=>`<div onclick="openEdit('${t.id}')" style="cursor:pointer;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:5px 10px;font-size:12px;">${esc(t.title).slice(0,30)}</div>`).join('')||'<div style="color:var(--muted);font-size:12px;">None</div>'}</div>
+  <div style="margin-top:14px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 12px;">
+    <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">📋 This Week — no due date</div>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:5px;">${S.tasks.filter(t=>t.bucket==='this-week'&&t.status!=='done'&&!t.dueDate).map(t=>`<div onclick="openEdit('${t.id}')" style="cursor:pointer;background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:5px 8px;font-size:11px;font-weight:500;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${esc(t.title).slice(0,35)}</div>`).join('')||'<div style="color:var(--muted);font-size:12px;grid-column:1/-1;">All this-week tasks have a due date assigned.</div>'}</div>
   </div>`;
 }
 

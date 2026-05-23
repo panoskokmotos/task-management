@@ -628,7 +628,15 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 
 <!-- GOALS -->
 <div id="v-goals" class="view">
-  <div class="ph"><div><h1>🏆 Goals & Progress</h1><p class="sub">Every task should serve a goal.</p></div><div style="display:flex;gap:6px;"><button class="btn bg sm" onclick="showGoalDigest()">🤖 How am I doing?</button><button class="btn bp" onclick="openAddGoal()">+ Add Goal</button></div></div>
+  <div class="ph">
+    <div><h1>🏆 Goals & Progress</h1><p class="sub">Every task should serve a goal.</p></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap;">
+      <button class="btn bg sm" onclick="showGoalDigest()">🤖 How am I doing?</button>
+      <button class="btn bg sm" onclick="openOKRs()">🎯 OKRs</button>
+      <button class="btn bg sm" onclick="bulkGenerateGoalTasks()">📋 Fill Goals</button>
+      <button class="btn bp" onclick="openAddGoal()">+ Add Goal</button>
+    </div>
+  </div>
   <h2>📊 Progress Dashboard</h2>
   <div class="goal-dash" id="goal-dash"></div>
   <hr>
@@ -1860,10 +1868,19 @@ function goalHTML(g){
     </div>`:''}
     ${done.length?`<div style="margin-bottom:10px;"><div style="font-size:12px;font-weight:600;color:#69db7c;margin-bottom:5px;">Recently done</div>${done.map(t=>`<div style="font-size:12px;color:var(--muted);padding:2px 0;text-decoration:line-through;">✓ ${esc(t.title)}</div>`).join('')}</div>`:''}
     ${metricHTML}${habitHTML}${finHTML}
-    <div style="display:flex;gap:8px;margin-top:12px;">
-      <button class="btn bp" onclick="openEditGoal('${g.id}');event.stopPropagation()">✏️ Edit Goal</button>
-      <button class="btn bg sm" onclick="openAdd();event.stopPropagation()" style="flex:1;">+ Add Task</button>
+    ${g.keyResults?.length?`<div style="margin-top:10px;padding:10px;background:var(--surface2);border-radius:8px;">
+      <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">🎯 Key Results</div>
+      ${g.keyResults.map(kr=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;">
+        <div style="flex:1;font-size:12px;color:var(--text);">${esc(kr.kr)}</div>
+        ${kr.target?`<span style="font-size:10px;font-weight:700;color:var(--muted);">→ ${esc(kr.target)} ${esc(kr.unit||'')}</span>`:''}
+      </div>`).join('')}
+    </div>`:''}
+    <div style="display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;">
+      <button class="btn bp" onclick="openEditGoal('${g.id}');event.stopPropagation()">✏️ Edit</button>
+      <button class="btn bg sm" onclick="openAdd();event.stopPropagation()">+ Task</button>
+      <button class="btn bg sm" data-gen="${g.id}" onclick="generateGoalTasks('${g.id}');event.stopPropagation()">🤖 Generate Tasks</button>
     </div>
+    <div id="gen-panel-${g.id}"></div>
   </div>`;
   return`<div class="gc ${g.isTop3?'top':''}" data-id="${g.id}" onclick="toggleGoalDetail('${g.id}',event)">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
@@ -6874,6 +6891,179 @@ function confirmPasteImport(){
 // shared close helper (some modals use closeModal, some closeM — unify)
 function closeModal(id){document.getElementById(id)?.classList.add('hidden');}
 
+// ── GOAL TASK GENERATION ──────────────────────────────────────
+async function generateGoalTasks(goalId){
+  const g=S.goals.find(x=>x.id===goalId);if(!g)return;
+  const btn=document.querySelector(`[data-gen="${goalId}"]`);
+  const panel=document.getElementById('gen-panel-'+goalId);
+  if(btn){btn.disabled=true;btn.textContent='⏳...';}
+  if(panel)panel.innerHTML='<div style="font-size:12px;color:var(--muted);padding:8px 0;">⏳ Generating tasks...</div>';
+  const about=getAboutMe();
+  const existing=S.tasks.filter(t=>t.goalId===goalId&&t.status!=='done').map(t=>t.title);
+  const prompt=`${about?'About me: '+about+'\n\n':''}Goal: "${g.title}"\nWhy it matters: ${g.description||'(no description)'}\n${existing.length?'Already have these tasks for it (skip duplicates): '+existing.join('; ')+'\n\n':'\n'}Generate 5 specific, high-leverage next actions to make progress on this goal. Be very concrete — not "research X" but "read chapter 3 of X book" or "book appointment with Y". Prioritize highest-leverage first.\n\nReturn ONLY a JSON array with NO markdown or explanation:\n[{"title":"...","urgency":"high|low","bucket":"this-week|backlog"}]`;
+  const txt=await callClaude(prompt,400);
+  if(btn){btn.disabled=false;btn.textContent='🤖 Generate Tasks';}
+  if(!txt){if(panel)panel.innerHTML='<div style="font-size:12px;color:#ef4444;padding:6px 0;">AI unavailable. Add your Claude key in ⚙️ Settings.</div>';return;}
+  try{
+    const tasks=JSON.parse(txt.match(/\[[\s\S]*\]/)?.[0]||'[]');
+    if(!tasks.length){if(panel)panel.innerHTML='<div style="font-size:12px;color:var(--muted);">No tasks generated — try again.</div>';return;}
+    window._genGoalTasks={goalId,tasks};
+    if(panel)panel.innerHTML=`<div style="margin-top:10px;padding:10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);">
+      <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px;">🤖 Generated — tap to add:</div>
+      ${tasks.map((t,i)=>`<div id="ggt-${goalId}-${i}" style="display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--border);">
+        <span style="flex:1;font-size:12px;">${esc(t.title)}</span>
+        <span style="font-size:10px;color:var(--muted);flex-shrink:0;">${t.bucket==='this-week'?'🔴 Week':'🟢 Backlog'}</span>
+        <button class="btn bg sm" style="flex-shrink:0;" onclick="addGenGoalTask(${i});event.stopPropagation()">+</button>
+      </div>`).join('')}
+      <button class="btn bg sm" style="margin-top:8px;width:100%;" onclick="addAllGenGoalTasks();event.stopPropagation()">+ Add All (${tasks.length})</button>
+    </div>`;
+  }catch(e){if(panel)panel.innerHTML='<div style="font-size:12px;color:#ef4444;padding:6px 0;">Could not parse tasks. Try again.</div>';}
+}
+function addGenGoalTask(i){
+  const {goalId,tasks}=window._genGoalTasks||{};
+  const t=tasks?.[i];if(!t)return;
+  S.tasks.push({id:uid(),title:t.title,notes:'',bucket:t.bucket||'backlog',category:'other',urgency:t.urgency||'low',importance:'high',energy:'high',status:'todo',isT3:false,t3s:null,createdAt:new Date().toISOString(),completedAt:null,goalId});
+  save();refresh();
+  const row=document.getElementById(`ggt-${goalId}-${i}`);
+  if(row){row.style.opacity='.45';const btn=row.querySelector('button');if(btn){btn.textContent='✓';btn.disabled=true;}}
+  toast('Task added to '+tasks[i].bucket+'!');
+}
+function addAllGenGoalTasks(){
+  const {goalId,tasks}=window._genGoalTasks||{};if(!tasks?.length)return;
+  let added=0;
+  tasks.forEach((t,i)=>{
+    if(document.getElementById(`ggt-${goalId}-${i}`)?.style.opacity==='.45')return;
+    S.tasks.push({id:uid(),title:t.title,notes:'',bucket:t.bucket||'backlog',category:'other',urgency:t.urgency||'low',importance:'high',energy:'high',status:'todo',isT3:false,t3s:null,createdAt:new Date().toISOString(),completedAt:null,goalId});
+    added++;
+  });
+  save();refresh();toast(`✅ ${added} tasks added!`);
+  renderGoals();
+}
+
+// ── BULK GENERATE TASKS FOR ALL EMPTY GOALS ──────────────────
+async function bulkGenerateGoalTasks(){
+  const emptyGoals=S.goals.filter(g=>S.tasks.filter(t=>t.goalId===g.id&&t.status!=='done').length===0);
+  if(!emptyGoals.length){toast('All goals already have tasks linked!');return;}
+  const modal=document.getElementById('bulk-gen-modal');
+  const body=document.getElementById('bulk-gen-body');
+  modal.classList.remove('hidden');
+  body.innerHTML=`<div style="padding:12px;color:var(--muted);">
+    <p>${emptyGoals.length} goals have no tasks yet. Generating 3 tasks per goal...</p>
+    <p style="font-size:11px;">This may take 30–60 seconds.</p>
+    <div id="bulk-progress"></div>
+  </div>`;
+  const prog=document.getElementById('bulk-progress');
+  const about=getAboutMe();
+  let totalAdded=0;
+  for(let i=0;i<Math.min(emptyGoals.length,15);i++){
+    const g=emptyGoals[i];
+    if(prog)prog.innerHTML=`<div style="font-size:12px;color:var(--muted);">Processing ${i+1}/${Math.min(emptyGoals.length,15)}: ${esc(g.title)}...</div>`;
+    const prompt=`Goal: "${g.title}"\nWhy: ${g.description||''}\n\nGenerate 3 concrete, actionable tasks. Return ONLY a JSON array:\n[{"title":"...","bucket":"this-week|backlog"}]`;
+    const txt=await callClaude(prompt,200);
+    if(!txt)continue;
+    try{
+      const tasks=JSON.parse(txt.match(/\[[\s\S]*\]/)?.[0]||'[]');
+      tasks.slice(0,3).forEach(t=>{
+        S.tasks.push({id:uid(),title:t.title,notes:'',bucket:t.bucket||'backlog',category:g.category||'other',urgency:'low',importance:'high',energy:'high',status:'todo',isT3:false,t3s:null,createdAt:new Date().toISOString(),completedAt:null,goalId:g.id});
+        totalAdded++;
+      });
+      save();
+    }catch(e){}
+  }
+  body.innerHTML=`<div style="padding:16px;text-align:center;">
+    <div style="font-size:32px;margin-bottom:8px;">✅</div>
+    <div style="font-size:15px;font-weight:700;margin-bottom:6px;">${totalAdded} tasks generated!</div>
+    <div style="font-size:12px;color:var(--muted);">Tasks added to Backlog, linked to their goals. Review them in the Goals view.</div>
+  </div>`;
+  refresh();
+}
+
+// ── OKR SYSTEM ─────────────────────────────────────────────────
+function openOKRs(){
+  document.getElementById('okr-modal').classList.remove('hidden');
+  renderOKRs();
+}
+function renderOKRs(){
+  const body=document.getElementById('okr-body');if(!body)return;
+  const top3=S.goals.filter(g=>g.isTop3);
+  const rest=S.goals.filter(g=>!g.isTop3);
+  const renderGoalOKR=g=>{
+    const krs=g.keyResults||[];
+    const s=goalStats(g.id);
+    const c=CATS[g.category]||CATS.other;
+    return`<div style="margin-bottom:16px;padding:14px;background:var(--surface);border:1px solid var(--border);border-radius:12px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:8px;">
+        <div>
+          <div style="font-weight:700;font-size:14px;">${g.isTop3?'⭐ ':''}${esc(g.title)}</div>
+          <div style="font-size:11px;color:var(--muted);margin-top:2px;">${c.e} ${c.l} · ${s.done}/${s.total} tasks · ${s.pct}%</div>
+        </div>
+        <button class="btn bg sm" style="flex-shrink:0;" onclick="genOKRsForGoal('${g.id}')">🤖 Generate KRs</button>
+      </div>
+      ${krs.length?`<div style="display:flex;flex-direction:column;gap:5px;margin-bottom:8px;">
+        ${krs.map((kr,i)=>`<div style="display:flex;align-items:center;gap:8px;padding:5px 8px;background:var(--surface2);border-radius:6px;">
+          <span style="font-size:12px;flex:1;">${esc(kr.kr)}</span>
+          ${kr.target?`<span style="font-size:10px;color:var(--accent);font-weight:700;">→ ${esc(kr.target)} ${esc(kr.unit||'')}</span>`:''}
+          <button class="btn bg sm" onclick="deleteKR('${g.id}',${i})" style="color:#ef4444;padding:0 6px;">×</button>
+        </div>`).join('')}
+      </div>`:'<div style="font-size:12px;color:var(--muted);margin-bottom:8px;padding:6px 0;">No key results yet. Click "Generate KRs" or add manually.</div>'}
+      <div style="display:flex;gap:6px;" id="okr-add-${g.id}">
+        <input class="fc" id="kr-inp-${g.id}" placeholder="Add key result..." style="flex:1;font-size:12px;padding:6px 8px;" onkeydown="if(event.key==='Enter')addKR('${g.id}')">
+        <button class="btn bg sm" onclick="addKR('${g.id}')">+ Add</button>
+      </div>
+    </div>`;
+  };
+  body.innerHTML=`
+    ${top3.length?`<div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;padding:0 2px;">⭐ Top 3 Objectives</div>${top3.map(renderGoalOKR).join('')}<hr style="margin:16px 0;">`:''}
+    <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px;padding:0 2px;">All Objectives (${rest.length})</div>
+    ${rest.map(renderGoalOKR).join('')}`;
+}
+function addKR(goalId){
+  const inp=document.getElementById('kr-inp-'+goalId);if(!inp)return;
+  const kr=inp.value.trim();if(!kr)return;
+  const g=S.goals.find(x=>x.id===goalId);if(!g)return;
+  if(!g.keyResults)g.keyResults=[];
+  g.keyResults.push({id:uid(),kr,target:'',unit:''});
+  save();inp.value='';renderOKRs();
+}
+function deleteKR(goalId,idx){
+  const g=S.goals.find(x=>x.id===goalId);if(!g||!g.keyResults)return;
+  g.keyResults.splice(idx,1);save();renderOKRs();
+}
+async function genOKRsForGoal(goalId){
+  const g=S.goals.find(x=>x.id===goalId);if(!g)return;
+  const btn=document.querySelector(`button[onclick="genOKRsForGoal('${goalId}')"]`);
+  if(btn){btn.disabled=true;btn.textContent='⏳...';}
+  const about=getAboutMe();
+  const prompt=`${about?'About me: '+about+'\n\n':''}Generate 3–5 measurable Key Results for this Objective:\n\nObjective: "${g.title}"\nContext: ${g.description||''}\n\nReturn ONLY a JSON array:\n[{"kr":"...","target":"...","unit":""}]\n\nEach KR must be measurable: a number, percentage, or binary outcome. Examples: "Complete 5 job applications", "Reach 12% body fat", "Generate €500/month passive income".`;
+  const txt=await callClaude(prompt,350);
+  if(btn){btn.disabled=false;btn.textContent='🤖 Generate KRs';}
+  if(!txt){toast('AI unavailable. Check API key in Settings.');return;}
+  try{
+    const krs=JSON.parse(txt.match(/\[[\s\S]*\]/)?.[0]||'[]');
+    if(!g.keyResults)g.keyResults=[];
+    krs.forEach(kr=>g.keyResults.push({id:uid(),kr:kr.kr,target:kr.target||'',unit:kr.unit||''}));
+    save();renderOKRs();toast(`✅ ${krs.length} KRs generated!`);
+  }catch(e){toast('Could not parse KRs. Try again.');}
+}
+async function generateAllOKRs(){
+  const goals=S.goals.filter(g=>!g.keyResults?.length).slice(0,10);
+  if(!goals.length){toast('All goals already have KRs!');return;}
+  toast(`Generating KRs for ${goals.length} goals... (may take a minute)`);
+  for(const g of goals){
+    const about=getAboutMe();
+    const prompt=`Generate 3 measurable Key Results for:\nObjective: "${g.title}"\nContext: ${g.description||''}\nReturn ONLY a JSON array: [{"kr":"...","target":"...","unit":""}]`;
+    const txt=await callClaude(prompt,250);
+    if(!txt)continue;
+    try{
+      const krs=JSON.parse(txt.match(/\[[\s\S]*\]/)?.[0]||'[]');
+      if(!g.keyResults)g.keyResults=[];
+      krs.slice(0,3).forEach(kr=>g.keyResults.push({id:uid(),kr:kr.kr,target:kr.target||'',unit:kr.unit||''}));
+      save();
+    }catch(e){}
+  }
+  renderOKRs();toast('✅ OKRs generated for all goals!');
+}
+
 // ── SOUND DESIGN ─────────────────────────────────────────────
 let _audioCtx=null;
 function _getAudio(){if(!_audioCtx){try{_audioCtx=new(window.AudioContext||window.webkitAudioContext)();}catch(e){}}return _audioCtx;}
@@ -7491,6 +7681,27 @@ function renderToday(){
 <div id="v-morning" class="view" style="max-width:560px;margin:0 auto;">
   <div id="morning-body"></div>
   <div id="morning-nav" style="display:flex;justify-content:space-between;align-items:center;margin-top:20px;"></div>
+</div>
+
+<!-- OKR MODAL -->
+<div class="mo hidden" id="okr-modal">
+  <div class="md" style="max-width:700px;">
+    <div class="mh"><h3>🎯 OKRs — Objectives & Key Results</h3><button class="mc" onclick="closeM('okr-modal')">×</button></div>
+    <div id="okr-body" style="max-height:65vh;overflow-y:auto;padding:4px 0;"></div>
+    <div class="mf" style="gap:8px;">
+      <button class="btn bg sm" onclick="generateAllOKRs()">🤖 Generate All KRs</button>
+      <button class="btn bp" onclick="closeM('okr-modal')">Done</button>
+    </div>
+  </div>
+</div>
+
+<!-- BULK GENERATE PROGRESS MODAL -->
+<div class="mo hidden" id="bulk-gen-modal">
+  <div class="md" style="max-width:540px;">
+    <div class="mh"><h3>📋 Fill Goals with Tasks</h3><button class="mc" onclick="closeM('bulk-gen-modal')">×</button></div>
+    <div id="bulk-gen-body" style="font-size:13px;line-height:1.7;max-height:60vh;overflow-y:auto;min-height:80px;"></div>
+    <div class="mf"><button class="btn bp" onclick="closeM('bulk-gen-modal')">Close</button></div>
+  </div>
 </div>
 
 <!-- GOAL CELEBRATION OVERLAY -->

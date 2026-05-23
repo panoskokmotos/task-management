@@ -1598,7 +1598,7 @@ function toggleTheme(){
 
 // ── PERSIST ───────────────────────────────────────────────────
 function save(){localStorage.setItem('taskos',JSON.stringify(S));}
-function load(){const d=localStorage.getItem('taskos');if(d)S={...S,...JSON.parse(d)};}
+function load(){const d=localStorage.getItem('taskos');if(d){try{S={...S,...JSON.parse(d)};}catch(e){console.error('Corrupt taskos data, resetting:',e);localStorage.removeItem('taskos');}}}
 
 // ── UTILS ─────────────────────────────────────────────────────
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
@@ -1612,7 +1612,7 @@ function goalStats(gId){const linked=S.tasks.filter(t=>t.goalId===gId);const don
 function depthB(depth){if(!depth||depth==='shallow')return'';const cls='depth-'+depth;const label=depth==='deep'?'🟢 Deep':depth==='medium'?'🔵 Medium':'';return label?`<span class="badge ${cls}" style="font-size:10px;">${label}</span>`:'';}
 
 // ── TOAST ─────────────────────────────────────────────────────
-function toast(msg,ms=2500){const t=document.getElementById('toast');if(!t)return;t.innerHTML=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms);}
+function toast(msg,ms=2500){const t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms);}
 
 // ── NAV ───────────────────────────────────────────────────────
 function nav(v){
@@ -1678,7 +1678,7 @@ function renderTop3(){
     return`<div class="t3s s${s}">
       <div class="sl2">${labels[s-1]}</div>
       ${t?`<div onclick="openEdit('${t.id}')" style="cursor:pointer;">
-        <div style="font-size:13px;font-weight:500;line-height:1.4;margin-bottom:8px;">${t.title}</div>
+        <div style="font-size:13px;font-weight:500;line-height:1.4;margin-bottom:8px;">${esc(t.title)}</div>
         <div class="tm">${catB(t.category)}${eB(t)}</div>
         <div style="margin-top:9px;display:flex;gap:5px;">
           <button class="btn bg sm" onclick="event.stopPropagation();toggleDone('${t.id}')">✓ Done</button>
@@ -1709,7 +1709,7 @@ function inboxHTML(t){
   return`<div class="tc fi" id="itc-${t.id}">
     <div class="ck ${t.status==='done'?'on':''}" onclick="toggleDone('${t.id}')"></div>
     <div class="tb">
-      <div class="tt">${t.title}</div>
+      <div class="tt">${esc(t.title)}</div>
       <div class="tm">
         ${catB(t.category)}
         <span style="font-size:11px;color:var(--muted);">Move to:</span>
@@ -1746,7 +1746,7 @@ function renderBuckets(){
       ${tasks.length?tasks.map(t=>`<div class="tc fi ${t.status==='done'?'done':''} ${t.isT3&&t.status!=='done'?'top3':''}" draggable="true" ondragstart="window._dragId='${t.id}'" onclick="openEdit('${t.id}')">
         <div class="ck ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${t.status==='done'?'<span style="color:#fff;font-size:10px;">✓</span>':''}</div>
         <div class="tb">
-          <div class="tt">${t.title}</div>
+          <div class="tt">${esc(t.title)}</div>
           <div class="tm">${catB(t.category)}${eB(t)}${t.timeBlock?`<span class="tag">⏱ ${ft(t.timeBlock)}</span>`:''}${t.recurring?'<span style="font-size:11px;">🔄</span>':''}</div>
         </div>
         ${bid==='this-week'&&!t.isT3&&t.status!=='done'?`<button class="btn bg sm" onclick="event.stopPropagation();addT3('${t.id}')" title="Top 3">⭐</button>`:''}
@@ -1769,7 +1769,7 @@ function renderEisenhower(){
       ${qs[q].length?qs[q].map(t=>`
         <div class="tc" onclick="openEdit('${t.id}')">
           <div class="ck ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')"></div>
-          <div class="tb"><div class="tt">${t.title}</div><div class="tm">${catB(t.category)}<span class="badge co">${BKTS[t.bucket]?.e} ${BKTS[t.bucket]?.l}</span></div></div>
+          <div class="tb"><div class="tt">${esc(t.title)}</div><div class="tm">${catB(t.category)}<span class="badge co">${BKTS[t.bucket]?.e} ${BKTS[t.bucket]?.l}</span></div></div>
         </div>`).join(''):'<div class="empty" style="padding:16px 0;font-size:12px;">Clear ✓</div>'}`;
   });
 }
@@ -1804,7 +1804,7 @@ function renderGoals(){
   if(gd)gd.innerHTML=S.goals.map(g=>{
     const s=goalStats(g.id);const c=CATS[g.category]||CATS.other;
     return`<div class="gdc" onclick="openEditGoal('${g.id}')">
-      <div class="gdc-title">${g.isTop3?'⭐ ':''}${g.title}</div>
+      <div class="gdc-title">${g.isTop3?'⭐ ':''}${esc(g.title)}</div>
       <div class="gdc-row"><span class="badge c${g.category[0]}">${c.e}</span><span style="font-size:11px;color:var(--muted);">${s.pct}%</span></div>
       <div class="gp"><div class="gp-fill" style="width:${s.pct}%"></div></div>
       <div style="font-size:10px;color:var(--muted);margin-top:4px;">${s.done}/${s.total} tasks</div>
@@ -1813,7 +1813,7 @@ function renderGoals(){
   const top=S.goals.filter(g=>g.isTop3),rest=S.goals.filter(g=>!g.isTop3);
   document.getElementById('g-top3').innerHTML=top.length?top.map(goalHTML).join(''):'<div class="empty">Set your top 3 priorities!</div>';
   document.getElementById('g-all').innerHTML=rest.length?rest.map(goalHTML).join(''):'<div class="empty">Add more goals.</div>';
-  document.getElementById('vals').innerHTML=S.values.length?`<div style="display:flex;flex-wrap:wrap;gap:7px;">${S.values.map(v=>`<span class="badge co" style="font-size:12px;padding:5px 12px;">💎 ${v}</span>`).join('')}</div>`:'<p style="color:var(--muted);">No values set.</p>';
+  document.getElementById('vals').innerHTML=S.values.length?`<div style="display:flex;flex-wrap:wrap;gap:7px;">${S.values.map(v=>`<span class="badge co" style="font-size:12px;padding:5px 12px;">💎 ${esc(v)}</span>`).join('')}</div>`:'<p style="color:var(--muted);">No values set.</p>';
   fillGoalDrop();
 }
 
@@ -1884,7 +1884,7 @@ function goalHTML(g){
   </div>`;
   return`<div class="gc ${g.isTop3?'top':''}" data-id="${g.id}" onclick="toggleGoalDetail('${g.id}',event)">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-      <div style="font-weight:600;font-size:14px;line-height:1.3;flex:1;margin-right:8px;">${g.title}</div>
+      <div style="font-weight:600;font-size:14px;line-height:1.3;flex:1;margin-right:8px;">${esc(g.title)}</div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
         ${g.isTop3?'<span>⭐</span>':''}
         <span style="font-size:12px;color:var(--muted);">▾</span>
@@ -1912,16 +1912,16 @@ function renderWizPanel(){
   const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
   if(wizStep===0){
     const done=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>wAgo);
-    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🏆 Completed this week</h3>${done.length?done.map(t=>`<div class="tc" style="opacity:.75;"><div class="ck on">✓</div><div class="tb"><div class="tt" style="text-decoration:line-through;">${t.title}</div><div class="tm">${catB(t.category)}</div></div></div>`).join(''):'<div class="empty">No completed tasks this week yet.</div>'}</div><div class="wiz-nav"><span></span><button class="btn bp" onclick="goStep(1)">Next →</button></div>`;
+    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🏆 Completed this week</h3>${done.length?done.map(t=>`<div class="tc" style="opacity:.75;"><div class="ck on">✓</div><div class="tb"><div class="tt" style="text-decoration:line-through;">${esc(t.title)}</div><div class="tm">${catB(t.category)}</div></div></div>`).join(''):'<div class="empty">No completed tasks this week yet.</div>'}</div><div class="wiz-nav"><span></span><button class="btn bp" onclick="goStep(1)">Next →</button></div>`;
   } else if(wizStep===1){
     const inbox=active().filter(t=>t.bucket==='inbox');
     body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">📥 Process your inbox (${inbox.length} items)</h3>${inbox.length?inbox.map(t=>inboxHTML(t)).join(''):'<div class="empty" style="color:var(--q2);">✓ Inbox clear!</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(0)">← Back</button><button class="btn bp" onclick="goStep(2)">Next →</button></div>`;
   } else if(wizStep===2){
     const backlog=active().filter(t=>t.bucket==='backlog').slice(0,8);
     const wc=active().filter(t=>t.bucket==='this-week').length;
-    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🟢 Promote from Backlog (This Week: ${wc}/10)</h3>${backlog.length?backlog.map(t=>`<div class="tc"><div class="tb"><div class="tt">${t.title}</div><div class="tm">${catB(t.category)}${eB(t)}</div></div><button class="btn bg sm" onclick="mvB('${t.id}','this-week');renderWizPanel()">→ Week</button></div>`).join(''):'<div class="empty">Backlog empty.</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(1)">← Back</button><button class="btn bp" onclick="goStep(3)">Next →</button></div>`;
+    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🟢 Promote from Backlog (This Week: ${wc}/10)</h3>${backlog.length?backlog.map(t=>`<div class="tc"><div class="tb"><div class="tt">${esc(t.title)}</div><div class="tm">${catB(t.category)}${eB(t)}</div></div><button class="btn bg sm" onclick="mvB('${t.id}','this-week');renderWizPanel()">→ Week</button></div>`).join(''):'<div class="empty">Backlog empty.</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(1)">← Back</button><button class="btn bp" onclick="goStep(3)">Next →</button></div>`;
   } else if(wizStep===3){
-    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🏆 Goal Progress</h3>${S.goals.slice(0,8).map(g=>{const s=goalStats(g.id);return`<div style="margin-bottom:10px;"><div style="font-size:13px;font-weight:500;margin-bottom:4px;">${g.isTop3?'⭐ ':''}${g.title}</div><div class="gp"><div class="gp-fill" style="width:${s.pct}%"></div></div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${s.done}/${s.total} tasks · ${s.pct}%</div></div>`;}).join('')||'<div class="empty">No goals set.</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(2)">← Back</button><button class="btn bp" onclick="goStep(4)">Next →</button></div>`;
+    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🏆 Goal Progress</h3>${S.goals.slice(0,8).map(g=>{const s=goalStats(g.id);return`<div style="margin-bottom:10px;"><div style="font-size:13px;font-weight:500;margin-bottom:4px;">${g.isTop3?'⭐ ':''}${esc(g.title)}</div><div class="gp"><div class="gp-fill" style="width:${s.pct}%"></div></div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${s.done}/${s.total} tasks · ${s.pct}%</div></div>`;}).join('')||'<div class="empty">No goals set.</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(2)">← Back</button><button class="btn bp" onclick="goStep(4)">Next →</button></div>`;
   } else if(wizStep===4){
     const rev=[...S.reviews].reverse().slice(0,3);
     const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
@@ -2027,14 +2027,14 @@ function tcHTML(t,showT3btn=false){
   return`<div class="tc fi ${t.status==='done'?'done':''} ${t.isT3&&t.status!=='done'?'top3':''}" onclick="openEdit('${t.id}')">
     <div class="ck ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${t.status==='done'?'<span style="color:#fff;font-size:10px;">✓</span>':''}</div>
     <div class="tb">
-      <div class="tt">${t.title}</div>
+      <div class="tt">${esc(t.title)}</div>
       <div class="tm">
         ${catB(t.category)}${eB(t)}${depthB(t.depth)}
         ${t.timeBlock?`<span class="tag">⏱ ${ft(t.timeBlock)}</span>`:''}
         ${t.dueDate?`<span class="tag">📅 ${fd(t.dueDate)}</span>`:''}
         ${t.recurring?`<span style="font-size:11px;" title="${t.recurring}">🔄</span>`:''}
         ${t.isT3&&t.status!=='done'?'<span style="font-size:11px;">⭐</span>':''}
-        ${gl?`<span style="font-size:10px;color:var(--muted);">↳ ${gl.title.slice(0,20)}</span>`:''}
+        ${gl?`<span style="font-size:10px;color:var(--muted);">↳ ${esc(gl.title.slice(0,20))}</span>`:''}
       </div>
     </div>
     ${showT3btn&&t.bucket==='this-week'&&!t.isT3&&t.status!=='done'?`<button class="btn bg sm" onclick="event.stopPropagation();addT3('${t.id}')" title="Add to Top 3">⭐</button>`:''}
@@ -2084,7 +2084,7 @@ function openEdit(id){
 
 function saveTask(){
   const title=document.getElementById('t-title').value.trim();
-  if(!title){alert('Enter a task title.');return;}
+  if(!title){const inp=document.getElementById('t-title');inp.style.borderColor='#ef4444';inp.placeholder='Title is required';inp.focus();setTimeout(()=>{inp.style.borderColor='';},2000);return;}
   const d={title,notes:document.getElementById('t-notes').value,category:document.getElementById('t-cat').value,bucket:document.getElementById('t-bucket').value,urgency:document.getElementById('t-urg').value,importance:document.getElementById('t-imp').value,energy:document.getElementById('t-eng').value,depth:document.getElementById('t-depth').value||'medium',timeBlock:parseInt(document.getElementById('t-time').value)||null,dueDate:document.getElementById('t-due').value,recurring:document.getElementById('t-rec').value,goalId:document.getElementById('t-goal').value||null};
   if(editT){const i=S.tasks.findIndex(t=>t.id===editT);S.tasks[i]={...S.tasks[i],...d};}
   else S.tasks.push({id:uid(),...d,status:'todo',isT3:false,t3s:null,createdAt:new Date().toISOString(),completedAt:null});
@@ -2199,7 +2199,7 @@ function rmT3(id){const t=S.tasks.find(x=>x.id===id);if(!t)return;t.isT3=false;t
 function _fillHabitDrop(selId,val=''){
   const s=document.getElementById(selId);if(!s)return;
   const habits=S.habits||[];
-  s.innerHTML='<option value="">— None —</option>'+habits.map(h=>`<option value="${h}"${h===val?' selected':''}>${h}</option>`).join('');
+  s.innerHTML='<option value="">— None —</option>'+habits.map(h=>`<option value="${esc(h)}"${h===val?' selected':''}>${esc(h)}</option>`).join('');
 }
 function openAddGoal(){
   editG=null;
@@ -2301,7 +2301,7 @@ function renderFocusDayPlan(){
       <span style="font-size:16px;">${b.icon}</span>
       <div style="flex:1;">
         <div style="font-size:12px;font-weight:600;color:${b.color};">${b.label}</div>
-        ${b.task?`<div style="font-size:12px;color:var(--muted);margin-top:1px;">→ ${b.task.title}</div>`:'<div style="font-size:11px;color:var(--muted);font-style:italic;">open block</div>'}
+        ${b.task?`<div style="font-size:12px;color:var(--muted);margin-top:1px;">→ ${esc(b.task.title)}</div>`:'<div style="font-size:11px;color:var(--muted);font-style:italic;">open block</div>'}
       </div>
       ${b.task?`<button class="btn bg sm" onclick="toggleDone('${b.task.id}');renderFocus()">✓</button>`:''}
     </div>`).join('');
@@ -2315,7 +2315,7 @@ function renderFocusHabits(){
   const done=habits.filter(h=>todayLog[h]).length;
   document.getElementById('focus-habits').innerHTML=`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${done}/${habits.length} done today</div>`+
     habits.map(h=>`<div class="habit-row" style="padding:6px 0;">
-      <div class="habit-ck ${todayLog[h]?'on':''}" onclick="toggleHabit('${h.replace(/'/g,"\'")}');renderFocus()">
+      <div class="habit-ck ${todayLog[h]?'on':''}" onclick="toggleHabit('${esc(h).replace(/'/g,'&#39;')}');renderFocus()">
         ${todayLog[h]?'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':''}
       </div>
       <span style="font-size:13px;">${h}</span>
@@ -2337,7 +2337,7 @@ function renderFocusRecs(){
     <div class="focus-rec">
       <div class="focus-num">${i+1}</div>
       <div style="flex:1;">
-        <div class="tt">${t.title}</div>
+        <div class="tt">${esc(t.title)}</div>
         <div class="tm">${catB(t.category)}${eB(t)}<span class="badge co">${BKTS[t.bucket]?.e} ${BKTS[t.bucket]?.l}</span>${t.timeBlock?`<span class="tag">⏱ ${ft(t.timeBlock)}</span>`:''}</div>
       </div>
       <button class="btn bp sm" onclick="event.stopPropagation();toggleDone('${t.id}');renderFocusRecs()">✓</button>
@@ -2360,7 +2360,7 @@ function renderProcCard(){
   const t=inbox[0];
   pa.innerHTML=`<div class="proc-card">
     <div style="font-size:13px;color:var(--muted);">Task ${inbox.indexOf(t)+1} of ${inbox.length}</div>
-    <div class="proc-ttl">${t.title}</div>
+    <div class="proc-ttl">${esc(t.title)}</div>
     <div class="tm" style="justify-content:center;margin-bottom:8px;">${catB(t.category)}</div>
     <div class="proc-acts">
       <button class="proc-btn" style="background:rgba(255,107,107,.2);color:var(--q1);" onclick="procMove('${t.id}','this-week')">🔴 This Week <kbd>1</kbd></button>
@@ -2874,15 +2874,22 @@ function seedGoals(){
 // ── CALL CLAUDE ────────────────────────────────────────────────
 async function callClaude(prompt, maxTokens=1000){
   if(!S.claudeKey){toast('Add Claude API key in Settings first');return null;}
+  const ctrl=new AbortController();
+  const timer=setTimeout(()=>ctrl.abort(),30000);
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
       headers:{'Content-Type':'application/json','x-api-key':S.claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})
+      body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]}),
+      signal:ctrl.signal
     });
     const data=await res.json();
     return data.content?.[0]?.text||null;
-  }catch(e){toast('AI error: '+e.message);return null;}
+  }catch(e){
+    if(e.name==='AbortError')toast('AI request timed out — try again');
+    else toast('AI error: '+e.message);
+    return null;
+  }finally{clearTimeout(timer);}
 }
 function showAiOut(title, text){
   document.getElementById('ai-out-title').textContent=title;
@@ -3034,12 +3041,12 @@ function renderFinance(){
   const allIncome=entries.filter(e=>e.type!=='expense').sort((a,b)=>a.date>b.date?-1:1);
   document.getElementById('income-list').innerHTML=allIncome.slice(0,20).map(e=>`
     <div class="fin-row">
-      <span>${e.type==='passive'?'📈':'💸'} ${e.desc||e.type} <span style="font-size:10px;color:var(--muted);">${e.date}</span></span>
+      <span>${e.type==='passive'?'📈':'💸'} ${esc(e.desc||e.type)} <span style="font-size:10px;color:var(--muted);">${e.date}</span></span>
       <span style="font-weight:600;color:#69db7c;">+€${e.amount.toLocaleString()}</span>
     </div>`).join('')||'<div class="empty" style="padding:12px 0;">No entries yet</div>';
   document.getElementById('investment-list').innerHTML=investments.map(i=>{
     const g=i.current-i.amount;const pct=i.amount?((g/i.amount)*100).toFixed(1):0;
-    return`<div class="fin-row"><span>📈 ${i.name}<br><span style="font-size:10px;color:var(--muted);">Invested: €${i.amount.toLocaleString()}</span></span><span style="text-align:right;"><div style="font-weight:600;">€${i.current.toLocaleString()}</div><div style="font-size:10px;color:${g>=0?'#69db7c':'#ff6b6b'};">${g>=0?'+':''}${pct}%</div></span></div>`;
+    return`<div class="fin-row"><span>📈 ${esc(i.name)}<br><span style="font-size:10px;color:var(--muted);">Invested: €${i.amount.toLocaleString()}</span></span><span style="text-align:right;"><div style="font-weight:600;">€${i.current.toLocaleString()}</div><div style="font-size:10px;color:${g>=0?'#69db7c':'#ff6b6b'};">${g>=0?'+':''}${pct}%</div></span></div>`;
   }).join('')||'<div class="empty" style="padding:12px 0;">No investments yet</div>';
 }
 function openAddFinance(id=null){
@@ -3088,8 +3095,8 @@ function renderAilab(){
   document.getElementById('ailab-list').innerHTML=filtered.length?filtered.map(a=>`
     <div class="auto-row">
       <div style="flex:1;">
-        <div style="font-weight:500;font-size:13px;">${a.name}</div>
-        ${a.desc?`<div style="font-size:11px;color:var(--muted);margin-top:2px;">${a.desc}</div>`:''}
+        <div style="font-weight:500;font-size:13px;">${esc(a.name)}</div>
+        ${a.desc?`<div style="font-size:11px;color:var(--muted);margin-top:2px;">${esc(a.desc)}</div>`:''}
       </div>
       <span class="auto-status as-${a.status}">${{idea:'💡 Idea',built:'🔨 Built',running:'▶️ Running'}[a.status]}</span>
       <span class="badge co">${a.category}</span>
@@ -3140,14 +3147,14 @@ function renderRelationships(){
     const days=daysSinceDate(p.lastContact);
     const overdue=days>(p.interval||30);
     return`<div class="rel-card">
-      <div class="rel-avatar">${p.name[0].toUpperCase()}</div>
+      <div class="rel-avatar">${(p.name||'?')[0].toUpperCase()}</div>
       <div style="flex:1;">
         <div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">
-          <span style="font-weight:600;font-size:13px;">${p.name}</span>
+          <span style="font-weight:600;font-size:13px;">${esc(p.name)}</span>
           ${p.isTop?'<span style="font-size:11px;">⭐</span>':''}
           <span class="badge co">${p.type}</span>
         </div>
-        ${p.notes?`<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">${p.notes}</div>`:''}
+        ${p.notes?`<div style="font-size:12px;color:var(--muted);margin-bottom:4px;">${esc(p.notes)}</div>`:''}
         <div style="font-size:11px;color:${overdue?'#ff6b6b':'var(--muted)'};">${overdue?'⚠️ ':''}Last contact: ${p.lastContact||'never'} (${days===999?'never':days+'d ago'})</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:5px;">
@@ -3347,13 +3354,13 @@ function renderDiscomfort(){
   document.getElementById('dis-list').innerHTML=logs.slice().sort((a,b)=>a.date>b.date?-1:1).map(l=>`
     <div class="dis-row">
       <div style="display:flex;align-items:center;justify-content:space-between;">
-        <span style="font-weight:600;">${{cold:'❄️',fast:'🍽️','hard-convo':'💬',public:'🎤',physical:'🏃',social:'👥',other:'📌'}[l.type]||'🔥'} ${l.desc||l.type}</span>
+        <span style="font-weight:600;">${{cold:'❄️',fast:'🍽️','hard-convo':'💬',public:'🎤',physical:'🏃',social:'👥',other:'📌'}[l.type]||'🔥'} ${esc(l.desc||l.type)}</span>
         <div style="display:flex;align-items:center;gap:8px;">
           <span style="font-size:11px;color:var(--muted);">${'⭐'.repeat(l.difficulty)} ${l.date}</span>
           <button class="btn bd sm" onclick="deleteDiscomfort('${l.id}')">×</button>
         </div>
       </div>
-      ${l.notes?`<div style="font-size:11px;color:var(--muted);margin-top:4px;">${l.notes}</div>`:''}
+      ${l.notes?`<div style="font-size:11px;color:var(--muted);margin-top:4px;">${esc(l.notes)}</div>`:''}
     </div>`).join('')||'<div class="empty">No challenges logged yet. Embrace discomfort!</div>';
 }
 function openAddDiscomfort(){
@@ -3689,8 +3696,8 @@ function renderChallenge(){
     document.getElementById('dc-today').innerHTML=`
       <div class="dc-card">
         <div class="dc-badge">${CAT_ICONS[todayC.cat]||'⚡'} Today's Challenge</div>
-        <div class="dc-title">${todayC.title}</div>
-        ${todayC.why?`<div class="dc-why">${todayC.why}</div>`:''}
+        <div class="dc-title">${esc(todayC.title)}</div>
+        ${todayC.why?`<div class="dc-why">${esc(todayC.why)}</div>`:''}
         <div class="dc-meta">
           <span class="dc-pill" style="background:rgba(${col==='var(--accent)'?'88,166,255':col.replace('#','').match(/../g).map(x=>parseInt(x,16)).join(',')},.12);color:${col};">${CAT_ICONS[todayC.cat]||'⚡'} ${todayC.cat}</span>
           <span class="dc-pill">${DIFF_LABELS[todayC.diff]||'💪 Medium'}</span>
@@ -3709,8 +3716,8 @@ function renderChallenge(){
     document.getElementById('dc-today').innerHTML=`
       <div class="dc-card">
         <div class="dc-badge">⚡ Today's Challenge</div>
-        <div class="dc-title">${suggested.title}</div>
-        <div class="dc-why">${suggested.why}</div>
+        <div class="dc-title">${esc(suggested.title)}</div>
+        <div class="dc-why">${esc(suggested.why)}</div>
         <div class="dc-meta">
           <span class="dc-pill">${CAT_ICONS[suggested.cat]} ${suggested.cat}</span>
           <span class="dc-pill">${DIFF_LABELS[suggested.diff]}</span>
@@ -3771,8 +3778,8 @@ function skipChallenge(curId){
   document.getElementById('dc-today').innerHTML=`
     <div class="dc-card">
       <div class="dc-badge">⚡ Today's Challenge</div>
-      <div class="dc-title">${next.title}</div>
-      <div class="dc-why">${next.why}</div>
+      <div class="dc-title">${esc(next.title)}</div>
+      <div class="dc-why">${esc(next.why)}</div>
       <div class="dc-meta">
         <span class="dc-pill">${CAT_ICONS[next.cat]} ${next.cat}</span>
         <span class="dc-pill">${DIFF_LABELS[next.diff]}</span>
@@ -4135,7 +4142,7 @@ function renderOneThing(){
         <div class="ck ${entry.done ? 'on' : ''}" onclick="toggleOneThing('${entry.id}')" style="flex-shrink:0;margin-top:2px;">
           ${entry.done ? '<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>' : ''}
         </div>
-        <span style="font-size:14px;font-weight:${entry.done ? 400 : 600};text-decoration:${entry.done ? 'line-through' : 'none'};color:${entry.done ? 'var(--muted)' : 'var(--text)'};">${entry.text}</span>
+        <span style="font-size:14px;font-weight:${entry.done ? 400 : 600};text-decoration:${entry.done ? 'line-through' : 'none'};color:${entry.done ? 'var(--muted)' : 'var(--text)'};">${esc(entry.text)}</span>
       </div>
       <button class="btn bg sm" onclick="clearOneThing('${entry.id}')" style="margin-top:8px;font-size:10px;">✏ Change</button>`;
   } else {
@@ -4431,7 +4438,7 @@ function openSomedayAudit(){
     el.innerHTML = old.map(t => {
       const daysOld = Math.floor((Date.now() - new Date(t.createdAt)) / 86400000);
       return `<div style="padding:10px 0;border-bottom:1px solid var(--border);">
-        <div style="font-size:13px;font-weight:500;margin-bottom:6px;">${t.title} <span style="font-size:10px;color:var(--muted);">(${daysOld}d old)</span></div>
+        <div style="font-size:13px;font-weight:500;margin-bottom:6px;">${esc(t.title)} <span style="font-size:10px;color:var(--muted);">(${daysOld}d old)</span></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn bg sm" onclick="somedayPromote('${t.id}','this-week')" style="color:#58a6ff;">→ This Week</button>
           <button class="btn bg sm" onclick="somedayPromote('${t.id}','this-month')" style="color:#fbbf24;">→ This Month</button>
@@ -4699,7 +4706,7 @@ function resetRecurring(){
 
 // ── REVIEW HISTORY VIEW ───────────────────────────────────────
 function renderHistoryView(){
-  const hist=JSON.parse(localStorage.getItem('taskos_history')||'[]').slice().reverse();
+  let hist=[];try{hist=JSON.parse(localStorage.getItem('taskos_history')||'[]');}catch(e){hist=[];}hist=hist.slice().reverse();
   const el=document.getElementById('hist-list');
   if(!hist.length){
     el.innerHTML='<div class="empty" style="padding:40px;">No review history yet.<br>Complete a Weekly Review to start building history here.</div>';
@@ -4931,7 +4938,7 @@ async function openReadwiseImport(){
 async function loadReadwiseHighlights(bookId,title,author){
   const body=document.getElementById('readwise-body');
   const footer=document.getElementById('readwise-footer');
-  body.innerHTML=`<div style="padding:20px;text-align:center;color:var(--muted);">⏳ Loading highlights for "${title}"...</div>`;
+  body.innerHTML=`<div style="padding:20px;text-align:center;color:var(--muted);">⏳ Loading highlights for "${esc(title)}"...</div>`;
   footer.innerHTML='';
   try{
     let all=[];let url=`/highlights/?book_id=${bookId}&page_size=500`;
@@ -4955,7 +4962,8 @@ async function loadReadwiseHighlights(bookId,title,author){
     document.getElementById('highlights-modal').classList.remove('hidden');
     toast(`✅ ${all.length} highlights loaded from Readwise`);
   }catch(e){
-    body.innerHTML=`<div style="padding:20px;color:#ef4444;">Failed to load highlights: ${e.message}</div>`;
+    console.error('Readwise load error:',e);
+    body.innerHTML=`<div style="padding:20px;color:#ef4444;">Failed to load highlights — check your API key and try again.</div>`;
     footer.innerHTML=`<button class="btn bg" onclick="openReadwiseImport()">← Back</button>`;
   }
 }
@@ -5742,10 +5750,10 @@ function renderMorningBriefing(){
   const today=new Date().toISOString().slice(0,10);
   const ctx=_getMorningContext();
   const lines=[];
-  if(ctx.top3[0])lines.push(`🎯 Top priority: <strong>${ctx.top3[0].title}</strong>`);
+  if(ctx.top3[0])lines.push(`🎯 Top priority: <strong>${esc(ctx.top3[0].title)}</strong>`);
   if(ctx.habitsDone<ctx.habitsTotal)lines.push(`✅ ${ctx.habitsTotal-ctx.habitsDone} habit${ctx.habitsTotal-ctx.habitsDone!==1?'s':''} pending`);
   if(ctx.dwThisWeek<3)lines.push(`⏱ ${ctx.dwThisWeek}/3 deep work this week`);
-  if(ctx.overduePeople.length)lines.push(`🤝 Overdue: ${ctx.overduePeople.slice(0,2).map(p=>`${p.name} (${daysSinceDate(p.lastContact)}d)`).join(', ')}`);
+  if(ctx.overduePeople.length)lines.push(`🤝 Overdue: ${ctx.overduePeople.slice(0,2).map(p=>`${esc(p.name)} (${daysSinceDate(p.lastContact)}d)`).join(', ')}`);
   if(ctx.inboxCount>5)lines.push(`📥 ${ctx.inboxCount} items in inbox`);
   if(!lines.length){el.style.display='none';return;}
   document.getElementById('briefing-body').innerHTML=lines.join(' &nbsp;·&nbsp; ');
@@ -6032,7 +6040,7 @@ function _renderEodStep(){
     const week=active().filter(t=>t.bucket==='this-week').slice(0,5);
     body.innerHTML=`<h3 style="margin-bottom:10px;">🎯 Most Important Task for tomorrow</h3>
       <input class="fc" id="eod-mit" placeholder="The one thing that matters most tomorrow..." style="margin-bottom:10px;">
-      ${week.length?`<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Quick pick:</div>${week.map(t=>`<div onclick="document.getElementById('eod-mit').value='${t.title.replace(/'/g,"\'")}';" style="cursor:pointer;font-size:12px;padding:5px 8px;border-radius:5px;border:1px solid var(--border);margin-bottom:4px;transition:background .1s;" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">${t.title}</div>`).join('')}`:''}`;
+      ${week.length?`<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Quick pick:</div>${week.map(t=>`<div onclick="document.getElementById('eod-mit').value='${esc(t.title).replace(/'/g,'&#39;')}';" style="cursor:pointer;font-size:12px;padding:5px 8px;border-radius:5px;border:1px solid var(--border);margin-bottom:4px;transition:background .1s;" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">${esc(t.title)}</div>`).join('')}`:''}`;
     navEl.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="_eodNext()">Next →</button>`;
   } else if(_eodStep===3){
     body.innerHTML=`<h3 style="margin-bottom:10px;">⚡ Energy level today?</h3>
@@ -6357,8 +6365,8 @@ function _renderBadgesStrip(){
     {id:'fortnight',hint:'🌟 ???',tip:'Secret: 14-day streak achieved'},
   ].filter(m=>!badges.some(b=>b.id===m.id));
   if(!badges.length&&!mysteryLocked.length){el.innerHTML='<span style="font-size:11px;color:var(--muted);">No badges yet — complete tasks to earn them!</span>';return;}
-  el.innerHTML=badges.map(b=>`<span title="${b.name}: ${b.desc}" style="cursor:default;font-size:16px;">${b.emoji}</span>`).join('')
-    +mysteryLocked.map(m=>`<span title="${m.tip}" style="cursor:default;font-size:14px;opacity:.45;">${m.hint}</span>`).join('');
+  el.innerHTML=badges.map(b=>`<span title="${esc(b.name)}: ${esc(b.desc)}" style="cursor:default;font-size:16px;">${b.emoji}</span>`).join('')
+    +mysteryLocked.map(m=>`<span title="${esc(m.tip)}" style="cursor:default;font-size:14px;opacity:.45;">${m.hint}</span>`).join('');
 }
 
 // ── AI DECISION ADVISOR ───────────────────────────────────────────
@@ -7281,7 +7289,7 @@ function renderToday(){
       <div style="font-size:12px;color:var(--muted);">${habits.filter(h=>todayLog[h]).length}/${habits.length}</div>
     </div>
     ${habits.slice(0,5).map(h=>`<div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border);">
-      <div class="habit-ck ${todayLog[h]?'on':''}" onclick="toggleHabit('${h.replace(/'/g,"\\'")}');renderToday();" style="flex-shrink:0;">${todayLog[h]?'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':''}</div>
+      <div class="habit-ck ${todayLog[h]?'on':''}" onclick="toggleHabit('${esc(h).replace(/'/g,'&#39;')}');renderToday();" style="flex-shrink:0;">${todayLog[h]?'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':''}</div>
       <span style="flex:1;font-size:13px;color:var(--text);">${esc(h)}</span>
       <div style="display:flex;gap:2px;">${_habitChainHTML(h,chainDays.slice(-7))}</div>
     </div>`).join('')}

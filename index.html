@@ -364,6 +364,9 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
 .proj-links{display:flex;gap:8px;margin-top:8px;}
 .proj-link{font-size:11px;color:var(--accent);text-decoration:none;display:flex;align-items:center;gap:3px;}
 .proj-link:hover{text-decoration:underline;}
+/* ── VIEW HEADER ────────────────────────────────────────────── */
+.view-header{margin-bottom:20px;}
+.view-header h2{font-size:22px;font-weight:700;margin-bottom:3px;}
 /* shared: AI suggestion strip */
 .ai-strip{background:linear-gradient(135deg,rgba(88,166,255,.07),rgba(167,139,250,.05));border:1px solid rgba(88,166,255,.2);border-radius:10px;padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
 .ai-strip-txt{font-size:12px;color:var(--muted);}
@@ -2618,7 +2621,9 @@ function finishReview(){
   localStorage.setItem('taskos_history',JSON.stringify(hist));
   const wNote={id:uid(),weekOf:new Date().toISOString().slice(0,10),note:document.getElementById('r-journal')?.value.trim()||'',gratitude:document.getElementById('r-gratitude')?.value.trim()||'',bigWin:document.getElementById('r-bigwin')?.value.trim()||'',intention:''};
   if(wNote.note||wNote.gratitude||wNote.bigWin){S.weeklyNotes=S.weeklyNotes||[];S.weeklyNotes.push(wNote);}
-  save();
+  save();refresh();
+  awardXP(25,'weekly-review');
+  toast('✅ Weekly review saved! +25 XP 🎉',3000);
   const sub=document.getElementById('wiz-sub');
   if(sub){sub.textContent='✅ Review saved! See you next week.';setTimeout(()=>{sub.textContent='Every Sunday · 20 min · non-negotiable.';},3000);}
   wizStep=0;renderWizBar();renderWizPanel();
@@ -2632,7 +2637,7 @@ function addSystematizeToAutomations(){
   lines.forEach(line=>{
     if(line.trim())S.automations.push({id:uid(),name:line.trim(),desc:'From weekly systematize review',category:'personal',status:'idea',tool:'',timeSavedPerWeek:0,createdAt:new Date().toISOString()});
   });
-  save();toast(`Added ${lines.length} automation idea(s) ✓`);
+  save();awardXP(lines.length*3,'systematize');toast(`Added ${lines.length} automation idea(s) ✓ +${lines.length*3} XP`);
 }
 
 // ── TASK CARD HTML ────────────────────────────────────────────
@@ -2980,6 +2985,10 @@ function closeM(id){
   const el=document.getElementById(id);
   if(el){_releaseFocus(el);el.classList.add('hidden');}
   editT=null;editG=null;
+}
+function openM(id){
+  const el=document.getElementById(id);
+  if(el){el.classList.remove('hidden');setTimeout(()=>{const first=el.querySelector('input,textarea,select');if(first)first.focus();},50);}
 }
 document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',function(e){if(e.target===this){this.classList.add('hidden');editT=null;editG=null;}}));
 
@@ -3908,7 +3917,7 @@ function saveAutomation(){
   if(!name)return toast('Name required');
   if(!S.automations)S.automations=[];
   S.automations.push({id:uid(),name,desc:document.getElementById('al-desc').value.trim(),category:document.getElementById('al-cat').value,status:document.getElementById('al-status').value,tool:document.getElementById('al-tool')?.value.trim()||'',timeSavedPerWeek:parseInt(document.getElementById('al-timesaved')?.value)||0,createdAt:new Date().toISOString()});
-  save();closeM('ailab-modal');renderAilab();toast('Automation added!');
+  save();closeM('ailab-modal');renderAilab();awardXP(5,'automation-added');toast('Automation added! +5 XP');
 }
 function deleteAutomation(id){
   S.automations=(S.automations||[]).filter(a=>a.id!==id);save();renderAilab();
@@ -10309,8 +10318,7 @@ function saveOptItem(type){
   save();closeModal('modal-overlay');renderOptionality();awardXP(5,'optionality item');toast('Saved ✓');
 }
 function toggleTreasureCommit(id){const c=S.treasureChests.find(x=>x.id===id);if(c){c.committed=!c.committed;save();renderOptionality();if(c.committed){awardXP(15,'committed to treasure chest');toast('💎 Committed! +15 XP');}}}
-function delOptItem(col,id){S[col]=(S[col]||[]).filter(x=>x.id!==id);save();renderOptionality();}
-function closeModal(id){const el=document.getElementById(id);if(el){el.classList.add('hidden');el.innerHTML='<div class="md"></div>';}}
+function delOptItem(col,id){S[col]=(S[col]||[]).filter(x=>x.id!==id);save();renderOptionality();toast('Deleted ✓');}
 
 async function aiTreasureChestFinder(){
   const about=typeof getAboutMe==='function'?getAboutMe():'Panos, founder of Givelink (nonprofit fundraising SaaS), Greece, moving to SF, targeting financial freedom';
@@ -10349,7 +10357,7 @@ function renderFlourishing(){
   const lastMaslow=(S.maslowLog||[]).slice(-1)[0];
   const lastLF=(S.lifeFrameworksLog||[]).slice(-1)[0];
   const sparkVals=logs.slice(-7).map(l=>((l.meaning+l.pleasure+l.engagement+l.relationships+l.accomplishment)/5));
-  const sparkSVG=sparkVals.length>1?`<svg viewBox="0 0 140 30" width="140" height="30" style="display:block;"><polyline points="${sparkVals.map((v,i)=>`${i*(140/(sparkVals.length-1))},${30-v*2.5}`).join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>`:'';
+  const sparkSVG=sparkVals.length>1?`<svg viewBox="0 0 140 30" width="140" height="30" style="display:block;"><polyline points="${sparkVals.map((v,i)=>`${sparkVals.length>1?i*(140/(sparkVals.length-1)):70},${30-v*2.5}`).join(' ')}" fill="none" stroke="var(--accent)" stroke-width="2"/></svg>`:'';
   el.innerHTML=`
   <div class="card" style="margin-bottom:16px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
@@ -10416,7 +10424,7 @@ async function aiLifeFrameworks(){
   const goals=(S.goals||[]).filter(g=>g.status!=='done').slice(0,5).map(g=>g.title).join(', ');
   const prompt=`${about}\n\nNet worth snapshot: ${nw?`€${nw.total||0} total`:'not tracked'}\nActive goals: ${goals||'none set'}\n\nSuggest the most relevant mental frameworks for this person across 3 domains:\n\n**MONEY**: Which of these apply? Kelly criterion (bet sizing), Barbell strategy (safe + asymmetric), Pareto allocation, tax-advantaged compounding, building a Lindy business. Give 1-2 most relevant with specific application.\n\n**HEALTH**: Which frameworks? Sleep-first hierarchy, Zone 2 base + VO2 max peaks, hormetic stress (sauna/cold), Pareto 80% compliance. 1-2 most relevant.\n\n**SOCIAL CAPITAL**: Which? Network as portfolio (connectors/mentors/peers), give-first reciprocity (Givelink founder!), Dunbar layers (150/15/5), weak ties for opportunity. 1-2 most relevant.\n\nEnd with: the ONE framework that would most change their trajectory if applied consistently.`;
   const result=await callClaude(prompt,700);
-  S.leverageLog=[...((S.leverageLog||[]).slice(-4)),{id:uid(),date:new Date().toISOString(),aiAnalysis:result}];
+  S.lifeFrameworksLog=[...((S.lifeFrameworksLog||[]).slice(-4)),{id:uid(),date:new Date().toISOString(),aiAnalysis:result}];
   save();renderFlourishing();showAiOut('📐 Life Frameworks for You',result);awardXP(10,'AI life frameworks');
 }
 
@@ -10480,6 +10488,8 @@ function saveImpossiblePerson(){
 function renderSecurity(){
   const el=document.getElementById('security-body');if(!el)return;
   const logs=S.securityAuditLog||[];const last=logs.slice(-1)[0];
+  const daysSinceLast=last?daysSinceDate(last.date):999;
+  const staleAlert=daysSinceLast>14?`<div style="background:rgba(255,107,107,.12);border:1px solid rgba(255,107,107,.3);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;"><strong>⚠️ Security rating is ${daysSinceLast} days old.</strong> Re-assess your security posture now — things change fast.</div>`:'';
   const dims=[
     {key:'financial',label:'💰 Financial',desc:'Runway, diversification, no single income dependency'},
     {key:'health',label:'🏋️ Health',desc:'Biomarkers, habits, no chronic risk accumulating'},
@@ -10487,7 +10497,7 @@ function renderSecurity(){
     {key:'technical',label:'💻 Technical',desc:'Data backup, no single points of failure, security hygiene'},
     {key:'legal',label:'⚖️ Legal',desc:'Contracts, IP, no pending liabilities'}
   ];
-  el.innerHTML=`
+  el.innerHTML=staleAlert+`
   <div class="card" style="margin-bottom:16px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
       <h3 style="margin:0;">Self-Rate Your Security</h3>

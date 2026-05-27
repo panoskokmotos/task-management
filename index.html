@@ -1158,8 +1158,15 @@ Read 50 books this year"></textarea>
 <div class="mo hidden" id="vm">
   <div class="md" style="width:420px;">
     <div class="mh"><h3>💎 Core Values</h3><button class="mc" onclick="closeM('vm')">×</button></div>
-    <div class="fg"><label>One value per line</label><textarea class="fc" id="v-inp" style="min-height:150px;" placeholder="Impact&#10;Ownership&#10;Growth&#10;Health&#10;Deep Work"></textarea></div>
-    <div class="mf"><button class="btn bg" onclick="closeM('vm')">Cancel</button><button class="btn bp" onclick="saveVals()">Save</button></div>
+    <div class="fg">
+      <label style="margin-bottom:8px;">Your core values</label>
+      <div id="val-chips" style="display:flex;flex-wrap:wrap;gap:7px;min-height:38px;margin-bottom:12px;padding:10px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);"></div>
+      <div style="display:flex;gap:6px;">
+        <input class="fc" id="v-new" placeholder="e.g. Growth, Ownership, Health..." style="flex:1;" onkeydown="if(event.key==='Enter'){addVal();event.preventDefault();}">
+        <button class="btn bp sm" onclick="addVal()">+ Add</button>
+      </div>
+    </div>
+    <div class="mf"><button class="btn bp" onclick="closeM('vm')">Done</button></div>
   </div>
 </div>
 
@@ -2254,8 +2261,23 @@ function fillGoalDrop(sel=''){
 }
 
 // ── VALUES ────────────────────────────────────────────────────
-function editVals(){document.getElementById('v-inp').value=S.values.join('\n');document.getElementById('vm').classList.remove('hidden');}
-function saveVals(){S.values=document.getElementById('v-inp').value.split('\n').map(v=>v.trim()).filter(Boolean);save();closeM('vm');renderGoals();}
+function editVals(){_renderValChips();document.getElementById('vm').classList.remove('hidden');setTimeout(()=>document.getElementById('v-new')?.focus(),80);}
+function _renderValChips(){
+  const el=document.getElementById('val-chips');if(!el)return;
+  const vals=S.values||[];
+  el.innerHTML=vals.length
+    ?vals.map((v,i)=>`<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px 4px 12px;background:var(--surface);border:1px solid var(--border);border-radius:20px;font-size:13px;">💎 ${esc(v)}<button onclick="removeVal(${i})" style="background:none;border:none;cursor:pointer;color:var(--muted);padding:0 0 0 2px;font-size:16px;line-height:1;" title="Remove">×</button></span>`).join('')
+    :'<span style="font-size:12px;color:var(--muted);padding:2px 0;">No values yet — add your first one below</span>';
+}
+function addVal(){
+  const inp=document.getElementById('v-new');if(!inp)return;
+  const v=inp.value.trim();if(!v)return;
+  if(!S.values)S.values=[];
+  if(!S.values.map(x=>x.toLowerCase()).includes(v.toLowerCase()))S.values.push(v);
+  inp.value='';save();_renderValChips();renderGoals();inp.focus();
+}
+function removeVal(i){S.values.splice(i,1);save();_renderValChips();renderGoals();}
+function saveVals(){save();closeM('vm');renderGoals();}
 
 // ── MODAL ─────────────────────────────────────────────────────
 function closeM(id){document.getElementById(id).classList.add('hidden');editT=null;editG=null;}
@@ -6009,10 +6031,17 @@ function _renderGoalDigest(text,body){
 
 // ── EOD RITUAL ────────────────────────────────────────────────────
 let _eodStep=0;
+let _eodEnergy=null;
+let _eodWinSaved=false;
+let _eodMitSaved=false;
 const EOD_STEPS=['🏆 Win','✅ Habits','🎯 MIT Tomorrow','⚡ Energy','🌙 Done'];
+
 function renderEod(){
-  // Don't reset step if mid-flow (step > 0 and < done)
   if(_eodStep<=0||_eodStep>=EOD_STEPS.length)_eodStep=0;
+  _renderEodStep();
+}
+function _eodReset(){
+  _eodStep=0;_eodEnergy=null;_eodWinSaved=false;_eodMitSaved=false;
   _renderEodStep();
 }
 function _renderEodStep(){
@@ -6021,57 +6050,61 @@ function _renderEodStep(){
   const body=document.getElementById('eod-step-body');
   const navEl=document.getElementById('eod-nav');
   if(!dots||!body||!navEl)return;
-  dots.innerHTML=EOD_STEPS.map((_,i)=>`<div style="width:8px;height:8px;border-radius:50%;background:${i<=_eodStep?'var(--accent)':'var(--border)'}"></div>`).join('');
+  dots.innerHTML=EOD_STEPS.map((_,i)=>`<div style="width:8px;height:8px;border-radius:50%;background:${i<=_eodStep?'var(--accent)':'var(--border)'};transition:background .2s;"></div>`).join('');
   lbl.textContent=`${_eodStep+1} / ${EOD_STEPS.length} — ${EOD_STEPS[_eodStep]}`;
   const today=new Date().toISOString().slice(0,10);
   const done=S.tasks.filter(t=>t.completedAt?.slice(0,10)===today);
   if(_eodStep===0){
     body.innerHTML=`<h3 style="margin-bottom:10px;">🏆 Log today's biggest win</h3>
-      <textarea class="fc" id="eod-win" style="min-height:72px;" placeholder="What moved the needle today?"></textarea>
-      ${done.length?`<div style="font-size:12px;color:var(--muted);margin-top:8px;">Completed today: ${done.map(t=>t.title).join(' · ')}</div>`:''}`;
+      <textarea class="fc" id="eod-win" style="min-height:72px;" placeholder="What moved the needle today?">${_eodWinSaved?'(already logged this session)':''}</textarea>
+      ${done.length?`<div style="font-size:12px;color:var(--muted);margin-top:8px;">✅ Completed today: ${done.map(t=>esc(t.title)).join(' · ')}</div>`:''}`;
     navEl.innerHTML=`<span></span><button class="btn bp" onclick="_eodNext()">Next →</button>`;
   } else if(_eodStep===1){
     const habits=S.habits||[];const log=S.habitLogs?.[today]||{};
     const doneH=habits.filter(h=>log[h]).length;
-    body.innerHTML=`<h3 style="margin-bottom:10px;">✅ Habits — ${doneH}/${habits.length} done</h3>`+
-      (habits.length?habits.map(h=>{const hs=h.replace(/'/g,'&#39;');return '<div class="habit-row" style="padding:6px 0;"><div class="habit-ck '+(log[h]?'on':'')+'" onclick="toggleHabit(\'' + hs + '\');_renderEodStep()">'+(log[h]?'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':'')+'</div><span style="font-size:13px;">'+h+'</span></div>';}).join(''):'<div style="color:var(--muted);font-size:13px;">No habits configured yet. Click &#34;Manage Habits&#34; to add some.</div>');
+    body.innerHTML=`<h3 style="margin-bottom:10px;">✅ Habits — ${doneH}/${habits.length} done</h3>`
+      +(habits.length
+        ?habits.map(h=>`<div class="habit-row" style="padding:6px 0;"><div class="habit-ck ${log[h]?'on':''}" onclick="toggleHabit('${esc(h).replace(/'/g,'&#39;')}');_renderEodStep()">${log[h]?'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':''}</div><span style="font-size:13px;">${esc(h)}</span></div>`).join('')
+        :'<div style="color:var(--muted);font-size:13px;">No habits configured yet. Go to <strong>Habits</strong> to add some.</div>');
     navEl.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="_eodNext()">Next →</button>`;
   } else if(_eodStep===2){
     const week=active().filter(t=>t.bucket==='this-week').slice(0,5);
     body.innerHTML=`<h3 style="margin-bottom:10px;">🎯 Most Important Task for tomorrow</h3>
-      <input class="fc" id="eod-mit" placeholder="The one thing that matters most tomorrow..." style="margin-bottom:10px;">
-      ${week.length?`<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Quick pick:</div>${week.map(t=>`<div onclick="document.getElementById('eod-mit').value='${esc(t.title).replace(/'/g,'&#39;')}';" style="cursor:pointer;font-size:12px;padding:5px 8px;border-radius:5px;border:1px solid var(--border);margin-bottom:4px;transition:background .1s;" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">${esc(t.title)}</div>`).join('')}`:''}`;
+      <input class="fc" id="eod-mit" placeholder="The one thing that matters most tomorrow..." style="margin-bottom:10px;"${_eodMitSaved?' disabled':''}>
+      ${_eodMitSaved?'<div style="font-size:12px;color:#69db7c;margin-bottom:8px;">✓ MIT already added to This Week this session</div>':''}
+      ${!_eodMitSaved&&week.length?`<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Quick pick:</div>${week.map(t=>`<div onclick="document.getElementById('eod-mit').value='${esc(t.title).replace(/'/g,'&#39;')}';" style="cursor:pointer;font-size:12px;padding:5px 8px;border-radius:5px;border:1px solid var(--border);margin-bottom:4px;transition:background .1s;" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">${esc(t.title)}</div>`).join('')}`:''}`;
     navEl.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="_eodNext()">Next →</button>`;
   } else if(_eodStep===3){
     body.innerHTML=`<h3 style="margin-bottom:10px;">⚡ Energy level today?</h3>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
         ${['1 — Burned out','2 — Low','3 — Average','4 — Good','5 — Peak'].map((l,i)=>`<button class="btn bg" id="eod-e${i+1}" onclick="_eodSelEnergy(${i+1})" style="flex:1;">${l}</button>`).join('')}
-      </div>`;
+      </div>
+      ${_eodEnergy?`<div style="font-size:12px;color:var(--muted);margin-top:10px;">Selected: ${_eodEnergy}/5</div>`:'<div style="font-size:12px;color:var(--muted);margin-top:10px;">Tap a level — defaults to 3 if skipped</div>'}`;
     navEl.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="_eodNext()">Finish →</button>`;
+    if(_eodEnergy)_eodSelEnergy(_eodEnergy);
   } else if(_eodStep===4){
     body.innerHTML=`<div style="text-align:center;padding:20px 0;">
       <div style="font-size:48px;margin-bottom:12px;">🌙</div>
       <div style="font-size:18px;font-weight:700;margin-bottom:8px;">Day complete.</div>
-      <div style="font-size:13px;color:var(--muted);">Well done. Rest, recover, repeat.</div>
+      <div style="font-size:13px;color:var(--muted);margin-bottom:4px;">Energy: ${_eodEnergy||3}/5 · Well done. Rest, recover, repeat.</div>
     </div>`;
-    navEl.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="nav('dashboard')">Go to Dashboard</button>`;
+    navEl.innerHTML=`<button class="btn bg sm" onclick="_eodReset()">↺ Redo</button><button class="btn bp" onclick="nav('dashboard')">Go to Dashboard →</button>`;
   }
 }
-let _eodEnergy=null;
 function _eodSelEnergy(n){
   _eodEnergy=n;
-  for(let i=1;i<=5;i++){const b=document.getElementById('eod-e'+i);if(b)b.style.borderColor=i===n?'var(--accent)':'var(--border)';}
+  for(let i=1;i<=5;i++){const b=document.getElementById('eod-e'+i);if(b){b.style.borderColor=i===n?'var(--accent)':'var(--border)';b.style.background=i===n?'rgba(88,166,255,.12)':'';}}
 }
 function _eodNext(){
-  if(_eodStep===0){
+  if(_eodStep===0&&!_eodWinSaved){
     const win=document.getElementById('eod-win')?.value.trim();
-    if(win){if(!S.wins)S.wins=[];S.wins.push({id:uid(),title:win,cat:'personal',emoji:'🏆',date:new Date().toISOString().slice(0,10)});save();toast('🏆 Win logged!');awardXP(15,'Win logged');}
+    if(win){if(!S.wins)S.wins=[];S.wins.push({id:uid(),title:win,cat:'personal',emoji:'🏆',date:new Date().toISOString().slice(0,10)});save();toast('🏆 Win logged!');awardXP(15,'Win logged');_eodWinSaved=true;}
   }
-  if(_eodStep===2){
+  if(_eodStep===2&&!_eodMitSaved){
     const mit=document.getElementById('eod-mit')?.value.trim();
     if(mit){
       S.tasks.unshift({id:uid(),title:'🎯 '+mit,notes:'',bucket:'this-week',category:'other',urgency:'high',importance:'high',energy:'high',status:'todo',isT3:false,t3s:null,createdAt:new Date().toISOString(),completedAt:null,goalId:null});
-      save();toast('MIT added to This Week!');
+      save();toast('🎯 MIT added to This Week!');_eodMitSaved=true;
     }
   }
   if(_eodStep===3){
@@ -6083,7 +6116,7 @@ function _eodNext(){
     S.eodLogs.push({date:today,energy:_eodEnergy||3,completedAt:new Date().toISOString()});
     save();
     awardXP(20,'EOD ritual complete');
-    toast('🌙 EOD complete! Energy logged: '+(_eodEnergy||3)+'/5');
+    toast('🌙 EOD complete! Energy: '+(_eodEnergy||3)+'/5');
   }
   _eodStep=Math.min(_eodStep+1,EOD_STEPS.length-1);
   _renderEodStep();

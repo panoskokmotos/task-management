@@ -383,6 +383,44 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 .ai-sugg-item{background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-md);padding:10px 12px;margin-bottom:6px;display:flex;align-items:flex-start;gap:8px;font-size:13px;}
 .ai-sugg-add{flex-shrink:0;background:var(--accent);color:#000;border:none;border-radius:var(--r-sm);padding:3px 8px;font-size:11px;font-weight:700;cursor:pointer;}
 
+/* ═══════════════ WORLD-CLASS MOBILE POLISH ═══════════════ */
+/* Tactile tap feedback — instant response on touch devices */
+@media(hover:none){
+  .tc:active{transform:scale(.985);background:var(--surface2);}
+  .btn:active{transform:scale(.96);filter:brightness(1.05);}
+  .bni:active{background:var(--surface2);}
+  .more-item:active{background:var(--surface2);}
+  .fab:active{transform:scale(.9);}
+  .fp:active{transform:scale(.94);}
+  .ck:active{transform:scale(.88);}
+  .cmdk-row:active{background:var(--surface2);}
+}
+/* Larger checkbox hit area without changing visual size */
+@media(max-width:768px){
+  .ck{position:relative;}
+  .ck::after{content:'';position:absolute;inset:-11px;}
+}
+/* Mobile bottom-sheet: fade backdrop + slide-up + grab handle */
+@media(max-width:768px){
+  .mo:not(.hidden){animation:moFade .2s ease;}
+  .mo:not(.hidden) .md{animation:sheetUp .28s cubic-bezier(.32,.72,0,1);will-change:transform;}
+  .md::before{content:'';display:block;width:38px;height:4px;background:var(--border);border-radius:2px;margin:-6px auto 14px;flex-shrink:0;}
+  /* Landscape notch safe-areas */
+  .main{padding-left:max(14px,env(safe-area-inset-left));padding-right:max(14px,env(safe-area-inset-right));}
+  .bnav{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right);}
+}
+@keyframes moFade{from{opacity:0;}to{opacity:1;}}
+@keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+/* Pull-to-refresh spinner */
+#ptr{position:fixed;top:0;left:0;right:0;display:none;align-items:center;justify-content:center;height:50px;pointer-events:none;z-index:95;opacity:0;transform:translateY(-12px);transition:opacity .15s ease,transform .2s ease;}
+#ptr .ptr-spin{width:26px;height:26px;border:2.5px solid var(--border);border-top-color:var(--accent);border-radius:50%;}
+#ptr.spin .ptr-spin{animation:ptrSpin .7s linear infinite;}
+@keyframes ptrSpin{to{transform:rotate(360deg);}}
+@media(max-width:768px){#ptr{display:flex;}}
+/* Respect reduced-motion preference */
+@media(prefers-reduced-motion:reduce){
+  .mo:not(.hidden),.mo:not(.hidden) .md,.fi{animation:none!important;}
+}
 </style>
 </head>
 <body>
@@ -2196,7 +2234,7 @@ let _rsTaskId=null;
 
 function _initSwipe(el,id){
   let startX=0,startY=0,moved=false;
-  el.addEventListener('touchstart',e=>{startX=e.touches[0].clientX;startY=e.touches[0].clientY;moved=false;},{passive:true});
+  el.addEventListener('touchstart',e=>{startX=e.touches[0].clientX;startY=e.touches[0].clientY;moved=false;el.style.transition='none';},{passive:true});
   el.addEventListener('touchmove',e=>{
     const dx=e.touches[0].clientX-startX;
     const dy=Math.abs(e.touches[0].clientY-startY);
@@ -2205,7 +2243,10 @@ function _initSwipe(el,id){
   },{passive:true});
   el.addEventListener('touchend',e=>{
     const dx=e.changedTouches[0].clientX-startX;
+    // spring-back: ease the card home instead of snapping
+    el.style.transition='transform .22s cubic-bezier(.34,1.3,.64,1),background .2s ease';
     el.style.transform='';el.style.background='';
+    setTimeout(()=>{el.style.transition='';},240);
     if(!moved)return;
     if(dx<-60){_haptic(15);toggleDone(id);toast('✓ Done!');}
     else if(dx>60){_haptic(15);_showRescheduleSheet(id);}
@@ -2259,6 +2300,89 @@ function _applyReschedule(bucket,dueDate){
   _haptic(15);
   toast('📅 Rescheduled → '+_dayLabel(dueDate));
 }
+
+// ── BOTTOM-SHEET DRAG-TO-DISMISS (mobile) ─────────────────────
+(function(){
+  if(!('ontouchstart' in window))return;
+  let sheet=null,md=null,startY=0,dy=0,dragging=false;
+  document.addEventListener('touchstart',e=>{
+    if(window.innerWidth>768)return;
+    const m=e.target.closest('.mo:not(.hidden)');
+    if(!m){sheet=null;md=null;return;}
+    const d=m.querySelector('.md');
+    if(!d||!d.contains(e.target)){sheet=null;md=null;return;}
+    // only start drag from the top region / when content isn't scrolled
+    if(d.scrollTop>0){sheet=null;md=null;return;}
+    sheet=m;md=d;startY=e.touches[0].clientY;dy=0;dragging=false;
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(!md)return;
+    const delta=e.touches[0].clientY-startY;
+    if(!dragging){
+      if(delta>6&&md.scrollTop<=0){dragging=true;md.style.transition='none';}
+      else if(delta<-2){md=null;return;}  // user is scrolling up → abort drag
+      else return;
+    }
+    dy=Math.max(0,delta);
+    e.preventDefault();
+    md.style.transform=`translateY(${dy}px)`;
+    sheet.style.background=`rgba(0,0,0,${Math.max(0,.72-dy/700)})`;
+  },{passive:false});
+  document.addEventListener('touchend',()=>{
+    const d=md,s=sheet,dist=dy,wasDragging=dragging;
+    sheet=null;md=null;dragging=false;dy=0;
+    if(!d||!wasDragging)return;
+    d.style.transition='transform .25s cubic-bezier(.4,0,.2,1)';
+    if(dist>110){
+      _haptic(12);
+      d.style.transform='translateY(100%)';
+      setTimeout(()=>{
+        s.classList.add('hidden');s.style.background='';
+        d.style.transform='';d.style.transition='';
+        document.body.classList.remove('modal-open');
+        editT=null;editG=null;
+      },220);
+    }else{
+      d.style.transform='';s.style.background='';
+      setTimeout(()=>{d.style.transition='';},260);
+    }
+  },{passive:true});
+})();
+
+// ── PULL-TO-REFRESH (mobile) ──────────────────────────────────
+(function(){
+  if(!('ontouchstart' in window))return;
+  let startY=0,pulling=false,dist=0;const TH=70;
+  const ptr=()=>document.getElementById('ptr');
+  const atTop=()=>(window.scrollY||document.documentElement.scrollTop||0)<=0;
+  const blocked=()=>document.querySelector('.mo:not(.hidden),.cmdk:not(.hidden),.more-sheet.open');
+  document.addEventListener('touchstart',e=>{
+    if(window.innerWidth>768||!atTop()||blocked()){pulling=false;return;}
+    startY=e.touches[0].clientY;pulling=true;dist=0;
+  },{passive:true});
+  document.addEventListener('touchmove',e=>{
+    if(!pulling)return;const p=ptr();if(!p)return;
+    dist=e.touches[0].clientY-startY;
+    if(dist<=0||!atTop()){pulling=false;p.style.opacity='0';p.style.transform='translateY(-12px)';return;}
+    const pull=Math.min(70,dist*0.5);
+    p.style.opacity=String(Math.min(1,dist/TH));
+    p.style.transform=`translateY(${pull-12}px)`;
+  },{passive:true});
+  document.addEventListener('touchend',()=>{
+    if(!pulling)return;pulling=false;const p=ptr();if(!p)return;
+    if(dist>TH){
+      _haptic(12);
+      p.classList.add('spin');p.style.opacity='1';p.style.transform='translateY(12px)';
+      setTimeout(()=>{
+        try{refresh();}catch(e){}
+        p.classList.remove('spin');p.style.opacity='0';p.style.transform='translateY(-12px)';
+        toast('↻ Refreshed');
+      },550);
+    }else{
+      p.style.opacity='0';p.style.transform='translateY(-12px)';
+    }
+  },{passive:true});
+})();
 
 // ── CELEBRATION ANIMATION ──────────────────────────────────────
 function _fireConfetti(depth){
@@ -7962,6 +8086,8 @@ function renderToday(){
   </div>
 </div>
 
+<!-- PULL-TO-REFRESH -->
+<div id="ptr"><div class="ptr-spin"></div></div>
 <!-- TOAST -->
 <div id="toast"></div>
 <!-- STREAK MILESTONE -->

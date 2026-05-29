@@ -34,7 +34,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sidebar{width:210px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 0;flex-shrink:0;overflow-y:auto;}
 .logo{padding:0 16px 16px;font-size:17px;font-weight:700;border-bottom:1px solid var(--border);margin-bottom:8px;}
 .logo span{color:var(--accent);}
-.ns{padding:8px 16px 4px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:6px;}
+.ns{padding:8px 16px 4px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;}
+.ns-group.collapsed .ni,.ns-group.collapsed .ns-sub{display:none;}
 .ni{padding:9px 16px;cursor:pointer;border-radius:6px;margin:1px 6px;font-size:13px;display:flex;align-items:center;gap:8px;color:var(--muted);transition:background .12s;}
 .ni:hover{background:var(--surface2);color:var(--text);}
 .ni.active{background:var(--surface2);color:var(--accent);}
@@ -255,7 +256,10 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   .los-grid{grid-template-columns:1fr;}
   .dw-timer{font-size:40px;}
   .stats{grid-template-columns:1fr 1fr;}
+  .fr{grid-template-columns:1fr!important;}
+  .modal{width:100vw!important;max-width:100vw!important;border-radius:12px 12px 0 0!important;margin:auto 0 0!important;max-height:90vh;}
 }
+body.modal-open{overflow:hidden;}
 
 /* ── LIFE OS ─────────────────────────────────────────────────── */
 .los-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
@@ -307,6 +311,8 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
 #streak-milestone.show{opacity:1;transform:translateX(-50%) scale(1);}
 /* ── SPIN ANIMATION ──────────────────────────────────────────── */
 @keyframes sp{to{transform:rotate(360deg);}}.spin-icon{display:inline-block;animation:sp .8s linear infinite;}
+@keyframes xp-float{0%{opacity:1;transform:translateY(0) scale(1)}60%{opacity:1;transform:translateY(-32px) scale(1.1)}100%{opacity:0;transform:translateY(-56px) scale(0.9)}}
+.xp-pop{position:fixed;pointer-events:none;font-size:14px;font-weight:700;color:var(--accent);animation:xp-float 1s ease forwards;z-index:9999;text-shadow:0 0 8px rgba(88,166,255,.4);}
 /* ── BULK BAR ────────────────────────────────────────────────── */
 #bulk-bar{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:8px 12px;display:none;gap:8px;align-items:center;z-index:4000;box-shadow:0 4px 20px rgba(0,0,0,.4);flex-wrap:wrap;}
 /* ── EXECUTION SCORE ─────────────────────────────────────────── */
@@ -395,16 +401,21 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
       <a href="givelink.html" style="flex:1;padding:7px 6px;border-radius:8px;border:1px solid rgba(167,139,250,.4);cursor:pointer;font-size:11px;font-weight:700;background:rgba(167,139,250,.1);color:#a78bfa;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center;gap:4px;letter-spacing:.2px;" title="Switch to Givelink Sprint Board (⌘2)">🟣 Givelink</a>
     </div>
   </div>
-  <div class="ns">Main</div>
+  <div class="ns-group" data-ns="main">
+  <span class="ns" onclick="_toggleNsGroup(this)">Main<span class="ns-arrow">▾</span></span>
   <div class="ni active" onclick="nav('dashboard')">🏠 Dashboard</div>
   <div class="ni" onclick="nav('capture')">⚡ Capture <span id="ib"></span></div>
   <div class="ni" onclick="nav('givelink-dash')">🟣 Givelink OS</div>
   <div class="ni" onclick="nav('content')">📝 Content Pipeline</div>
-  <div class="ns">Views</div>
+  </div>
+  <div class="ns-group" data-ns="views">
+  <span class="ns" onclick="_toggleNsGroup(this)">Views<span class="ns-arrow">▾</span></span>
   <div class="ni" onclick="nav('buckets')">📦 Buckets</div>
   <div class="ni" onclick="nav('eisenhower')">🎯 Eisenhower</div>
   <div class="ni" onclick="nav('all')">✅ All Tasks</div>
-  <div class="ns">Planning</div>
+  </div>
+  <div class="ns-group" data-ns="planning">
+  <span class="ns" onclick="_toggleNsGroup(this)">Planning<span class="ns-arrow">▾</span></span>
   <div class="ni" onclick="nav('goals')">🏆 Goals</div>
   <div class="ni" onclick="nav('okrs')">🎯 OKRs</div>
   <div class="ni" onclick="nav('qreview')">📊 Quarterly Review</div>
@@ -416,7 +427,9 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
   <div class="ni" onclick="nav('eod')">🌙 End-of-Day</div>
   <div class="ni" onclick="nav('decisions')">🧠 Decisions</div>
   <div class="ni" onclick="nav('challenge')">⚡ Daily Challenge</div>
-  <div class="ns">Life OS</div>
+  </div>
+  <div class="ns-group collapsed" data-ns="lifeos">
+  <span class="ns" onclick="_toggleNsGroup(this)">Life OS<span class="ns-arrow">▸</span></span>
   <div class="ni" onclick="nav('books')">📚 Books</div>
   <div class="ni" onclick="nav('health')">💪 Health</div>
   <div class="ni" onclick="nav('sleep')">😴 Sleep</div>
@@ -430,7 +443,9 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
   <div class="ni" onclick="nav('discomfort')">🔥 Discomfort</div>
   <div class="ni" onclick="nav('ladder')">🪜 Ladder</div>
   <div class="ni" onclick="nav('agi')">🤖 AGI Prep</div>
-  <div class="ns">Personal</div>
+  </div>
+  <div class="ns-group collapsed" data-ns="personal">
+  <span class="ns" onclick="_toggleNsGroup(this)">Personal<span class="ns-arrow">▸</span></span>
   <div class="ni" onclick="nav('skills')">🧠 Skills XP</div>
   <div class="ni" onclick="nav('calendar')">📅 Calendar</div>
   <div class="ni" onclick="nav('optionality')">🎰 Optionality</div>
@@ -440,6 +455,7 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
   <div class="ni" onclick="nav('bucketlist')">🌍 Bucket List</div>
   <div class="ni" onclick="nav('wishlist')">🛒 Wishlist</div>
   <div class="ni" onclick="nav('projects')">🚀 Projects</div>
+  </div>
   <div style="margin-top:auto;padding:10px 6px 4px;border-top:1px solid var(--border);">
     <div class="ni" onclick="openSettings()" style="margin:0;">⚙️ Settings</div>
   </div>
@@ -468,6 +484,8 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
       <button class="btn bg sm dash-extra" onclick="showValueAlignment()">🎯 Values</button>
       <button class="btn bg sm dash-extra" onclick="showCommitments()">📜 Commits</button>
       <button class="btn bg sm dash-extra" onclick="showContextReport()">🔀</button>
+      <button class="btn bg sm" onclick="S.dashCompact=!S.dashCompact;save();renderDash();" id="dash-compact-btn" title="Toggle compact mode">🗜</button>
+      <button class="btn bg sm" onclick="openM('shortcuts-modal')" title="Keyboard shortcuts (?)">?</button>
       <button class="btn bg sm dash-extra" onclick="nav('eod')">🌙 EOD</button>
       <button class="btn bg sm" onclick="openQuickAdd()">⚡ Quick Add</button>
       <button class="btn bg sm dash-extra" id="plan-week-btn" onclick="openWeekPlan()">📋 Plan Week</button>
@@ -534,6 +552,8 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
   <div id="xp-nudge" style="display:none;background:rgba(88,166,255,.12);border:1px solid rgba(88,166,255,.3);border-radius:8px;padding:8px 12px;font-size:12px;text-align:center;margin-bottom:10px;"></div>
   <!-- WEEK INTENTION BANNER -->
   <div id="week-intention-banner" style="display:none;"></div>
+  <!-- REVIEW DRAFT BANNER -->
+  <div id="review-draft-banner" style="display:none;"></div>
   <!-- DAILY PICKS -->
   <div id="daily-picks-card" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:14px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -1187,6 +1207,8 @@ Read 50 books this year"></textarea>
         </select>
       </div>
     </div>
+    <button type="button" class="btn bg sm" id="tm-more-btn" onclick="_tmToggleAdvanced()" style="margin-top:8px;width:100%;">⊕ More options</button>
+    <div id="tm-advanced">
     <div class="fr">
       <div class="fg"><label>Urgency</label>
         <select class="fc" id="t-urg">
@@ -1256,6 +1278,7 @@ Read 50 books this year"></textarea>
       </div>
     </div>
     <div id="task-improve-result" style="max-height:180px;overflow-y:auto;margin-bottom:8px;"></div>
+    </div>
     <div class="mf">
       <button class="btn bd sm" id="del-btn" style="margin-right:auto;display:none;" onclick="delCurTask()">🗑 Delete</button>
       <button class="btn bg sm" id="ai-improve-btn" onclick="_aiBtn(this,()=>aiImproveTask(editT))" style="margin-right:auto;display:none;">✨ AI Improve</button>
@@ -1554,6 +1577,7 @@ Read 50 books this year"></textarea>
         <button class="btn bg sm" onclick="dwSetDuration(25)">25m</button>
         <button class="btn bg sm" onclick="dwSetDuration(50)">50m</button>
         <button class="btn bg sm" onclick="dwSetDuration(90)">90m</button>
+        <input type="number" id="dw-custom-dur" class="fc" min="5" max="180" step="5" placeholder="Custom" style="width:70px;font-size:12px;" onchange="if(this.value>=5&&this.value<=180){dwSetDuration(parseInt(this.value));}" title="Custom duration (5-180 min)">
       </div>
       <div style="margin-bottom:12px;">
         <input class="fc" id="dw-task-label" placeholder="What are you working on?" style="text-align:center;">
@@ -1588,6 +1612,7 @@ Read 50 books this year"></textarea>
   <div>
     <h2 style="margin-bottom:10px;">📅 Last 28 Days</h2>
     <div id="habits-heat"></div>
+    <div id="habit-heatmap-legend"></div>
   </div>
   <div style="margin-top:20px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;"><h2 style="margin:0;">📈 Habit Compound Projector</h2><span style="font-size:11px;color:var(--muted);">What consistency builds</span></div>
@@ -1824,7 +1849,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededV2:false,seededGoalsV3:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false,dailyIntention:[],energyLog:[],xp:0,level:1,badges:[],dailyQuests:[],questsDate:'',wheelAssessments:[],socialProfiles:[],brandStatement:'',weeklyNotes:[],taskPairs:{},brandAuditResult:'',givelinkMetrics:{nonprofits:0,pipeline:0,arr:0,users:0,impactStories:[],mrr:0,impactModel:{currentNonprofits:0,avgDonationsPerNonprofit:0,avgDonationSize:0,viralCoeff:1.1,targetPeople:1000000}},netWorthEntries:[],okrs:[],biomarkers:[],selfKnowledge:[],quarterlyReviews:[],annualReviews:[],agiPrep:{timeline:{},decisions:[],resources:[],scenarios:[]},sfTimeline:{targetDate:'',durationMonths:6,status:'planning',budget:0,milestones:[],network:[],notes:''},lifeScore:{score:0,breakdown:{},lastCalc:''},contentPipeline:[],skills:[],experiences:[],antiGoals:[],contracts:[],manifesto:{principles:[],identityStatements:[],rules:[],lastUpdated:''},bodyLogs:[],sleepLogs:[],portfolioEntries:[],givelinkHistory:[],dashWidgetOrder:['lifescore','daily-picks','daily-quests','habits','routines','deepwork','wheel-mini'],mentors:[],_allQuestsBonusDate:'',treasureChests:[],deadEnds:[],pitsOfDoom:[],optionalityLog:[],happinessLogs:[],maslowLog:[],lifeFrameworksLog:[],leverageLog:[],impossiblePeople:[],securityAuditLog:[]};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededV2:false,seededGoalsV3:false,dashCompact:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false,dailyIntention:[],energyLog:[],xp:0,level:1,badges:[],dailyQuests:[],questsDate:'',wheelAssessments:[],socialProfiles:[],brandStatement:'',weeklyNotes:[],taskPairs:{},brandAuditResult:'',givelinkMetrics:{nonprofits:0,pipeline:0,arr:0,users:0,impactStories:[],mrr:0,impactModel:{currentNonprofits:0,avgDonationsPerNonprofit:0,avgDonationSize:0,viralCoeff:1.1,targetPeople:1000000}},netWorthEntries:[],okrs:[],biomarkers:[],selfKnowledge:[],quarterlyReviews:[],annualReviews:[],agiPrep:{timeline:{},decisions:[],resources:[],scenarios:[]},sfTimeline:{targetDate:'',durationMonths:6,status:'planning',budget:0,milestones:[],network:[],notes:''},lifeScore:{score:0,breakdown:{},lastCalc:''},contentPipeline:[],skills:[],experiences:[],antiGoals:[],contracts:[],manifesto:{principles:[],identityStatements:[],rules:[],lastUpdated:''},bodyLogs:[],sleepLogs:[],portfolioEntries:[],givelinkHistory:[],dashWidgetOrder:['lifescore','daily-picks','daily-quests','habits','routines','deepwork','wheel-mini'],mentors:[],_allQuestsBonusDate:'',treasureChests:[],deadEnds:[],pitsOfDoom:[],optionalityLog:[],happinessLogs:[],maslowLog:[],lifeFrameworksLog:[],leverageLog:[],impossiblePeople:[],securityAuditLog:[]};
 let editT=null,editG=null,fCat='all';
 let profileName=localStorage.getItem('taskos_name')||'Panos';
 let _editChecklist=[];
@@ -2172,6 +2197,7 @@ function _somedayAction(action){
 }
 
 // ── NAV ───────────────────────────────────────────────────────
+function _toggleNsGroup(el){const g=el.closest('.ns-group');if(!g)return;g.classList.toggle('collapsed');const arr=el.querySelector('.ns-arrow');if(arr)arr.textContent=g.classList.contains('collapsed')?'▸':'▾';try{const st=JSON.parse(localStorage.getItem('taskos_nav_collapsed')||'{}');st[g.dataset.ns]=g.classList.contains('collapsed');localStorage.setItem('taskos_nav_collapsed',JSON.stringify(st));}catch(e){}}
 function nav(v){
   localStorage.setItem('taskos_lastview',v);
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
@@ -2189,6 +2215,8 @@ function refresh(){const a=document.querySelector('.view.active');if(a)renderVie
 
 // ── DASHBOARD ─────────────────────────────────────────────────
 function renderDash(){
+  const _compact=!!S.dashCompact;
+  document.getElementById('dash-compact-btn')?.setAttribute('title',_compact?'Expand dashboard':'Compact mode');
   // Auto-recalc Life Score once per day
   if(!S.lifeScore||new Date(S.lifeScore.lastCalc||0).toDateString()!==new Date().toDateString()){calcLifeScore();save();}
   _updateXPBar();
@@ -2219,22 +2247,18 @@ function renderDash(){
     <div class="sc"><div class="sn" style="color:var(--accent)">${dc}</div><div class="sl">Done Today</div></div>`;
   renderTop3();
   renderDailyPicks();
-  _renderBookInsight();
+  // Review draft resume banner
+  try{const _wd=JSON.parse(localStorage.getItem('taskos_wiz_draft')||'null');const _rdEl=document.getElementById('review-draft-banner');if(_rdEl){if(_wd&&_wd.date===new Date().toISOString().slice(0,10)){const _wdStep=(_wd.step||0)+1;_rdEl.innerHTML=`<div style="background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.25);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:13px;"><span>📅 Weekly Review in progress — Step ${_wdStep}/6</span><button class="btn bp sm" onclick="nav('review')">Resume →</button></div>`;_rdEl.style.display='';}else{_rdEl.innerHTML='';_rdEl.style.display='none';}}}catch(e){}
+  if(!_compact)_renderBookInsight();
   setTimeout(_attachSwipes,50);
   const wt=a.filter(t=>t.bucket==='this-week').slice(0,6);
   document.getElementById('dash-week').innerHTML=wt.length?wt.map(t=>tcHTML(t,true)).join(''):'<div class="empty">No tasks this week. <span style="color:var(--accent);cursor:pointer;" onclick="nav(\'buckets\')">Add some →</span></div>';
   updIBadge();
-  renderMorningBriefing();
-  renderStreakRow();
-  renderAntiPatterns();
-  checkEatTheFrog();
-  checkPreMortem();
-  renderMomentumScore();
-  renderOneThing();
-  renderWeeklyTheme();
-  renderExecutionScore();
+  if(!_compact){renderMorningBriefing();renderStreakRow();renderAntiPatterns();checkEatTheFrog();checkPreMortem();renderMomentumScore();renderOneThing();renderWeeklyTheme();renderExecutionScore();}
+  else{['momentum-row','theme-exec-row','morning-briefing','premortem-widget','xp-nudge','book-insight-card','life-score-widget','network-health-widget','wheel-dash-widget','streak-row','anti-pattern-alerts'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});renderOneThing();}
   _updateStartDayBtn();
   // XP nudge
+  if(!_compact){
   const _xpNext=XP_LEVELS[S.level]||XP_LEVELS[XP_LEVELS.length-1];
   const _xpGap=_xpNext-(S.xp||0);
   const nudgeEl=document.getElementById('xp-nudge');
@@ -2243,6 +2267,7 @@ function renderDash(){
       nudgeEl.innerHTML='⚡ Only <strong>'+_xpGap+' XP</strong> to Level '+((S.level||1)+1)+' — complete a task!';
       nudgeEl.style.display='';
     } else {nudgeEl.style.display='none';}
+  }
   }
   // Week intention banner
   const thisWeekNote=(S.weeklyNotes||[]).slice().reverse().find(n=>n.intention);
@@ -2255,6 +2280,7 @@ function renderDash(){
       intentBanner.style.display='none';
     }
   }
+  if(!_compact){
   // Life score widget
   const lsEl=document.getElementById('life-score-widget');
   if(lsEl){lsEl.innerHTML=_renderLifeScoreWidget();}
@@ -2284,6 +2310,7 @@ function renderDash(){
     } else {
       ww.innerHTML=`<div style="background:var(--surface2);border-radius:12px;padding:10px 14px;margin-bottom:12px;cursor:pointer;" onclick="openWheelModal()"><span style="font-size:13px;">🎡 Rate your Wheel of Life →</span></div>`;
     }
+  }
   }
   // Daily flow card
   const _dfEl=document.getElementById('daily-flow-card');
@@ -2512,8 +2539,8 @@ function renderGoals(){
     </div>`;
   }).join('');
   const top3El=document.getElementById('g-top3');
-  if(top3El)top3El.innerHTML=top3.length?heroHTML:'<div class="empty">Set your top 3 priorities!</div>';
-  document.getElementById('g-all').innerHTML=rest.length?rest.map(goalHTML).join(''):'<div class="empty">Add more goals.</div>';
+  if(top3El)top3El.innerHTML=top3.length?heroHTML:'<div class="empty" style="padding:20px;text-align:center;"><div style="font-size:28px;margin-bottom:6px;">⭐</div><div style="font-weight:600;margin-bottom:4px;">Set your North Stars</div><div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Your top 3 goals deserve the spotlight</div><button class="btn bp sm" onclick="openAddGoal()">+ Add a Top Goal</button></div>';
+  document.getElementById('g-all').innerHTML=rest.length?rest.map(goalHTML).join(''):'<div class="empty" style="padding:20px;text-align:center;"><div style="font-size:28px;margin-bottom:6px;">🏆</div><div style="font-weight:600;margin-bottom:4px;">No goals yet</div><div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Every task should serve a goal</div><button class="btn bp sm" onclick="openAddGoal()">+ Create First Goal</button></div>';
   document.getElementById('vals').innerHTML=S.values.length?`<div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px;">${S.values.map(v=>`<span class="badge co" style="font-size:12px;padding:5px 12px;cursor:pointer;" onclick="editVals()" title="Click to edit values">💎 ${v}</span>`).join('')}</div><p style="font-size:11px;color:var(--muted);margin:0;">Tap any value to edit · Values guide which goals matter</p>`:'<p style="color:var(--muted);">No values set — <a onclick="editVals()" style="color:var(--accent);cursor:pointer;">add your core values</a> to guide goal decisions.</p>';
   fillGoalDrop();
   renderSFTimeline();
@@ -2566,7 +2593,7 @@ function goalHTML(g){
 // ── REVIEW WIZARD ─────────────────────────────────────────────
 let wizStep=0;
 const WIZ_STEPS=['✅ Done','📥 Inbox','🟢 Backlog','🏆 Goals','📝 Notes','⚙️ Systematize'];
-function renderReview(){wizStep=0;renderWizBar();renderWizPanel();setTimeout(()=>{if(!document.getElementById('kt-prompt-card')?.innerHTML)renderKnowThyself();_renderKTHistory();_renderManifestoSection();},100);}
+function renderReview(){wizStep=0;renderWizBar();renderWizPanel();setTimeout(()=>{if(!document.getElementById('kt-prompt-card')?.innerHTML)renderKnowThyself();_renderKTHistory();_renderManifestoSection();try{const _wd=JSON.parse(localStorage.getItem('taskos_wiz_draft')||'null');if(_wd&&_wd.date===new Date().toISOString().slice(0,10)){goStep(_wd.step||0);['rw','ri','rf','rcommit','rifnot','r-journal','r-gratitude','r-bigwin'].forEach(id=>{const el=document.getElementById(id);if(el&&_wd[id])el.value=_wd[id];});}}catch(e){}},200);}
 function renderWizBar(){
   document.getElementById('wiz-bar').innerHTML=WIZ_STEPS.map((s,i)=>`<div class="wiz-step ${i===wizStep?'cur':i<wizStep?'done':''}" onclick="goStep(${i})">${i<wizStep?'✓ ':''}${s}</div>`).join('');
   document.getElementById('wiz-prog').textContent=`Step ${wizStep+1}/${WIZ_STEPS.length}`;
@@ -2610,22 +2637,22 @@ function renderWizPanel(){
         <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center;"><div style="font-size:18px;font-weight:700;color:#fbbf24;">${habStreak}d</div><div style="font-size:10px;color:var(--muted);">habit streak</div></div>
         <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center;"><div style="font-size:18px;font-weight:700;color:#69db7c;">€${incomeWk}</div><div style="font-size:10px;color:var(--muted);">income</div></div>
       </div>
-      <div class="fg"><label>✅ What went well?</label><textarea class="fc" id="rw" placeholder="3 wins from this week..."></textarea></div>
-      <div class="fg"><label>📈 What to improve?</label><textarea class="fc" id="ri" placeholder="1-2 things to do differently..."></textarea></div>
-      <div class="fg"><label>🎯 Focus for next week?</label><textarea class="fc" id="rf" placeholder="The single most important thing..."></textarea></div>
-      <div class="fg" style="margin-top:4px;border-top:1px solid var(--border);padding-top:10px;"><label style="color:var(--accent);font-weight:700;">📜 This Week I Commit To</label><input class="fc" id="rcommit" placeholder="e.g. Book 2 demo calls. No excuses."></div>
-      <div class="fg"><label>If I don't follow through, it's because</label><input class="fc" id="rifnot" placeholder="Name your most likely excuse in advance..."></div>
+      <div class="fg"><label>✅ What went well?</label><textarea class="fc" id="rw" placeholder="3 wins from this week..." oninput="_wizSave()"></textarea></div>
+      <div class="fg"><label>📈 What to improve?</label><textarea class="fc" id="ri" placeholder="1-2 things to do differently..." oninput="_wizSave()"></textarea></div>
+      <div class="fg"><label>🎯 Focus for next week?</label><textarea class="fc" id="rf" placeholder="The single most important thing..." oninput="_wizSave()"></textarea></div>
+      <div class="fg" style="margin-top:4px;border-top:1px solid var(--border);padding-top:10px;"><label style="color:var(--accent);font-weight:700;">📜 This Week I Commit To</label><input class="fc" id="rcommit" placeholder="e.g. Book 2 demo calls. No excuses." oninput="_wizSave()"></div>
+      <div class="fg"><label>If I don't follow through, it's because</label><input class="fc" id="rifnot" placeholder="Name your most likely excuse in advance..." oninput="_wizSave()"></div>
       <div class="fg" style="margin-top:8px;">
         <label>📔 Weekly Journal (free reflection)</label>
-        <textarea class="fc" id="r-journal" rows="3" placeholder="How did the week really feel? What surprised you? What would you tell yourself next Monday?"></textarea>
+        <textarea class="fc" id="r-journal" rows="3" placeholder="How did the week really feel? What surprised you? What would you tell yourself next Monday?" oninput="_wizSave()"></textarea>
       </div>
       <div class="fg">
         <label>🙏 3 Things You're Grateful For</label>
-        <textarea class="fc" id="r-gratitude" rows="2" placeholder="1. ... 2. ... 3. ..."></textarea>
+        <textarea class="fc" id="r-gratitude" rows="2" placeholder="1. ... 2. ... 3. ..." oninput="_wizSave()"></textarea>
       </div>
       <div class="fg">
         <label>🏆 Biggest Win This Week</label>
-        <input class="fc" id="r-bigwin" placeholder="The single best thing that happened...">
+        <input class="fc" id="r-bigwin" placeholder="The single best thing that happened..." oninput="_wizSave()">
       </div>
     </div>
     ${rev.length?`<h3 style="margin:14px 0 8px;font-size:13px;color:var(--muted);">Past Reviews</h3>${rev.map(r=>`<div class="card" style="margin-bottom:8px;"><div style="font-weight:600;margin-bottom:4px;font-size:13px;">📅 ${fd(r.weekOf)}</div>${r.focus?`<div style="font-size:12px;color:var(--muted);">🎯 ${r.focus}</div>`:''}</div>`).join('')}`:''}
@@ -2642,6 +2669,8 @@ function renderWizPanel(){
     <div class="wiz-nav"><button class="btn bg" onclick="goStep(4)">← Back</button><button class="btn bp" onclick="finishReview()">✅ Save & Finish</button></div>`;
   }
 }
+function _wizSave(){try{const d={step:wizStep,date:new Date().toISOString().slice(0,10)};['rw','ri','rf','rcommit','rifnot','r-journal','r-gratitude','r-bigwin'].forEach(id=>{const el=document.getElementById(id);if(el)d[id]=el.value;});localStorage.setItem('taskos_wiz_draft',JSON.stringify(d));}catch(e){console.warn('_wizSave error',e);}}
+function _wizClearDraft(){localStorage.removeItem('taskos_wiz_draft');}
 function finishReview(){
   const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
   const done=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>wAgo);
@@ -2665,6 +2694,7 @@ function finishReview(){
   localStorage.setItem('taskos_history',JSON.stringify(hist));
   const wNote={id:uid(),weekOf:new Date().toISOString().slice(0,10),note:document.getElementById('r-journal')?.value.trim()||'',gratitude:document.getElementById('r-gratitude')?.value.trim()||'',bigWin:document.getElementById('r-bigwin')?.value.trim()||'',intention:''};
   if(wNote.note||wNote.gratitude||wNote.bigWin){S.weeklyNotes=S.weeklyNotes||[];S.weeklyNotes.push(wNote);}
+  _wizClearDraft();
   save();refresh();
   awardXP(25,'weekly-review');
   toast('✅ Weekly review saved! +25 XP 🎉',3000);
@@ -2735,6 +2765,8 @@ function openAdd(bucket='inbox',goalId=null){
   if(peopSel){peopSel.innerHTML=(S.people||[]).map(p=>`<option value="${p.id}">${esc(p.name)}</option>`).join('');}
   const aiImproveBtn=document.getElementById('ai-improve-btn');
   if(aiImproveBtn)aiImproveBtn.style.display='none';
+  document.getElementById('tm-advanced')?.classList.add('hidden');
+  const mb=document.getElementById('tm-more-btn');if(mb)mb.textContent='⊕ More options';
   document.getElementById('tm').classList.remove('hidden');
   setTimeout(()=>_trapFocus(document.getElementById('tm')),50);
   document.getElementById('t-title').focus();
@@ -2773,10 +2805,14 @@ function openEdit(id){
   if(aiImproveBtn)aiImproveBtn.style.display='';
   const tiRes=document.getElementById('task-improve-result');
   if(tiRes)tiRes.innerHTML='';
+  document.getElementById('tm-advanced')?.classList.remove('hidden');
+  const mb2=document.getElementById('tm-more-btn');if(mb2)mb2.textContent='⊖ Fewer options';
   document.getElementById('tm').classList.remove('hidden');
   setTimeout(()=>_trapFocus(document.getElementById('tm')),50);
   document.getElementById('t-title').focus();
 }
+
+function _tmToggleAdvanced(){const adv=document.getElementById('tm-advanced');const btn=document.getElementById('tm-more-btn');if(!adv||!btn)return;const hidden=adv.classList.toggle('hidden');btn.textContent=hidden?'⊕ More options':'⊖ Fewer options';}
 
 function saveTask(){
   const title=document.getElementById('t-title').value.trim();
@@ -3029,10 +3065,11 @@ function closeM(id){
   const el=document.getElementById(id);
   if(el){_releaseFocus(el);el.classList.add('hidden');}
   editT=null;editG=null;
+  document.body.classList.remove('modal-open');
 }
 function openM(id){
   const el=document.getElementById(id);
-  if(el){el.classList.remove('hidden');setTimeout(()=>{const first=el.querySelector('input,textarea,select');if(first)first.focus();},50);}
+  if(el){el.classList.remove('hidden');document.body.classList.add('modal-open');setTimeout(()=>{const first=el.querySelector('input,textarea,select');if(first)first.focus();},50);}
 }
 document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',function(e){if(e.target===this){this.classList.add('hidden');editT=null;editG=null;}}));
 
@@ -3094,23 +3131,30 @@ function _handleCmdKNL(input){
 
 // ── FOCUS NOW ─────────────────────────────────────────────────
 let curEnergy=null;
-function setEnergy(lv,el){curEnergy=lv;document.querySelectorAll('.eng-btn').forEach(b=>b.classList.remove('sel'));el.classList.add('sel');renderFocusRecs();}
+function setEnergy(lv,el){curEnergy=lv;document.querySelectorAll('.eng-btn').forEach(b=>b.classList.remove('sel'));if(el)el.classList.add('sel');renderFocusRecs();}
 function renderFocus(){
   document.getElementById('focus-date').textContent=new Date().toLocaleDateString('en-US',{weekday:'long',month:'short',day:'numeric'});
+  const _hr=new Date().getHours();
+  const _defEnergy=_hr<12?'high':_hr<16?'medium':'low';
+  if(!curEnergy){curEnergy=_defEnergy;const _btn=document.querySelector(`.eng-btn:nth-child(${_defEnergy==='high'?1:_defEnergy==='medium'?2:3})`);if(_btn){document.querySelectorAll('.eng-btn').forEach(b=>b.classList.remove('sel'));_btn.classList.add('sel');}}
   renderFocusDayPlan();
   renderFocusHabits();
-  if(curEnergy)renderFocusRecs();
+  renderFocusRecs();
+  // Highlight current time block
+  const _fh=new Date().getHours();
+  const _blocks=[{id:'fp-block-1',start:9,end:11},{id:'fp-block-2',start:11,end:12},{id:'fp-block-3',start:14,end:16},{id:'fp-block-4',start:16,end:17}];
+  _blocks.forEach(b=>{const el=document.getElementById(b.id);if(!el)return;const active=_fh>=b.start&&_fh<b.end;el.style.border=active?'2px solid var(--accent)':'';el.style.borderRadius=active?'8px':'';const badge=el.querySelector('.now-badge');if(active&&!badge){const nb=document.createElement('span');nb.className='now-badge';nb.style.cssText='font-size:10px;color:var(--accent);font-weight:700;margin-left:6px;';nb.textContent='🟢 Now';const firstDiv=el.querySelector('div');if(firstDiv)firstDiv.appendChild(nb);}else if(!active&&badge)badge.remove();});
 }
 function renderFocusDayPlan(){
   const top=S.tasks.filter(t=>t.isT3&&t.status!=='done').sort((a,b)=>a.t3s-b.t3s);
   const blocks=[
-    {time:'9–11am',icon:'🧠',label:'Deep Work',task:top[0]||null,color:'#58a6ff'},
-    {time:'11–12pm',icon:'🟣',label:'Givelink Outreach',task:top.find(t=>t.category==='givelink')||null,color:'#a78bfa'},
-    {time:'2–4pm',icon:'⚡',label:'Focus Block 2',task:top[1]||null,color:'#22d3ee'},
-    {time:'4–5pm',icon:'📧',label:'Comms & Admin',task:null,color:'var(--muted)'},
+    {id:'fp-block-1',time:'9–11am',icon:'🧠',label:'Deep Work',task:top[0]||null,color:'#58a6ff'},
+    {id:'fp-block-2',time:'11–12pm',icon:'🟣',label:'Givelink Outreach',task:top.find(t=>t.category==='givelink')||null,color:'#a78bfa'},
+    {id:'fp-block-3',time:'2–4pm',icon:'⚡',label:'Focus Block 2',task:top[1]||null,color:'#22d3ee'},
+    {id:'fp-block-4',time:'4–5pm',icon:'📧',label:'Comms & Admin',task:null,color:'var(--muted)'},
   ];
   document.getElementById('focus-day-plan').innerHTML=blocks.map(b=>`
-    <div style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);">
+    <div id="${b.id}" style="display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--border);">
       <span style="font-size:11px;color:var(--muted);min-width:54px;">${b.time}</span>
       <span style="font-size:16px;">${b.icon}</span>
       <div style="flex:1;">
@@ -3155,7 +3199,7 @@ function renderFocusRecs(){
         <div class="tm">${catB(t.category)}${eB(t)}<span class="badge co">${BKTS[t.bucket]?.e} ${BKTS[t.bucket]?.l}</span>${t.timeBlock?`<span class="tag">⏱ ${ft(t.timeBlock)}</span>`:''}</div>
       </div>
       <button class="btn bp sm" onclick="event.stopPropagation();toggleDone('${t.id}');renderFocusRecs()">✓</button>
-    </div>`).join(''):'<div class="empty">All done! 🎉</div>';
+    </div>`).join(''):`<div class="empty">No ${curEnergy||'matching'}-energy tasks in This Week — <button class='btn bg sm' onclick="nav('buckets')">Add one →</button></div>`;
 }
 
 // ── PROCESS MODE ──────────────────────────────────────────────
@@ -3189,15 +3233,23 @@ function procMove(id,b){mvB(id,b);if(procMode)renderProcCard();}
 function procDelete(id){delTask(id);if(procMode)renderProcCard();}
 
 // ── KEYBOARD ──────────────────────────────────────────────────
+document.addEventListener('click',e=>{window._lastClickX=e.clientX;window._lastClickY=e.clientY;});
 document.addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openCmdK();return;}
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
   if(e.key==='q'||e.key==='Q'){e.preventDefault();openQuickCapture();return;}
-  if(e.key==='n')openAdd();
-  if(e.key==='c')nav('capture');
-  if(e.key==='Escape'){
-    if(!document.getElementById('cmdk').classList.contains('hidden')){closeCmdK();return;}
-    document.querySelectorAll('.mo:not(.hidden)').forEach(m=>{m.classList.add('hidden');editT=null;editG=null;});
+  const _inInput=document.activeElement&&['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName);
+  if(!_inInput){
+    if(e.key==='?'){e.preventDefault();openM('shortcuts-modal');return;}
+    if(e.key==='n'||e.key==='N'){e.preventDefault();openAdd();return;}
+    if(e.key==='d'||e.key==='D'){e.preventDefault();nav('dashboard');return;}
+    if(e.key==='h'||e.key==='H'){e.preventDefault();nav('habits');return;}
+    if(e.key==='w'||e.key==='W'){e.preventDefault();nav('deepwork');return;}
+    if(e.key==='e'||e.key==='E'){e.preventDefault();nav('eod');return;}
+    if(e.key==='r'||e.key==='R'){e.preventDefault();nav('review');return;}
+    if(e.key==='f'||e.key==='F'){e.preventDefault();nav('focus');return;}
+    if(e.key==='c'||e.key==='C'){e.preventDefault();nav('capture');return;}
+    if(e.key==='Escape'){const _openModal=document.querySelector('.modal-bg:not(.hidden)');if(_openModal){closeM(_openModal.id);return;}if(!document.getElementById('cmdk').classList.contains('hidden')){closeCmdK();return;}document.querySelectorAll('.mo:not(.hidden)').forEach(m=>{m.classList.add('hidden');editT=null;editG=null;});return;}
   }
   if(procMode){
     const inbox=active().filter(t=>t.bucket==='inbox');
@@ -4137,7 +4189,7 @@ function renderDeepWork(){
       <svg viewBox="0 0 ${(barW+gap)*n-gap} ${H}" style="width:100%;height:${H}px;overflow:visible;">${bars}</svg>`;
   }
   document.getElementById('dw-log').innerHTML=sessions.slice().sort((a,b)=>a.date>b.date?-1:1).slice(0,20).map(s=>`
-    <div class="dis-row"><div style="display:flex;justify-content:space-between;"><span style="font-weight:500;">🧠 ${s.label||'Deep Work'}</span><span style="color:var(--accent);font-weight:600;">${Math.round(s.duration/60)}m</span></div><div style="font-size:11px;color:var(--muted);">${s.date}</div></div>`).join('')||'<div class="empty">No sessions yet. Start a timer!</div>';
+    <div class="dis-row"><div style="display:flex;justify-content:space-between;"><span style="font-weight:500;">🧠 ${s.label||'Deep Work'}</span><span style="color:var(--accent);font-weight:600;">${Math.round(s.duration/60)}m</span></div><div style="font-size:11px;color:var(--muted);">${s.date}</div></div>`).join('')||'<div class="empty" style="padding:20px;text-align:center;"><div style="font-size:28px;margin-bottom:6px;">🧠</div><div style="font-weight:600;margin-bottom:4px;">No sessions yet</div><div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Start your first deep work session</div><button class="btn bp sm" onclick="nav(\'deepwork\')">Start Timer →</button></div>';
   // Depth breakdown of completed tasks
   const completedTasks=S.tasks.filter(t=>t.status==='done');
   const deepTasks=completedTasks.filter(t=>t.depth==='deep').length;
@@ -4211,7 +4263,7 @@ function renderHabits(){
     <div class="los-card los-stat"><div class="los-stat-n" style="color:#fbbf24;">${_habitStreak()}</div><div class="los-stat-l">Day streak (all done)</div></div>
     <div class="los-card los-stat"><div class="los-stat-n" style="color:#74c0fc;">${habits.length}</div><div class="los-stat-l">Active habits</div></div>`;
   if(!habits.length){
-    document.getElementById('habits-checklist').innerHTML='<div class="empty">No habits yet. Click ⚙️ Manage Habits to add some.</div>';
+    document.getElementById('habits-checklist').innerHTML='<div class="empty" style="padding:20px;text-align:center;"><div style="font-size:28px;margin-bottom:6px;">✅</div><div style="font-weight:600;margin-bottom:4px;">No habits yet</div><div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Small daily actions compound into big results</div><button class="btn bp sm" onclick="openHabitSettings()">+ Add Habits</button></div>';
   } else {
     const _DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
     document.getElementById('habits-checklist').innerHTML=`<h3 style="margin-bottom:12px;">Today's Habits</h3>`+habits.map(h=>{
@@ -4245,6 +4297,19 @@ function renderHabits(){
     <div style="margin-bottom:8px;"><div style="font-size:11px;color:var(--muted);margin-bottom:4px;">${h}</div>
     ${heatDays===90?'<div style="overflow-x:auto;">':''}<div style="display:grid;grid-template-columns:repeat(${heatDays===90?13:7},1fr);gap:3px;${heatDays===90?'min-width:520px;':''}">${days.map(d=>{const done=(S.habitLogs?.[d]||{})[h];return`<div class="heat-cell ${done?'h4':''}" title="${d}"></div>`;}).join('')}</div>${heatDays===90?'</div>':''}</div>`).join(''):'');
   }
+  // Heatmap legend
+  const _lgEl=document.getElementById('habit-heatmap-legend');
+  if(_lgEl)_lgEl.innerHTML=`<div style="display:flex;align-items:center;gap:10px;font-size:11px;color:var(--muted);margin-top:6px;">
+  <span>Less</span>
+  <span style="display:inline-flex;gap:3px;">
+    <span style="width:10px;height:10px;border-radius:2px;background:var(--surface2);border:1px solid var(--border);display:inline-block;"></span>
+    <span style="width:10px;height:10px;border-radius:2px;background:rgba(105,219,124,.25);display:inline-block;"></span>
+    <span style="width:10px;height:10px;border-radius:2px;background:rgba(105,219,124,.5);display:inline-block;"></span>
+    <span style="width:10px;height:10px;border-radius:2px;background:rgba(105,219,124,.75);display:inline-block;"></span>
+    <span style="width:10px;height:10px;border-radius:2px;background:#69db7c;display:inline-block;"></span>
+  </span>
+  <span>More</span>
+</div>`;
   renderHabitProjector();
   renderRoutines();
 }
@@ -5226,6 +5291,7 @@ let _checkingBadges=false;
 
 function awardXP(amount,reason){
   if(!amount||amount<=0)return;
+  if(window._lastClickX!==undefined){const pop=document.createElement('div');pop.className='xp-pop';pop.textContent=`+${amount}xp`;pop.style.left=(window._lastClickX-20)+'px';pop.style.top=(window._lastClickY-10)+'px';document.body.appendChild(pop);setTimeout(()=>pop.remove(),1000);delete window._lastClickX;delete window._lastClickY;}
   S.xp=(S.xp||0)+amount;
   const oldLevel=S.level||1;
   let newLevel=oldLevel;
@@ -7599,6 +7665,7 @@ function toggleSB(){
 
 // ── INIT ──────────────────────────────────────────────────────
 load();seed();seedGoals();resetRecurring();_genDailyQuests();_maybeShowWeeklyWrapped();
+try{const _nc=JSON.parse(localStorage.getItem('taskos_nav_collapsed')||'{}');document.querySelectorAll('.ns-group').forEach(g=>{const collapsed=_nc[g.dataset.ns]??g.classList.contains('collapsed');if(collapsed)g.classList.add('collapsed');else g.classList.remove('collapsed');const arr=g.querySelector('.ns-arrow');if(arr)arr.textContent=collapsed?'▸':'▾';});}catch(e){}
 document.title='Task OS — '+profileName;
 const _lastP=localStorage.getItem('taskos_lastview');
 if(_lastP&&_lastP!=='dashboard'){nav(_lastP);}else{renderDash();}
@@ -7994,7 +8061,7 @@ function renderBooks(){
     ${reading.length?`<h3 style="margin:0 0 8px;font-size:13px;">Currently Reading</h3>${reading.map(renderBook).join('')}`:''}
     ${notStarted.length?`<h3 style="margin:12px 0 8px;font-size:13px;color:var(--muted);">To Read</h3>${notStarted.map(renderBook).join('')}`:''}
     ${done.length?`<h3 style="margin:12px 0 8px;font-size:13px;color:var(--muted);">Finished</h3>${done.map(renderBook).join('')}`:''}
-    ${!books.length?'<div class="empty">No books yet. Add your first one!</div>':''}`;
+    ${!books.length?'<div class="empty" style="padding:20px;text-align:center;"><div style="font-size:28px;margin-bottom:6px;">📚</div><div style="font-weight:600;margin-bottom:4px;">No books yet</div><div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Track what you\'re reading and learning</div><button class="btn bp sm" onclick="openAddBook()">+ Add First Book</button></div>':''}`;
 }
 function openAddBook(){
   document.getElementById('book-id').value='';
@@ -9007,7 +9074,7 @@ function renderWins(){
         <button class="btn bg sm" onclick="deleteWin('${w.id}')" title="Delete">🗑</button>
       </div>
     </div>`;
-  }).join(''):'<div class="empty">No wins logged yet. Start celebrating!</div>';
+  }).join(''):'<div class="empty" style="padding:20px;text-align:center;"><div style="font-size:28px;margin-bottom:6px;">🏅</div><div style="font-weight:600;margin-bottom:4px;">No wins logged yet</div><div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Every win counts — celebrate your progress</div><button class="btn bp sm" onclick="openAddWin()">+ Log a Win</button></div>';
   renderExperienceSection();
 }
 function openAddWin(){
@@ -11655,6 +11722,28 @@ function _goalMomentum(goalId){
   <button class="btn bg sm" onclick="applyBulkAction('done')">✓ Done</button>
   <button class="btn bd sm" onclick="applyBulkAction('delete')">🗑 Delete</button>
   <button class="btn bg sm" onclick="toggleBulkMode()">✕ Cancel</button>
+</div>
+
+<!-- SHORTCUTS MODAL -->
+<div id="shortcuts-modal" class="modal-bg hidden" onclick="if(event.target===this)closeM('shortcuts-modal')">
+  <div class="modal" style="max-width:480px;">
+    <div class="mh"><h3>⌨️ Keyboard Shortcuts</h3><button class="ic" onclick="closeM('shortcuts-modal')">×</button></div>
+    <div style="padding:16px;">
+      <table style="width:100%;border-collapse:collapse;font-size:13px;">
+        <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 8px;color:var(--muted);">⌘K / Ctrl+K</td><td style="padding:6px 8px;">Quick capture</td></tr>
+        <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 8px;color:var(--muted);">?</td><td style="padding:6px 8px;">Show this help</td></tr>
+        <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 8px;color:var(--muted);">N</td><td style="padding:6px 8px;">New task</td></tr>
+        <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 8px;color:var(--muted);">D</td><td style="padding:6px 8px;">Go to Dashboard</td></tr>
+        <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 8px;color:var(--muted);">H</td><td style="padding:6px 8px;">Go to Habits</td></tr>
+        <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 8px;color:var(--muted);">W</td><td style="padding:6px 8px;">Go to Deep Work</td></tr>
+        <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 8px;color:var(--muted);">E</td><td style="padding:6px 8px;">Go to End-of-Day</td></tr>
+        <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 8px;color:var(--muted);">R</td><td style="padding:6px 8px;">Go to Weekly Review</td></tr>
+        <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 8px;color:var(--muted);">F</td><td style="padding:6px 8px;">Go to Focus Now</td></tr>
+        <tr><td style="padding:6px 8px;color:var(--muted);">Esc</td><td style="padding:6px 8px;">Close modal</td></tr>
+      </table>
+      <p style="font-size:11px;color:var(--muted);margin-top:12px;">Shortcuts work when not typing in an input field.</p>
+    </div>
+  </div>
 </div>
 </body>
 </html>

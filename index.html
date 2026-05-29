@@ -365,6 +365,32 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
 @keyframes done-pulse{0%{background:rgba(105,219,124,.22);}100%{background:transparent;}}
 .tc.just-done{animation:done-pulse .5s ease;}
 .ck:active{transform:scale(.88);}
+/* ── MOBILE POLISH v2: completion fly-out, modal entrance, stagger, sticky close ── */
+@keyframes tcComplete{0%{transform:translateX(0);opacity:1;}28%{background:rgba(105,219,124,.22);transform:translateX(0) scale(.99);}100%{transform:translateX(42px);opacity:0;}}
+.tc.tc-complete{animation:tcComplete .3s cubic-bezier(.4,0,.6,1) forwards;pointer-events:none;}
+@keyframes modalIn{from{opacity:0;}to{opacity:1;}}
+@keyframes mdPop{from{opacity:0;transform:translateY(10px) scale(.985);}to{opacity:1;transform:translateY(0) scale(1);}}
+@keyframes sheetUp{from{transform:translateY(100%);}to{transform:translateY(0);}}
+.mo:not(.hidden){animation:modalIn .2s ease;}
+.mo:not(.hidden) .md{animation:mdPop .24s cubic-bezier(.32,.72,0,1);}
+/* Staggered list reveal — only while a view is entering (not on in-place refresh) */
+.view.entering .tc{animation:fi .26s ease both;}
+.view.entering .tc:nth-child(1){animation-delay:.02s}
+.view.entering .tc:nth-child(2){animation-delay:.05s}
+.view.entering .tc:nth-child(3){animation-delay:.08s}
+.view.entering .tc:nth-child(4){animation-delay:.11s}
+.view.entering .tc:nth-child(5){animation-delay:.14s}
+.view.entering .tc:nth-child(6){animation-delay:.17s}
+.view.entering .tc:nth-child(n+7){animation-delay:.19s}
+@media(max-width:768px){
+  /* Bottom-sheet entrance + sticky header so the close button never scrolls away */
+  .mo:not(.hidden) .md{animation:sheetUp .28s cubic-bezier(.32,.72,0,1);}
+  .md .mh{position:sticky;top:0;background:var(--surface);z-index:6;padding-top:6px;margin-top:-6px;}
+  /* Eisenhower: single-column priority stack (Do First → Eliminate) instead of cramped 2x2 */
+  .eg{display:flex!important;flex-direction:column;gap:10px;height:auto;}
+  .eg>div:not(.eq){display:none!important;}
+  .eg>.eq{max-height:none;overflow:visible;}
+}
 /* ── THEME TRANSITION ────────────────────────────────────────── */
 body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .35s ease,border-color .35s ease!important;}
 /* ── EMPTY STATE ILLUSTRATION ────────────────────────────────── */
@@ -2332,16 +2358,23 @@ function _somedayAction(action){
 
 // ── NAV ───────────────────────────────────────────────────────
 function _toggleNsGroup(el){const g=el.closest('.ns-group');if(!g)return;g.classList.toggle('collapsed');const arr=el.querySelector('.ns-arrow');if(arr)arr.textContent=g.classList.contains('collapsed')?'▸':'▾';try{const st=JSON.parse(localStorage.getItem('taskos_nav_collapsed')||'{}');st[g.dataset.ns]=g.classList.contains('collapsed');localStorage.setItem('taskos_nav_collapsed',JSON.stringify(st));}catch(e){}}
+let _scrollPos={};
 function nav(v){
   _selTaskId=null;
   _closeFabDial();
+  const _prev=document.querySelector('.view.active');
+  if(_prev)_scrollPos[_prev.id]={m:document.querySelector('.main')?.scrollTop||0,w:window.scrollY||0};
   localStorage.setItem('taskos_lastview',v);
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
-  document.getElementById('v-'+v).classList.add('active');
+  const _vEl=document.getElementById('v-'+v);
+  _vEl.classList.add('active','entering');
+  setTimeout(()=>_vEl.classList.remove('entering'),520);
   document.querySelectorAll('.ni').forEach(x=>{if(x.getAttribute('onclick')?.includes("'"+v+"'"))x.classList.add('active');});
   if(v==='dashboard')window._dashAnim=true;
   renderView(v);
+  const _sp=_scrollPos['v-'+v]||{m:0,w:0};
+  requestAnimationFrame(()=>{const _mn=document.querySelector('.main');if(_mn)_mn.scrollTop=_sp.m;window.scrollTo(0,_sp.w);});
   // mobile: close sidebar, sync bottom nav
   document.querySelector('.sidebar')?.classList.remove('open');
   document.getElementById('s-ov')?.classList.remove('open');
@@ -3045,8 +3078,12 @@ function toggleDone(id){
       setTimeout(()=>toast('🔄 Recurring task reset!'),300);
     }
   }
-  save();refresh();updIBadge();updateChecklistBadge();
-  if(t.status==='done')setTimeout(()=>{const _c=document.querySelector('.tc[data-swipe-id="'+id+'"]');if(_c)_c.classList.add('just-done');},30);
+  save();updIBadge();updateChecklistBadge();
+  if(t.status==='done'){
+    const _c=document.querySelector('.tc[data-swipe-id="'+id+'"]');
+    if(_c){_c.classList.add('tc-complete');setTimeout(refresh,300);}
+    else refresh();
+  }else refresh();
   if(t.status==='done'){
     const baseXP={'deep':20,'medium':10,'shallow':5}[wasDepth]||10;
     const lucky=Math.random()<0.125;

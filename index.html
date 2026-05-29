@@ -1689,7 +1689,7 @@ function nav(v){
   if(document.getElementById('more-sheet')?.classList.contains('open'))closeMoreSheet();
   renderPinnedSB();
 }
-function renderView(v){({today:renderToday,dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort,eod:renderEod,decisions:renderDecisions,challenge:renderChallenge,ladder:renderLadder,books:renderBooks,wins:renderWins,bucketlist:renderBucketList,wishlist:renderWishlist,projects:renderProjects,morning:renderMorning})[v]?.();}
+function renderView(v){({today:renderToday,dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,review:renderReview,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort,eod:renderEod,decisions:renderDecisions,challenge:renderChallenge,ladder:renderLadder,books:renderBooks,wins:renderWins,bucketlist:renderBucketList,wishlist:renderWishlist,projects:renderProjects,morning:renderMorning})[v]?.();setTimeout(_attachSwipes,0);}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
 
 // ── DASHBOARD ─────────────────────────────────────────────────
@@ -1806,7 +1806,7 @@ function renderBuckets(){
         <span class="bcnt">${tasks.length}${b.max?'/'+b.max:''}</span>
       </div>
       ${b.max?`<div class="pb"><div class="pf" style="width:${pct}%;background:${BCOLORS[bid]}"></div></div>`:''}
-      ${tasks.length?tasks.map(t=>`<div class="tc fi ${t.status==='done'?'done':''} ${t.isT3&&t.status!=='done'?'top3':''}" draggable="true" ondragstart="window._dragId='${t.id}'" onclick="openEdit('${t.id}')">
+      ${tasks.length?tasks.map(t=>`<div class="tc fi ${t.status==='done'?'done':''} ${t.isT3&&t.status!=='done'?'top3':''}" data-swipe-id="${t.id}" draggable="true" ondragstart="window._dragId='${t.id}'" onclick="openEdit('${t.id}')">
         <div class="ck ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${t.status==='done'?'<span style="color:#fff;font-size:10px;">✓</span>':''}</div>
         <div class="tb">
           <div class="tt">${esc(t.title)}</div>
@@ -2087,7 +2087,7 @@ function addSuggestedTask(i){
 // ── TASK CARD HTML ────────────────────────────────────────────
 function tcHTML(t,showT3btn=false){
   const gl=t.goalId?S.goals.find(g=>g.id===t.goalId):null;
-  return`<div class="tc fi ${t.status==='done'?'done':''} ${t.isT3&&t.status!=='done'?'top3':''}" onclick="openEdit('${t.id}')">
+  return`<div class="tc fi ${t.status==='done'?'done':''} ${t.isT3&&t.status!=='done'?'top3':''}" data-swipe-id="${t.id}" onclick="openEdit('${t.id}')">
     <div class="ck ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${t.status==='done'?'<span style="color:#fff;font-size:10px;">✓</span>':''}</div>
     <div class="tb">
       <div class="tt">${esc(t.title)}</div>
@@ -2188,6 +2188,77 @@ function toggleDone(id){
 }
 
 function mvB(id,b){const t=S.tasks.find(x=>x.id===id);if(!t)return;t.bucket=b;save();refresh();}
+
+// ── SWIPE GESTURES + SMART RESCHEDULE SHEET ───────────────────
+function _haptic(ms){try{navigator.vibrate&&navigator.vibrate(ms);}catch(e){}}
+
+let _rsTaskId=null;
+
+function _initSwipe(el,id){
+  let startX=0,startY=0,moved=false;
+  el.addEventListener('touchstart',e=>{startX=e.touches[0].clientX;startY=e.touches[0].clientY;moved=false;},{passive:true});
+  el.addEventListener('touchmove',e=>{
+    const dx=e.touches[0].clientX-startX;
+    const dy=Math.abs(e.touches[0].clientY-startY);
+    if(dy>30)return;
+    if(Math.abs(dx)>10){moved=true;el.style.transform=`translateX(${Math.min(60,Math.max(-60,dx))}px)`;el.style.background=dx<-20?'rgba(34,197,94,.15)':dx>20?'rgba(251,191,36,.15)':'';}
+  },{passive:true});
+  el.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-startX;
+    el.style.transform='';el.style.background='';
+    if(!moved)return;
+    if(dx<-60){_haptic(15);toggleDone(id);toast('✓ Done!');}
+    else if(dx>60){_haptic(15);_showRescheduleSheet(id);}
+  });
+}
+
+function _attachSwipes(){
+  document.querySelectorAll('[data-swipe-id]').forEach(el=>{
+    if(el.dataset.swipeAttached)return;
+    el.dataset.swipeAttached='1';
+    _initSwipe(el,el.dataset.swipeId);
+  });
+}
+
+function _showRescheduleSheet(id){
+  _rsTaskId=id;
+  const now=new Date();
+  const fmt=d=>{const x=new Date(d);x.setHours(12,0,0,0);return x.toISOString().slice(0,10);};
+  const today=fmt(now);
+  const tomorrow=(()=>{const d=new Date(now);d.setDate(d.getDate()+1);return fmt(d);})();
+  const weekend=(()=>{const d=new Date(now);const dow=d.getDay();const daysToSat=dow===6?7:(6-dow);d.setDate(d.getDate()+daysToSat);return fmt(d);})();
+  const nextWeek=(()=>{const d=new Date(now);const dow=d.getDay();const daysToMon=dow===0?1:(8-dow);d.setDate(d.getDate()+daysToMon);return fmt(d);})();
+  const opts=[
+    {label:'📅 Today',sub:'Now',date:today},
+    {label:'⏭️ Tomorrow',sub:_dayLabel(tomorrow),date:tomorrow},
+    {label:'📆 Weekend',sub:_dayLabel(weekend),date:weekend},
+    {label:'🗓️ Next Week',sub:_dayLabel(nextWeek),date:nextWeek},
+  ];
+  document.getElementById('rs-pills').innerHTML=opts.map(o=>
+    `<button class="btn bg" style="min-height:52px;flex-direction:column;gap:2px;justify-content:center;align-items:center;"
+      onclick="_applyReschedule('this-week','${o.date}')">
+      <span style="font-size:13px;font-weight:600;">${o.label}</span>
+      <span style="font-size:11px;color:var(--muted);">${o.sub}</span>
+    </button>`
+  ).join('');
+  document.getElementById('reschedule-sheet').classList.remove('hidden');
+  document.body.classList.add('modal-open');
+}
+
+function _dayLabel(dateStr){
+  return new Date(dateStr+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+}
+
+function _applyReschedule(bucket,dueDate){
+  const t=S.tasks.find(x=>x.id===_rsTaskId);
+  if(!t)return;
+  t.bucket=bucket;t.dueDate=dueDate;
+  save();refresh();
+  document.getElementById('reschedule-sheet').classList.add('hidden');
+  document.body.classList.remove('modal-open');
+  _haptic(15);
+  toast('📅 Rescheduled → '+_dayLabel(dueDate));
+}
 
 // ── CELEBRATION ANIMATION ──────────────────────────────────────
 function _fireConfetti(depth){
@@ -7941,6 +8012,15 @@ function renderToday(){
     <div class="mh"><h3>📋 Fill Goals with Tasks</h3><button class="mc" onclick="closeM('bulk-gen-modal')">×</button></div>
     <div id="bulk-gen-body" style="font-size:13px;line-height:1.7;max-height:60vh;overflow-y:auto;min-height:80px;"></div>
     <div class="mf"><button class="btn bp" onclick="closeM('bulk-gen-modal')">Close</button></div>
+  </div>
+</div>
+
+<!-- SMART RESCHEDULE SHEET -->
+<div class="mo hidden" id="reschedule-sheet" onclick="if(event.target===this){this.classList.add('hidden');document.body.classList.remove('modal-open');}">
+  <div class="md" style="padding:16px;">
+    <div style="font-size:13px;font-weight:600;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);padding-top:4px;">Reschedule to…</div>
+    <div id="rs-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px;"></div>
+    <button class="btn bg" style="width:100%;justify-content:center;margin-top:4px;" onclick="document.getElementById('reschedule-sheet').classList.add('hidden');document.body.classList.remove('modal-open');">Cancel</button>
   </div>
 </div>
 

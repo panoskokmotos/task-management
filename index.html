@@ -421,6 +421,36 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 @media(prefers-reduced-motion:reduce){
   .mo:not(.hidden),.mo:not(.hidden) .md,.fi{animation:none!important;}
 }
+
+/* ═══════════ MOBILE STRUCTURAL VIEWS ═══════════ */
+/* Buckets → horizontal swipe carousel with snap + dot indicators (mobile) */
+.bucket-dots{display:none;justify-content:center;gap:7px;margin-top:12px;}
+.bucket-dots .bd-dot{width:7px;height:7px;border-radius:50%;background:var(--border);transition:all .2s;}
+.bucket-dots .bd-dot.on{background:var(--accent);width:22px;border-radius:4px;}
+@media(max-width:768px){
+  .bgrid{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;gap:12px;padding:2px 0 6px;}
+  .bgrid::-webkit-scrollbar{display:none;}
+  .bgrid>.bc{flex:0 0 86%;scroll-snap-align:center;min-height:auto;}
+  .bucket-dots{display:flex;}
+  /* Eisenhower → single-column priority stack (Do Now → Cut It) */
+  .eg{display:flex!important;flex-direction:column;gap:10px;height:auto;}
+  .eg>div:not(.eq){display:none!important;}
+  .eg>.eq{max-height:none;overflow:visible;}
+}
+
+/* ═══════════ ONBOARDING TOUR ═══════════ */
+#onboarding{position:fixed;inset:0;z-index:6000;background:rgba(0,0,0,.82);backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;}
+#onboarding.hidden{display:none;}
+.onb-card{background:var(--surface);border:1px solid var(--border);border-radius:20px;width:380px;max-width:92vw;padding:30px 26px 22px;text-align:center;animation:sheetUp .3s cubic-bezier(.32,.72,0,1);}
+.onb-emoji{font-size:52px;margin-bottom:14px;animation:popIn .45s cubic-bezier(.34,1.56,.64,1);}
+.onb-title{font-size:20px;font-weight:800;margin-bottom:10px;color:var(--text);}
+.onb-body{font-size:14px;line-height:1.6;color:var(--muted);margin-bottom:22px;}
+.onb-body b{color:var(--text);font-weight:700;}
+.onb-dots{display:flex;justify-content:center;gap:7px;margin-bottom:22px;}
+.onb-dots .od{width:7px;height:7px;border-radius:50%;background:var(--border);transition:all .25s;}
+.onb-dots .od.on{background:var(--accent);width:22px;border-radius:4px;}
+.onb-actions{display:flex;gap:10px;}
+.onb-actions .btn{flex:1;justify-content:center;padding:11px 16px;}
 </style>
 </head>
 <body>
@@ -637,6 +667,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 <div id="v-buckets" class="view">
   <div class="ph"><div><h1>📦 Buckets</h1><p class="sub">4D: Do · Defer · Delegate · Delete</p></div><button class="btn bp" onclick="openAdd()">+ Add Task</button></div>
   <div class="bgrid" id="bgrid"></div>
+  <div class="bucket-dots" id="bucket-dots"></div>
 </div>
 
 <!-- EISENHOWER -->
@@ -1279,6 +1310,7 @@ Read 50 books this year"></textarea>
     <p style="font-size:12px;color:var(--muted);margin-bottom:14px;">Switch workspace at any time from the sidebar or with <kbd style="background:var(--surface2);padding:2px 6px;border-radius:3px;font-size:11px;">⌘2</kbd></p>
     <div class="mf">
       <button class="btn bd sm" style="margin-right:auto;" onclick="if(confirm('Reset ALL personal task data? This cannot be undone.')){localStorage.removeItem('taskos');location.reload();}">🗑 Reset Data</button>
+      <button class="btn bg sm" onclick="closeM('set-m');showOnboarding();">🎓 Replay tour</button>
       <button class="btn bg" onclick="closeM('set-m')">Cancel</button>
       <button class="btn bp" onclick="saveSettings()">Save</button>
     </div>
@@ -1855,8 +1887,26 @@ function renderBuckets(){
       <button class="btn bg sm" style="width:100%;margin-top:7px;" onclick="openAdd('${bid}')">+ Add</button>
     </div>`;
   }).join('');
+  _renderBucketDots();
 }
 function dropTask(e,bid){e.currentTarget.classList.remove('drag-over');const id=window._dragId;if(!id)return;window._dragId=null;mvB(id,bid);}
+
+// Buckets carousel dot indicators (mobile)
+function _renderBucketDots(){
+  const grid=document.getElementById('bgrid'),dots=document.getElementById('bucket-dots');
+  if(!grid||!dots)return;
+  const cards=[...grid.children];
+  dots.innerHTML=cards.map((_,i)=>`<div class="bd-dot${i===0?' on':''}"></div>`).join('');
+  if(!grid._dotsBound){
+    grid._dotsBound=true;
+    grid.addEventListener('scroll',()=>{
+      const cs=[...grid.children],center=grid.scrollLeft+grid.clientWidth/2;
+      let best=0,bestD=1e9;
+      cs.forEach((c,j)=>{const cc=c.offsetLeft+c.offsetWidth/2,dd=Math.abs(cc-center);if(dd<bestD){bestD=dd;best=j;}});
+      [...dots.children].forEach((d,j)=>d.classList.toggle('on',j===best));
+    },{passive:true});
+  }
+}
 
 // ── EISENHOWER ────────────────────────────────────────────────
 function renderEisenhower(){
@@ -2383,6 +2433,28 @@ function _applyReschedule(bucket,dueDate){
     }
   },{passive:true});
 })();
+
+// ── ONBOARDING TOUR ───────────────────────────────────────────
+const _onbSteps=[
+  {e:'👋',t:'Welcome to Task OS',b:'Your personal operating system for goals, habits, and getting the important things done — built mobile-first.'},
+  {e:'👆',t:'Swipe to act',b:'On any task, swipe <b>left to complete</b> ✓ and <b>right to reschedule</b> 📅. No menus, no friction.'},
+  {e:'⚡',t:'Capture in a flash',b:'Tap the <b>+</b> button or press <b>Q</b> to add anything. Use <b>@tags</b> like @health or @finance to auto-sort.'},
+  {e:'📦',t:'Organize with Buckets',b:'Swipe through <b>This Week · Month · Backlog · Someday</b>. Pull down any list to refresh. You\'re all set! 🚀'},
+];
+let _onbIdx=0;
+function showOnboarding(){_onbIdx=0;document.getElementById('onboarding').classList.remove('hidden');_renderOnb();}
+function _renderOnb(){
+  const s=_onbSteps[_onbIdx],last=_onbIdx===_onbSteps.length-1;
+  const em=document.getElementById('onb-emoji');
+  em.textContent=s.e;em.style.animation='none';void em.offsetWidth;em.style.animation='';
+  document.getElementById('onb-title').textContent=s.t;
+  document.getElementById('onb-body').innerHTML=s.b;
+  document.getElementById('onb-dots').innerHTML=_onbSteps.map((_,i)=>`<div class="od${i===_onbIdx?' on':''}"></div>`).join('');
+  document.getElementById('onb-next').textContent=last?'Get started 🚀':'Next →';
+  document.getElementById('onb-skip').style.visibility=last?'hidden':'visible';
+}
+function _onbNext(){if(_onbIdx<_onbSteps.length-1){_onbIdx++;_haptic(8);_renderOnb();}else{closeOnboarding();}}
+function closeOnboarding(){document.getElementById('onboarding').classList.add('hidden');localStorage.setItem('taskos_onboarded','1');}
 
 // ── CELEBRATION ANIMATION ──────────────────────────────────────
 function _fireConfetti(depth){
@@ -5199,6 +5271,7 @@ window.addEventListener('pagehide',save);
 document.title='Task OS — '+profileName;
 const _lastP=localStorage.getItem('taskos_lastview');
 if(_lastP&&_lastP!=='dashboard'){nav(_lastP);}else{renderDash();}
+if(!localStorage.getItem('taskos_onboarded'))setTimeout(showOnboarding,450);
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js').then(reg=>{
     reg.addEventListener('updatefound',()=>{
@@ -8086,6 +8159,19 @@ function renderToday(){
   </div>
 </div>
 
+<!-- ONBOARDING TOUR -->
+<div id="onboarding" class="hidden">
+  <div class="onb-card">
+    <div class="onb-emoji" id="onb-emoji">👋</div>
+    <div class="onb-title" id="onb-title"></div>
+    <div class="onb-body" id="onb-body"></div>
+    <div class="onb-dots" id="onb-dots"></div>
+    <div class="onb-actions">
+      <button class="btn bg" id="onb-skip" onclick="closeOnboarding()">Skip</button>
+      <button class="btn bp" id="onb-next" onclick="_onbNext()">Next →</button>
+    </div>
+  </div>
+</div>
 <!-- PULL-TO-REFRESH -->
 <div id="ptr"><div class="ptr-spin"></div></div>
 <!-- TOAST -->

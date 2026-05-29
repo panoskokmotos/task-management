@@ -3110,6 +3110,36 @@ function cycleStatus(id){
 }
 function mvB(id,b){const t=S.tasks.find(x=>x.id===id);if(!t)return;t.bucket=b;save();refresh();}
 
+// ── SMART RESCHEDULE SHEET (right-swipe) ──────────────────────
+let _rsTaskId=null,_rsPrev=null;
+function _dayLabel(ds){return new Date(ds+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});}
+function _showRescheduleSheet(id){
+  const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  _rsTaskId=id;
+  const now=new Date();
+  const fmt=d=>{const x=new Date(d);x.setHours(12,0,0,0);return x.toISOString().slice(0,10);};
+  const today=fmt(now);
+  const tom=(()=>{const d=new Date(now);d.setDate(d.getDate()+1);return fmt(d);})();
+  const wknd=(()=>{const d=new Date(now);const dow=d.getDay();d.setDate(d.getDate()+(dow===6?7:6-dow));return fmt(d);})();
+  const nextwk=(()=>{const d=new Date(now);const dow=d.getDay();d.setDate(d.getDate()+(dow===0?1:8-dow));return fmt(d);})();
+  const opts=[
+    {l:'📅 Today',s:'Now',d:today},
+    {l:'⏭️ Tomorrow',s:_dayLabel(tom),d:tom},
+    {l:'📆 Weekend',s:_dayLabel(wknd),d:wknd},
+    {l:'🗓️ Next Week',s:_dayLabel(nextwk),d:nextwk},
+  ];
+  document.getElementById('rs-pills').innerHTML=opts.map(o=>`<button class="btn bg" style="min-height:56px;flex-direction:column;gap:2px;justify-content:center;align-items:center;" onclick="_applyReschedule('${o.d}')"><span style="font-size:13px;font-weight:600;">${o.l}</span><span style="font-size:11px;color:var(--muted);">${o.s}</span></button>`).join('');
+  openM('reschedule-sheet');
+}
+function _applyReschedule(dueDate){
+  const t=S.tasks.find(x=>x.id===_rsTaskId);if(!t){closeM('reschedule-sheet');return;}
+  _rsPrev={id:t.id,bucket:t.bucket,dueDate:t.dueDate};
+  t.bucket='this-week';t.dueDate=dueDate;
+  save();refresh();closeM('reschedule-sheet');_haptic(15);
+  toast(`📅 Rescheduled → <strong>${_dayLabel(dueDate)}</strong> — <span style="cursor:pointer;font-weight:700;color:var(--accent);" onclick="_undoReschedule()">Undo</span>`,4500);
+}
+function _undoReschedule(){if(!_rsPrev)return;const t=S.tasks.find(x=>x.id===_rsPrev.id);if(t){t.bucket=_rsPrev.bucket;t.dueDate=_rsPrev.dueDate;save();refresh();_haptic(10);}_rsPrev=null;}
+
 // ── CELEBRATION ANIMATION ──────────────────────────────────────
 function _haptic(pattern=12){try{if(navigator.vibrate&&!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches))navigator.vibrate(pattern);}catch(e){}}
 function _fireConfetti(depth){
@@ -7570,7 +7600,7 @@ function _relationshipScore(person){
 // ════════════════════════════════════════════════════════════════
 function _initSwipe(el,id){
   let startX=0,startY=0,moved=false;
-  el.addEventListener('touchstart',e=>{startX=e.touches[0].clientX;startY=e.touches[0].clientY;moved=false;},{passive:true});
+  el.addEventListener('touchstart',e=>{startX=e.touches[0].clientX;startY=e.touches[0].clientY;moved=false;el.style.transition='none';},{passive:true});
   el.addEventListener('touchmove',e=>{
     const dx=e.touches[0].clientX-startX;
     const dy=Math.abs(e.touches[0].clientY-startY);
@@ -7579,10 +7609,13 @@ function _initSwipe(el,id){
   },{passive:true});
   el.addEventListener('touchend',e=>{
     const dx=e.changedTouches[0].clientX-startX;
+    // spring-back: ease the card home instead of snapping
+    el.style.transition='transform .22s cubic-bezier(.34,1.3,.64,1),background .2s ease';
     el.style.transform='';el.style.background='';
+    setTimeout(()=>{el.style.transition='';},240);
     if(!moved)return;
     if(dx<-60){_haptic(15);toggleDone(id);toast('✓ Done!');}
-    else if(dx>60){_haptic(15);mvB(id,'next-week');refresh();toast('→ Moved to Next Week');}
+    else if(dx>60){_haptic(15);_showRescheduleSheet(id);}
   });
 }
 function _attachSwipes(){
@@ -12213,6 +12246,13 @@ function _goalMomentum(goalId){
       </table>
       <p style="font-size:11px;color:var(--muted);margin-top:12px;">Shortcuts work when not typing in an input field.</p>
     </div>
+  </div>
+</div>
+<!-- Smart Reschedule Sheet (right-swipe) -->
+<div class="mo hidden" id="reschedule-sheet" onclick="if(event.target===this)closeM('reschedule-sheet')">
+  <div class="md" style="max-width:440px;padding:18px;">
+    <div class="mh"><h3>📅 Reschedule</h3><button class="mc" onclick="closeM('reschedule-sheet')">×</button></div>
+    <div id="rs-pills" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;"></div>
   </div>
 </div>
 <!-- M5: Task Action Sheet -->

@@ -31,7 +31,7 @@ body.light .bni.active{color:var(--accent);}
 body.light .ni:hover,.body.light .ni.active{color:var(--accent);}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden;}
 /* SIDEBAR */
-.sidebar{width:210px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 0;flex-shrink:0;}
+.sidebar{width:210px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 0;flex-shrink:0;overflow-y:auto;}
 .logo{padding:0 16px 16px;font-size:17px;font-weight:700;border-bottom:1px solid var(--border);margin-bottom:8px;}
 .logo span{color:var(--accent);}
 .ns{padding:8px 16px 4px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:6px;}
@@ -125,7 +125,7 @@ select.fc option{background:var(--surface2);}
 .pb{height:3px;background:var(--border);border-radius:2px;margin-bottom:10px;}
 .pf{height:100%;border-radius:2px;transition:width .3s;}
 /* EISENHOWER */
-.eg{display:grid;grid-template-columns:36px 1fr 1fr;grid-template-rows:36px 1fr 1fr;gap:10px;height:560px;}
+.eg{display:grid;grid-template-columns:36px 1fr 1fr;grid-template-rows:36px 1fr 1fr;gap:10px;min-height:560px;height:calc(100vh - 160px);}
 .eq{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;overflow-y:auto;}
 .eq.e1{border-top:3px solid var(--q1);}
 .eq.e2{border-top:3px solid var(--q2);}
@@ -162,7 +162,7 @@ select.fc option{background:var(--surface2);}
 .fi{animation:fi .18s ease;}
 .mob-bar{display:none;align-items:center;gap:10px;padding:10px 14px;background:var(--surface);border-bottom:1px solid var(--border);flex-shrink:0;}
 .sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:299;}
-.sidebar-bottom{margin-top:auto;padding:10px 6px 0;border-top:1px solid var(--border);}
+.sidebar-bottom{position:sticky;bottom:0;background:var(--surface);padding:10px 6px 0;border-top:1px solid var(--border);}
 .app-lnk{padding:8px 16px;font-size:12px;display:flex;align-items:center;gap:7px;color:var(--muted);text-decoration:none;border-radius:6px;transition:background .12s;}
 .app-lnk:hover{background:var(--surface2);color:var(--text);}
 @media(max-width:768px){body{flex-direction:column;}.mob-bar{display:flex;}.main{padding:14px;}.fr{grid-template-columns:1fr;}.goal-dash{grid-template-columns:1fr 1fr;}}
@@ -554,6 +554,8 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
   <div id="network-health-widget"></div>
   <!-- WHEEL DASH WIDGET -->
   <div id="wheel-dash-widget"></div>
+  <!-- DAILY FLOW CARD -->
+  <div id="daily-flow-card" style="margin-bottom:14px;"></div>
   <!-- DAILY QUESTS WIDGET -->
   <div id="daily-quests-widget"></div>
   <!-- STREAK ROW -->
@@ -689,7 +691,7 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
 
 <!-- GOALS -->
 <div id="v-goals" class="view">
-  <div class="ph"><div><h1>🏆 Goals & Progress</h1><p class="sub">Every task should serve a goal.</p></div><div style="display:flex;gap:6px;"><button class="btn bg sm" onclick="_aiBtn(this,showGoalDigest)">🤖 How am I doing?</button><button class="btn bg sm" onclick="nav('okrs')">🎯 OKRs</button><button class="btn bp" onclick="openAddGoal()">+ Add Goal</button></div></div>
+  <div class="ph"><div><h1>🏆 Goals & Progress</h1><p class="sub">Every task should serve a goal.</p></div><div style="display:flex;gap:6px;flex-wrap:wrap;"><button class="btn bg sm" onclick="_aiBtn(this,showGoalDigest)">🤖 How am I doing?</button><button class="btn bg sm" onclick="nav('okrs')">🎯 OKRs</button><button class="btn bp" onclick="openAddGoal()">+ Add Goal</button></div></div>
   <h2>📊 Progress Dashboard</h2>
   <div class="goal-dash" id="goal-dash"></div>
   <hr>
@@ -699,7 +701,7 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
   <div id="g-all"></div>
   <hr>
   <h2>💎 Core Values</h2>
-  <div class="card"><div id="vals"></div><button class="btn bg sm" style="margin-top:10px;" onclick="editVals()">✏️ Edit Values</button></div>
+  <div class="card"><div id="vals"></div><button class="btn bp sm" style="margin-top:10px;" onclick="editVals()">✏️ Edit Values & Principles</button></div>
   <!-- SF Timeline section -->
   <div id="sf-timeline-section" style="margin-top:24px;display:none;">
     <div class="rb" style="margin-bottom:12px;">
@@ -2283,6 +2285,48 @@ function renderDash(){
       ww.innerHTML=`<div style="background:var(--surface2);border-radius:12px;padding:10px 14px;margin-bottom:12px;cursor:pointer;" onclick="openWheelModal()"><span style="font-size:13px;">🎡 Rate your Wheel of Life →</span></div>`;
     }
   }
+  // Daily flow card
+  const _dfEl=document.getElementById('daily-flow-card');
+  if(_dfEl){
+    const _today=new Date().toISOString().slice(0,10);
+    const _dow=new Date().getDay(); // 0=Sun
+    const _oneThingDone=!!(S.oneThing||[]).find(x=>x.date===_today);
+    const _inboxCount=active().filter(t=>t.bucket==='inbox').length;
+    const _weekCount=active().filter(t=>t.bucket==='this-week').length;
+    const _challengeDone=!!((S.challengeLogs||[]).find(c=>c.date===_today&&c.completed));
+    const _challengeSet=!!((S.challengeLogs||[]).find(c=>c.date===_today));
+    const _dwToday=!!(S.deepWorkSessions||[]).find(s=>(s.date||s.startTime||'').slice(0,10)===_today);
+    const _eodToday=!!(S.contextLog||[]).find(e=>e.date===_today&&e.cat==='eod');
+    const _lastReview=(S.reviews||[]).slice(-1)[0];
+    const _daysSinceReview=_lastReview?Math.floor((Date.now()-new Date(_lastReview.weekOf||_lastReview.date||0))/864e5):999;
+    const _showReview=_dow===0||_daysSinceReview>=7;
+    const _dfItem=(done,emoji,label,sub,action)=>`<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">
+      <span style="font-size:16px;flex-shrink:0;">${done?'✅':emoji}</span>
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:13px;font-weight:500;${done?'opacity:0.55;text-decoration:line-through;':''}">${label}</div>
+        ${sub?`<div style="font-size:11px;color:var(--muted);">${sub}</div>`:''}
+      </div>
+      ${done?'':`<button class="btn bg sm" style="flex-shrink:0;" onclick="${action}">→</button>`}
+    </div>`;
+    const _dfItems=[
+      _dfItem(_oneThingDone,'🌅','Set your One Thing','Your single most important focus today',"nav('dashboard');setTimeout(()=>document.getElementById('one-thing-card')?.scrollIntoView({behavior:'smooth'}),200)"),
+      _dfItem(_inboxCount===0,'📥','Process Inbox',_inboxCount?`${_inboxCount} item${_inboxCount>1?'s':''} waiting`:'Inbox clear',"nav('capture')"),
+      _dfItem(_weekCount===0,'🔴','Work This Week tasks',`${_weekCount} active task${_weekCount!==1?'s':''}`,"nav('buckets')"),
+      _dfItem(_challengeDone,'💪','Daily Challenge',_challengeSet?'Challenge set — mark complete when done':'Pick today\'s discomfort challenge',"nav('challenge')"),
+      _dfItem(_dwToday,'🧘','Deep Work session','Log a focused work session',"nav('deepwork')"),
+      _dfItem(_eodToday,'📊','Log End-of-Day','Reflect on today\'s wins and set MIT',"nav('eod')"),
+    ];
+    if(_showReview){_dfItems.push(_dfItem(false,'📅','Weekly Review',_daysSinceReview<999?`Last: ${_daysSinceReview}d ago`:'Start your weekly review',"nav('review')"));}
+    const _dfDone=_dfItems.filter(s=>s.includes('✅')).length;
+    const _dfTotal=_dfItems.length;
+    _dfEl.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div><div style="font-size:13px;font-weight:700;">📋 Daily Protocol</div><div style="font-size:11px;color:var(--muted);">What to do today · ${_dfDone}/${_dfTotal} done</div></div>
+        <div style="font-size:11px;color:var(--accent);font-weight:700;">${Math.round(_dfDone/_dfTotal*100)}%</div>
+      </div>
+      <div style="margin-bottom:-6px;">${_dfItems.join('')}</div>
+    </div>`;
+  }
   // Daily quests widget
   const quests=S.dailyQuests||[];
   const questsEl=document.getElementById('daily-quests-widget');
@@ -2458,7 +2502,7 @@ function renderGoals(){
         <span style="font-size:11px;color:var(--muted);">${c.e} ${c.l}</span>
         ${okrBadge}
       </div>
-      <div style="font-size:17px;font-weight:700;margin-bottom:6px;">${esc(g.title)}</div>
+      <div style="font-size:17px;font-weight:700;margin-bottom:6px;word-break:break-word;">${esc(g.title)}</div>
       <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">${esc((g.description||'').slice(0,100))}${(g.description||'').length>100?'…':''}</div>
       <div class="gp"><div class="gp-fill" style="width:${s.pct}%"></div></div>
       <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px;">
@@ -2470,7 +2514,7 @@ function renderGoals(){
   const top3El=document.getElementById('g-top3');
   if(top3El)top3El.innerHTML=top3.length?heroHTML:'<div class="empty">Set your top 3 priorities!</div>';
   document.getElementById('g-all').innerHTML=rest.length?rest.map(goalHTML).join(''):'<div class="empty">Add more goals.</div>';
-  document.getElementById('vals').innerHTML=S.values.length?`<div style="display:flex;flex-wrap:wrap;gap:7px;">${S.values.map(v=>`<span class="badge co" style="font-size:12px;padding:5px 12px;">💎 ${v}</span>`).join('')}</div>`:'<p style="color:var(--muted);">No values set.</p>';
+  document.getElementById('vals').innerHTML=S.values.length?`<div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px;">${S.values.map(v=>`<span class="badge co" style="font-size:12px;padding:5px 12px;cursor:pointer;" onclick="editVals()" title="Click to edit values">💎 ${v}</span>`).join('')}</div><p style="font-size:11px;color:var(--muted);margin:0;">Tap any value to edit · Values guide which goals matter</p>`:'<p style="color:var(--muted);">No values set — <a onclick="editVals()" style="color:var(--accent);cursor:pointer;">add your core values</a> to guide goal decisions.</p>';
   fillGoalDrop();
   renderSFTimeline();
   _renderAntiGoalsSection();
@@ -2514,7 +2558,7 @@ function goalHTML(g){
     <span class="badge c${g.category[0]}">${c.e} ${c.l}</span>
     ${s.total?`<div style="margin-top:8px;"><div class="gp" style="margin-bottom:3px;"><div class="gp-fill" style="width:${s.pct}%"></div></div><div style="font-size:10px;color:var(--muted);">${s.done}/${s.total} tasks · ${s.pct}%</div></div>`:''}
     ${metricHTML}${habitHTML}${finHTML}
-    ${linked.length?`<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:7px;">${linked.map(t=>`<div style="font-size:11px;color:var(--muted);padding:2px 0;">• ${t.title}</div>`).join('')}</div>`:''}
+    ${linked.length?`<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:7px;">${linked.map(t=>`<div style="font-size:11px;color:var(--muted);padding:2px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">• ${esc(t.title.slice(0,35))}${t.title.length>35?'…':''}</div>`).join('')}</div>`:''}
     <div style="margin-top:8px;" onclick="event.stopPropagation();"><button class="btn bg sm" onclick="openAdd('this-week','${g.id}')">+ Task</button></div>
   </div>`;
 }
@@ -5342,11 +5386,22 @@ function renderWheel(){
     } else {
       const latest=all[0];
       const d=new Date(latest.date).toLocaleDateString();
-      const scoreList=WHEEL_AREAS.map(a=>`<div style="display:flex;justify-content:space-between;font-size:12px;padding:2px 0;"><span>${a.emoji} ${a.label}</span><strong>${latest.scores[a.id]}/10</strong></div>`).join('');
+      const prev=all[1];
+      const scoreList=WHEEL_AREAS.map(a=>{
+        const cur=latest.scores[a.id];
+        let delta='';
+        if(prev){
+          const diff=cur-prev.scores[a.id];
+          delta=diff>0?`<span style="color:#69db7c;font-size:10px;">▲${diff}</span>`:diff<0?`<span style="color:#ff6b6b;font-size:10px;">▼${Math.abs(diff)}</span>`:`<span style="color:var(--muted);font-size:10px;">→</span>`;
+        }
+        return`<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:2px 0;"><span>${a.emoji} ${a.label}</span><span style="display:flex;align-items:center;gap:6px;"><strong>${cur}/10</strong>${delta}</span></div>`;
+      }).join('');
+      const lowestArea=WHEEL_AREAS.reduce((min,a)=>latest.scores[a.id]<latest.scores[min.id]?a:min);
       chartEl.innerHTML=`<div>${_renderWheelSVG(latest.scores)}</div>
         <div style="flex:1;min-width:180px;">
-          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${latest.cadence} · ${d}</div>
+          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${latest.cadence} · ${d}${prev?` <span style="color:var(--muted);">(vs prev)</span>`:''}</div>
           ${scoreList}
+          <div style="margin-top:10px;padding:8px 10px;background:rgba(255,107,107,.1);border-radius:8px;font-size:12px;border-left:3px solid #ff6b6b;">🎯 Focus: ${lowestArea.emoji} <strong>${lowestArea.label}</strong> needs most attention</div>
         </div>`;
     }
   }

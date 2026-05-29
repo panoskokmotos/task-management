@@ -12,6 +12,7 @@
 <title>Task OS — Panos</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
 :root{
   --bg:#0d1117;--surface:#161b22;--surface2:#21262d;--border:#30363d;
   --text:#e6edf3;--muted:#8b949e;--accent:#58a6ff;
@@ -36,13 +37,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .logo span{color:var(--accent);}
 .ns{padding:8px 16px 4px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;}
 .ns-group.collapsed .ni,.ns-group.collapsed .ns-sub{display:none;}
-.ni{padding:9px 16px;cursor:pointer;border-radius:6px;margin:1px 6px;font-size:13px;display:flex;align-items:center;gap:8px;color:var(--muted);transition:background .12s;}
+.ni{padding:11px 16px;cursor:pointer;border-radius:6px;margin:1px 6px;font-size:13px;display:flex;align-items:center;gap:8px;color:var(--muted);transition:background .12s;}
 .ni:hover{background:var(--surface2);color:var(--text);}
 .ni.active{background:var(--surface2);color:var(--accent);}
 .ibadge{margin-left:auto;background:var(--accent);color:#000;font-size:10px;font-weight:700;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px;}
 /* MAIN */
 .main{flex:1;overflow-y:auto;padding:24px 28px;}
-.view{display:none;}.view.active{display:block;}
+.view{display:none;max-width:1400px;margin:0 auto;}.view.active{display:block;}
 /* TYPE */
 h1{font-size:22px;font-weight:700;margin-bottom:3px;}
 h2{font-size:16px;font-weight:600;margin-bottom:14px;}
@@ -67,7 +68,7 @@ hr{border:none;border-top:1px solid var(--border);margin:18px 0;}
 .tc:hover{border-color:var(--accent);background:var(--surface2);}
 .tc.done{opacity:.5;}.tc.done .tt{text-decoration:line-through;}
 .tc.top3{border-left:3px solid var(--accent);}
-.ck{width:22px;height:22px;min-width:22px;border:2px solid var(--border);border-radius:4px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .12s;}
+.ck{width:26px;height:26px;min-width:26px;border:2px solid var(--border);border-radius:4px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .12s;}
 .ck:hover{border-color:var(--accent);}
 .ck.on{background:var(--accent);border-color:var(--accent);}
 .ck.ip{background:rgba(251,191,36,.3);border-color:#fbbf24;}
@@ -89,11 +90,11 @@ hr{border:none;border-top:1px solid var(--border);margin:18px 0;}
 .cb{background:rgba(247,131,172,.15);color:var(--cb);}
 .co{background:rgba(134,142,150,.15);color:var(--co);}
 /* BUTTONS */
-.btn{padding:7px 14px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all .12s;display:inline-flex;align-items:center;gap:5px;}
+.btn{padding:9px 16px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all .12s;display:inline-flex;align-items:center;gap:5px;}
 .bp{background:var(--accent);color:#000;}.bp:hover{opacity:.88;}
 .bg{background:transparent;color:var(--muted);border:1px solid var(--border);}.bg:hover{background:var(--surface2);color:var(--text);}
 .bd{background:rgba(255,107,107,.12);color:var(--q1);border:1px solid rgba(255,107,107,.25);}.bd:hover{background:rgba(255,107,107,.22);}
-.sm{padding:4px 9px;font-size:11px;}
+.sm{padding:6px 11px;font-size:11px;}
 /* FORMS */
 .fg{margin-bottom:14px;}
 .fg label{display:block;font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:500;}
@@ -197,7 +198,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 .gc{background:var(--surface);border:1px solid var(--border);border-radius:9px;padding:14px;margin-bottom:10px;cursor:pointer;transition:border-color .12s;}.gc:hover{border-color:var(--accent);}.gc.top{border-left:3px solid gold;}
 @media(max-width:900px){.bgrid{grid-template-columns:1fr 1fr;}.stats{grid-template-columns:repeat(3,1fr);}.t3g{grid-template-columns:1fr;}.eg{height:auto;grid-template-columns:1fr;}.g2{grid-template-columns:1fr;}}
 /* ── MOBILE ─────────────────────────────────────────────────── */
-.ham-btn{display:none;position:fixed;top:11px;left:11px;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:8px;width:38px;height:38px;cursor:pointer;align-items:center;justify-content:center;flex-direction:column;gap:5px;padding:0;}
+.ham-btn{display:none;position:fixed;top:max(11px,env(safe-area-inset-top,11px));left:11px;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:8px;width:38px;height:38px;cursor:pointer;align-items:center;justify-content:center;flex-direction:column;gap:5px;padding:0;}
 .ham-btn span{display:block;width:18px;height:2px;background:var(--text);border-radius:2px;transition:all .2s;}
 .s-ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:195;}
 .bnav{display:none;}
@@ -215,19 +216,21 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   .eg{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto;height:auto;gap:8px;}
   .eg>div:nth-child(1),.eg>div:nth-child(2),.eg>div:nth-child(3),.eg>div:nth-child(4),.eg>div:nth-child(7){display:none;}
   .g2,.g3,.g4,.fr{grid-template-columns:1fr;}
-  .fab{bottom:74px;}
+  .fab{bottom:calc(74px + env(safe-area-inset-bottom,0px));}
   .mo{align-items:flex-end;}
-  .md{width:100%;max-width:100%;border-radius:16px 16px 0 0;margin:0;max-height:90vh;}
+  .md{width:100%;max-width:100%;border-radius:16px 16px 0 0;margin:0;max-height:90vh;padding-top:8px;}
+  .md::before{content:'';display:block;width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 12px;flex-shrink:0;}
   .ph{flex-direction:column;align-items:flex-start;gap:8px;}
   .ph .row{width:100%;flex-wrap:wrap;}
   .ph .row .sb{flex:1;min-width:0;}
   h1{font-size:18px;}
   .bnav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:100;padding-bottom:max(env(safe-area-inset-bottom,0px),4px);}
-  .bni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:7px 2px;cursor:pointer;color:var(--muted);font-size:10px;gap:2px;border:none;background:transparent;transition:color .12s;}
+  .bni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:11px 4px;cursor:pointer;color:var(--muted);font-size:10px;gap:2px;border:none;background:transparent;transition:color .12s;position:relative;}
   .bni.active{color:var(--accent);}
+  .bni.active::before{content:'';position:absolute;top:0;left:25%;right:25%;height:2px;background:var(--accent);border-radius:0 0 2px 2px;}
   .bni-ic{font-size:18px;line-height:1.2;}
   /* Larger tap targets for checkboxes */
-  .ck{width:24px;height:24px;min-width:24px;border-radius:6px;}
+  .ck{width:28px;height:28px;min-width:28px;border-radius:6px;}
   /* Prevent iOS auto-zoom on input focus (requires font-size >= 16px) */
   .fc,.capi,.sb,.cmdk-i{font-size:16px!important;}
   /* Life OS 2-column grid on mobile */
@@ -250,8 +253,10 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   /* Hide heavy dashboard rows on mobile */
   #momentum-row,#theme-exec-row{display:none;}
   #dash-stats-toggle{display:flex;}
+  .badge{font-size:11px;padding:2px 7px;}.bni{font-size:11px;}.sl{font-size:12px;}.ns{font-size:11px;letter-spacing:.3px;}.ibadge{font-size:11px;}.proj-tag,.dc-badge,.auto-status{font-size:11px;}
 }
 
+@media(max-width:360px){.bni{font-size:0;padding:12px 4px;}.bni-ic{font-size:22px;}}
 @media(max-width:480px){
   .los-grid{grid-template-columns:1fr;}
   .dw-timer{font-size:40px;}
@@ -260,6 +265,8 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   .modal{width:100vw!important;max-width:100vw!important;border-radius:12px 12px 0 0!important;margin:auto 0 0!important;max-height:90vh;}
 }
 body.modal-open{overflow:hidden;}
+@media(min-width:1200px){.goal-dash{grid-template-columns:repeat(4,1fr);}.los-grid{grid-template-columns:repeat(4,1fr);}.bgrid{grid-template-columns:repeat(5,1fr);}}
+@media(min-width:1600px){.goal-dash{grid-template-columns:repeat(5,1fr);}}
 
 /* ── LIFE OS ─────────────────────────────────────────────────── */
 .los-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:20px;}
@@ -383,6 +390,12 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
 .xp-bar{width:80px;height:6px;background:var(--surface);border-radius:3px;overflow:hidden;}
 #xp-fill{height:100%;background:linear-gradient(90deg,#58a6ff,#69db7c);border-radius:3px;transition:width .4s ease;}
 .sd-energy-btn.active{background:var(--accent);color:#000;}
+/* ── DATA TABLE ──────────────────────────────────────────────── */
+.data-table{width:100%;border-collapse:collapse;font-size:13px;}.data-table th{text-align:left;padding:8px 10px;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid var(--border);}.data-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}.data-table tbody tr:hover{background:var(--surface2);}.data-table tbody tr:last-child td{border-bottom:none;}
+/* ── DASH GRID ───────────────────────────────────────────────── */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
+.dash-col-main,.dash-col-side{display:flex;flex-direction:column;gap:14px;}
+@media(max-width:900px){.dash-grid{grid-template-columns:1fr;}}
 
 </style>
 </head>
@@ -554,47 +567,62 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
   <div id="week-intention-banner" style="display:none;"></div>
   <!-- REVIEW DRAFT BANNER -->
   <div id="review-draft-banner" style="display:none;"></div>
-  <!-- DAILY PICKS -->
-  <div id="daily-picks-card" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:14px;">
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <span style="font-size:13px;font-weight:700;">🎯 Today's Picks</span>
-      <div style="display:flex;gap:6px;">
-        <button class="btn bg sm" onclick="renderDailyPicks()" title="Refresh">↺</button>
-        <button class="btn bg sm" onclick="_aiBtn(this,aiDailyPicks)">🤖 AI Pick</button>
+  <!-- DASH 2-COLUMN GRID -->
+  <div class="dash-grid">
+    <!-- LEFT COLUMN: action-focused -->
+    <div class="dash-col-main">
+      <!-- DAILY PICKS -->
+      <div id="daily-picks-card" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <span style="font-size:13px;font-weight:700;">🎯 Today's Picks</span>
+          <div style="display:flex;gap:6px;">
+            <button class="btn bg sm" onclick="renderDailyPicks()" title="Refresh">↺</button>
+            <button class="btn bg sm" onclick="_aiBtn(this,aiDailyPicks)">🤖 AI Pick</button>
+          </div>
+        </div>
+        <div id="daily-picks-list"></div>
+        <div id="daily-picks-ai-result" style="margin-top:10px;font-size:12px;"></div>
+      </div>
+      <!-- DAILY FLOW CARD -->
+      <div id="daily-flow-card"></div>
+      <!-- TOP 3 -->
+      <div>
+        <div class="rb" style="margin-bottom:10px;">
+          <h2 style="margin:0">🎯 Today's Top 3</h2>
+          <button class="btn bg sm" onclick="nav('buckets')">Pick from This Week →</button>
+        </div>
+        <div class="t3g" id="top3"></div>
+      </div>
+      <!-- THIS WEEK -->
+      <div>
+        <div class="rb" style="margin-bottom:10px;">
+          <h2 style="margin:0">🔴 This Week</h2>
+          <button class="btn bg sm" onclick="nav('buckets')">View All →</button>
+        </div>
+        <div id="dash-week"></div>
       </div>
     </div>
-    <div id="daily-picks-list"></div>
-    <div id="daily-picks-ai-result" style="margin-top:10px;font-size:12px;"></div>
+    <!-- RIGHT COLUMN: insight-focused -->
+    <div class="dash-col-side">
+      <!-- BOOK INSIGHT CARD -->
+      <div id="book-insight-card" style="display:none;"></div>
+      <!-- LIFE SCORE WIDGET -->
+      <div id="life-score-widget"></div>
+      <!-- NETWORK HEALTH WIDGET -->
+      <div id="network-health-widget"></div>
+      <!-- WHEEL DASH WIDGET -->
+      <div id="wheel-dash-widget"></div>
+      <!-- DAILY QUESTS WIDGET -->
+      <div id="daily-quests-widget"></div>
+      <!-- STREAK ROW -->
+      <div id="streak-row" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
+      <!-- ANTI-PATTERN ALERTS -->
+      <div id="anti-pattern-alerts"></div>
+      <!-- STATS -->
+      <button id="dash-stats-toggle" class="btn bg sm" style="display:none;width:100%;font-size:12px;" onclick="_toggleDashStats()">📊 Show Stats &amp; Scores</button>
+      <div class="stats" id="stats"></div>
+    </div>
   </div>
-  <!-- BOOK INSIGHT CARD -->
-  <div id="book-insight-card" style="display:none;"></div>
-  <!-- LIFE SCORE WIDGET -->
-  <div id="life-score-widget"></div>
-  <!-- NETWORK HEALTH WIDGET -->
-  <div id="network-health-widget"></div>
-  <!-- WHEEL DASH WIDGET -->
-  <div id="wheel-dash-widget"></div>
-  <!-- DAILY FLOW CARD -->
-  <div id="daily-flow-card" style="margin-bottom:14px;"></div>
-  <!-- DAILY QUESTS WIDGET -->
-  <div id="daily-quests-widget"></div>
-  <!-- STREAK ROW -->
-  <div id="streak-row" style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;"></div>
-  <!-- ANTI-PATTERN ALERTS -->
-  <div id="anti-pattern-alerts"></div>
-  <button id="dash-stats-toggle" class="btn bg sm" style="display:none;width:100%;margin-bottom:10px;font-size:12px;" onclick="_toggleDashStats()">📊 Show Stats &amp; Scores</button>
-  <div class="stats" id="stats"></div>
-  <div class="rb" style="margin-bottom:10px;">
-    <h2 style="margin:0">🎯 Today's Top 3</h2>
-    <button class="btn bg sm" onclick="nav('buckets')">Pick from This Week →</button>
-  </div>
-  <div class="t3g" id="top3"></div>
-  <hr>
-  <div class="rb" style="margin-bottom:10px;">
-    <h2 style="margin:0">🔴 This Week</h2>
-    <button class="btn bg sm" onclick="nav('buckets')">View All →</button>
-  </div>
-  <div id="dash-week"></div>
 </div>
 
 <!-- CAPTURE -->
@@ -1158,6 +1186,7 @@ Read 50 books this year"></textarea>
   <button class="bni" data-v="focus" onclick="nav('focus')"><span class="bni-ic">🧠</span>Focus</button>
   <button class="bni" data-v="goals" onclick="nav('goals')"><span class="bni-ic">🏆</span>Goals</button>
   <button class="bni" data-v="review" onclick="nav('review')"><span class="bni-ic">📅</span>Review</button>
+  <button class="bni" onclick="_showMoreNav()"><span class="bni-ic">⋯</span>More</button>
 </nav>
 
 <!-- CMD+K -->
@@ -7309,6 +7338,57 @@ function _initSwipe(el,id){
 }
 function _attachSwipes(){
   document.querySelectorAll('[data-swipe-id]').forEach(el=>_initSwipe(el,el.dataset.swipeId));
+  document.querySelectorAll('[data-swipe-id]').forEach(el=>_initLongPress(el,el.dataset.swipeId));
+}
+// M3 — Swipe sidebar open/close
+function _initSidebarSwipe(){
+  let _ssx=0,_ssy=0;
+  document.addEventListener('touchstart',e=>{_ssx=e.touches[0].clientX;_ssy=e.touches[0].clientY;},{passive:true});
+  document.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-_ssx;
+    const dy=Math.abs(e.changedTouches[0].clientY-_ssy);
+    if(dy>50)return;
+    const sb=document.querySelector('.sidebar');
+    const isOpen=sb&&sb.classList.contains('open');
+    if(!isOpen&&_ssx<40&&dx>60){document.querySelector('.sidebar')?.classList.add('open');document.querySelector('.s-ov')?.classList.add('open');return;}
+    if(isOpen&&dx<-60){document.querySelector('.sidebar')?.classList.remove('open');document.querySelector('.s-ov')?.classList.remove('open');}
+  },{passive:true});
+}
+// M5 — Long-press task context menu
+function _showTaskSheet(taskId){
+  const t=S.tasks.find(x=>x.id===taskId);if(!t)return;
+  const isDone=t.status==='done';
+  document.getElementById('task-sheet-title').textContent=t.title.slice(0,50)+(t.title.length>50?'…':'');
+  document.getElementById('task-sheet-done-btn').textContent=isDone?'↩ Undo Done':'✅ Mark Done';
+  document.getElementById('task-sheet-done-btn').onclick=()=>{toggleDone(taskId);closeM('task-action-sheet');};
+  document.getElementById('task-sheet-edit-btn').onclick=()=>{closeM('task-action-sheet');openEdit(taskId);};
+  document.getElementById('task-sheet-week-btn').onclick=()=>{mvB(taskId,'this-week');refresh();closeM('task-action-sheet');toast('Moved to This Week');};
+  document.getElementById('task-sheet-del-btn').onclick=()=>{closeM('task-action-sheet');showConfirm('Delete this task?',ok=>{if(ok){S.tasks=S.tasks.filter(x=>x.id!==taskId);save();refresh();toast('Deleted');}},{okLabel:'Delete'});};
+  openM('task-action-sheet');
+}
+function _initLongPress(el,taskId){
+  let _lpt;
+  el.addEventListener('touchstart',e=>{_lpt=setTimeout(()=>{e.preventDefault();_showTaskSheet(taskId);},520);},{passive:false});
+  el.addEventListener('touchend',()=>clearTimeout(_lpt),{passive:true});
+  el.addEventListener('touchmove',()=>clearTimeout(_lpt),{passive:true});
+}
+// M8 — More nav drawer
+function _showMoreNav(){
+  const views=[
+    {id:'habits',e:'🌱',l:'Habits'},{id:'deepwork',e:'🧘',l:'Deep Work'},{id:'health',e:'❤️',l:'Health'},
+    {id:'sleep',e:'💤',l:'Sleep'},{id:'finance',e:'💰',l:'Finance'},{id:'networth',e:'📈',l:'Net Worth'},
+    {id:'review',e:'📅',l:'Review'},{id:'history',e:'📚',l:'History'},{id:'weeklynotes',e:'📔',l:'Notes'},
+    {id:'okrs',e:'🎯',l:'OKRs'},{id:'qreview',e:'🗓',l:'Quarterly'},{id:'decisions',e:'⚖️',l:'Decisions'},
+    {id:'wins',e:'🏅',l:'Wins'},{id:'books',e:'📖',l:'Books'},{id:'challenge',e:'⚡',l:'Challenge'},
+    {id:'discomfort',e:'🔥',l:'Discomfort'},{id:'relationships',e:'👥',l:'Relations'},{id:'mentors',e:'🧭',l:'Mentors'},
+    {id:'content',e:'📝',l:'Content'},{id:'skills',e:'🌳',l:'Skills'},{id:'calendar',e:'🗓',l:'Calendar'},
+    {id:'optionality',e:'🎰',l:'Options'},{id:'flourishing',e:'🌸',l:'Flourish'},{id:'security',e:'🔒',l:'Security'},
+    {id:'ailab',e:'🤖',l:'AI Lab'},{id:'agi',e:'🌐',l:'AGI Prep'},{id:'ladder',e:'🪜',l:'Ladder'},
+  ];
+  const el=document.getElementById('more-nav-grid');
+  if(!el)return;
+  el.innerHTML=views.map(v=>`<button onclick="closeM('more-nav-modal');nav('${v.id}');" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:11px;color:var(--text);"><span style="font-size:22px;">${v.e}</span>${v.l}</button>`).join('');
+  openM('more-nav-modal');
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -7664,7 +7744,7 @@ function toggleSB(){
 }
 
 // ── INIT ──────────────────────────────────────────────────────
-load();seed();seedGoals();resetRecurring();_genDailyQuests();_maybeShowWeeklyWrapped();
+load();seed();seedGoals();resetRecurring();_genDailyQuests();_maybeShowWeeklyWrapped();_initSidebarSwipe();
 try{const _nc=JSON.parse(localStorage.getItem('taskos_nav_collapsed')||'{}');document.querySelectorAll('.ns-group').forEach(g=>{const collapsed=_nc[g.dataset.ns]??g.classList.contains('collapsed');if(collapsed)g.classList.add('collapsed');else g.classList.remove('collapsed');const arr=g.querySelector('.ns-arrow');if(arr)arr.textContent=collapsed?'▸':'▾';});}catch(e){}
 document.title='Task OS — '+profileName;
 const _lastP=localStorage.getItem('taskos_lastview');
@@ -9784,9 +9864,9 @@ function renderSleep(){
     }
   }
   if(logEl)logEl.innerHTML=last7.length?`<div style="font-size:13px;font-weight:600;margin-bottom:10px;">Last 7 nights</div>
-    <div style="overflow-x:auto;"><table style="width:100%;border-collapse:collapse;font-size:12px;">
-      <thead><tr style="color:var(--muted);">
-        <th style="text-align:left;padding:6px 8px;">Date</th>
+    <div style="overflow-x:auto;"><table class="data-table">
+      <thead><tr>
+        <th>Date</th>
         <th style="text-align:center;">Hours</th>
         <th style="text-align:center;">Quality</th>
         <th style="text-align:center;">Readiness</th>
@@ -9794,8 +9874,8 @@ function renderSleep(){
       </tr></thead>
       <tbody>${last7.map(l=>{
         const c=l.preChecklist||{};const done=Object.values(c).filter(Boolean).length;
-        return`<tr style="border-top:1px solid var(--border);">
-          <td style="padding:6px 8px;">${l.date||''}</td>
+        return`<tr>
+          <td>${l.date||''}</td>
           <td style="text-align:center;font-weight:600;">${(l.hoursSlept||0).toFixed(1)}</td>
           <td style="text-align:center;">${'★'.repeat(l.quality||0)}</td>
           <td style="text-align:center;color:${(l.readinessScore||0)>=80?'var(--q2)':(l.readinessScore||0)>=60?'#fbbf24':'#ef4444'};">${l.readinessScore||0}</td>
@@ -9910,9 +9990,9 @@ function _renderBodySection(){
           <span style="font-size:11px;">${(latest.bodyFatPct||0)<=goalBF?'✅ Goal reached!':'→ '+goalBF+'% goal'}</span>
         </div>
       </div>`:'<div style="color:var(--muted);font-size:13px;margin-bottom:12px;">No entries yet. Log your first weigh-in!</div>'}
-      <table style="width:100%;font-size:12px;border-collapse:collapse;">
-        <thead><tr style="color:var(--muted);"><th style="text-align:left;padding:5px;">Date</th><th style="text-align:center;">Weight</th><th style="text-align:center;">BF%</th></tr></thead>
-        <tbody>${sorted.slice(-5).reverse().map(l=>`<tr style="border-top:1px solid var(--border);"><td style="padding:5px;">${l.date}</td><td style="text-align:center;">${l.weightKg}kg</td><td style="text-align:center;">${l.bodyFatPct}%</td></tr>`).join('')}</tbody>
+      <table class="data-table">
+        <thead><tr><th>Date</th><th style="text-align:center;">Weight</th><th style="text-align:center;">BF%</th></tr></thead>
+        <tbody>${sorted.slice(-5).reverse().map(l=>`<tr><td>${l.date}</td><td style="text-align:center;">${l.weightKg}kg</td><td style="text-align:center;">${l.bodyFatPct}%</td></tr>`).join('')}</tbody>
       </table>
     </div>
   </details>`;
@@ -11729,20 +11809,39 @@ function _goalMomentum(goalId){
   <div class="modal" style="max-width:480px;">
     <div class="mh"><h3>⌨️ Keyboard Shortcuts</h3><button class="ic" onclick="closeM('shortcuts-modal')">×</button></div>
     <div style="padding:16px;">
-      <table style="width:100%;border-collapse:collapse;font-size:13px;">
-        <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 8px;color:var(--muted);">⌘K / Ctrl+K</td><td style="padding:6px 8px;">Quick capture</td></tr>
-        <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 8px;color:var(--muted);">?</td><td style="padding:6px 8px;">Show this help</td></tr>
-        <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 8px;color:var(--muted);">N</td><td style="padding:6px 8px;">New task</td></tr>
-        <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 8px;color:var(--muted);">D</td><td style="padding:6px 8px;">Go to Dashboard</td></tr>
-        <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 8px;color:var(--muted);">H</td><td style="padding:6px 8px;">Go to Habits</td></tr>
-        <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 8px;color:var(--muted);">W</td><td style="padding:6px 8px;">Go to Deep Work</td></tr>
-        <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 8px;color:var(--muted);">E</td><td style="padding:6px 8px;">Go to End-of-Day</td></tr>
-        <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 8px;color:var(--muted);">R</td><td style="padding:6px 8px;">Go to Weekly Review</td></tr>
-        <tr style="border-bottom:1px solid var(--border);"><td style="padding:6px 8px;color:var(--muted);">F</td><td style="padding:6px 8px;">Go to Focus Now</td></tr>
-        <tr><td style="padding:6px 8px;color:var(--muted);">Esc</td><td style="padding:6px 8px;">Close modal</td></tr>
+      <table class="data-table">
+        <tbody>
+        <tr><td style="color:var(--muted);">⌘K / Ctrl+K</td><td>Quick capture</td></tr>
+        <tr><td style="color:var(--muted);">?</td><td>Show this help</td></tr>
+        <tr><td style="color:var(--muted);">N</td><td>New task</td></tr>
+        <tr><td style="color:var(--muted);">D</td><td>Go to Dashboard</td></tr>
+        <tr><td style="color:var(--muted);">H</td><td>Go to Habits</td></tr>
+        <tr><td style="color:var(--muted);">W</td><td>Go to Deep Work</td></tr>
+        <tr><td style="color:var(--muted);">E</td><td>Go to End-of-Day</td></tr>
+        <tr><td style="color:var(--muted);">R</td><td>Go to Weekly Review</td></tr>
+        <tr><td style="color:var(--muted);">F</td><td>Go to Focus Now</td></tr>
+        <tr><td style="color:var(--muted);">Esc</td><td>Close modal</td></tr>
+        </tbody>
       </table>
       <p style="font-size:11px;color:var(--muted);margin-top:12px;">Shortcuts work when not typing in an input field.</p>
     </div>
+  </div>
+</div>
+<!-- M5: Task Action Sheet -->
+<div class="mo hidden" id="task-action-sheet" onclick="if(event.target===this)closeM('task-action-sheet')">
+  <div class="md" style="padding:16px;">
+    <div style="font-size:13px;font-weight:600;margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);padding-top:4px;" id="task-sheet-title"></div>
+    <button id="task-sheet-done-btn" class="btn bp" style="width:100%;margin-bottom:8px;justify-content:center;">✅ Mark Done</button>
+    <button id="task-sheet-week-btn" class="btn bg" style="width:100%;margin-bottom:8px;justify-content:center;">📅 Move to This Week</button>
+    <button id="task-sheet-edit-btn" class="btn bg" style="width:100%;margin-bottom:8px;justify-content:center;">✏️ Edit Task</button>
+    <button id="task-sheet-del-btn" class="btn bd" style="width:100%;justify-content:center;">🗑 Delete</button>
+  </div>
+</div>
+<!-- M8: More Nav Modal -->
+<div class="mo hidden" id="more-nav-modal" onclick="if(event.target===this)closeM('more-nav-modal')">
+  <div class="md" style="padding:16px;">
+    <div style="font-size:13px;font-weight:700;margin-bottom:14px;">All Views</div>
+    <div id="more-nav-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;"></div>
   </div>
 </div>
 </body>

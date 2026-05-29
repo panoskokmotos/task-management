@@ -451,11 +451,23 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
 .onb-dots .od.on{background:var(--accent);width:22px;border-radius:4px;}
 .onb-actions{display:flex;gap:10px;}
 .onb-actions .btn{flex:1;justify-content:center;padding:11px 16px;}
+
+/* ═══════════ FORGIVENESS · ACCESS · A11Y ═══════════ */
+/* Undo affordance inside toast */
+#toast{display:inline-flex;align-items:center;}
+.toast-undo{margin-left:14px;background:transparent;border:none;color:var(--accent);font-weight:700;font-size:13px;cursor:pointer;padding:3px 6px;border-radius:6px;}
+.toast-undo:hover{background:var(--surface2);}
+/* Mobile search / command entry point (mirrors hamburger) */
+.search-btn{display:none;position:fixed;top:11px;right:11px;z-index:200;background:var(--surface);border:1px solid var(--border);border-radius:8px;width:38px;height:38px;cursor:pointer;align-items:center;justify-content:center;font-size:16px;padding:0;}
+@media(max-width:768px){.search-btn{display:flex;}}
+/* Visible keyboard-focus ring (does not show on mouse/touch) */
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:5px;}
 </style>
 </head>
 <body>
 
 <button class="ham-btn" onclick="toggleSB()" aria-label="Menu"><span></span><span></span><span></span></button>
+<button class="search-btn" onclick="openCmdK()" aria-label="Search and commands">🔍</button>
 <div class="s-ov" id="s-ov" onclick="toggleSB()"></div>
 
 <nav class="sidebar">
@@ -1108,7 +1120,7 @@ Read 50 books this year"></textarea>
 
 </main>
 
-<button class="fab" onclick="openAdd()">+</button>
+<button class="fab" onclick="openAdd()" aria-label="Add task">+</button>
 
 <nav class="bnav">
   <button class="bni" data-v="today" onclick="nav('today')"><span class="bni-ic">☀️</span>Today</button>
@@ -1734,7 +1746,18 @@ function goalStats(gId){const linked=S.tasks.filter(t=>t.goalId===gId);const don
 function depthB(depth){if(!depth||depth==='shallow')return'';const cls='depth-'+depth;const label=depth==='deep'?'🟢 Deep':depth==='medium'?'🔵 Medium':'';return label?`<span class="badge ${cls}" style="font-size:10px;">${label}</span>`:'';}
 
 // ── TOAST ─────────────────────────────────────────────────────
-function toast(msg,ms=2500){const t=document.getElementById('toast');if(!t)return;t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms);}
+function toast(msg,ms=2500){const t=document.getElementById('toast');if(!t)return;t.style.pointerEvents='';t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms);}
+// Toast with an Undo action — message is set via textContent (no injection)
+function _toastUndo(msg,undoFn,ms=4500){
+  const t=document.getElementById('toast');if(!t)return;
+  t.textContent='';
+  const span=document.createElement('span');span.textContent=msg;
+  const btn=document.createElement('button');btn.className='toast-undo';btn.textContent='Undo';
+  btn.onclick=()=>{clearTimeout(t._t);t.classList.remove('show');t.style.pointerEvents='';_haptic&&_haptic(10);try{undoFn();}catch(e){}};
+  t.appendChild(span);t.appendChild(btn);
+  t.style.pointerEvents='auto';t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>{t.classList.remove('show');t.style.pointerEvents='';},ms);
+}
 
 // ── NAV ───────────────────────────────────────────────────────
 function nav(v){
@@ -2242,7 +2265,12 @@ function saveTask(){
   save();closeM('tm');refresh();
 }
 
-function delTask(id){if(!confirm('Delete?'))return;S.tasks=S.tasks.filter(t=>t.id!==id);save();refresh();}
+function delTask(id){
+  const i=S.tasks.findIndex(t=>t.id===id);if(i<0)return;
+  const removed=S.tasks[i];
+  S.tasks.splice(i,1);save();refresh();updIBadge();
+  _toastUndo('🗑 Deleted',()=>{S.tasks.splice(Math.min(i,S.tasks.length),0,removed);save();refresh();updIBadge();});
+}
 function delCurTask(){if(editT){delTask(editT);closeM('tm');}}
 
 function toggleDone(id){
@@ -2275,7 +2303,7 @@ function toggleDone(id){
   }
 }
 
-function mvB(id,b){const t=S.tasks.find(x=>x.id===id);if(!t)return;t.bucket=b;save();refresh();}
+function mvB(id,b){const t=S.tasks.find(x=>x.id===id);if(!t)return;const prev=t.bucket;if(prev===b)return;t.bucket=b;save();refresh();_toastUndo('→ Moved to '+(BKTS[b]?.l||b),()=>{t.bucket=prev;save();refresh();});}
 
 // ── SWIPE GESTURES + SMART RESCHEDULE SHEET ───────────────────
 function _haptic(ms){try{navigator.vibrate&&navigator.vibrate(ms);}catch(e){}}
@@ -2298,7 +2326,7 @@ function _initSwipe(el,id){
     el.style.transform='';el.style.background='';
     setTimeout(()=>{el.style.transition='';},240);
     if(!moved)return;
-    if(dx<-60){_haptic(15);toggleDone(id);toast('✓ Done!');}
+    if(dx<-60){_haptic(15);toggleDone(id);_toastUndo('✓ Done!',()=>toggleDone(id));}
     else if(dx>60){_haptic(15);_showRescheduleSheet(id);}
   });
 }
@@ -2343,12 +2371,13 @@ function _dayLabel(dateStr){
 function _applyReschedule(bucket,dueDate){
   const t=S.tasks.find(x=>x.id===_rsTaskId);
   if(!t)return;
+  const prevBucket=t.bucket,prevDue=t.dueDate;
   t.bucket=bucket;t.dueDate=dueDate;
   save();refresh();
   document.getElementById('reschedule-sheet').classList.add('hidden');
   document.body.classList.remove('modal-open');
   _haptic(15);
-  toast('📅 Rescheduled → '+_dayLabel(dueDate));
+  _toastUndo('📅 Rescheduled → '+_dayLabel(dueDate),()=>{t.bucket=prevBucket;t.dueDate=prevDue;save();refresh();});
 }
 
 // ── BOTTOM-SHEET DRAG-TO-DISMISS (mobile) ─────────────────────

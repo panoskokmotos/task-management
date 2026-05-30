@@ -18,7 +18,7 @@
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
 :root{
   --bg:#0d1117;--surface:#161b22;--surface2:#21262d;--border:#30363d;
-  --text:#e6edf3;--muted:#8b949e;--accent:#58a6ff;
+  --text:#e6edf3;--muted:#8b949e;--accent:#58a6ff;--accent-soft:rgba(88,166,255,.14);--hover:rgba(255,255,255,.04);
   --brand:#58a6ff;--brand2:#bc8cff;--brand-gradient:linear-gradient(135deg,#58a6ff,#bc8cff);
   --bw:#ff6b6b;--bm:#ffa94d;--bb:#69db7c;--bs:#74c0fc;--bi:#da77f2;
   --q1:#ff6b6b;--q2:#69db7c;--q3:#ffa94d;--q4:#868e96;
@@ -26,7 +26,7 @@
 }
 body.light{
   --bg:#f5f5f0;--surface:#ffffff;--surface2:#f0f0eb;--border:#e0ddd8;
-  --text:#1a1a1a;--muted:#6b7280;--accent:#2563eb;
+  --text:#1a1a1a;--muted:#6b7280;--accent:#2563eb;--accent-soft:rgba(37,99,235,.1);--hover:rgba(0,0,0,.04);
   --brand:#2563eb;--brand2:#9333ea;--brand-gradient:linear-gradient(135deg,#2563eb,#9333ea);
   --bw:#dc2626;--bm:#d97706;--bb:#16a34a;--bs:#2563eb;--bi:#9333ea;
   --q1:#dc2626;--q2:#16a34a;--q3:#d97706;--q4:#6b7280;
@@ -34,7 +34,6 @@ body.light{
 }
 body.light .bp{color:#fff;}
 body.light .bni.active{color:var(--accent);}
-body.light .ni:hover,.body.light .ni.active{color:var(--accent);}
 body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden;}
 /* SIDEBAR */
 .sidebar{width:210px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 0;flex-shrink:0;overflow-y:auto;}
@@ -45,12 +44,17 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 #mobile-brand{display:none;}
 @media(max-width:768px){#mobile-brand{display:flex;position:fixed;top:max(13px,env(safe-area-inset-top,13px));left:50%;transform:translateX(-50%);z-index:199;align-items:center;gap:6px;pointer-events:none;}#mobile-brand .logo-mark{width:22px;height:22px;}#mobile-brand .logo-word{font-size:15px;font-weight:800;}}
 .logo span{color:var(--accent);}
-.ns{padding:8px 16px 4px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;}
+.ns{padding:10px 18px 5px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-top:5px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;opacity:.72;transition:opacity .12s;border-radius:6px;}
+.ns:hover{opacity:1;}
+.ns-arrow{font-size:9px;opacity:.55;transition:transform .15s;}
 .ns-group.collapsed .ni,.ns-group.collapsed .ns-sub{display:none;}
-.ni{padding:11px 16px;cursor:pointer;border-radius:6px;margin:1px 6px;font-size:13px;display:flex;align-items:center;gap:8px;color:var(--muted);transition:background .12s;}
-.ni:hover{background:var(--surface2);color:var(--text);}
-.ni.active{background:var(--surface2);color:var(--accent);}
-.ibadge{margin-left:auto;background:var(--accent);color:#000;font-size:10px;font-weight:700;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px;}
+.ni{padding:8px 12px;cursor:pointer;border-radius:8px;margin:1px 8px;font-size:13px;display:flex;align-items:center;gap:11px;color:var(--muted);transition:background .12s,color .12s;position:relative;line-height:1.2;}
+.ni-ic{width:20px;min-width:20px;text-align:center;font-size:15px;flex-shrink:0;}
+.ni:hover{background:var(--hover);color:var(--text);}
+.ni.active{background:var(--accent-soft);color:var(--accent);font-weight:600;}
+.ni.active::before{content:'';position:absolute;left:-8px;top:50%;transform:translateY(-50%);width:3px;height:17px;border-radius:0 3px 3px 0;background:var(--brand-gradient);}
+#ib{display:contents;}
+.ibadge{margin-left:auto;background:var(--accent);color:#fff;font-size:10px;font-weight:700;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px;}
 /* MAIN */
 .main{flex:1;overflow-y:auto;padding:24px 28px;}
 .view{display:none;max-width:1400px;margin:0 auto;}.view.active{display:block;animation:view-in .26s ease;}
@@ -61,8 +65,14 @@ h2{font-size:16px;font-weight:600;margin-bottom:14px;}
 h3{font-size:14px;font-weight:600;}
 .sub{color:var(--muted);font-size:13px;margin-bottom:20px;}
 /* LAYOUT */
-.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;}
-.row{display:flex;align-items:center;gap:10px;}
+.ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:14px;}
+.ph>div:first-child{min-width:0;}
+.ph h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+/* Declutter dashboard header: secondary actions hidden until ⋯ is tapped */
+.dash-extra{display:none;}
+.dash-extra.shown{display:inline-flex;}
+#dash-more-btn.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);}
 .rb{display:flex;align-items:center;justify-content:space-between;}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
@@ -246,10 +256,13 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   .ph .row .sb{flex:1;min-width:0;}
   h1{font-size:18px;}
   .bnav{display:flex;position:fixed;bottom:0;left:0;right:0;background:var(--surface);border-top:1px solid var(--border);z-index:100;padding-bottom:max(env(safe-area-inset-bottom,0px),4px);}
-  .bni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:11px 4px;cursor:pointer;color:var(--muted);font-size:10px;gap:2px;border:none;background:transparent;transition:color .12s;position:relative;}
-  .bni.active{color:var(--accent);}
-  .bni.active::before{content:'';position:absolute;top:0;left:25%;right:25%;height:2px;background:var(--brand-gradient);border-radius:0 0 2px 2px;}
-  .bni-ic{font-size:18px;line-height:1.2;}
+  .bni{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px;cursor:pointer;color:var(--muted);font-size:10px;font-weight:500;gap:3px;border:none;background:transparent;transition:color .15s;position:relative;-webkit-tap-highlight-color:transparent;}
+  .bni.active{color:var(--accent);font-weight:700;}
+  .bni.active::before{content:'';position:absolute;top:3px;left:50%;transform:translateX(-50%);width:30px;height:3px;background:var(--brand-gradient);border-radius:3px;}
+  .bni-ic{font-size:19px;line-height:1.2;transition:transform .2s cubic-bezier(.34,1.56,.64,1);}
+  .bni.active .bni-ic{transform:translateY(-1px) scale(1.1);}
+  .bni:active .bni-ic{transform:scale(.88);}
+  #more-nav-modal .md{max-height:82vh;overflow-y:auto;}
   /* Larger tap targets for checkboxes */
   .ck{width:28px;height:28px;min-width:28px;border-radius:6px;}
   /* Prevent iOS auto-zoom on input focus (requires font-size >= 16px) */
@@ -366,6 +379,14 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
 /* ── DESTRUCTIVE CONFIRMATION ────────────────────────────────── */
 .mo-danger .md{border-top:3px solid #f85149;}
 .mo-danger .btn.bp{background:#f85149!important;}
+/* ── BROWSE / MORE-NAV SHEET ─────────────────────────────────── */
+.more-nav-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;opacity:.7;margin:14px 2px 7px;}
+.more-nav-label:first-child{margin-top:4px;}
+.more-nav-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.more-nav-btn{display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 4px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;cursor:pointer;font-size:10.5px;font-weight:500;color:var(--text);transition:border-color .12s,transform .1s;-webkit-tap-highlight-color:transparent;text-align:center;line-height:1.15;}
+.more-nav-btn:hover{border-color:var(--accent);}
+.more-nav-btn:active{transform:scale(.94);}
+.more-nav-ic{font-size:21px;line-height:1;}
 /* ── COMPLETION PULSE ────────────────────────────────────────── */
 @keyframes done-pulse{0%{background:rgba(105,219,124,.22);}100%{background:transparent;}}
 .tc.just-done{animation:done-pulse .5s ease;}
@@ -501,61 +522,67 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
   </div>
   <div class="ns-group" data-ns="main">
   <span class="ns" onclick="_toggleNsGroup(this)">Main<span class="ns-arrow">▾</span></span>
-  <div class="ni active" onclick="nav('dashboard')">🏠 Dashboard</div>
-  <div class="ni" onclick="nav('capture')">⚡ Capture <span id="ib"></span></div>
-  <div class="ni" onclick="nav('givelink-dash')">🟣 Givelink OS</div>
-  <div class="ni" onclick="nav('content')">📝 Content Pipeline</div>
+  <div class="ni active" data-v="dashboard" onclick="nav('dashboard')"><span class="ni-ic">🏠</span>Dashboard</div>
+  <div class="ni" data-v="capture" onclick="nav('capture')"><span class="ni-ic">⚡</span>Capture<span id="ib"></span></div>
+  <div class="ni" data-v="all" onclick="nav('all')"><span class="ni-ic">📥</span>All Tasks</div>
+  <div class="ni" data-v="buckets" onclick="nav('buckets')"><span class="ni-ic">📦</span>Buckets</div>
+  <div class="ni" data-v="eisenhower" onclick="nav('eisenhower')"><span class="ni-ic">🎯</span>Eisenhower</div>
   </div>
-  <div class="ns-group" data-ns="views">
-  <span class="ns" onclick="_toggleNsGroup(this)">Views<span class="ns-arrow">▾</span></span>
-  <div class="ni" onclick="nav('buckets')">📦 Buckets</div>
-  <div class="ni" onclick="nav('eisenhower')">🎯 Eisenhower</div>
-  <div class="ni" onclick="nav('all')">✅ All Tasks</div>
+  <div class="ns-group" data-ns="plan">
+  <span class="ns" onclick="_toggleNsGroup(this)">Plan<span class="ns-arrow">▾</span></span>
+  <div class="ni" data-v="goals" onclick="nav('goals')"><span class="ni-ic">🏆</span>Goals</div>
+  <div class="ni" data-v="okrs" onclick="nav('okrs')"><span class="ni-ic">🧭</span>OKRs</div>
+  <div class="ni" data-v="review" onclick="nav('review')"><span class="ni-ic">📅</span>Weekly Review</div>
+  <div class="ni" data-v="qreview" onclick="nav('qreview')"><span class="ni-ic">🗓️</span>Quarterly Review</div>
+  <div class="ni" data-v="wheel" onclick="nav('wheel')"><span class="ni-ic">🎡</span>Wheel of Life</div>
+  <div class="ni" data-v="weeklynotes" onclick="nav('weeklynotes')"><span class="ni-ic">📝</span>Weekly Notes</div>
   </div>
-  <div class="ns-group" data-ns="planning">
-  <span class="ns" onclick="_toggleNsGroup(this)">Planning<span class="ns-arrow">▾</span></span>
-  <div class="ni" onclick="nav('goals')">🏆 Goals</div>
-  <div class="ni" onclick="nav('okrs')">🎯 OKRs</div>
-  <div class="ni" onclick="nav('qreview')">📊 Quarterly Review</div>
-  <div class="ni" onclick="nav('wheel')">🎡 Wheel of Life</div>
-  <div class="ni" onclick="nav('review')">📅 Weekly Review</div>
-  <div class="ni" onclick="nav('weeklynotes')">📔 Weekly Notes</div>
-  <div class="ni" onclick="nav('focus')">🧠 Focus Now</div>
-  <div class="ni" onclick="nav('history')">📚 Review History</div>
-  <div class="ni" onclick="nav('eod')">🌙 End-of-Day</div>
-  <div class="ni" onclick="nav('decisions')">🧠 Decisions</div>
-  <div class="ni" onclick="nav('challenge')">⚡ Daily Challenge</div>
+  <div class="ns-group" data-ns="execute">
+  <span class="ns" onclick="_toggleNsGroup(this)">Execute<span class="ns-arrow">▾</span></span>
+  <div class="ni" data-v="focus" onclick="nav('focus')"><span class="ni-ic">🧠</span>Focus Now</div>
+  <div class="ni" data-v="deepwork" onclick="nav('deepwork')"><span class="ni-ic">🌊</span>Deep Work</div>
+  <div class="ni" data-v="challenge" onclick="nav('challenge')"><span class="ni-ic">🔥</span>Daily Challenge</div>
+  <div class="ni" data-v="eod" onclick="nav('eod')"><span class="ni-ic">🌙</span>End-of-Day</div>
+  <div class="ni" data-v="calendar" onclick="nav('calendar')"><span class="ni-ic">📆</span>Calendar</div>
   </div>
   <div class="ns-group collapsed" data-ns="lifeos">
   <span class="ns" onclick="_toggleNsGroup(this)">Life OS<span class="ns-arrow">▸</span></span>
-  <div class="ni" onclick="nav('books')">📚 Books</div>
-  <div class="ni" onclick="nav('health')">💪 Health</div>
-  <div class="ni" onclick="nav('sleep')">😴 Sleep</div>
-  <div class="ni" onclick="nav('finance')">💰 Finance</div>
-  <div class="ni" onclick="nav('networth')">💎 Net Worth</div>
-  <div class="ni" onclick="nav('ailab')">🤖 AI Lab</div>
-  <div class="ni" onclick="nav('relationships')">🤝 Relationships</div>
-  <div class="ni" onclick="nav('mentors')">🎓 Mentors</div>
-  <div class="ni" onclick="nav('deepwork')">🧠 Deep Work</div>
-  <div class="ni" onclick="nav('habits')">✅ Habits</div>
-  <div class="ni" onclick="nav('discomfort')">🔥 Discomfort</div>
-  <div class="ni" onclick="nav('ladder')">🪜 Ladder</div>
-  <div class="ni" onclick="nav('agi')">🤖 AGI Prep</div>
+  <div class="ni" data-v="health" onclick="nav('health')"><span class="ni-ic">💪</span>Health</div>
+  <div class="ni" data-v="sleep" onclick="nav('sleep')"><span class="ni-ic">😴</span>Sleep</div>
+  <div class="ni" data-v="habits" onclick="nav('habits')"><span class="ni-ic">🔁</span>Habits</div>
+  <div class="ni" data-v="finance" onclick="nav('finance')"><span class="ni-ic">💰</span>Finance</div>
+  <div class="ni" data-v="networth" onclick="nav('networth')"><span class="ni-ic">💎</span>Net Worth</div>
+  <div class="ni" data-v="relationships" onclick="nav('relationships')"><span class="ni-ic">🤝</span>Relationships</div>
+  <div class="ni" data-v="mentors" onclick="nav('mentors')"><span class="ni-ic">🎓</span>Mentors</div>
+  <div class="ni" data-v="books" onclick="nav('books')"><span class="ni-ic">📚</span>Books</div>
   </div>
-  <div class="ns-group collapsed" data-ns="personal">
-  <span class="ns" onclick="_toggleNsGroup(this)">Personal<span class="ns-arrow">▸</span></span>
-  <div class="ni" onclick="nav('skills')">🧠 Skills XP</div>
-  <div class="ni" onclick="nav('calendar')">📅 Calendar</div>
-  <div class="ni" onclick="nav('optionality')">🎰 Optionality</div>
-  <div class="ni" onclick="nav('flourishing')">🌸 Flourishing</div>
-  <div class="ni" onclick="nav('security')">🔒 Security</div>
-  <div class="ni" onclick="nav('wins')">🏅 Wins</div>
-  <div class="ni" onclick="nav('bucketlist')">🌍 Bucket List</div>
-  <div class="ni" onclick="nav('wishlist')">🛒 Wishlist</div>
-  <div class="ni" onclick="nav('projects')">🚀 Projects</div>
+  <div class="ns-group collapsed" data-ns="grow">
+  <span class="ns" onclick="_toggleNsGroup(this)">Grow<span class="ns-arrow">▸</span></span>
+  <div class="ni" data-v="skills" onclick="nav('skills')"><span class="ni-ic">🧗</span>Skills XP</div>
+  <div class="ni" data-v="wins" onclick="nav('wins')"><span class="ni-ic">🏅</span>Wins</div>
+  <div class="ni" data-v="discomfort" onclick="nav('discomfort')"><span class="ni-ic">🥶</span>Discomfort</div>
+  <div class="ni" data-v="ladder" onclick="nav('ladder')"><span class="ni-ic">🪜</span>Ladder</div>
+  <div class="ni" data-v="flourishing" onclick="nav('flourishing')"><span class="ni-ic">🌸</span>Flourishing</div>
+  <div class="ni" data-v="bucketlist" onclick="nav('bucketlist')"><span class="ni-ic">🌍</span>Bucket List</div>
+  <div class="ni" data-v="wishlist" onclick="nav('wishlist')"><span class="ni-ic">🛒</span>Wishlist</div>
+  </div>
+  <div class="ns-group collapsed" data-ns="work">
+  <span class="ns" onclick="_toggleNsGroup(this)">Work<span class="ns-arrow">▸</span></span>
+  <div class="ni" data-v="givelink-dash" onclick="nav('givelink-dash')"><span class="ni-ic">🟣</span>Givelink OS</div>
+  <div class="ni" data-v="content" onclick="nav('content')"><span class="ni-ic">✍️</span>Content Pipeline</div>
+  <div class="ni" data-v="projects" onclick="nav('projects')"><span class="ni-ic">🚀</span>Projects</div>
+  <div class="ni" data-v="ailab" onclick="nav('ailab')"><span class="ni-ic">🤖</span>AI Lab</div>
+  </div>
+  <div class="ns-group collapsed" data-ns="more">
+  <span class="ns" onclick="_toggleNsGroup(this)">More<span class="ns-arrow">▸</span></span>
+  <div class="ni" data-v="decisions" onclick="nav('decisions')"><span class="ni-ic">⚖️</span>Decisions</div>
+  <div class="ni" data-v="history" onclick="nav('history')"><span class="ni-ic">🕘</span>Review History</div>
+  <div class="ni" data-v="optionality" onclick="nav('optionality')"><span class="ni-ic">🎲</span>Optionality</div>
+  <div class="ni" data-v="security" onclick="nav('security')"><span class="ni-ic">🔒</span>Security</div>
+  <div class="ni" data-v="agi" onclick="nav('agi')"><span class="ni-ic">🌐</span>AGI Prep</div>
   </div>
   <div style="margin-top:auto;padding:10px 6px 4px;border-top:1px solid var(--border);">
-    <div class="ni" onclick="openSettings()" style="margin:0;">⚙️ Settings</div>
+    <div class="ni" onclick="openSettings()" style="margin:0;"><span class="ni-ic">⚙️</span>Settings</div>
   </div>
 </nav>
 
@@ -587,7 +614,7 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
       <button class="btn bg sm dash-extra" onclick="nav('eod')">🌙 EOD</button>
       <button class="btn bg sm" onclick="openQuickAdd()">⚡ Quick Add</button>
       <button class="btn bg sm dash-extra" id="plan-week-btn" onclick="openWeekPlan()">📋 Plan Week</button>
-      <button class="btn bg sm" id="dash-more-btn" onclick="_toggleDashMore()">⋯</button>
+      <button class="btn bg sm" id="dash-more-btn" onclick="_toggleDashMore()" title="More actions" aria-label="More actions">⋯</button>
       <button class="btn bp" onclick="openAdd()">+ Add Task</button>
     </div>
   </div>
@@ -1271,13 +1298,12 @@ Read 50 books this year"></textarea>
 </div>
 <button class="fab" aria-label="Quick actions" onclick="toggleFabDial()">+</button>
 
-<nav class="bnav">
+<nav class="bnav" role="navigation" aria-label="Main navigation">
   <button class="bni active" data-v="dashboard" aria-label="Home" onclick="nav('dashboard')"><span class="bni-ic">🏠</span>Home</button>
-  <button class="bni" data-v="all" aria-label="Tasks" onclick="nav('all')"><span class="bni-ic">✅</span>Tasks</button>
-  <button class="bni" data-v="focus" aria-label="Focus" onclick="nav('focus')"><span class="bni-ic">🧠</span>Focus</button>
+  <button class="bni" data-v="all" aria-label="Tasks" onclick="nav('all')"><span class="bni-ic">📥</span>Tasks</button>
+  <button class="bni" data-v="buckets" aria-label="Buckets" onclick="nav('buckets')"><span class="bni-ic">📦</span>Buckets</button>
   <button class="bni" data-v="goals" aria-label="Goals" onclick="nav('goals')"><span class="bni-ic">🏆</span>Goals</button>
-  <button class="bni" data-v="review" aria-label="Review" onclick="nav('review')"><span class="bni-ic">📅</span>Review</button>
-  <button class="bni" aria-label="More views" onclick="_showMoreNav()"><span class="bni-ic">⋯</span>More</button>
+  <button class="bni" aria-label="More views" onclick="_showMoreNav()"><span class="bni-ic">☰</span>More</button>
 </nav>
 
 <!-- CMD+K -->
@@ -2375,7 +2401,7 @@ function nav(v){
   const _vEl=document.getElementById('v-'+v);
   _vEl.classList.add('active','entering');
   setTimeout(()=>_vEl.classList.remove('entering'),520);
-  document.querySelectorAll('.ni').forEach(x=>{if(x.getAttribute('onclick')?.includes("'"+v+"'"))x.classList.add('active');});
+  document.querySelectorAll('.ni').forEach(x=>{if(x.dataset.v?x.dataset.v===v:x.getAttribute('onclick')?.includes("'"+v+"'"))x.classList.add('active');});
   if(v==='dashboard')window._dashAnim=true;
   renderView(v);
   const _sp=_scrollPos['v-'+v]||{m:0,w:0};
@@ -6178,7 +6204,7 @@ function _toggleDashMore(){
   const shown=document.querySelector('.dash-extra.shown');
   document.querySelectorAll('.dash-extra').forEach(el=>el.classList.toggle('shown',!shown));
   const btn=document.getElementById('dash-more-btn');
-  if(btn)btn.textContent=shown?'⋯':'✕';
+  if(btn){btn.textContent=shown?'⋯':'✕';btn.classList.toggle('on',!shown);btn.title=shown?'More actions':'Hide actions';}
 }
 
 // ── HEBB CO-OCCURRENCE ENGINE (fire together → wire together) ──
@@ -7793,22 +7819,47 @@ function _initLongPress(el,taskId){
   el.addEventListener('touchend',()=>clearTimeout(_lpt),{passive:true});
   el.addEventListener('touchmove',()=>clearTimeout(_lpt),{passive:true});
 }
-// M8 — More nav drawer
+// M8 — More nav drawer (grouped to mirror the desktop sidebar IA)
+const _MORE_NAV_GROUPS=[
+  {label:'Capture',items:[
+    {id:'capture',e:'⚡',l:'Capture'},{id:'eisenhower',e:'🎯',l:'Eisenhower'},
+  ]},
+  {label:'Plan',items:[
+    {id:'okrs',e:'🧭',l:'OKRs'},{id:'review',e:'📅',l:'Review'},{id:'qreview',e:'🗓️',l:'Quarterly'},
+    {id:'wheel',e:'🎡',l:'Wheel'},{id:'weeklynotes',e:'📝',l:'Notes'},
+  ]},
+  {label:'Execute',items:[
+    {id:'focus',e:'🧠',l:'Focus'},{id:'deepwork',e:'🌊',l:'Deep Work'},{id:'challenge',e:'🔥',l:'Challenge'},
+    {id:'eod',e:'🌙',l:'End of Day'},{id:'calendar',e:'📆',l:'Calendar'},
+  ]},
+  {label:'Life OS',items:[
+    {id:'health',e:'💪',l:'Health'},{id:'sleep',e:'😴',l:'Sleep'},{id:'habits',e:'🔁',l:'Habits'},
+    {id:'finance',e:'💰',l:'Finance'},{id:'networth',e:'💎',l:'Net Worth'},{id:'relationships',e:'🤝',l:'Relations'},
+    {id:'mentors',e:'🎓',l:'Mentors'},{id:'books',e:'📚',l:'Books'},
+  ]},
+  {label:'Grow',items:[
+    {id:'skills',e:'🧗',l:'Skills'},{id:'wins',e:'🏅',l:'Wins'},{id:'discomfort',e:'🥶',l:'Discomfort'},
+    {id:'ladder',e:'🪜',l:'Ladder'},{id:'flourishing',e:'🌸',l:'Flourish'},{id:'bucketlist',e:'🌍',l:'Bucket List'},
+    {id:'wishlist',e:'🛒',l:'Wishlist'},
+  ]},
+  {label:'Work',items:[
+    {id:'givelink-dash',e:'🟣',l:'Givelink'},{id:'content',e:'✍️',l:'Content'},{id:'projects',e:'🚀',l:'Projects'},
+    {id:'ailab',e:'🤖',l:'AI Lab'},
+  ]},
+  {label:'More',items:[
+    {id:'decisions',e:'⚖️',l:'Decisions'},{id:'history',e:'🕘',l:'History'},{id:'optionality',e:'🎲',l:'Options'},
+    {id:'security',e:'🔒',l:'Security'},{id:'agi',e:'🌐',l:'AGI Prep'},
+  ]},
+];
 function _showMoreNav(){
-  const views=[
-    {id:'habits',e:'🌱',l:'Habits'},{id:'deepwork',e:'🧘',l:'Deep Work'},{id:'health',e:'❤️',l:'Health'},
-    {id:'sleep',e:'💤',l:'Sleep'},{id:'finance',e:'💰',l:'Finance'},{id:'networth',e:'📈',l:'Net Worth'},
-    {id:'review',e:'📅',l:'Review'},{id:'history',e:'📚',l:'History'},{id:'weeklynotes',e:'📔',l:'Notes'},
-    {id:'okrs',e:'🎯',l:'OKRs'},{id:'qreview',e:'🗓',l:'Quarterly'},{id:'decisions',e:'⚖️',l:'Decisions'},
-    {id:'wins',e:'🏅',l:'Wins'},{id:'books',e:'📖',l:'Books'},{id:'challenge',e:'⚡',l:'Challenge'},
-    {id:'discomfort',e:'🔥',l:'Discomfort'},{id:'relationships',e:'👥',l:'Relations'},{id:'mentors',e:'🧭',l:'Mentors'},
-    {id:'content',e:'📝',l:'Content'},{id:'skills',e:'🌳',l:'Skills'},{id:'calendar',e:'🗓',l:'Calendar'},
-    {id:'optionality',e:'🎰',l:'Options'},{id:'flourishing',e:'🌸',l:'Flourish'},{id:'security',e:'🔒',l:'Security'},
-    {id:'ailab',e:'🤖',l:'AI Lab'},{id:'agi',e:'🌐',l:'AGI Prep'},{id:'ladder',e:'🪜',l:'Ladder'},
-  ];
   const el=document.getElementById('more-nav-grid');
   if(!el)return;
-  el.innerHTML=views.map(v=>`<button onclick="closeM('more-nav-modal');nav('${v.id}');" style="display:flex;flex-direction:column;align-items:center;gap:4px;padding:12px 6px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;cursor:pointer;font-size:11px;color:var(--text);"><span style="font-size:22px;">${v.e}</span>${v.l}</button>`).join('');
+  el.innerHTML=_MORE_NAV_GROUPS.map(g=>
+    `<div class="more-nav-label">${g.label}</div>
+     <div class="more-nav-row">${g.items.map(v=>
+       `<button class="more-nav-btn" onclick="closeM('more-nav-modal');nav('${v.id}');"><span class="more-nav-ic">${v.e}</span>${v.l}</button>`
+     ).join('')}</div>`
+  ).join('');
   openM('more-nav-modal');
 }
 
@@ -12302,10 +12353,13 @@ function _goalMomentum(goalId){
   </div>
 </div>
 <!-- M8: More Nav Modal -->
-<div class="mo hidden" id="more-nav-modal" onclick="if(event.target===this)closeM('more-nav-modal')">
-  <div class="md" style="padding:16px;">
-    <div style="font-size:13px;font-weight:700;margin-bottom:14px;">All Views</div>
-    <div id="more-nav-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;"></div>
+<div class="mo hidden" id="more-nav-modal" role="dialog" aria-modal="true" aria-label="All views" onclick="if(event.target===this)closeM('more-nav-modal')">
+  <div class="md" style="padding:16px 16px 8px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <div style="font-size:15px;font-weight:800;">Browse</div>
+      <button class="mc" aria-label="Close" onclick="closeM('more-nav-modal')">×</button>
+    </div>
+    <div id="more-nav-grid"></div>
   </div>
 </div>
 </body>

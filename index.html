@@ -395,6 +395,11 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
 .more-nav-btn:hover{border-color:var(--accent);}
 .more-nav-btn:active{transform:scale(.94);}
 .more-nav-ic{font-size:21px;line-height:1;}
+/* ── AI WORKFLOWS HUB ─────────────────────────────────────────── */
+.wf-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;}
+.wf-card{display:flex;flex-direction:column;align-items:flex-start;gap:4px;text-align:left;padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:border-color .12s,transform .1s;-webkit-tap-highlight-color:transparent;}
+.wf-card:hover{border-color:var(--accent);}
+.wf-card:active{transform:scale(.97);}
 /* ── COMPLETION PULSE ────────────────────────────────────────── */
 @keyframes done-pulse{0%{background:rgba(105,219,124,.22);}100%{background:transparent;}}
 .tc.just-done{animation:done-pulse .5s ease;}
@@ -691,6 +696,8 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
   <div class="dash-grid">
     <!-- LEFT COLUMN: action-focused -->
     <div class="dash-col-main">
+      <!-- NORTH STAR COCKPIT -->
+      <div id="north-star-strip"></div>
       <!-- DAILY PICKS -->
       <div id="daily-picks-card" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
@@ -1690,6 +1697,9 @@ Read 50 books this year"></textarea>
     </div>
     <div class="prog-bar"><div class="prog-fill" id="ailab-prog-fill" style="width:0%;background:#22d3ee;"></div></div>
   </div>
+  <!-- AI WORKFLOWS HUB -->
+  <div id="ai-workflows-hub"></div>
+  <div id="ai-workflows-output"></div>
   <div class="fb" id="ailab-filters">
     <button class="fp active" onclick="setAilabF('all',this)">All</button>
     <button class="fp" onclick="setAilabF('idea',this)">💡 Ideas</button>
@@ -2464,6 +2474,7 @@ function renderDash(){
   if(window._dashAnim){window._dashAnim=false;setTimeout(()=>{document.querySelectorAll('#stats .sn').forEach(el=>{const txt=(el.textContent||'').trim();if(!/^\d[\d,]*$/.test(txt))return;const to=parseInt(txt.replace(/,/g,''))||0;el.textContent='0';_countUp(el,to,650);});},20);}
   renderTop3();
   renderDailyPicks();
+  _renderNorthStarStrip();
   _renderGivelinkToday();
   _renderUpcoming();
   // Review draft resume banner
@@ -2786,28 +2797,8 @@ function renderGoals(){
     </div>`;
   }).join('')||'<div class="empty">Add goals to track progress</div>';
   const top3=S.goals.filter(g=>g.isTop3),rest=S.goals.filter(g=>!g.isTop3);
-  // Feature 8: Hero cards for top 3 goals
-  const heroHTML=top3.map(g=>{
-    const s=goalStats(g.id);
-    const c=CATS[g.category]||CATS.other;
-    const nextTask=S.tasks.find(t=>t.goalId===g.id&&t.status!=='done');
-    const curOkr=(S.okrs||[]).find(o=>o.goalId===g.id&&o.quarter===_currentQuarter());
-    const okrBadge=curOkr?`<span style="font-size:10px;background:rgba(105,219,124,.15);color:#69db7c;padding:2px 7px;border-radius:8px;font-weight:600;">OKR Active</span>`:'';
-    return`<div style="background:linear-gradient(135deg,rgba(88,166,255,.1),var(--surface));border:1px solid rgba(88,166,255,.3);border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;" onclick="openEditGoal('${g.id}')">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
-        <span style="background:var(--accent);color:#000;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;">⚡ TOP GOAL</span>
-        <span style="font-size:11px;color:var(--muted);">${c.e} ${c.l}</span>
-        ${okrBadge}
-      </div>
-      <div style="font-size:17px;font-weight:700;margin-bottom:6px;word-break:break-word;">${esc(g.title)}</div>
-      <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">${esc((g.description||'').slice(0,100))}${(g.description||'').length>100?'…':''}</div>
-      <div class="gp"><div class="gp-fill" style="width:${s.pct}%"></div></div>
-      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px;">
-        <span>${s.done}/${s.total} tasks · ${s.pct}%</span>
-        <span>Next: ${nextTask?esc(nextTask.title.slice(0,30)):'No tasks yet'}</span>
-      </div>
-    </div>`;
-  }).join('');
+  // North Star hero cards with live pace projection
+  const heroHTML=top3.map(_northStarCard).join('');
   const top3El=document.getElementById('g-top3');
   if(top3El)top3El.innerHTML=top3.length?heroHTML:'<div class="empty" style="padding:20px;text-align:center;"><div style="font-size:28px;margin-bottom:6px;">⭐</div><div style="font-weight:600;margin-bottom:4px;">Set your North Stars</div><div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Your top 3 goals deserve the spotlight</div><button class="btn bp sm" onclick="openAddGoal()">+ Add a Top Goal</button></div>';
   document.getElementById('g-all').innerHTML=rest.length?rest.map(goalHTML).join(''):'<div class="empty" style="padding:20px;text-align:center;"><div style="font-size:28px;margin-bottom:6px;">🏆</div><div style="font-weight:600;margin-bottom:4px;">No goals yet</div><div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Every task should serve a goal</div><button class="btn bp sm" onclick="openAddGoal()">+ Create First Goal</button></div>';
@@ -4357,6 +4348,7 @@ function saveInvestment(){
 // ── AI LAB ─────────────────────────────────────────────────────
 let _ailabFilter='all';
 function renderAilab(){
+  _renderWorkflowsHub();
   const autos=S.automations||[];
   const running=autos.filter(a=>a.status==='running').length;
   const built=autos.filter(a=>a.status==='built'||a.status==='running').length;
@@ -4410,6 +4402,98 @@ async function aiSuggestAutomations(){
   const result=await callClaude(prompt,600);
   if(result)showAiOut('✨ Automation Ideas',result);else closeM('ai-out-modal');
   }finally{_aiUnlock('aiSuggestAutomations');}
+}
+
+// ── AI WORKFLOWS HUB ───────────────────────────────────────────
+// One-click reusable AI actions that run on the user's own data.
+// Each one kept ("Log as automation") counts toward the 100-automation North Star.
+function _wfAbout(){return getAboutMe()||'Panos — Greek founder building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';}
+const _AI_WORKFLOWS=[
+  {id:'plan-week',icon:'🗓️',title:'Plan my week',desc:'Turn your North Stars + open tasks into a focused weekly plan',tasky:true,build:(ctx)=>{
+    const stars=(S.goals||[]).filter(g=>g.isTop3);
+    const lines=stars.map(g=>{const p=_northStarPace(g);return `- ${g.title}: ${p.current??'?'}/${p.target??'?'} ${p.label} (${p.pct}%${p.eta?', ETA '+p.eta.toLocaleDateString():''})`;}).join('\n');
+    const week=active().filter(t=>t.bucket==='this-week'&&t.status!=='done').map(t=>t.title).slice(0,15).join('; ');
+    return `${_wfAbout()}\n\nMy North Stars & current pace:\n${lines||'none set'}\n\nThis week's open tasks: ${week||'none'}\n\nPlan my week to maximize progress on these North Stars. Output ONLY a list of 5-7 concrete tasks for this week — one per line, action-first, no preamble, no numbering. Tie each to the North Star it advances.`;
+  }},
+  {id:'goal-next-tasks',icon:'🎯',title:'Unblock my weakest goal',desc:'3 high-leverage next tasks for the North Star most behind',tasky:true,build:(ctx)=>{
+    const stars=(S.goals||[]).filter(g=>g.isTop3);
+    let target=stars[0],lowest=101;
+    stars.forEach(g=>{const p=_northStarPace(g);if(p.pct<lowest){lowest=p.pct;target=g;}});
+    ctx.goalId=target?.id;ctx.category=target?.category||'other';
+    return `${_wfAbout()}\n\nThe goal that needs the most progress: "${target?.title||'my top goal'}" (currently ${lowest}% there).\nDescription: ${target?.description||''}\n\nGive ONLY the 3 highest-leverage concrete next tasks to move this forward this week — one per line, action-first, no preamble, no numbering.`;
+  }},
+  {id:'weekly-synthesis',icon:'📋',title:'Synthesize my week',desc:'A tight review from what you actually completed + wins',build:()=>{
+    const wAgo=Date.now()-7*864e5;
+    const done=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt).getTime()>wAgo).map(t=>t.title);
+    const wins=(S.wins||[]).filter(w=>new Date(w.date).getTime()>wAgo).map(w=>w.text);
+    return `${_wfAbout()}\n\nThis week I completed: ${done.join('; ')||'not much logged'}\nWins: ${wins.join('; ')||'none logged'}\n\nWrite a tight weekly review: (1) a 2-sentence progress summary, (2) what to double down on, (3) the single most important focus for next week. Be direct and specific.`;
+  }},
+  {id:'givelink-outreach',icon:'🟣',title:'Givelink outreach',desc:'Draft a warm cold-outreach email + subject lines',build:()=>{
+    const m=S.givelinkMetrics||{};
+    return `${_wfAbout()}\n\nGivelink is a B2B SaaS that helps nonprofits with fundraising. Current traction: ${m.nonprofits||0} nonprofits onboarded, pipeline ${m.pipeline||0}.\n\nWrite a concise, warm cold-outreach email to a nonprofit director introducing Givelink and asking for a 15-minute call. Give 3 subject-line options first, then the email (under 120 words, specific, non-salesy).`;
+  }},
+  {id:'win-to-post',icon:'✍️',title:'Win → post',desc:'Turn a recent win into an X + LinkedIn post',build:()=>{
+    const win=(S.wins||[]).slice(-1)[0];
+    return `${_wfAbout()}\n\nA recent win: "${win?.text||'shipped meaningful progress on Givelink'}"\n\nWrite 2 short, authentic social posts about it: one for X/Twitter (≤280 chars) and one for LinkedIn (≤120 words). Founder voice, specific, not braggy — share the lesson.`;
+  }},
+];
+let _wfLast=null;
+function _renderWorkflowsHub(){
+  const el=document.getElementById('ai-workflows-hub');if(!el)return;
+  const cards=_AI_WORKFLOWS.map(w=>`<button class="wf-card" onclick="_aiBtn(this,()=>_runWorkflow('${w.id}'))" title="${esc(w.desc)}">
+    <span style="font-size:20px;">${w.icon}</span>
+    <span style="font-size:12px;font-weight:600;">${w.title}</span>
+    <span style="font-size:10px;color:var(--muted);line-height:1.3;">${w.desc}</span>
+  </button>`).join('');
+  el.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;gap:8px;flex-wrap:wrap;">
+      <span style="font-size:13px;font-weight:700;">⚡ AI Workflows</span>
+      <span style="font-size:11px;color:var(--muted);">Run on your own data · keep the useful ones to count toward 100</span>
+    </div>
+    <div class="wf-grid">${cards}</div>
+  </div>`;
+}
+async function _runWorkflow(id){
+  const wf=_AI_WORKFLOWS.find(w=>w.id===id);if(!wf)return;
+  const out=document.getElementById('ai-workflows-output');
+  if(out)out.innerHTML='<div style="padding:12px;color:var(--muted);font-size:13px;">⏳ Running '+esc(wf.title)+'…</div>';
+  const ctx={};
+  const prompt=wf.build(ctx);
+  const text=await callClaude(prompt,wf.maxTokens||650);
+  if(!text){if(out)out.innerHTML='';return;}
+  _wfLast={id,title:wf.title,text,tasky:!!wf.tasky,goalId:ctx.goalId||null,category:ctx.category||'other'};
+  _wfRenderOutput();
+}
+function _wfRenderOutput(){
+  const out=document.getElementById('ai-workflows-output');if(!out||!_wfLast)return;
+  out.innerHTML=`<div style="background:var(--surface);border:1px solid var(--accent);border-radius:12px;padding:14px 16px;margin-bottom:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;gap:6px;flex-wrap:wrap;">
+      <span style="font-size:13px;font-weight:700;">${esc(_wfLast.title)}</span>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn bg sm" onclick="_wfCopy()">📋 Copy</button>
+        ${_wfLast.tasky?'<button class="btn bg sm" onclick="_wfAddTasks()">➕ Add as tasks</button>':''}
+        <button class="btn bg sm" onclick="_wfSaveAutomation()">💾 Keep as automation</button>
+        <button class="btn bg sm" onclick="document.getElementById('ai-workflows-output').innerHTML='';">×</button>
+      </div>
+    </div>
+    <div style="font-size:13px;line-height:1.6;white-space:pre-wrap;">${esc(_wfLast.text)}</div>
+  </div>`;
+}
+function _wfCopy(){if(!_wfLast)return;try{navigator.clipboard.writeText(_wfLast.text);toast('📋 Copied');}catch(e){toast('Copy failed');}}
+function _wfAddTasks(){
+  if(!_wfLast)return;
+  const lines=_wfLast.text.split('\n').map(l=>l.replace(/^\s*(?:[-*•]|\d+[.)])\s*/,'').trim()).filter(l=>l.length>=4&&l.length<=140&&!/:$/.test(l));
+  if(!lines.length)return toast('No task-like lines found');
+  let n=0;
+  lines.slice(0,7).forEach(title=>{S.tasks.push({id:uid(),title,notes:'',bucket:'this-week',category:_wfLast.category||'other',urgency:'high',importance:'high',energy:'high',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:_wfLast.goalId||null,createdAt:new Date().toISOString(),completedAt:null});n++;});
+  save();updIBadge();toast('➕ Added '+n+' task'+(n>1?'s':'')+' to This Week');
+}
+function _wfSaveAutomation(){
+  if(!_wfLast)return;
+  if(!S.automations)S.automations=[];
+  if(S.automations.some(a=>a.name===_wfLast.title&&a.tool==='Claude'))return toast('Already logged ✓');
+  S.automations.push({id:uid(),name:_wfLast.title,desc:'AI workflow run from the Workflows Hub',category:_wfLast.category==='givelink'?'givelink':'personal',status:'running',tool:'Claude',timeSavedPerWeek:15,createdAt:new Date().toISOString()});
+  save();renderAilab();try{awardXP(5,'workflow');}catch(e){}toast('💾 Kept — counts toward your 100 automations! +5 XP');
 }
 
 // ── RELATIONSHIPS ──────────────────────────────────────────────
@@ -5027,6 +5111,158 @@ function goalLinkedData(g){
     out.financeTotal=total;
   }
   return out;
+}
+
+// ── NORTH STAR PACE ENGINE ─────────────────────────────────────
+// For a goal, auto-pull its current value from the linked data source,
+// build a historical series, and project "will I hit it?" at current pace.
+const _NS_TARGETS={bodyfat:12,sleep:85,workout:5,weight:75,income:25000,passive:3600};
+const _NS_LABELS={bodyfat:'Body fat',sleep:'Sleep score',workout:'Workouts/wk',weight:'Weight',income:'Income (yr)',passive:'Passive/mo'};
+function _fmtNum(n){if(n==null||isNaN(n))return'—';return Math.abs(n)>=1000?Math.round(n).toLocaleString():(Math.round(n*10)/10).toString();}
+function _northStarPace(g){
+  const now=Date.now();
+  const out={kind:'manual',label:g.unit?g.title:'Progress',unit:g.unit||'',current:null,target:g.targetValue!=null?g.targetValue:null,dir:'up',pct:0,ratePerWeek:null,eta:null,status:'nodata',series:[]};
+  if(g.category==='givelink'){
+    out.kind='givelink';out.label='Nonprofits';out.unit='';out.dir='up';
+    out.target=g.targetValue!=null?g.targetValue:100;
+    const hist=(S.givelinkHistory||[]).filter(h=>h.nonprofits!=null);
+    out.series=hist.map(h=>({t:new Date(h.date).getTime(),v:h.nonprofits}));
+    out.current=hist.length?hist[hist.length-1].nonprofits:(S.givelinkMetrics?.nonprofits||0);
+  } else if(g.category==='automation'){
+    out.kind='automation';out.label='AI workflows';out.unit='';out.dir='up';
+    out.target=g.targetValue!=null?g.targetValue:100;
+    const autos=(S.automations||[]).slice().filter(a=>a.createdAt).sort((a,b)=>new Date(a.createdAt)-new Date(b.createdAt));
+    let c=0;out.series=autos.map(a=>({t:new Date(a.createdAt).getTime(),v:++c}));
+    out.current=(S.automations||[]).length;
+  } else if(g.linkedHealthMetric==='workout'){
+    out.kind='cadence';out.label='Workouts this week';out.unit='';out.dir='up';
+    out.target=g.targetValue!=null?g.targetValue:5;
+    const mon=new Date();mon.setDate(mon.getDate()-((mon.getDay()+6)%7));mon.setHours(0,0,0,0);
+    out.current=(S.healthLogs||[]).filter(l=>l.type==='workout'&&new Date(l.date)>=mon).length;
+    out.pct=Math.min(100,Math.round(out.current/out.target*100));
+    out.status=out.current>=out.target?'hit':out.current>=out.target*0.6?'ontrack':'attention';
+    return out;
+  } else if(g.linkedHealthMetric){
+    const m=g.linkedHealthMetric;
+    out.kind='health';out.label=_NS_LABELS[m]||m;out.unit=(m==='bodyfat'||m==='sleep')?'%':'';
+    out.target=g.targetValue!=null?g.targetValue:(_NS_TARGETS[m]??null);
+    out.dir=(m==='bodyfat'||m==='weight')?'down':'up';
+    const logs=(S.healthLogs||[]).filter(l=>l.type===m&&l.value!=null).sort((a,b)=>new Date(a.date)-new Date(b.date));
+    out.series=logs.map(l=>({t:new Date(l.date).getTime(),v:l.value}));
+    out.current=logs.length?logs[logs.length-1].value:(g.currentValue!=null?g.currentValue:null);
+  } else if(g.linkedFinanceType){
+    const ft=g.linkedFinanceType,yr=new Date().getFullYear();
+    out.kind='finance';out.label=_NS_LABELS[ft]||ft;out.unit='€';out.dir='up';
+    out.target=g.targetValue!=null?g.targetValue:(_NS_TARGETS[ft]??null);
+    const entries=(S.financeEntries||[]).filter(e=>e.type===ft&&new Date(e.date).getFullYear()===yr).sort((a,b)=>new Date(a.date)-new Date(b.date));
+    let c=0;out.series=entries.map(e=>({t:new Date(e.date).getTime(),v:(c+=e.amount)}));
+    out.current=c;
+  } else {
+    out.current=g.currentValue!=null?g.currentValue:null;
+    out.target=g.targetValue!=null?g.targetValue:null;
+  }
+  if(out.current==null||out.target==null)return out;
+  // progress %
+  if(out.dir==='up'){
+    out.pct=out.target>0?Math.max(0,Math.min(100,Math.round(out.current/out.target*100))):0;
+  } else {
+    const start=out.series.length?out.series[0].v:out.current;
+    const span=start-out.target;
+    out.pct=span>0?Math.max(0,Math.min(100,Math.round((start-out.current)/span*100))):(out.current<=out.target?100:0);
+  }
+  const hit=out.dir==='up'?out.current>=out.target:out.current<=out.target;
+  if(hit){out.status='hit';return out;}
+  // pace from series
+  if(out.series.length>=2){
+    const a=out.series[0],b=out.series[out.series.length-1];
+    const days=((b.t-a.t)/864e5)||1;
+    const ratePerDay=(b.v-a.v)/days;
+    out.ratePerWeek=ratePerDay*7;
+    const moving=(out.dir==='up'&&ratePerDay>0)||(out.dir==='down'&&ratePerDay<0);
+    if(moving&&Math.abs(ratePerDay)>1e-9){
+      const daysToTarget=(out.target-out.current)/ratePerDay;
+      if(daysToTarget>0&&daysToTarget<3650){out.eta=new Date(now+daysToTarget*864e5);out.status='ontrack';}
+      else out.status='attention';
+    } else out.status='attention';
+  } else { out.status='tracking'; }
+  return out;
+}
+function _nsStatusChip(p){
+  const map={hit:['🟢','On target','#69db7c'],ontrack:['🟢','On pace','#69db7c'],tracking:['🔵','Tracking','#58a6ff'],attention:['🟡','Needs push','#fbbf24'],nodata:['⚪','Set a target','#8b949e']};
+  return map[p.status]||map.nodata;
+}
+function _nsEtaText(p){
+  if(p.status==='hit')return'🎉 Target reached';
+  if(p.eta)return'ETA '+p.eta.toLocaleDateString('en-US',{month:'short',year:'numeric'});
+  if(p.status==='attention')return p.series.length>=2?'Off pace — adjust':'Log progress to project';
+  if(p.kind==='cadence')return p.current+'/'+p.target+' this week';
+  return'Log progress to project';
+}
+function _renderNorthStarStrip(){
+  const el=document.getElementById('north-star-strip');if(!el)return;
+  const stars=(S.goals||[]).filter(g=>g.isTop3).slice(0,3);
+  if(!stars.length){el.innerHTML='';return;}
+  const rows=stars.map(g=>{
+    const p=_northStarPace(g);
+    const[dot,,color]=_nsStatusChip(p);
+    const cur=p.current!=null?(p.unit==='€'?'€':'')+_fmtNum(p.current)+(p.unit&&p.unit!=='€'?p.unit:''):'—';
+    const tgt=p.target!=null?(p.unit==='€'?'€':'')+_fmtNum(p.target)+(p.unit&&p.unit!=='€'?p.unit:''):'—';
+    const nextTask=S.tasks.find(t=>t.goalId===g.id&&t.status!=='done');
+    return`<div onclick="nav('goals')" style="cursor:pointer;padding:9px 0;border-bottom:1px solid var(--border);">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:5px;">
+        <span style="font-size:12px;font-weight:600;flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${esc(g.title)}</span>
+        <span style="font-size:11px;color:var(--muted);white-space:nowrap;">${cur} / ${tgt}</span>
+        <span title="${_nsStatusChip(p)[1]}">${dot}</span>
+      </div>
+      <div class="gp" style="height:5px;"><div class="gp-fill" style="width:${p.pct}%;background:${color};"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:4px;">
+        <span>${p.pct}%${p.ratePerWeek!=null&&p.status!=='hit'?` · ${p.ratePerWeek>0?'+':''}${_fmtNum(p.ratePerWeek)}/wk`:''}</span>
+        <span>${_nsEtaText(p)}</span>
+      </div>
+    </div>`;
+  }).join('');
+  el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(88,166,255,.08),var(--surface));border:1px solid rgba(88,166,255,.3);border-radius:12px;padding:14px 16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+      <span style="font-size:13px;font-weight:700;">⭐ North Stars</span>
+      <button class="sec-link" onclick="nav('goals')">All goals <span class="arr">→</span></button>
+    </div>
+    <div style="margin-bottom:-9px;">${rows}</div>
+  </div>`;
+}
+function _northStarCard(g){
+  const s=goalStats(g.id);
+  const c=CATS[g.category]||CATS.other;
+  const p=_northStarPace(g);
+  const[dot,statusLabel,color]=_nsStatusChip(p);
+  const nextTask=S.tasks.find(t=>t.goalId===g.id&&t.status!=='done');
+  const curOkr=(S.okrs||[]).find(o=>o.goalId===g.id&&o.quarter===_currentQuarter());
+  const okrBadge=curOkr?`<span style="font-size:10px;background:rgba(105,219,124,.15);color:#69db7c;padding:2px 7px;border-radius:8px;font-weight:600;">OKR Active</span>`:'';
+  const cur=p.current!=null?(p.unit==='€'?'€':'')+_fmtNum(p.current)+(p.unit&&p.unit!=='€'?p.unit:''):null;
+  const tgt=p.target!=null?(p.unit==='€'?'€':'')+_fmtNum(p.target)+(p.unit&&p.unit!=='€'?p.unit:''):null;
+  const spark=p.series.length>=2?_sparklineSVG(p.series.map(x=>x.v),90,26):'';
+  const metricBlock=(cur&&tgt)?`
+    <div style="display:flex;align-items:flex-end;gap:10px;margin:10px 0 8px;">
+      <div><div style="font-size:24px;font-weight:800;line-height:1;">${cur}</div><div style="font-size:10px;color:var(--muted);">of ${tgt} ${esc(p.label.toLowerCase())}</div></div>
+      <div style="flex:1;"></div>${spark}
+    </div>
+    <div class="gp" style="height:6px;"><div class="gp-fill" style="width:${p.pct}%;background:${color};"></div></div>
+    <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:6px;">
+      <span>${dot} ${statusLabel} · ${p.pct}%</span>
+      <span>${_nsEtaText(p)}${p.ratePerWeek!=null&&p.status!=='hit'?` · ${p.ratePerWeek>0?'+':''}${_fmtNum(p.ratePerWeek)}/wk`:''}</span>
+    </div>`:`
+    <div style="font-size:12px;color:var(--muted);margin:6px 0 10px;">${esc((g.description||'').slice(0,100))}${(g.description||'').length>100?'…':''}</div>
+    <div class="gp"><div class="gp-fill" style="width:${s.pct}%"></div></div>
+    <div style="font-size:11px;color:var(--muted);margin-top:6px;">${s.done}/${s.total} tasks · ${s.pct}% · <span style="color:var(--accent);">add a target + link to project pace</span></div>`;
+  return`<div style="background:linear-gradient(135deg,rgba(88,166,255,.1),var(--surface));border:1px solid rgba(88,166,255,.3);border-radius:14px;padding:18px;margin-bottom:12px;cursor:pointer;" onclick="openEditGoal('${g.id}')">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+      <span style="background:var(--accent);color:#000;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;">⚡ TOP GOAL</span>
+      <span style="font-size:11px;color:var(--muted);">${c.e} ${c.l}</span>
+      ${okrBadge}
+    </div>
+    <div style="font-size:17px;font-weight:700;margin-bottom:2px;word-break:break-word;">${esc(g.title)}</div>
+    ${metricBlock}
+    <div style="font-size:11px;color:var(--muted);margin-top:10px;border-top:1px solid var(--border);padding-top:8px;" onclick="event.stopPropagation();">▶ Next: ${nextTask?`<span style="cursor:pointer;" onclick="openEdit('${nextTask.id}')">${esc(nextTask.title.slice(0,40))}</span>`:`<span style="color:var(--accent);cursor:pointer;" onclick="openAdd('this-week','${g.id}')">add a task →</span>`}</div>
+  </div>`;
 }
 
 // ── WEEKLY REVIEW AUTO-PULL ────────────────────────────────────

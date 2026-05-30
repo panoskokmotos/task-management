@@ -1569,6 +1569,21 @@ Read 50 books this year"></textarea>
     <div class="fg"><label>Notion Integration Token <a href="https://www.notion.so/my-integrations" target="_blank" style="color:var(--accent);font-size:10px;margin-left:4px;">create integration ↗</a></label><input class="fc" id="set-notion-key" type="password" placeholder="secret_..."></div>
     <div class="fg"><label>Notion Page/Database URL (for weekly notes)</label><input class="fc" id="set-notion-page" placeholder="https://notion.so/My-Weekly-Notes-abc123..."></div>
     <hr>
+    <p style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">☁️ Cloud Sync (Supabase)</p>
+    <div id="sb-status" style="font-size:12px;margin-bottom:8px;color:var(--muted);"></div>
+    <div class="fg"><label>Supabase Project URL</label><input class="fc" id="set-sb-url" placeholder="https://xxxx.supabase.co"></div>
+    <div class="fg"><label>Supabase anon key</label><input class="fc" id="set-sb-anon" type="password" placeholder="eyJhbGciOi..."></div>
+    <div class="fr">
+      <div class="fg"><label>Email</label><input class="fc" id="set-sb-email" type="email" placeholder="you@email.com"></div>
+      <div class="fg"><label>Password</label><input class="fc" id="set-sb-pass" type="password" placeholder="••••••••"></div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:6px;">
+      <button class="btn bp sm" onclick="sbConnect()" style="flex:1;">🔗 Connect &amp; Sync</button>
+      <button class="btn bg sm" onclick="sbSyncNow(true)">🔄 Sync now</button>
+      <button class="btn bg sm" onclick="sbDisconnect()">Disconnect</button>
+    </div>
+    <p style="font-size:11px;color:var(--muted);">Create a free project at supabase.com, run the provided <code>supabase-setup.sql</code>, then enter your URL + anon key + an account email/password. Your data syncs across devices; localStorage stays the offline cache.</p>
+    <hr>
     <hr>
     <div style="font-size:13px;font-weight:700;margin-bottom:8px;">🌐 Personal Brand &amp; Social</div>
     <div class="fg">
@@ -2080,12 +2095,14 @@ function toggleTheme(){
 
 // ── PERSIST ───────────────────────────────────────────────────
 function save(){
+  if(!_sbApplying)S._updatedAt=Date.now();
   try{localStorage.setItem('taskos',JSON.stringify(S));}
   catch(e){
     if(e.name==='QuotaExceededError'||e.code===22){
       toast('⚠️ Storage full! Export your data before adding more.',5000);
     }
   }
+  if(!_sbApplying&&typeof _sbScheduleSync==='function')_sbScheduleSync();
 }
 function load(){const d=localStorage.getItem('taskos');if(d)try{S={...S,...JSON.parse(d)};}catch(e){console.warn('Corrupt localStorage, using defaults',e);}}
 function exportData(){
@@ -8468,6 +8485,10 @@ function openSettings(){
   document.getElementById('set-notion-page').value=localStorage.getItem('taskos_notion_page')||'';
   document.getElementById('set-hell-yes').value=S.hellYesFilter?'true':'false';
   if(document.getElementById('set-brand'))document.getElementById('set-brand').value=S.brandStatement||'';
+  document.getElementById('set-sb-url').value=_SB.url||'';
+  document.getElementById('set-sb-anon').value=_SB.anon||'';
+  document.getElementById('set-sb-email').value=_SB.email||'';
+  _sbRenderStatus();
   _renderSocialProfilesList();
   setTimeout(_restoreBrandAudit,50);
   applyTheme(document.body.classList.contains('light'));
@@ -8489,10 +8510,147 @@ function saveSettings(){
   if(nk)localStorage.setItem('taskos_notion_key',nk); else localStorage.removeItem('taskos_notion_key');
   const np=document.getElementById('set-notion-page').value.trim();
   if(np)localStorage.setItem('taskos_notion_page',np); else localStorage.removeItem('taskos_notion_page');
+  // Persist Supabase config (credentials only saved on Connect)
+  const su=document.getElementById('set-sb-url').value.trim().replace(/\/+$/,'');if(su)localStorage.setItem('taskos_sb_url',su);
+  const sa=document.getElementById('set-sb-anon').value.trim();if(sa)localStorage.setItem('taskos_sb_anon',sa);
+  const sem=document.getElementById('set-sb-email').value.trim();if(sem)localStorage.setItem('taskos_sb_email',sem);
   closeM('set-m');renderDash();
   toast('Settings saved!');
 }
 function getAboutMe(){return localStorage.getItem('taskos_about')||'';}
+
+// ── SUPABASE CLOUD SYNC (offline-first, optional) ──────────────
+// localStorage stays the instant offline cache; when connected, the full state
+// syncs to Supabase. Last-write-wins by S._updatedAt. Sync config lives in
+// localStorage (never inside the synced blob).
+const _SB={
+  get url(){return (localStorage.getItem('taskos_sb_url')||'').replace(/\/+$/,'');},
+  get anon(){return localStorage.getItem('taskos_sb_anon')||'';},
+  get email(){return localStorage.getItem('taskos_sb_email')||'';},
+  get access(){return localStorage.getItem('taskos_sb_access')||'';},
+  get refresh(){return localStorage.getItem('taskos_sb_refresh')||'';},
+  get uid(){return localStorage.getItem('taskos_sb_uid')||'';},
+  get exp(){return parseInt(localStorage.getItem('taskos_sb_exp')||'0')||0;},
+};
+let _sbBusy=false,_sbApplying=false,_sbTimer=null,_sbStatus='';
+function _sbEnabled(){return !!(_SB.url&&_SB.anon&&_SB.refresh&&_SB.uid);}
+function _sbSetStatus(s){_sbStatus=s;_sbRenderStatus();}
+function _sbRenderStatus(){
+  const el=document.getElementById('sb-status');if(!el)return;
+  if(!_SB.url||!_SB.anon){el.textContent='Not configured — offline (localStorage only).';el.style.color='var(--muted)';return;}
+  if(!_sbEnabled()){el.textContent='Configured — click Connect & Sync to sign in.';el.style.color='var(--muted)';return;}
+  el.textContent=_sbStatus||('Connected as '+_SB.email);
+  el.style.color=_sbStatus.startsWith('⚠')?'#ef4444':'#69db7c';
+}
+async function _sbAuth(grant,body){
+  const r=await fetch(`${_SB.url}/auth/v1/token?grant_type=${grant}`,{method:'POST',headers:{'Content-Type':'application/json','apikey':_SB.anon},body:JSON.stringify(body)});
+  if(!r.ok)throw new Error('auth '+r.status);
+  return r.json();
+}
+function _sbStoreSession(j){
+  if(j.access_token)localStorage.setItem('taskos_sb_access',j.access_token);
+  if(j.refresh_token)localStorage.setItem('taskos_sb_refresh',j.refresh_token);
+  localStorage.setItem('taskos_sb_exp',String(Date.now()+((j.expires_in||3600)*1000)));
+  if(j.user&&j.user.id)localStorage.setItem('taskos_sb_uid',j.user.id);
+}
+async function _sbToken(){
+  if(!_SB.refresh)throw new Error('not connected');
+  if(_SB.access&&Date.now()<_SB.exp-60000)return _SB.access;
+  const j=await _sbAuth('refresh_token',{refresh_token:_SB.refresh});
+  _sbStoreSession(j);return j.access_token;
+}
+async function sbConnect(){
+  const url=(document.getElementById('set-sb-url').value||'').trim().replace(/\/+$/,'');
+  const anon=(document.getElementById('set-sb-anon').value||'').trim();
+  const email=(document.getElementById('set-sb-email').value||'').trim();
+  const pass=(document.getElementById('set-sb-pass').value||'').trim();
+  if(!url||!anon||!email||!pass)return toast('Fill URL, anon key, email and password');
+  localStorage.setItem('taskos_sb_url',url);localStorage.setItem('taskos_sb_anon',anon);localStorage.setItem('taskos_sb_email',email);
+  _sbSetStatus('Connecting…');
+  try{
+    let j;
+    try{ j=await _sbAuth('password',{email,password:pass}); }
+    catch(e){
+      const r=await fetch(`${_SB.url}/auth/v1/signup`,{method:'POST',headers:{'Content-Type':'application/json','apikey':_SB.anon},body:JSON.stringify({email,password:pass})});
+      if(!r.ok)throw new Error('Sign-in/up failed ('+r.status+')');
+      j=await r.json();
+      if(!j.access_token){_sbSetStatus('⚠ Confirm your email, then Connect again');toast('Account created — confirm via email, then Connect again.');return;}
+    }
+    _sbStoreSession(j);
+    document.getElementById('set-sb-pass').value='';
+    _sbSetStatus('Connected — syncing…');
+    await sbSyncNow(true);
+    _sbSetStatus('Connected as '+email);
+    toast('☁️ Cloud sync connected');
+  }catch(e){_sbSetStatus('⚠ '+e.message);toast('⚠ Sync failed: '+e.message);}
+}
+function sbDisconnect(){
+  ['access','refresh','exp','uid'].forEach(k=>localStorage.removeItem('taskos_sb_'+k));
+  _sbSetStatus('Disconnected');toast('Cloud sync disconnected (local data kept)');
+}
+async function sbPull(){
+  const tok=await _sbToken();
+  const r=await fetch(`${_SB.url}/rest/v1/app_state?user_id=eq.${_SB.uid}&select=data,updated_at`,{headers:{'apikey':_SB.anon,'Authorization':'Bearer '+tok}});
+  if(!r.ok)throw new Error('pull '+r.status);
+  const rows=await r.json();
+  if(!rows.length)return null;
+  const d=rows[0].data||{};
+  return {data:d,ms:d._updatedAt||Date.parse(rows[0].updated_at)||0};
+}
+async function sbPush(){
+  const tok=await _sbToken();
+  if(!S._updatedAt)S._updatedAt=Date.now();
+  const body=[{user_id:_SB.uid,data:S,updated_at:new Date().toISOString()}];
+  const r=await fetch(`${_SB.url}/rest/v1/app_state`,{method:'POST',headers:{'apikey':_SB.anon,'Authorization':'Bearer '+tok,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(body)});
+  if(!r.ok)throw new Error('push '+r.status);
+}
+async function sbSyncNow(force){
+  if(!_sbEnabled()){if(force)toast('Connect cloud sync first');return;}
+  if(_sbBusy)return;_sbBusy=true;
+  try{
+    const remote=await sbPull();
+    const localMs=S._updatedAt||0;
+    if(remote&&remote.data&&remote.ms>localMs){
+      _sbApplying=true;
+      S={...S,...remote.data};
+      S._updatedAt=remote.ms;
+      save();
+      _sbApplying=false;
+      try{refresh();}catch(e){}
+      _sbSetStatus('Synced ⬇ '+new Date().toLocaleTimeString());
+    } else {
+      await sbPush();
+      _sbSetStatus('Synced ⬆ '+new Date().toLocaleTimeString());
+    }
+  }catch(e){_sbSetStatus('⚠ '+e.message);}
+  finally{_sbBusy=false;}
+}
+function _sbScheduleSync(){
+  if(!_sbEnabled()||_sbApplying)return;
+  clearTimeout(_sbTimer);
+  _sbTimer=setTimeout(()=>{
+    if(!_sbEnabled())return;
+    sbPush().then(()=>_sbSetStatus('Synced ⬆ '+new Date().toLocaleTimeString())).catch(e=>_sbSetStatus('⚠ '+e.message));
+  },2500);
+}
+// Auto-snapshot: capture a daily Givelink history point so the Pace Engine
+// always has trend data without manual snapshots.
+function _autoSnapshot(){
+  try{
+    const today=new Date().toISOString().slice(0,10);
+    if(localStorage.getItem('taskos_autosnap')===today)return;
+    const m=S.givelinkMetrics||{};
+    const hasData=(m.nonprofits||m.pipeline||m.arr||m.users||m.mrr);
+    if(hasData){
+      if(!S.givelinkHistory)S.givelinkHistory=[];
+      if(!S.givelinkHistory.some(h=>h.date===today)){
+        S.givelinkHistory.push({date:today,nonprofits:m.nonprofits||0,pipeline:m.pipeline||0,arr:m.arr||0,users:m.users||0,mrr:m.mrr||0});
+        save();
+      }
+    }
+    localStorage.setItem('taskos_autosnap',today);
+  }catch(e){}
+}
 
 // ── KEYBOARD ──────────────────────────────────────────────────
 document.addEventListener('keydown',e=>{
@@ -8507,7 +8665,8 @@ function toggleSB(){
 }
 
 // ── INIT ──────────────────────────────────────────────────────
-load();seed();seedGoals();resetRecurring();_genDailyQuests();_maybeShowWeeklyWrapped();_initSidebarSwipe();
+load();seed();seedGoals();resetRecurring();_genDailyQuests();_maybeShowWeeklyWrapped();_initSidebarSwipe();_autoSnapshot();
+setTimeout(()=>{if(_sbEnabled())sbSyncNow();},900);
 try{const _nc=JSON.parse(localStorage.getItem('taskos_nav_collapsed')||'{}');document.querySelectorAll('.ns-group').forEach(g=>{const collapsed=_nc[g.dataset.ns]??g.classList.contains('collapsed');if(collapsed)g.classList.add('collapsed');else g.classList.remove('collapsed');const arr=g.querySelector('.ns-arrow');if(arr)arr.textContent=collapsed?'▸':'▾';});}catch(e){}
 document.title='Task OS — '+profileName;
 const _lastP=localStorage.getItem('taskos_lastview');

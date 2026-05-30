@@ -253,7 +253,7 @@ kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;
   /* Larger tap targets for checkboxes */
   .ck{width:28px;height:28px;min-width:28px;border-radius:6px;}
   /* Prevent iOS auto-zoom on input focus (requires font-size >= 16px) */
-  .fc,.capi,.sb,.cmdk-i{font-size:16px!important;}
+  input,textarea,select,.fc,.capi,.sb,.cmdk-i{font-size:16px!important;}
   /* Life OS 2-column grid on mobile */
   .los-grid{grid-template-columns:1fr 1fr;}
   /* Dashboard header: horizontal scroll instead of wrapping */
@@ -361,6 +361,11 @@ body.focus-locked #focus-lock-exit{display:flex!important;}
 .toast-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:9px 18px;font-size:13px;font-weight:500;box-shadow:0 4px 20px rgba(0,0,0,.4);opacity:0;transform:translateY(10px);transition:opacity .22s,transform .22s;pointer-events:auto;max-width:100%;text-align:center;}
 .toast-item.show{opacity:1;transform:translateY(0);}
 @media(max-width:768px){#toast-stack{bottom:calc(78px + env(safe-area-inset-bottom,0px));}}
+/* ── SWIPE-DISMISS PROGRESS ──────────────────────────────────── */
+.md.will-close::before{background:var(--accent)!important;transition:background .15s;}
+/* ── DESTRUCTIVE CONFIRMATION ────────────────────────────────── */
+.mo-danger .md{border-top:3px solid #f85149;}
+.mo-danger .btn.bp{background:#f85149!important;}
 /* ── COMPLETION PULSE ────────────────────────────────────────── */
 @keyframes done-pulse{0%{background:rgba(105,219,124,.22);}100%{background:transparent;}}
 .tc.just-done{animation:done-pulse .5s ease;}
@@ -1301,7 +1306,7 @@ Read 50 books this year"></textarea>
 </div>
 
 <!-- TASK MODAL -->
-<div class="mo hidden" id="tm">
+<div class="mo hidden" id="tm" role="dialog" aria-modal="true" aria-labelledby="tm-title">
   <div class="md">
     <div class="mh"><h3 id="tm-title">Add Task</h3><button class="mc" aria-label="Close" onclick="closeM('tm')">×</button></div>
     <div class="fg"><label>Task Title *</label><input class="fc" id="t-title" placeholder="What needs to be done?"></div>
@@ -2628,6 +2633,19 @@ function inboxHTML(t){
 }
 
 // ── BUCKETS ───────────────────────────────────────────────────
+const _EMPTY_STATES={
+  inbox:    ['📥','Inbox zero!','Capture anything — it lands here first.'],
+  'this-week':['📅','Week is open','Drag tasks here or reschedule from inbox.'],
+  'this-month':['🗓️','Month is clear','Start planning what matters this month.'],
+  backlog:  ['📦','Backlog empty','Everything is either active or someday.'],
+  someday:  ['🌅','Dream big','No-deadline ideas live here.'],
+  today:    ['✅','All clear today','Enjoy the space — or plan ahead.'],
+};
+function _emptyState(bucket){
+  const [icon,h,sub]=_EMPTY_STATES[bucket]||['📋','Nothing here','Add a task to get started.'];
+  return`<div style="text-align:center;padding:32px 16px 24px;color:var(--muted);"><div style="font-size:36px;margin-bottom:10px;">${icon}</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:5px;">${h}</div><div style="font-size:12px;line-height:1.5;">${sub}</div></div>`;
+}
+
 function renderBuckets(){
   // Auto-nudge someday audit once a month
   const thirtyAgo=new Date();thirtyAgo.setDate(thirtyAgo.getDate()-30);
@@ -2646,17 +2664,26 @@ function renderBuckets(){
         <span class="bcnt">${tasks.length}${b.max?'/'+b.max:''}</span>
       </div>
       ${b.max?`<div class="pb"><div class="pf" style="width:${pct}%;background:${BCOLORS[bid]}"></div></div>`:''}
-      ${tasks.length?tasks.map(t=>`<div class="tc fi ${t.status==='done'?'done':''} ${t.isT3&&t.status!=='done'?'top3':''}" draggable="true" ondragstart="window._dragId='${t.id}'" onclick="openEdit('${t.id}')">
+      ${tasks.length?tasks.map(t=>`<div class="tc fi ${t.status==='done'?'done':''} ${t.isT3&&t.status!=='done'?'top3':''}" data-swipe-id="${t.id}" draggable="true" ondragstart="_onDragStart(event,'${t.id}')" onclick="openEdit('${t.id}')">
         <div class="ck ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${t.status==='done'?'<span style="color:#fff;font-size:10px;">✓</span>':''}</div>
         <div class="tb">
           <div class="tt">${t.title}</div>
           <div class="tm">${catB(t.category)}${eB(t)}${t.timeBlock?`<span class="tag">⏱ ${ft(t.timeBlock)}</span>`:''}${t.recurring?'<span style="font-size:11px;">🔄</span>':''}</div>
         </div>
         ${bid==='this-week'&&!t.isT3&&t.status!=='done'?`<button class="btn bg sm" onclick="event.stopPropagation();addT3('${t.id}')" title="Top 3">⭐</button>`:''}
-      </div>`).join(''):'<div class="empty" style="padding:16px 0;">Empty</div>'}
+      </div>`).join(''):_emptyState(bid)}
       <button class="btn bg sm" style="width:100%;margin-top:7px;" onclick="openAdd('${bid}')">+ Add</button>
     </div>`;
   }).join('');
+}
+function _onDragStart(e,id){
+  window._dragId=id;
+  const el=e.currentTarget;
+  const ghost=el.cloneNode(true);
+  Object.assign(ghost.style,{position:'fixed',top:'-1000px',left:'-1000px',width:el.offsetWidth+'px',opacity:'0.88',transform:'rotate(2deg) scale(1.03)',borderRadius:'12px',border:'1.5px solid var(--accent)',pointerEvents:'none',boxShadow:'0 8px 24px rgba(0,0,0,.35)'});
+  document.body.appendChild(ghost);
+  e.dataTransfer.setDragImage(ghost,20,20);
+  requestAnimationFrame(()=>ghost.remove());
 }
 function dropTask(e,bid){e.currentTarget.classList.remove('drag-over');const id=window._dragId;if(!id)return;window._dragId=null;mvB(id,bid);}
 
@@ -3042,9 +3069,13 @@ let _undoTask=null,_undoTimer=null;
 function delTask(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
   _undoTask={...t};
-  S.tasks=S.tasks.filter(x=>x.id!==id);
-  save();refresh();updIBadge();
-  toast(`🗑 "<strong>${t.title.slice(0,30)}</strong>" deleted — <span style="cursor:pointer;font-weight:700;color:var(--accent);" onclick="_undoDelete()">Undo</span>`,4500);
+  const cardEl=document.querySelector(`[data-swipe-id="${id}"]`)||document.getElementById('itc-'+id);
+  if(cardEl){Object.assign(cardEl.style,{transition:'opacity .18s,transform .18s',opacity:'0',transform:'scale(.95)'});}
+  setTimeout(()=>{
+    S.tasks=S.tasks.filter(x=>x.id!==id);
+    save();refresh();updIBadge();
+    toast(`🗑 "<strong>${t.title.slice(0,30)}</strong>" deleted — <span style="cursor:pointer;font-weight:700;color:var(--accent);" onclick="_undoDelete()">Undo</span>`,4500);
+  },cardEl?180:0);
 }
 function _undoDelete(){
   if(!_undoTask)return;
@@ -3141,7 +3172,8 @@ function _applyReschedule(dueDate){
 function _undoReschedule(){if(!_rsPrev)return;const t=S.tasks.find(x=>x.id===_rsPrev.id);if(t){t.bucket=_rsPrev.bucket;t.dueDate=_rsPrev.dueDate;save();refresh();_haptic(10);}_rsPrev=null;}
 
 // ── CELEBRATION ANIMATION ──────────────────────────────────────
-function _haptic(pattern=12){try{if(navigator.vibrate&&!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches))navigator.vibrate(pattern);}catch(e){}}
+const _HX={tap:[8],done:[12,60,12],error:[20,40,20,40,20],swipe:[15],longpress:[25],nav:[5],warn:[15,30,15]};
+function _haptic(pattern=12){try{if(navigator.vibrate&&!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches))navigator.vibrate(typeof pattern==='string'?(_HX[pattern]||[12]):pattern);}catch(e){}}
 function _fireConfetti(depth){
   if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;
   const canvas=document.getElementById('confetti-canvas');
@@ -7728,12 +7760,15 @@ function _initSheetDismiss(){
   },{passive:true});
   document.addEventListener('touchmove',e=>{
     if(!active||!md)return;drag=e.touches[0].clientY-sy;
-    if(drag>0&&md.scrollTop<=0){md.style.transition='none';md.style.transform=`translateY(${drag}px)`;}
-    else if(drag<0){active=false;md.style.transform='';md.style.transition='';}
+    if(drag>0&&md.scrollTop<=0){
+      md.style.transition='none';md.style.transform=`translateY(${drag}px)`;
+      md.style.opacity=String(1-Math.min(1,drag/300)*0.4);
+      md.classList.toggle('will-close',drag>88);
+    }else if(drag<0){active=false;md.style.transform='';md.style.transition='';md.style.opacity='';}
   },{passive:true});
   document.addEventListener('touchend',()=>{
     if(!active||!md){return;}
-    md.style.transition='';
+    md.style.transition='';md.style.opacity='';md.classList.remove('will-close');
     if(drag>120){const id=mo.id;md.style.transform='';if(id&&typeof closeM==='function')closeM(id);else{mo.classList.add('hidden');document.body.classList.remove('modal-open');}}
     else md.style.transform='';
     active=false;md=null;mo=null;drag=0;

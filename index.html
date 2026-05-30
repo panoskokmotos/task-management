@@ -703,6 +703,8 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
         <div id="daily-picks-list"></div>
         <div id="daily-picks-ai-result" style="margin-top:10px;font-size:12px;"></div>
       </div>
+      <!-- GIVELINK TODAY -->
+      <div id="givelink-today-card"></div>
       <!-- DAILY FLOW CARD -->
       <div id="daily-flow-card"></div>
       <!-- TOP 3 -->
@@ -724,6 +726,8 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
     </div>
     <!-- RIGHT COLUMN: insight-focused -->
     <div class="dash-col-side">
+      <!-- UPCOMING / CALENDAR GLANCE -->
+      <div id="upcoming-card"></div>
       <!-- BOOK INSIGHT CARD -->
       <div id="book-insight-card" style="display:none;"></div>
       <!-- LIFE SCORE WIDGET -->
@@ -2424,6 +2428,9 @@ function refresh(){const a=document.querySelector('.view.active');if(a)renderVie
 
 // ── DASHBOARD ─────────────────────────────────────────────────
 function renderDash(){
+  // One-time: default to the calm "cockpit" (compact) layout per user feedback.
+  // Users can always expand with the 🗜 button; this never re-applies once toggled.
+  if(!S._cockpitV1){S._cockpitV1=true;S.dashCompact=true;save();}
   const _compact=!!S.dashCompact;
   document.getElementById('dash-compact-btn')?.setAttribute('title',_compact?'Expand dashboard':'Compact mode');
   // Auto-recalc Life Score once per day
@@ -2457,6 +2464,8 @@ function renderDash(){
   if(window._dashAnim){window._dashAnim=false;setTimeout(()=>{document.querySelectorAll('#stats .sn').forEach(el=>{const txt=(el.textContent||'').trim();if(!/^\d[\d,]*$/.test(txt))return;const to=parseInt(txt.replace(/,/g,''))||0;el.textContent='0';_countUp(el,to,650);});},20);}
   renderTop3();
   renderDailyPicks();
+  _renderGivelinkToday();
+  _renderUpcoming();
   // Review draft resume banner
   try{const _wd=JSON.parse(localStorage.getItem('taskos_wiz_draft')||'null');const _rdEl=document.getElementById('review-draft-banner');if(_rdEl){if(_wd&&_wd.date===new Date().toISOString().slice(0,10)){const _wdStep=(_wd.step||0)+1;_rdEl.innerHTML=`<div style="background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.25);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:13px;"><span>📅 Weekly Review in progress — Step ${_wdStep}/6</span><button class="btn bp sm" onclick="nav('review')">Resume →</button></div>`;_rdEl.style.display='';}else{_rdEl.innerHTML='';_rdEl.style.display='none';}}}catch(e){}
   if(!_compact)_renderBookInsight();
@@ -5740,6 +5749,17 @@ const WHEEL_AREAS=[
   {id:'environment',label:'Environment',emoji:'🏠'},
   {id:'purpose',label:'Purpose',emoji:'🎯'},
 ];
+// Curated, always-available improvement suggestions per area (no API key needed)
+const WHEEL_TIPS={
+  career:['Block 2 focused hours on your #1 career goal','Ask someone you respect for honest feedback','Define what "winning" looks like this quarter'],
+  finance:['Track every expense for 7 days','Automate one recurring savings transfer','Cancel one subscription you don\'t use'],
+  health:['Walk 30 minutes daily this week','Set a fixed sleep and wake time','Prep healthy meals for the next 3 days'],
+  relationships:['Reach out to one person you miss','Schedule a phone-free dinner','Send a genuine thank-you message today'],
+  growth:['Read 10 pages a day','Start a short course on a weak skill','Teach someone what you learned this week'],
+  fun:['Schedule one thing purely for joy','Try something new this weekend','Protect one screen-free evening'],
+  environment:['Declutter one space for 15 minutes','Fix one small annoyance at home','Add one thing that brings you calm'],
+  purpose:['Write one paragraph on why your work matters','Tie one daily task to your mission','Revisit your 1-year vision'],
+};
 
 function openWheelModal(){
   const last=(S.wheelAssessments||[]).slice(-1)[0];
@@ -5836,18 +5856,44 @@ function renderWheel(){
         return`<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:2px 0;"><span>${a.emoji} ${a.label}</span><span style="display:flex;align-items:center;gap:6px;"><strong>${cur}/10</strong>${delta}</span></div>`;
       }).join('');
       const lowestArea=WHEEL_AREAS.reduce((min,a)=>latest.scores[a.id]<latest.scores[min.id]?a:min);
+      // Average-over-time trend across all assessments in this filter (oldest → newest)
+      const trendVals=all.slice().reverse().map(e=>Object.values(e.scores).reduce((x,y)=>x+y,0)/8);
+      const latestAvg=trendVals[trendVals.length-1].toFixed(1);
+      const trendHTML=trendVals.length>1?`<div style="margin-top:12px;display:flex;align-items:center;gap:10px;">
+        <div style="font-size:11px;color:var(--muted);">📈 Avg trend<br><strong style="color:var(--text);font-size:14px;">${latestAvg}/10</strong></div>
+        ${_sparklineSVG(trendVals,120,30)}
+        <span style="font-size:10px;color:var(--muted);">${trendVals.length} weeks</span>
+      </div>`:'';
       chartEl.innerHTML=`<div>${_renderWheelSVG(latest.scores)}</div>
         <div style="flex:1;min-width:180px;">
           <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${latest.cadence} · ${d}${prev?` <span style="color:var(--muted);">(vs prev)</span>`:''}</div>
           ${scoreList}
           <div style="margin-top:10px;padding:8px 10px;background:rgba(255,107,107,.1);border-radius:8px;font-size:12px;border-left:3px solid #ff6b6b;">🎯 Focus: ${lowestArea.emoji} <strong>${lowestArea.label}</strong> needs most attention</div>
+          ${trendHTML}
         </div>`;
     }
   }
   const insightEl=document.getElementById('wheel-insight-area');
   if(insightEl){
-    const withInsight=all.find(e=>e.aiInsight);
-    insightEl.innerHTML=withInsight?`<div style="background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.2);border-radius:12px;padding:14px 16px;font-size:13px;line-height:1.6;"><span style="font-weight:700;font-size:11px;color:var(--accent);text-transform:uppercase;display:block;margin-bottom:6px;">🤖 AI Insight</span>${esc(withInsight.aiInsight)}</div>`:'';
+    if(!all.length){insightEl.innerHTML='';}
+    else{
+      const latest=all[0];
+      // Lowest 2 areas → curated, always-available suggestions
+      const ranked=WHEEL_AREAS.slice().sort((a,b)=>latest.scores[a.id]-latest.scores[b.id]).slice(0,2);
+      const sugg=ranked.map(a=>`<div style="margin-bottom:10px;">
+        <div style="font-size:12px;font-weight:700;margin-bottom:4px;">${a.emoji} ${a.label} <span style="color:var(--muted);font-weight:500;">(${latest.scores[a.id]}/10)</span></div>
+        ${(WHEEL_TIPS[a.id]||[]).map(tip=>`<div style="font-size:12px;color:var(--muted);padding:2px 0;display:flex;gap:6px;"><span style="color:var(--accent);">→</span><span>${tip}</span></div>`).join('')}
+      </div>`).join('');
+      const withInsight=all.find(e=>e.aiInsight);
+      const aiBlock=withInsight?`<div style="background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.2);border-radius:12px;padding:14px 16px;font-size:13px;line-height:1.6;margin-top:12px;"><span style="font-weight:700;font-size:11px;color:var(--accent);text-transform:uppercase;display:block;margin-bottom:6px;">🤖 AI Insight</span>${esc(withInsight.aiInsight)}</div>`:'';
+      insightEl.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <span style="font-size:13px;font-weight:700;">💡 Suggestions to improve</span>
+          <button class="btn bg sm" onclick="_aiBtn(this,()=>aiWheelInsight('${latest.id}',${JSON.stringify(latest.scores).replace(/"/g,'&quot;')},'${latest.cadence}'))">🤖 AI Coach</button>
+        </div>
+        ${sugg}
+      </div>${aiBlock}`;
+    }
   }
   const histEl=document.getElementById('wheel-history-area');
   if(histEl){
@@ -9464,14 +9510,76 @@ function _renderGoalDigest(text,body){
   body.innerHTML=html;
 }
 
+// ── DASHBOARD: GIVELINK TODAY + UPCOMING (CALENDAR GLANCE) ────────
+function _renderGivelinkToday(){
+  const el=document.getElementById('givelink-today-card');if(!el)return;
+  const today=new Date().toISOString().slice(0,10);
+  const open=S.tasks.filter(t=>t.category==='givelink'&&t.status!=='done');
+  const doneToday=S.tasks.filter(t=>t.category==='givelink'&&t.status==='done'&&t.completedAt?.slice(0,10)===today).length;
+  const rows=open.slice(0,6).map(t=>`<div class="tc" style="margin-bottom:6px;" onclick="openEdit('${t.id}')">
+      <div class="ck ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')"></div>
+      <div class="tb"><div class="tt">${esc(t.title)}</div></div>
+    </div>`).join('');
+  el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(167,139,250,.08),var(--surface));border:1px solid rgba(167,139,250,.3);border-radius:12px;padding:14px 16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <span style="font-size:13px;font-weight:700;">🟣 Givelink Today</span>
+      <button class="sec-link" onclick="nav('givelink-dash')">Givelink OS <span class="arr">→</span></button>
+    </div>
+    <div style="display:flex;gap:6px;margin-bottom:10px;">
+      <input class="fc" id="gl-quick-input" placeholder="Add a Givelink task…" style="flex:1;font-size:13px;" onkeydown="if(event.key==='Enter')_addGivelinkTask()">
+      <button class="btn bp sm" onclick="_addGivelinkTask()">Add</button>
+    </div>
+    ${rows||'<div class="empty" style="padding:10px 0;">No open Givelink tasks. Add one above 🚀</div>'}
+    ${open.length>6?`<div style="font-size:11px;color:var(--muted);margin-top:6px;">+${open.length-6} more in Givelink OS</div>`:''}
+    ${doneToday?`<div style="font-size:11px;color:#69db7c;margin-top:8px;">✅ ${doneToday} Givelink task${doneToday>1?'s':''} done today</div>`:''}
+  </div>`;
+}
+function _addGivelinkTask(){
+  const inp=document.getElementById('gl-quick-input');if(!inp)return;
+  const title=inp.value.trim();if(!title)return;
+  S.tasks.push({id:uid(),title,notes:'',bucket:'this-week',category:'givelink',urgency:'high',importance:'high',energy:'high',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,createdAt:new Date().toISOString(),completedAt:null});
+  save();inp.value='';_renderGivelinkToday();updIBadge();toast('🟣 Givelink task added');
+}
+function _dayChip(d,today){
+  const diff=Math.round((d-today)/864e5);
+  if(diff<0)return{label:'Overdue',color:'#ef4444'};
+  if(diff===0)return{label:'Today',color:'var(--accent)'};
+  if(diff===1)return{label:'Tomorrow',color:'#f59e0b'};
+  return{label:d.toLocaleDateString('en-US',{weekday:'short'}),color:'var(--muted)'};
+}
+function _renderUpcoming(){
+  const el=document.getElementById('upcoming-card');if(!el)return;
+  const today=new Date();today.setHours(0,0,0,0);
+  const horizon=new Date(today);horizon.setDate(horizon.getDate()+7);
+  const items=S.tasks.filter(t=>t.status!=='done'&&t.dueDate)
+    .map(t=>({t,d:new Date(t.dueDate+'T00:00:00')}))
+    .filter(x=>!isNaN(x.d)&&x.d<horizon)
+    .sort((a,b)=>a.d-b.d);
+  const rows=items.slice(0,7).map(({t,d})=>{
+    const c=_dayChip(d,today);
+    return`<div onclick="openEdit('${t.id}')" style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);cursor:pointer;">
+      <span style="flex-shrink:0;font-size:10px;font-weight:700;color:${c.color};min-width:62px;">${c.label}</span>
+      <span style="flex:1;min-width:0;font-size:12px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${esc(t.title)}</span>
+    </div>`;
+  }).join('');
+  el.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <span style="font-size:13px;font-weight:700;">📆 Upcoming</span>
+      <button class="sec-link" onclick="nav('calendar')">Calendar <span class="arr">→</span></button>
+    </div>
+    ${rows?`<div style="margin-bottom:-7px;">${rows}</div>`:'<div style="font-size:12px;color:var(--muted);padding:6px 0;">Nothing scheduled in the next 7 days. Add a due date to a task and it shows here.</div>'}
+  </div>`;
+}
+
 // ── EOD RITUAL ────────────────────────────────────────────────────
-let _eodStep=0;
+let _eodStep=0,_eodWin='',_eodMit='',_eodEnergy=null,_eodWeekPick=[],_eodCommitted=false;
 const EOD_STEPS=['🏆 Win','✅ Habits','🎯 MIT Tomorrow','⚡ Energy','🌙 Done'];
 function renderEod(){
-  // Don't reset step if mid-flow (step > 0 and < done)
-  if(_eodStep<=0||_eodStep>=EOD_STEPS.length)_eodStep=0;
+  // Start a fresh ritual when (re)entering at the start or after completion
+  if(_eodStep<=0||_eodStep>=EOD_STEPS.length-1){_eodStep=0;_eodWin='';_eodMit='';_eodEnergy=null;_eodCommitted=false;}
   _renderEodStep();
 }
+function _eodSetMit(i){const inp=document.getElementById('eod-mit');if(inp&&_eodWeekPick[i]!=null)inp.value=_eodWeekPick[i];}
 function _renderEodStep(){
   const dots=document.getElementById('eod-prog-dots');
   const lbl=document.getElementById('eod-step-label');
@@ -9484,8 +9592,8 @@ function _renderEodStep(){
   const done=S.tasks.filter(t=>t.completedAt?.slice(0,10)===today);
   if(_eodStep===0){
     body.innerHTML=`<h3 style="margin-bottom:10px;">🏆 Log today's biggest win</h3>
-      <textarea class="fc" id="eod-win" style="min-height:72px;" placeholder="What moved the needle today?"></textarea>
-      ${done.length?`<div style="font-size:12px;color:var(--muted);margin-top:8px;">Completed today: ${done.map(t=>t.title).join(' · ')}</div>`:''}`;
+      <textarea class="fc" id="eod-win" style="min-height:72px;" placeholder="What moved the needle today?">${esc(_eodWin||'')}</textarea>
+      ${done.length?`<div style="font-size:12px;color:var(--muted);margin-top:8px;">Completed today: ${done.map(t=>esc(t.title)).join(' · ')}</div>`:''}`;
     navEl.innerHTML=`<span></span><button class="btn bp" onclick="_eodNext()">Next →</button>`;
   } else if(_eodStep===1){
     const habits=S.habits||[];const log=S.habitLogs?.[today]||{};
@@ -9495,14 +9603,15 @@ function _renderEodStep(){
     navEl.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="_eodNext()">Next →</button>`;
   } else if(_eodStep===2){
     const week=active().filter(t=>t.bucket==='this-week').slice(0,5);
+    _eodWeekPick=week.map(t=>t.title);
     body.innerHTML=`<h3 style="margin-bottom:10px;">🎯 Most Important Task for tomorrow</h3>
-      <input class="fc" id="eod-mit" placeholder="The one thing that matters most tomorrow..." style="margin-bottom:10px;">
-      ${week.length?`<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Quick pick:</div>${week.map(t=>`<div onclick="document.getElementById('eod-mit').value='${t.title.replace(/'/g,"\'")}';" style="cursor:pointer;font-size:12px;padding:5px 8px;border-radius:5px;border:1px solid var(--border);margin-bottom:4px;transition:background .1s;" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">${t.title}</div>`).join('')}`:''}`;
+      <input class="fc" id="eod-mit" placeholder="The one thing that matters most tomorrow..." value="${esc(_eodMit||'')}" style="margin-bottom:10px;">
+      ${week.length?`<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">Quick pick:</div>${week.map((t,i)=>`<div onclick="_eodSetMit(${i})" style="cursor:pointer;font-size:12px;padding:5px 8px;border-radius:5px;border:1px solid var(--border);margin-bottom:4px;transition:background .1s;" onmouseenter="this.style.background='var(--surface2)'" onmouseleave="this.style.background=''">${esc(t.title)}</div>`).join('')}`:''}`;
     navEl.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="_eodNext()">Next →</button>`;
   } else if(_eodStep===3){
     body.innerHTML=`<h3 style="margin-bottom:10px;">⚡ Energy level today?</h3>
       <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        ${['1 — Burned out','2 — Low','3 — Average','4 — Good','5 — Peak'].map((l,i)=>`<button class="btn bg" id="eod-e${i+1}" onclick="_eodSelEnergy(${i+1})" style="flex:1;">${l}</button>`).join('')}
+        ${['1 — Burned out','2 — Low','3 — Average','4 — Good','5 — Peak'].map((l,i)=>`<button class="btn bg" id="eod-e${i+1}" onclick="_eodSelEnergy(${i+1})" style="flex:1;border-color:${_eodEnergy===i+1?'var(--accent)':'var(--border)'};">${l}</button>`).join('')}
       </div>`;
     navEl.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="_eodNext()">Finish →</button>`;
   } else if(_eodStep===4){
@@ -9514,26 +9623,36 @@ function _renderEodStep(){
     navEl.innerHTML=`<button class="btn bg" onclick="_eodStep--;_renderEodStep()">← Back</button><button class="btn bp" onclick="nav('dashboard')">Go to Dashboard</button>`;
   }
 }
-let _eodEnergy=null;
 function _eodSelEnergy(n){
   _eodEnergy=n;
   for(let i=1;i<=5;i++){const b=document.getElementById('eod-e'+i);if(b)b.style.borderColor=i===n?'var(--accent)':'var(--border)';}
 }
 function _eodNext(){
-  if(_eodStep===0){
-    const win=document.getElementById('eod-win')?.value.trim();
-    if(win){if(!S.wins)S.wins=[];S.wins.push({id:uid(),text:win,date:new Date().toISOString().slice(0,10)});save();toast('🏆 Win logged!');}
-  }
-  if(_eodStep===2){
-    const mit=document.getElementById('eod-mit')?.value.trim();
-    if(mit){
-      // Prepend MIT to this-week bucket
-      S.tasks.unshift({id:uid(),title:'🎯 '+mit,notes:'',bucket:'this-week',category:'other',urgency:'high',importance:'high',energy:'high',status:'todo',isT3:false,t3s:null,createdAt:new Date().toISOString(),completedAt:null,goalId:null});
-      save();toast('MIT added to This Week!');
-    }
-  }
+  // Collect inputs as the user moves forward (persisted once, on finish)
+  if(_eodStep===0){_eodWin=(document.getElementById('eod-win')?.value||'').trim();}
+  if(_eodStep===2){_eodMit=(document.getElementById('eod-mit')?.value||'').trim();}
+  if(_eodStep===3){_eodComplete();}
   _eodStep=Math.min(_eodStep+1,EOD_STEPS.length-1);
   _renderEodStep();
+}
+function _eodComplete(){
+  if(_eodCommitted)return; // avoid duplicate win/MIT if user re-finishes
+  _eodCommitted=true;
+  const today=new Date().toISOString().slice(0,10);
+  if(_eodWin){if(!S.wins)S.wins=[];S.wins.push({id:uid(),text:_eodWin,date:today});}
+  if(_eodMit){S.tasks.unshift({id:uid(),title:'🎯 '+_eodMit,notes:'',bucket:'this-week',category:'other',urgency:'high',importance:'high',energy:'high',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',createdAt:new Date().toISOString(),completedAt:null,goalId:null});}
+  // Persist the EOD log (one per day — replace if re-run)
+  if(!S.eodLogs)S.eodLogs=[];
+  S.eodLogs=S.eodLogs.filter(e=>e.date!==today);
+  S.eodLogs.push({date:today,energy:_eodEnergy,win:_eodWin,mit:_eodMit,ts:Date.now()});
+  // Record completion so the dashboard Daily Protocol marks "Log End-of-Day" done
+  if(!S.contextLog)S.contextLog=[];
+  if(!S.contextLog.find(e=>e.date===today&&e.cat==='eod'))S.contextLog.push({date:today,cat:'eod',ts:Date.now()});
+  // Persist energy to the energy log (one per day)
+  if(_eodEnergy){if(!S.energyLog)S.energyLog=[];S.energyLog=S.energyLog.filter(e=>e.date!==today);S.energyLog.push({date:today,level:_eodEnergy});}
+  save();updIBadge();
+  try{awardXP(15,'eod');}catch(e){}
+  toast('🌙 End-of-Day logged! +15 XP');
 }
 
 // ── DECISIONS ─────────────────────────────────────────────────────

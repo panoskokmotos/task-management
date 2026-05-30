@@ -82,8 +82,16 @@ hr{border:none;border-top:1px solid var(--border);margin:18px 0;}
 .card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;}
 /* STATS */
 .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
-.sc{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:12px;text-align:center;}
-.sn{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.5px;}.sl{font-size:11px;color:var(--muted);margin-top:2px;}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 10px;text-align:center;cursor:pointer;transition:border-color .12s,background .12s,transform .1s;-webkit-tap-highlight-color:transparent;position:relative;}
+.sc:hover{border-color:var(--accent);background:var(--surface2);}
+.sc:active{transform:scale(.96);}
+.sn{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.5px;line-height:1.1;}
+.sl{font-size:11px;color:var(--muted);margin-top:3px;display:flex;align-items:center;justify-content:center;gap:3px;}
+/* Section-header navigation links (dashboard "→" jumps) */
+.sec-link{background:none;border:none;cursor:pointer;color:var(--accent);font-size:12px;font-weight:600;display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:7px;transition:gap .15s,background .12s;-webkit-tap-highlight-color:transparent;}
+.sec-link:hover{background:var(--accent-soft);gap:6px;}
+.sec-link .arr{transition:transform .15s;}
+.sec-link:hover .arr{transform:translateX(2px);}
 /* TASK CARD */
 .tc{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:11px 13px;margin-bottom:7px;cursor:pointer;transition:border-color .12s,background .12s;display:flex;align-items:flex-start;gap:9px;}
 .tc:hover{border-color:var(--accent);background:var(--surface2);}
@@ -701,7 +709,7 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
       <div>
         <div class="rb" style="margin-bottom:10px;">
           <h2 style="margin:0">🎯 Today's Top 3</h2>
-          <button class="btn bg sm" onclick="nav('buckets')">Pick from This Week →</button>
+          <button class="sec-link" onclick="nav('buckets')">Pick from This Week <span class="arr">→</span></button>
         </div>
         <div class="t3g" id="top3"></div>
       </div>
@@ -709,7 +717,7 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
       <div>
         <div class="rb" style="margin-bottom:10px;">
           <h2 style="margin:0">🔴 This Week</h2>
-          <button class="btn bg sm" onclick="nav('buckets')">View All →</button>
+          <button class="sec-link" onclick="nav('buckets')">View All <span class="arr">→</span></button>
         </div>
         <div id="dash-week"></div>
       </div>
@@ -2441,11 +2449,11 @@ function renderDash(){
   const bc=a.filter(t=>t.bucket==='backlog').length;
   const dc=S.tasks.filter(t=>t.status==='done'&&t.completedAt&&new Date(t.completedAt).toDateString()===now.toDateString()).length;
   document.getElementById('stats').innerHTML=`
-    <div class="sc"><div class="sn" style="color:var(--bi)">${ic}</div><div class="sl">Inbox</div></div>
-    <div class="sc"><div class="sn" style="color:var(--bw)">${wc}</div><div class="sl">This Week</div></div>
-    <div class="sc"><div class="sn" style="color:var(--bm)">${mc}</div><div class="sl">This Month</div></div>
-    <div class="sc"><div class="sn" style="color:var(--bb)">${bc}</div><div class="sl">Backlog</div></div>
-    <div class="sc"><div class="sn" style="color:var(--accent)">${dc}</div><div class="sl">Done Today</div></div>`;
+    <div class="sc" onclick="nav('capture')" title="Go to Inbox"><div class="sn" style="color:var(--bi)">${ic}</div><div class="sl"><span>📥</span>Inbox</div></div>
+    <div class="sc" onclick="nav('buckets')" title="Go to This Week"><div class="sn" style="color:var(--bw)">${wc}</div><div class="sl"><span>🔴</span>This Week</div></div>
+    <div class="sc" onclick="nav('buckets')" title="Go to This Month"><div class="sn" style="color:var(--bm)">${mc}</div><div class="sl"><span>🟠</span>This Month</div></div>
+    <div class="sc" onclick="nav('buckets')" title="Go to Backlog"><div class="sn" style="color:var(--bb)">${bc}</div><div class="sl"><span>🟢</span>Backlog</div></div>
+    <div class="sc" onclick="nav('all')" title="View completed tasks"><div class="sn" style="color:var(--accent)">${dc}</div><div class="sl"><span>✅</span>Done Today</div></div>`;
   if(window._dashAnim){window._dashAnim=false;setTimeout(()=>{document.querySelectorAll('#stats .sn').forEach(el=>{const txt=(el.textContent||'').trim();if(!/^\d[\d,]*$/.test(txt))return;const to=parseInt(txt.replace(/,/g,''))||0;el.textContent='0';_countUp(el,to,650);});},20);}
   renderTop3();
   renderDailyPicks();

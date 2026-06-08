@@ -10538,6 +10538,7 @@ function _showPastePreview(){
 }
 
 function _removePasteItem(i){
+  if(i<0||i>=_pasteItems.length)return;
   _pasteItems.splice(i,1);
   if(!_pasteItems.length){document.getElementById('paste-import-preview').style.display='none';document.getElementById('paste-confirm-btn').style.display='none';}
   else _showPastePreview();
@@ -10649,7 +10650,7 @@ function saveContent(){
   if(!S.contentPipeline)S.contentPipeline=[];
   const editId=document.getElementById('content-edit-id').value;
   const obj={id:editId||uid(),title,type:document.getElementById('content-type').value,platform:document.getElementById('content-platform').value,notes:document.getElementById('content-notes').value.trim(),date:document.getElementById('content-date').value,url:document.getElementById('content-url').value.trim(),createdAt:editId?undefined:new Date().toISOString()};
-  if(editId){const i=S.contentPipeline.findIndex(c=>c.id===editId);if(i>=0)S.contentPipeline[i]={...S.contentPipeline[i],...obj};}
+  if(editId){const i=S.contentPipeline.findIndex(c=>c.id===editId);if(i>=0)S.contentPipeline[i]={...S.contentPipeline[i],...obj,createdAt:S.contentPipeline[i].createdAt};}
   else S.contentPipeline.push(obj);
   const _cxp={published:20,scheduled:8,draft:5,idea:2};const _cxpVal=_cxp[obj.type]||5;
   save();closeM('content-modal');renderContent();toast(`Content saved! 📝 +${_cxpVal} XP`);awardXP(_cxpVal,'content');
@@ -10684,9 +10685,10 @@ function renderSkills(){
   if(!el)return;
   if(!S.skills.length){el.innerHTML='<div class="empty">No skills yet. Add your first skill!</div>';return;}
   el.innerHTML=S.skills.map(sk=>{
-    const level=Math.min(10,Math.floor(sk.hoursLogged/50)+1);
+    const hl=sk.hoursLogged||0;
+    const level=Math.min(10,Math.floor(hl/50)+1);
     const nextLevelH=(level)*50;
-    const pct=Math.min(100,Math.round((sk.hoursLogged%50)/50*100));
+    const pct=Math.min(100,Math.round((hl%50)/50*100));
     const catColors={technical:'#58a6ff',soft:'#fbbf24',domain:'#a78bfa'};
     return`<div class="los-card" style="margin-bottom:12px;">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;">
@@ -10695,12 +10697,12 @@ function renderSkills(){
             <div style="width:36px;height:36px;border-radius:50%;background:${sk.color||catColors[sk.category]||'#58a6ff'};display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;color:#000;">${level}</div>
             <div>
               <div style="font-weight:600;font-size:14px;">${esc(sk.name)}</div>
-              <div style="font-size:11px;color:var(--muted);">${sk.category} · ${sk.hoursLogged.toFixed(1)}h logged</div>
+              <div style="font-size:11px;color:var(--muted);">${sk.category} · ${hl.toFixed(1)}h logged</div>
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
             <div style="flex:1;height:8px;background:var(--surface);border-radius:4px;overflow:hidden;"><div style="height:100%;width:${pct}%;background:${sk.color||'#58a6ff'};border-radius:4px;transition:width .4s;"></div></div>
-            <div style="font-size:11px;color:var(--muted);">${sk.hoursLogged%50 < 50?`${(50-sk.hoursLogged%50).toFixed(0)}h to Lv${Math.min(10,level+1)}`:'Max Lv'}</div>
+            <div style="font-size:11px;color:var(--muted);">${hl%50 < 50?`${(50-hl%50).toFixed(0)}h to Lv${Math.min(10,level+1)}`:'Max Lv'}</div>
           </div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
             <span style="font-size:10px;padding:2px 8px;border-radius:8px;background:${sk.color||'#58a6ff'}22;color:${sk.color||'#58a6ff'};border:1px solid ${sk.color||'#58a6ff'}44;">${sk.category}</span>
@@ -10813,7 +10815,7 @@ function saveExperience(){
   if(!S.experiences)S.experiences=[];
   const editId=document.getElementById('exp-edit-id').value;
   const obj={id:editId||uid(),title,category:document.getElementById('exp-category').value,date:document.getElementById('exp-date').value,impact:parseInt(document.getElementById('exp-impact').value)||3,notes:document.getElementById('exp-notes').value.trim(),createdAt:editId?undefined:new Date().toISOString()};
-  if(editId){const i=S.experiences.findIndex(e=>e.id===editId);if(i>=0)S.experiences[i]={...S.experiences[i],...obj};}
+  if(editId){const i=S.experiences.findIndex(e=>e.id===editId);if(i>=0)S.experiences[i]={...S.experiences[i],...obj,createdAt:S.experiences[i].createdAt};}
   else S.experiences.push(obj);
   save();closeM('exp-modal');renderExperienceSection();renderWins();toast('Experience logged! 🌟 +10 XP');awardXP(10,'experience');
 }

@@ -3398,7 +3398,7 @@ function openM(id){
   const el=document.getElementById(id);
   if(el){el.classList.remove('hidden');document.body.classList.add('modal-open');setTimeout(()=>{const first=el.querySelector('input,textarea,select');if(first)first.focus();},50);}
 }
-document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',function(e){if(e.target===this){this.classList.add('hidden');editT=null;editG=null;}}));
+document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',function(e){if(e.target===this)closeM(this.id);}));
 
 // ── INBOX BADGE ───────────────────────────────────────────────
 function updIBadge(){const c=active().filter(t=>t.bucket==='inbox').length;const b=document.getElementById('ib');b.innerHTML=c?`<span class="ibadge">${c}</span>`:'';}
@@ -3641,7 +3641,7 @@ document.addEventListener('keydown',e=>{
     if(e.key==='r'||e.key==='R'){e.preventDefault();nav('review');return;}
     if(e.key==='f'||e.key==='F'){e.preventDefault();nav('focus');return;}
     if(e.key==='c'||e.key==='C'){e.preventDefault();nav('capture');return;}
-    if(e.key==='Escape'){const _openModal=document.querySelector('.modal-bg:not(.hidden)');if(_openModal){closeM(_openModal.id);return;}if(!document.getElementById('cmdk').classList.contains('hidden')){closeCmdK();return;}document.querySelectorAll('.mo:not(.hidden)').forEach(m=>{m.classList.add('hidden');editT=null;editG=null;});return;}
+    if(e.key==='Escape'){const _openModal=document.querySelector('.modal-bg:not(.hidden)');if(_openModal){closeM(_openModal.id);return;}if(!document.getElementById('cmdk').classList.contains('hidden')){closeCmdK();return;}document.querySelectorAll('.mo:not(.hidden)').forEach(m=>{m.classList.add('hidden');editT=null;editG=null;});document.body.classList.remove('modal-open');return;}
   }
   if(procMode){
     const inbox=active().filter(t=>t.bucket==='inbox');
@@ -5637,7 +5637,7 @@ function completeLadderWeek(week){
     S.discomfortLadder.completedWeeks.push(week);
     // Also log as discomfort entry
     const w=DISCOMFORT_LADDER.find(x=>x.week===week);
-    if(w)S.discomfortLogs.push({id:uid(),date:new Date().toISOString().slice(0,10),title:'[Ladder W'+week+'] '+w.title,intensity:w.hard,notes:w.desc});
+    if(w){if(!S.discomfortLogs)S.discomfortLogs=[];S.discomfortLogs.push({id:uid(),date:new Date().toISOString().slice(0,10),type:'physical',desc:'[Ladder W'+week+'] '+w.title,difficulty:w.hard,notes:w.desc,createdAt:new Date().toISOString()});}
     save();renderLadder();awardXP(50,'ladder');
     toast('🔥 Week '+week+' complete! '+(week<12?'Next: '+DISCOMFORT_LADDER[week].title:'LADDER COMPLETE! 🏆'));
   }
@@ -6822,7 +6822,7 @@ function _maybeShowWeeklyWrapped(){
       <div style="background:var(--surface2);border-radius:10px;padding:12px;"><div style="font-size:24px;font-weight:700;color:#fbbf24;">${wins.length}</div><div style="font-size:11px;color:var(--muted);">Wins Logged</div></div>
       <div style="background:var(--surface2);border-radius:10px;padding:12px;"><div style="font-size:24px;font-weight:700;color:#a78bfa;">${deepCount}</div><div style="font-size:11px;color:var(--muted);">Deep Tasks</div></div>
     </div>
-    ${wins.length?`<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">⭐ Best win: <em>${esc(wins[wins.length-1].title)}</em></div>`:''}
+    ${wins.length?`<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">⭐ Best win: <em>${esc(wins[wins.length-1].text||wins[wins.length-1].title)}</em></div>`:''}
     <button class="btn bg sm" onclick="(function(){const txt='Week of ${dateStr}: ${tasks.length} tasks, +${xpThisWeek} XP, ${wins.length} wins, ${deepCount} deep tasks';navigator.clipboard?.writeText(txt);toast('Copied to clipboard!');})()">📋 Copy Summary</button>
   </div>`;
   document.getElementById('weekly-wrapped-modal').classList.remove('hidden');
@@ -10146,7 +10146,7 @@ function renderWins(){
     return`<div class="win-card">
       <div class="win-icon">${emoji}</div>
       <div class="win-body">
-        <div class="win-title">${esc(w.title)}</div>
+        <div class="win-title">${esc(w.title||w.text)}</div>
         ${w.desc?`<div class="win-desc">${esc(w.desc)}</div>`:''}
         <div class="win-meta">
           <span class="badge" style="background:rgba(88,166,255,.12);color:${cat.color};">${cat.label}</span>

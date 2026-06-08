@@ -2295,6 +2295,7 @@ function showConfirm(msg,cb,{okLabel='Delete',icon='⚠️',danger=true}={}){
   btn.className=danger?'btn bd':'btn bp';
   _confirmCb=cb;
   document.getElementById('confirm-modal').classList.remove('hidden');
+  document.body.classList.add('modal-open');
 }
 
 // ── PROMPT MODAL (iOS-PWA-safe replacement for window.prompt) ──
@@ -2306,6 +2307,7 @@ function showPrompt(label,cb,{placeholder='',value='',okLabel='Save'}={}){
   document.getElementById('prompt-ok-btn').textContent=okLabel;
   _promptCb=cb;
   document.getElementById('prompt-modal').classList.remove('hidden');
+  document.body.classList.add('modal-open');
   setTimeout(()=>{inp.focus();inp.select();},60);
 }
 function _promptOK(){
@@ -2316,7 +2318,7 @@ function _promptOK(){
 }
 
 // ── AI LOADING SPINNERS ───────────────────────────────────────
-function _showAiLoader(title='AI thinking…'){const t=document.getElementById('ai-out-title');if(t&&title)t.textContent=title;const b=document.getElementById('ai-out-body');if(b)b.innerHTML='<div class="skel" style="width:92%"></div><div class="skel" style="width:100%"></div><div class="skel" style="width:76%"></div><div class="skel" style="width:88%"></div><div class="skel" style="width:62%"></div>';document.getElementById('ai-out-modal').classList.remove('hidden');}
+function _showAiLoader(title='AI thinking…'){const t=document.getElementById('ai-out-title');if(t&&title)t.textContent=title;const b=document.getElementById('ai-out-body');if(b)b.innerHTML='<div class="skel" style="width:92%"></div><div class="skel" style="width:100%"></div><div class="skel" style="width:76%"></div><div class="skel" style="width:88%"></div><div class="skel" style="width:62%"></div>';document.getElementById('ai-out-modal').classList.remove('hidden');document.body.classList.add('modal-open');}
 function _btnLoading(btn,loading){
   if(!btn)return;
   if(loading){btn._origText=btn.innerHTML;btn.innerHTML='<span class="spin-icon">⟳</span> Working...';btn.disabled=true;}
@@ -2326,6 +2328,7 @@ function _btnLoading(btn,loading){
 // ── GLOBAL SEARCH ─────────────────────────────────────────────
 function openGlobalSearch(){
   document.getElementById('gsearch-modal').classList.remove('hidden');
+  document.body.classList.add('modal-open');
   setTimeout(()=>document.getElementById('gsearch-input')?.focus(),50);
 }
 function _gsearch(){
@@ -3389,7 +3392,7 @@ function closeM(id){
   const el=document.getElementById(id);
   if(el){_releaseFocus(el);el.classList.add('hidden');}
   editT=null;editG=null;
-  document.body.classList.remove('modal-open');
+  if(!document.querySelector('.mo:not(.hidden)'))document.body.classList.remove('modal-open');
 }
 function openM(id){
   const el=document.getElementById(id);

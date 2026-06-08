@@ -231,6 +231,7 @@ select.fc option{background:var(--s2);}
   </div>
   <div class="ns">Sprint</div>
   <div class="ni active" onclick="nav('overview')">📊 Overview</div>
+  <div class="ni" onclick="nav('week')">📅 This Week</div>
   <div class="ns">Pillars</div>
   <div class="ni" onclick="nav('growth')"><span class="pip" style="background:var(--gr)"></span>US Growth <span class="bcnt2" id="cnt-growth"></span></div>
   <div class="ni" onclick="nav('nonprofits')"><span class="pip" style="background:var(--np)"></span>Nonprofits <span class="bcnt2" id="cnt-nonprofits"></span></div>
@@ -270,6 +271,9 @@ select.fc option{background:var(--s2);}
     <div id="burndown-chart"></div>
   </div>
 
+  <!-- WEEK PLAN VIEW -->
+  <div id="v-week" class="view"></div>
+
   <!-- CRM VIEW -->
   <div id="v-crm" class="view"></div>
 
@@ -305,7 +309,7 @@ select.fc option{background:var(--s2);}
 
 <nav class="bnav">
   <button class="bni active" data-v="overview" onclick="nav('overview')"><span class="bni-ic">📊</span>Overview</button>
-  <button class="bni" data-v="growth" onclick="nav('growth')"><span class="bni-ic">🚀</span>Growth</button>
+  <button class="bni" data-v="week" onclick="nav('week')"><span class="bni-ic">📅</span>Week</button>
   <button class="bni" data-v="product" onclick="nav('product')"><span class="bni-ic">🏗️</span>Product</button>
   <button class="bni" data-v="execution" onclick="nav('execution')"><span class="bni-ic">⚡</span>Execute</button>
   <button class="bni" data-v="backlog" onclick="nav('backlog')"><span class="bni-ic">📋</span>Backlog</button>
@@ -359,6 +363,7 @@ select.fc option{background:var(--s2);}
       <div class="fg"><label>Assignee</label><input class="fc" id="t-assignee" placeholder="e.g. Panos, Fanos..."></div>
       <div class="fg"><label>Sprint Goal?</label><select class="fc" id="t-isgoal"><option value="false">No — regular task</option><option value="true">Yes — sprint goal</option></select></div>
     </div>
+    <div class="fg"><label>Plan for Day (optional)</label><input class="fc" id="t-date" type="date"></div>
     <div class="mf">
       <button class="btn bd sm" id="del-btn" style="margin-right:auto;display:none;" onclick="delCur()">🗑 Delete</button>
       <button class="btn bg" onclick="closeM('tm')">Cancel</button>
@@ -475,6 +480,7 @@ function nav(v){
 }
 function renderView(v){
   if(v==='overview')renderOverview();
+  else if(v==='week')renderWeekPlan();
   else if(PILLARS[v])renderPillar(v);
   else if(v==='backlog')renderBacklog();
   else if(v==='past')renderPastSprints();
@@ -619,6 +625,66 @@ function renderBacklog(){
   document.getElementById('backlog-list').innerHTML=html;
 }
 
+// ── WEEK PLAN ─────────────────────────────────────────────────────
+function renderWeekPlan(){
+  const el=document.getElementById('v-week');if(!el)return;
+  const today=new Date();
+  const dow=today.getDay();
+  const mon=new Date(today);mon.setDate(today.getDate()-(dow===0?6:dow-1));
+  const days=[];
+  for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);days.push(d);}
+  const fmt=d=>d.toISOString().slice(0,10);
+  const fmtLabel=d=>d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  const sprintTasks=curTasks().filter(t=>t.status!=='done');
+  const scheduled=sprintTasks.filter(t=>t.plannedDate);
+  const unscheduled=sprintTasks.filter(t=>!t.plannedDate);
+  const P=k=>PILLARS[k]||{hex:'var(--muted)',e:'',l:k};
+  const taskCard=(t,showMoveBtn=false)=>{
+    const p=P(t.pillar);
+    return`<div class="tc2 fi ${t.status==='done'?'done-t':''}" onclick="openEdit('${t.id}')">
+      <div class="ck2 ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${t.status==='done'?'<span style="color:#fff;font-size:9px;">✓</span>':''}</div>
+      <div class="tb2">
+        <div class="tt2">${esc(t.title)}</div>
+        <div class="tm2">
+          <span style="font-size:10px;color:${p.hex};font-weight:600;">${p.e}</span>
+          <span class="badge ${STATUS[t.status]?.cls||'st-todo'}">${STATUS[t.status]?.l||'Todo'}</span>
+          <span class="badge ${PRI[t.priority]?.cls||'pri-med'}">${PRI[t.priority]?.l||'Med'}</span>
+        </div>
+      </div>
+    </div>`;
+  };
+  const dayCol=(d,isToday)=>{
+    const key=fmt(d);
+    const tasks=scheduled.filter(t=>t.plannedDate===key);
+    const doneC=tasks.filter(t=>t.status==='done').length;
+    return`<div style="background:var(--s2);border:1px solid ${isToday?'var(--accent)':'var(--border)'};border-radius:10px;padding:12px;min-width:0;">
+      <div style="font-size:11px;font-weight:700;color:${isToday?'var(--accent)':'var(--muted)'};margin-bottom:6px;display:flex;align-items:center;justify-content:space-between;">
+        <span>${fmtLabel(d)}${isToday?' •':''}</span>
+        ${tasks.length?`<span style="font-size:10px;background:var(--border);border-radius:8px;padding:1px 6px;">${doneC}/${tasks.length}</span>`:''}
+      </div>
+      ${tasks.length?tasks.map(t=>taskCard(t)).join(''):`<div style="font-size:11px;color:var(--muted);text-align:center;padding:12px 0;">—</div>`}
+    </div>`;
+  };
+  const todayKey=fmt(today);
+  el.innerHTML=`
+    <div class="ph"><div><h1>📅 This Week</h1><p class="sub">${fmtLabel(days[0])} – ${fmtLabel(days[6])} · ${scheduled.length} planned, ${unscheduled.length} unscheduled</p></div>
+      <button class="btn bp" onclick="openAdd()">+ Add Task</button></div>
+    <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:20px;">
+      ${days.map(d=>dayCol(d,fmt(d)===todayKey)).join('')}
+    </div>
+    ${unscheduled.length?`<div>
+      <div style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:8px;"><span>📋 UNSCHEDULED SPRINT TASKS (${unscheduled.length})</span><span style="font-size:11px;font-weight:400;">— click to assign a day</span></div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:8px;">
+        ${unscheduled.map(t=>taskCard(t)).join('')}
+      </div>
+    </div>`:'<div class="empty" style="margin-top:8px;">All sprint tasks have been planned for specific days!</div>'}`;
+  // responsive: collapse to 2-col on mobile via style
+  if(window.innerWidth<600){
+    const grid=el.querySelector('div[style*="grid-template-columns:repeat(7"]');
+    if(grid)grid.style.gridTemplateColumns='1fr 1fr';
+  }
+}
+
 // ── GOAL HTML ─────────────────────────────────────────────────────
 function goalHTML(t){
   const P=PILLARS[t.pillar]||{hex:'var(--muted)',e:'',l:t.pillar||''};
@@ -686,6 +752,7 @@ function openAdd(pillar='growth',sprint='current',isGoal=false){
   document.getElementById('t-current').value='';
   document.getElementById('t-assignee').value='';
   document.getElementById('t-isgoal').value=isGoal?'true':'false';
+  document.getElementById('t-date').value='';
   document.getElementById('del-btn').style.display='none';
   document.getElementById('tm').classList.remove('hidden');
   document.getElementById('t-title').focus();
@@ -704,6 +771,7 @@ function openEdit(id){
   document.getElementById('t-current').value=t.current||'';
   document.getElementById('t-assignee').value=t.assignee||'';
   document.getElementById('t-isgoal').value=t.isGoal?'true':'false';
+  document.getElementById('t-date').value=t.plannedDate||'';
   document.getElementById('del-btn').style.display='block';
   document.getElementById('tm').classList.remove('hidden');
   document.getElementById('t-title').focus();
@@ -721,7 +789,8 @@ function saveTask(){
     target:parseInt(document.getElementById('t-target').value)||null,
     current:parseInt(document.getElementById('t-current').value)||0,
     assignee:document.getElementById('t-assignee').value,
-    isGoal:document.getElementById('t-isgoal').value==='true'
+    isGoal:document.getElementById('t-isgoal').value==='true',
+    plannedDate:document.getElementById('t-date').value||null
   };
   if((d.current??0)<0||(d.target??0)<0){toast('Values must be 0 or greater.');return;}
   if(d.target&&d.current>d.target){toast('Current progress cannot exceed target.');return;}

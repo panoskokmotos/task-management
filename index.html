@@ -7508,9 +7508,10 @@ function renderGivelinkDash(){
       const first=hist2[0];const last=hist2[hist2.length-1];
       const monthsDiff=Math.max(1,(new Date(last.date)-new Date(first.date))/(30*864e5));
       const growthRate=(last.nonprofits-first.nonprofits)/monthsDiff;
-      if(growthRate>0){
+      if(growthRate>0&&avgDon>0&&avgSize>0){
         const npNeeded=(target/avgDon/avgSize);
-        monthsToTarget=Math.round((npNeeded-nonprofits)/growthRate);
+        const raw=Math.round((npNeeded-nonprofits)/growthRate);
+        monthsToTarget=raw>0?raw:null;
       }
     }
     const milestones=[{label:'10K people',target:10000},{label:'100K people',target:100000},{label:'500K people',target:500000},{label:'1M people',target:1000000}];
@@ -7543,6 +7544,7 @@ function renderGivelinkDash(){
       ${_sparklineSVG(hist.slice(-8).map(h=>h[k]||0))}
     </div>`).join('')}</div>`;
   } else if(glSparkEl){glSparkEl.innerHTML='';}
+  setTimeout(_attachSwipes,0);
 }
 function openGivelinkMetrics(){
   const m=S.givelinkMetrics||{};
@@ -7552,7 +7554,7 @@ function openGivelinkMetrics(){
   document.getElementById('gl-arr').value=m.arr||0;
   document.getElementById('gl-users').value=m.users||0;
   document.getElementById('gl-story').value='';
-  document.getElementById('givelink-metrics-modal').classList.remove('hidden');
+  openM('givelink-metrics-modal');
 }
 function saveGivelinkMetrics(){
   if(!S.givelinkMetrics)S.givelinkMetrics={nonprofits:0,pipeline:0,arr:0,users:0,impactStories:[],mrr:0};

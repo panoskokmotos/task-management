@@ -230,18 +230,18 @@ select.fc option{background:var(--s2);}
     <div class="sprint-days" id="sb-days">— <span>days left</span></div>
   </div>
   <div class="ns">Sprint</div>
-  <div class="ni active" onclick="nav('overview')">📊 Overview</div>
+  <div class="ni active" role="button" tabindex="0" onclick="nav('overview')" onkeydown="if(event.key==='Enter'||event.key===' ')nav('overview')">📊 Overview</div>
   <div class="ns">Pillars</div>
-  <div class="ni" onclick="nav('growth')"><span class="pip" style="background:var(--gr)"></span>US Growth <span class="bcnt2" id="cnt-growth"></span></div>
-  <div class="ni" onclick="nav('nonprofits')"><span class="pip" style="background:var(--np)"></span>Nonprofits <span class="bcnt2" id="cnt-nonprofits"></span></div>
-  <div class="ni" onclick="nav('product')"><span class="pip" style="background:var(--pr)"></span>Product <span class="bcnt2" id="cnt-product"></span></div>
-  <div class="ni" onclick="nav('execution')"><span class="pip" style="background:var(--ex)"></span>Execution <span class="bcnt2" id="cnt-execution"></span></div>
-  <div class="ni" onclick="nav('ops')"><span class="pip" style="background:var(--op)"></span>Smooth Ops <span class="bcnt2" id="cnt-ops"></span></div>
+  <div class="ni" role="button" tabindex="0" onclick="nav('growth')" onkeydown="if(event.key==='Enter'||event.key===' ')nav('growth')"><span class="pip" style="background:var(--gr)"></span>US Growth <span class="bcnt2" id="cnt-growth"></span></div>
+  <div class="ni" role="button" tabindex="0" onclick="nav('nonprofits')" onkeydown="if(event.key==='Enter'||event.key===' ')nav('nonprofits')"><span class="pip" style="background:var(--np)"></span>Nonprofits <span class="bcnt2" id="cnt-nonprofits"></span></div>
+  <div class="ni" role="button" tabindex="0" onclick="nav('product')" onkeydown="if(event.key==='Enter'||event.key===' ')nav('product')"><span class="pip" style="background:var(--pr)"></span>Product <span class="bcnt2" id="cnt-product"></span></div>
+  <div class="ni" role="button" tabindex="0" onclick="nav('execution')" onkeydown="if(event.key==='Enter'||event.key===' ')nav('execution')"><span class="pip" style="background:var(--ex)"></span>Execution <span class="bcnt2" id="cnt-execution"></span></div>
+  <div class="ni" role="button" tabindex="0" onclick="nav('ops')" onkeydown="if(event.key==='Enter'||event.key===' ')nav('ops')"><span class="pip" style="background:var(--op)"></span>Smooth Ops <span class="bcnt2" id="cnt-ops"></span></div>
   <div class="ns">More</div>
-  <div class="ni" onclick="nav('crm')">🏢 Nonprofit CRM <span class="bcnt2" id="cnt-crm"></span></div>
-  <div class="ni" onclick="nav('backlog')">📋 Backlog <span class="bcnt2" id="cnt-backlog"></span></div>
-  <div class="ni" onclick="nav('past')">📚 Past Sprints <span class="bcnt2" id="cnt-past"></span></div>
-  <div class="ni" onclick="openSprintSettings()">⚙️ Sprint Settings</div>
+  <div class="ni" role="button" tabindex="0" onclick="nav('crm')" onkeydown="if(event.key==='Enter'||event.key===' ')nav('crm')">🏢 Nonprofit CRM <span class="bcnt2" id="cnt-crm"></span></div>
+  <div class="ni" role="button" tabindex="0" onclick="nav('backlog')" onkeydown="if(event.key==='Enter'||event.key===' ')nav('backlog')">📋 Backlog <span class="bcnt2" id="cnt-backlog"></span></div>
+  <div class="ni" role="button" tabindex="0" onclick="nav('past')" onkeydown="if(event.key==='Enter'||event.key===' ')nav('past')">📚 Past Sprints <span class="bcnt2" id="cnt-past"></span></div>
+  <div class="ni" role="button" tabindex="0" onclick="openSprintSettings()" onkeydown="if(event.key==='Enter'||event.key===' ')openSprintSettings()">⚙️ Sprint Settings</div>
 </nav>
 
 <div class="main">
@@ -787,6 +787,7 @@ function saveSprint(){
   const start=document.getElementById('s-start').value;
   const end=document.getElementById('s-end').value;
   if(start&&end&&new Date(end)<=new Date(start)){toast('End date must be after start date.');return;}
+  if(end&&new Date(end)<new Date(new Date().toDateString())){toast('Sprint end date must be today or in the future.');return;}
   S.sprint.name=name;
   S.sprint.start=start;
   S.sprint.end=end;
@@ -823,6 +824,7 @@ function confirmNewSprint(){
   const start=document.getElementById('ns-start').value;
   const end=document.getElementById('ns-end').value;
   if(start&&end&&new Date(end)<=new Date(start)){toast('End date must be after start date.');return;}
+  if(end&&new Date(end)<new Date(new Date().toDateString())){toast('Sprint end date must be today or in the future.');return;}
   // Archive current sprint
   const ct=curTasks();
   const done=ct.filter(t=>t.status==='done').length;
@@ -1127,9 +1129,11 @@ Based on the current sprint completion and backlog, suggest exactly 10 high-impa
 
 Respond ONLY with a JSON array of 10 objects, each with keys: title, pillar, priority. No markdown, no explanation, just the JSON array.`;
 
+  const _ctrl=new AbortController();
+  const _timeout=setTimeout(()=>_ctrl.abort(),30000);
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
+      method:'POST',signal:_ctrl.signal,
       headers:{
         'Content-Type':'application/json',
         'x-api-key':apiKey,
@@ -1137,13 +1141,14 @@ Respond ONLY with a JSON array of 10 objects, each with keys: title, pillar, pri
         'anthropic-dangerous-direct-browser-access':'true'
       },
       body:JSON.stringify({
-        model:'claude-opus-4-5',
+        model:'claude-opus-4-8',
         max_tokens:1024,
         messages:[{role:'user',content:prompt}]
       })
     });
     if(!res.ok){const err=await res.text();throw new Error(err);}
     const data=await res.json();
+    if(!data.content?.length)throw new Error('Empty response from API');
     const raw=data.content[0].text.trim();
     let suggestions;
     try{suggestions=JSON.parse(raw);}
@@ -1155,7 +1160,10 @@ Respond ONLY with a JSON array of 10 objects, each with keys: title, pillar, pri
     }
     renderAiSuggestions(suggestions);
   }catch(e){
-    document.getElementById('ai-sprint-body').innerHTML=`<div style="color:#ef4444;font-size:13px;padding:16px;">Error: ${esc(e.message||'Unknown error')}</div>`;
+    const msg=e.name==='AbortError'?'Request timed out — check your connection and try again':e.message||'Unknown error';
+    document.getElementById('ai-sprint-body').innerHTML=`<div style="color:var(--error,#ef4444);font-size:13px;padding:16px;">Error: ${esc(msg)}</div>`;
+  }finally{
+    clearTimeout(_timeout);
   }
   genBtn.disabled=false;genBtn.textContent='✨ Regenerate';
 }
@@ -1204,10 +1212,13 @@ function addSuggestedSprintTasks(){
 
 // ── TASK OS SYNC ──────────────────────────────────────────────────
 function syncToTaskOS(){
+  const btn=document.querySelector('[onclick="syncToTaskOS()"]');
+  if(btn){btn.disabled=true;btn.textContent='⏳ Syncing…';}
+  const _done=(msg)=>{if(btn){btn.disabled=false;btn.textContent='🔗 Sync to Task OS';}toast(msg);};
   let profiles;
   try{profiles=JSON.parse(localStorage.getItem('taskos_profiles')||'[]');}
   catch(e){profiles=[];}
-  if(!profiles.length){toast('No Task OS profile found');return;}
+  if(!profiles.length){_done('No Task OS profile found — open Task OS first');return;}
   const profile=profiles.find(p=>p.active!==false)||profiles[0];
   let tosData;
   try{tosData=JSON.parse(localStorage.getItem('taskos_data_'+profile.id)||'null');}
@@ -1246,8 +1257,9 @@ function syncToTaskOS(){
     }
   });
 
-  localStorage.setItem('taskos_data_'+profile.id,JSON.stringify(tosData));
-  toast(`Synced ${synced} task${synced!==1?'s':''} to Task OS${profile.name?' ('+profile.name+')':''} 🔗`,3000);
+  try{localStorage.setItem('taskos_data_'+profile.id,JSON.stringify(tosData));}
+  catch(e){_done('⚠️ Storage full — export your data to free space');return;}
+  _done(`Synced ${synced} task${synced!==1?'s':''} to Task OS${profile.name?' ('+profile.name+')':''} 🔗`);
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1256,19 +1268,25 @@ function syncToTaskOS(){
 async function callClaudeGL(prompt,maxTokens=800,model='claude-haiku-4-5-20251001'){
   let k=localStorage.getItem('taskos_api_key');
   if(!k){
-    try{const p=JSON.parse(localStorage.getItem('taskos')||'{}');k=p.claudeKey||'';}catch(e){}
+    try{const p=JSON.parse(localStorage.getItem('taskos')||'{}');k=p.claudeKey||'';}catch(e){console.warn('Failed to read API key from profile:', e);}
   }
   if(!k){k=window.prompt('Enter Anthropic API key:');if(k)localStorage.setItem('taskos_api_key',k);}
   if(!k){toast('API key required');return null;}
+  const _ctrl=new AbortController();
+  const _timeout=setTimeout(()=>_ctrl.abort(),30000);
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
+      method:'POST',signal:_ctrl.signal,
       headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model,max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})
     });
+    if(!res.ok){const err=await res.json().catch(()=>({}));const msg=res.status===429?'Rate limit — wait a moment':res.status===401?'Invalid API key':(`AI error ${res.status}: `+(err.error?.message||res.statusText));toast(msg);return null;}
     const data=await res.json();
     return data.content?.[0]?.text||null;
-  }catch(e){toast('AI error: '+e.message);return null;}
+  }catch(e){
+    const msg=e.name==='AbortError'?'Request timed out — check your connection':e.message;
+    toast('AI error: '+msg);return null;
+  }finally{clearTimeout(_timeout);}
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1376,17 +1394,17 @@ function _showNPModal(np){
         <div class="fg"><label>Est. People Served</label><input class="fc" id="np-people" type="number" placeholder="500" min="0"></div>
       </div>
       <div class="fg"><label>Latest Activity Note</label><input class="fc" id="np-note" placeholder="e.g. Sent intro email, awaiting reply"></div>
-      <div class="mf" style="display:flex;gap:8px;justify-content:space-between;">
-        <div>${editNpId?`<button class="btn bd" onclick="deleteNP()">Delete</button>`:''}</div>
-        <div style="display:flex;gap:8px;">
-          ${editNpId?`<button class="btn bg" onclick="logActivityNP()">📝 Log Activity</button>
-          <button class="btn bg" onclick="advanceStageNP()">→ Next Stage</button>`:''}
-          <button class="btn bp" onclick="saveNP()">Save</button>
-        </div>
-      </div>
+      <div class="mf" id="np-modal-footer" style="display:flex;gap:8px;justify-content:space-between;"></div>
     </div>`;
     document.body.appendChild(m);
   }
+  // Rebuild footer on every open so edit/add buttons always match current editNpId
+  document.getElementById('np-modal-footer').innerHTML=`
+    <div>${editNpId?'<button class="btn bd" onclick="deleteNP()">Delete</button>':''}</div>
+    <div style="display:flex;gap:8px;">
+      ${editNpId?'<button class="btn bg" onclick="logActivityNP()">📝 Log Activity</button><button class="btn bg" onclick="advanceStageNP()">→ Next Stage</button>':''}
+      <button class="btn bp" onclick="saveNP()">Save</button>
+    </div>`;
   document.getElementById('npm-title').textContent=editNpId?'Edit Nonprofit':'Add Nonprofit';
   document.getElementById('np-name').value=np.name||'';
   document.getElementById('np-contact').value=np.contactName||'';
@@ -1517,9 +1535,7 @@ Be specific, reference task names. Max 100 words total. Human tone.`;
 function copyStandup(){
   const body=document.getElementById('standup-body');
   const text=body._text||body.textContent;
-  navigator.clipboard.writeText(text).then(()=>toast('📋 Copied to clipboard!')).catch(()=>{
-    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('📋 Copied!');
-  });
+  navigator.clipboard.writeText(text).then(()=>toast('📋 Copied to clipboard!')).catch(()=>toast('Copy failed — select the text manually (Ctrl+A, Ctrl+C)'));
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1618,7 +1634,7 @@ function openOutreachGenerator(npId){
   document.getElementById('out-regen').onclick=()=>generateOutreach(npId);
   document.getElementById('out-copy').onclick=()=>{
     const t=document.getElementById('out-body')._text||document.getElementById('out-body').textContent;
-    navigator.clipboard.writeText(t).then(()=>toast('📋 Copied!')).catch(()=>{const ta=document.createElement('textarea');ta.value=t;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('📋 Copied!');});
+    navigator.clipboard.writeText(t).then(()=>toast('📋 Copied!')).catch(()=>toast('Copy failed — select the text manually (Ctrl+A, Ctrl+C)'));
     const np2=S.nonprofits.find(n=>n.id===npId);if(np2){np2.outreachDraft=t;np2.outreachDraftAt=new Date().toISOString();save();}
   };
   m.classList.remove('hidden');
@@ -1632,6 +1648,8 @@ function openOutreachGenerator(npId){
 async function generateOutreach(npId){
   const np=S.nonprofits.find(n=>n.id===npId);if(!np)return;
   const body=document.getElementById('out-body');
+  const genBtn=document.querySelector('[onclick="generateOutreach(\''+npId+'\')"]')||document.querySelector('#outreach-modal .btn.bg');
+  if(genBtn){genBtn.disabled=true;genBtn.textContent='⏳ Generating…';}
   body.textContent='⏳ Generating email...';
   const isCold=np.stage==='lead'||np.stage==='contacted';
   const prompt=`Write a ${isCold?'cold outreach':'follow-up'} email from Panos Evangelou, co-founder of Givelink (givelink.io).
@@ -1663,7 +1681,8 @@ Subject: [subject line]
     body._text=text;
     np.outreachDraft=text;np.outreachDraftAt=new Date().toISOString();
     save();
-  } else {body.textContent='Could not generate. Check your API key.';}
+  } else {body.textContent='Could not generate. Check your API key in Task OS Settings.';}
+  if(genBtn){genBtn.disabled=false;genBtn.textContent='🔄 Regenerate';}
 }
 
 // ── PWA — INSTALL + UPDATE ────────────────────────────────────────
@@ -1725,7 +1744,7 @@ if('serviceWorker' in navigator){
         if(nw.state==='activated')showUpdateBanner();
       });
     });
-  });
+  }).catch(err=>console.warn('Service worker registration failed:', err));
   let _swRefreshing=false;
   navigator.serviceWorker.addEventListener('controllerchange',()=>{
     if(_swRefreshing)return;_swRefreshing=true;showUpdateBanner();

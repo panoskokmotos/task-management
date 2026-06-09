@@ -521,7 +521,7 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
 
 <button class="ham-btn" onclick="toggleSB()" aria-label="Menu"><span></span><span></span><span></span></button>
 <div id="mobile-brand"><svg class="logo-mark" viewBox="0 0 32 32"><defs><linearGradient id="lgm2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#58a6ff"/><stop offset="1" stop-color="#bc8cff"/></linearGradient></defs><circle cx="16" cy="16" r="12" stroke="url(#lgm2)" stroke-width="3" fill="none"/><path d="M10 16.5 L14.5 21 L22 12" stroke="url(#lgm2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><span class="logo-word">Task<span class="g">OS</span></span></div>
-<span id="offline-pill" class="hidden" style="position:fixed;top:10px;right:14px;z-index:9999;background:#ef4444;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;display:none;">📡 Offline</span>
+<span id="offline-pill" class="hidden" style="position:fixed;top:10px;right:14px;z-index:9999;background:var(--q1,#ef4444);color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;display:none;">📡 Offline</span>
 <div class="s-ov" id="s-ov" onclick="toggleSB()"></div>
 
 <nav class="sidebar">
@@ -2059,14 +2059,14 @@ function _toggleCLItem(id){const c=_editChecklist.find(x=>x.id===id);if(c){c.don
 function _removeCLItem(id){_editChecklist=_editChecklist.filter(x=>x.id!==id);_renderChecklistEditor();}
 function fillBlockerDrop(currentId,selectedIds=[]){
   const s=document.getElementById('t-blocked');if(!s)return;
-  s.innerHTML=active().filter(t=>t.id!==currentId).map(t=>'<option value="'+t.id+'"'+(selectedIds.includes(t.id)?' selected':'')+'>'+t.title.slice(0,45)+'</option>').join('');
+  s.innerHTML=active().filter(t=>t.id!==currentId).map(t=>'<option value="'+t.id+'"'+(selectedIds.includes(t.id)?' selected':'')+'>'+esc(t.title.slice(0,45))+'</option>').join('');
 }
 
 // ── THEME ─────────────────────────────────────────────────────
 function applyTheme(light){
   document.body.classList.toggle('light',light);
   const mc=document.querySelector('meta[name="theme-color"]');
-  if(mc)mc.content=light?'#f5f5f0':'#58a6ff';
+  if(mc)mc.content=light?'#f5f5f0':'#6B3FA0';
   const sb=document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
   if(sb)sb.content=light?'default':'black-translucent';
   const btn=document.getElementById('theme-toggle-btn');
@@ -2104,6 +2104,7 @@ function save(){
   }
   if(!_sbApplying&&typeof _sbScheduleSync==='function')_sbScheduleSync();
 }
+function safeSet(key,value){try{localStorage.setItem(key,value);}catch(e){if(e.name==='QuotaExceededError'||e.code===22)toast('⚠️ Storage full! Export your data to free space.',5000);else console.error('localStorage write failed:',key,e);}}
 function load(){const d=localStorage.getItem('taskos');if(d)try{S={...S,...JSON.parse(d)};}catch(e){console.warn('Corrupt localStorage, using defaults',e);}}
 function exportData(){
   const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
@@ -2196,7 +2197,7 @@ function calcLifeScore(){
   const goalVelocityScore=doneTW.length>0?Math.min(goalDoneTW/doneTW.length,1):0;
   // Wheel of life
   let wheelScore=0;
-  const latestWheel=(S.wheelAssessments||[]).slice(-1)[0];
+  const latestWheel=(S.wheelAssessments||[]).at(-1);
   if(latestWheel){
     const vals=Object.values(latestWheel.scores||{});
     if(vals.length>0)wheelScore=vals.reduce((a,b)=>a+b,0)/vals.length/10;
@@ -2208,8 +2209,8 @@ function calcLifeScore(){
     const recentPeople=(S.people||[]).filter(p=>{
       const logs=(p.touchpoints||p.logs||[]);
       if(!logs.length)return false;
-      const last=logs.slice(-1)[0];
-      return new Date(last.date||last)>=monthAgo;
+      const last=logs.at(-1);
+      return last&&new Date(last.date||last)>=monthAgo;
     }).length;
     networkScore=Math.min(recentPeople/totalPeople,1);
   }
@@ -2430,14 +2431,14 @@ function _somedayAction(action){
 }
 
 // ── NAV ───────────────────────────────────────────────────────
-function _toggleNsGroup(el){const g=el.closest('.ns-group');if(!g)return;g.classList.toggle('collapsed');const arr=el.querySelector('.ns-arrow');if(arr)arr.textContent=g.classList.contains('collapsed')?'▸':'▾';try{const st=JSON.parse(localStorage.getItem('taskos_nav_collapsed')||'{}');st[g.dataset.ns]=g.classList.contains('collapsed');localStorage.setItem('taskos_nav_collapsed',JSON.stringify(st));}catch(e){}}
+function _toggleNsGroup(el){const g=el.closest('.ns-group');if(!g)return;g.classList.toggle('collapsed');const arr=el.querySelector('.ns-arrow');if(arr)arr.textContent=g.classList.contains('collapsed')?'▸':'▾';try{const st=JSON.parse(localStorage.getItem('taskos_nav_collapsed')||'{}');st[g.dataset.ns]=g.classList.contains('collapsed');safeSet('taskos_nav_collapsed',JSON.stringify(st));}catch(e){console.warn('Nav state persist failed:', e);}}
 let _scrollPos={};
 function nav(v){
   _selTaskId=null;
   _closeFabDial();
   const _prev=document.querySelector('.view.active');
   if(_prev)_scrollPos[_prev.id]={m:document.querySelector('.main')?.scrollTop||0,w:window.scrollY||0};
-  localStorage.setItem('taskos_lastview',v);
+  safeSet('taskos_lastview',v);
   document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
   document.querySelectorAll('.ni').forEach(x=>x.classList.remove('active'));
   const _vEl=document.getElementById('v-'+v);
@@ -2530,25 +2531,26 @@ function renderDash(){
       intentBanner.style.display='none';
     }
   }
-  if(!_compact){
-  // Life score widget
+  if(!_compact){_renderDashExpandedWidgets();}
+  _renderDailyProtocol();
+  _renderDashQuests();
+}
+function _renderDashExpandedWidgets(){
   const lsEl=document.getElementById('life-score-widget');
   if(lsEl){lsEl.innerHTML=_renderLifeScoreWidget();}
-  // Network health widget
   const {score:nhScore,overdue:nhOverdue,recent:nhRecent}=_calcNetworkScore();
   const nhEl=document.getElementById('network-health-widget');
   if(nhEl&&(S.people||[]).length>0){
     nhEl.innerHTML=`<div style="background:var(--surface2);border-radius:12px;padding:10px 14px;margin-bottom:12px;cursor:pointer;" onclick="nav('relationships')">
       <div style="display:flex;align-items:center;gap:8px;">
         <span style="font-size:14px;font-weight:700;">🤝 Network</span>
-        <div style="flex:1;height:6px;background:var(--surface);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${nhScore}%;background:${nhScore>70?'var(--q2)':nhScore>40?'#fbbf24':'#ef4444'};border-radius:3px;"></div></div>
-        <span style="font-size:13px;font-weight:700;color:${nhScore>70?'var(--q2)':nhScore>40?'#fbbf24':'#ef4444'}">${nhScore}/100</span>
+        <div style="flex:1;height:6px;background:var(--surface);border-radius:3px;overflow:hidden;"><div style="height:100%;width:${nhScore}%;background:${nhScore>70?'var(--q2)':nhScore>40?'var(--q3,#fbbf24)':'var(--q1,#ef4444)'};border-radius:3px;"></div></div>
+        <span style="font-size:13px;font-weight:700;color:${nhScore>70?'var(--q2)':nhScore>40?'var(--q3,#fbbf24)':'var(--q1,#ef4444)'}">${nhScore}/100</span>
       </div>
       ${nhOverdue.length?`<div style="font-size:11px;color:var(--muted);margin-top:4px;">${nhOverdue.length} contact${nhOverdue.length>1?'s':''} overdue · ${nhRecent} reached this month</div>`:''}
     </div>`;
   } else if(nhEl){nhEl.innerHTML='';}
-  // Mini wheel widget
-  const latestWheel=(S.wheelAssessments||[]).slice(-1)[0];
+  const latestWheel=(S.wheelAssessments||[]).at(-1);
   const ww=document.getElementById('wheel-dash-widget');
   if(ww){
     if(latestWheel){
@@ -2561,50 +2563,50 @@ function renderDash(){
       ww.innerHTML=`<div style="background:var(--surface2);border-radius:12px;padding:10px 14px;margin-bottom:12px;cursor:pointer;" onclick="openWheelModal()"><span style="font-size:13px;">🎡 Rate your Wheel of Life →</span></div>`;
     }
   }
-  }
-  // Daily flow card
+}
+function _renderDailyProtocol(){
   const _dfEl=document.getElementById('daily-flow-card');
-  if(_dfEl){
-    const _today=new Date().toISOString().slice(0,10);
-    const _dow=new Date().getDay(); // 0=Sun
-    const _oneThingDone=!!(S.oneThing||[]).find(x=>x.date===_today);
-    const _inboxCount=active().filter(t=>t.bucket==='inbox').length;
-    const _weekCount=active().filter(t=>t.bucket==='this-week').length;
-    const _challengeDone=!!((S.challengeLogs||[]).find(c=>c.date===_today&&c.completed));
-    const _challengeSet=!!((S.challengeLogs||[]).find(c=>c.date===_today));
-    const _dwToday=!!(S.deepWorkSessions||[]).find(s=>(s.date||s.startTime||'').slice(0,10)===_today);
-    const _eodToday=!!(S.contextLog||[]).find(e=>e.date===_today&&e.cat==='eod');
-    const _lastReview=(S.reviews||[]).slice(-1)[0];
-    const _daysSinceReview=_lastReview?Math.floor((Date.now()-new Date(_lastReview.weekOf||_lastReview.date||0))/864e5):999;
-    const _showReview=_dow===0||_daysSinceReview>=7;
-    const _dfItem=(done,emoji,label,sub,action)=>`<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">
-      <span style="font-size:16px;flex-shrink:0;">${done?'✅':emoji}</span>
-      <div style="flex:1;min-width:0;">
-        <div style="font-size:13px;font-weight:500;${done?'opacity:0.55;text-decoration:line-through;':''}">${label}</div>
-        ${sub?`<div style="font-size:11px;color:var(--muted);">${sub}</div>`:''}
-      </div>
-      ${done?'':`<button class="btn bg sm" style="flex-shrink:0;" onclick="${action}">→</button>`}
-    </div>`;
-    const _dfItems=[
-      _dfItem(_oneThingDone,'🌅','Set your One Thing','Your single most important focus today',"nav('dashboard');setTimeout(()=>document.getElementById('one-thing-card')?.scrollIntoView({behavior:'smooth'}),200)"),
-      _dfItem(_inboxCount===0,'📥','Process Inbox',_inboxCount?`${_inboxCount} item${_inboxCount>1?'s':''} waiting`:'Inbox clear',"nav('capture')"),
-      _dfItem(_weekCount===0,'🔴','Work This Week tasks',`${_weekCount} active task${_weekCount!==1?'s':''}`,"nav('buckets')"),
-      _dfItem(_challengeDone,'💪','Daily Challenge',_challengeSet?'Challenge set — mark complete when done':'Pick today\'s discomfort challenge',"nav('challenge')"),
-      _dfItem(_dwToday,'🧘','Deep Work session','Log a focused work session',"nav('deepwork')"),
-      _dfItem(_eodToday,'📊','Log End-of-Day','Reflect on today\'s wins and set MIT',"nav('eod')"),
-    ];
-    if(_showReview){_dfItems.push(_dfItem(false,'📅','Weekly Review',_daysSinceReview<999?`Last: ${_daysSinceReview}d ago`:'Start your weekly review',"nav('review')"));}
-    const _dfDone=_dfItems.filter(s=>s.includes('✅')).length;
-    const _dfTotal=_dfItems.length;
-    _dfEl.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <div><div style="font-size:13px;font-weight:700;">📋 Daily Protocol</div><div style="font-size:11px;color:var(--muted);">What to do today · ${_dfDone}/${_dfTotal} done</div></div>
-        <div style="font-size:11px;color:var(--accent);font-weight:700;">${Math.round(_dfDone/_dfTotal*100)}%</div>
-      </div>
-      <div style="margin-bottom:-6px;">${_dfItems.join('')}</div>
-    </div>`;
-  }
-  // Daily quests widget
+  if(!_dfEl)return;
+  const _today=new Date().toISOString().slice(0,10);
+  const _dow=new Date().getDay();
+  const _oneThingDone=!!(S.oneThing||[]).find(x=>x.date===_today);
+  const _inboxCount=active().filter(t=>t.bucket==='inbox').length;
+  const _weekCount=active().filter(t=>t.bucket==='this-week').length;
+  const _challengeDone=!!((S.challengeLogs||[]).find(c=>c.date===_today&&c.completed));
+  const _challengeSet=!!((S.challengeLogs||[]).find(c=>c.date===_today));
+  const _dwToday=!!(S.deepWorkSessions||[]).find(s=>(s.date||s.startTime||'').slice(0,10)===_today);
+  const _eodToday=!!(S.contextLog||[]).find(e=>e.date===_today&&e.cat==='eod');
+  const _lastReview=(S.reviews||[]).at(-1);
+  const _daysSinceReview=_lastReview?Math.floor((Date.now()-new Date(_lastReview.weekOf||_lastReview.date||0))/864e5):999;
+  const _showReview=_dow===0||_daysSinceReview>=7;
+  const _dfItem=(done,emoji,label,sub,action)=>`<div style="display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);">
+    <span style="font-size:16px;flex-shrink:0;">${done?'✅':emoji}</span>
+    <div style="flex:1;min-width:0;">
+      <div style="font-size:13px;font-weight:500;${done?'opacity:0.55;text-decoration:line-through;':''}">${label}</div>
+      ${sub?`<div style="font-size:11px;color:var(--muted);">${sub}</div>`:''}
+    </div>
+    ${done?'':`<button class="btn bg sm" style="flex-shrink:0;" onclick="${action}">→</button>`}
+  </div>`;
+  const _dfItems=[
+    _dfItem(_oneThingDone,'🌅','Set your One Thing','Your single most important focus today',"nav('dashboard');setTimeout(()=>document.getElementById('one-thing-card')?.scrollIntoView({behavior:'smooth'}),200)"),
+    _dfItem(_inboxCount===0,'📥','Process Inbox',_inboxCount?`${_inboxCount} item${_inboxCount>1?'s':''} waiting`:'Inbox clear',"nav('capture')"),
+    _dfItem(_weekCount===0,'🔴','Work This Week tasks',`${_weekCount} active task${_weekCount!==1?'s':''}`,"nav('buckets')"),
+    _dfItem(_challengeDone,'💪','Daily Challenge',_challengeSet?'Challenge set — mark complete when done':'Pick today\'s discomfort challenge',"nav('challenge')"),
+    _dfItem(_dwToday,'🧘','Deep Work session','Log a focused work session',"nav('deepwork')"),
+    _dfItem(_eodToday,'📊','Log End-of-Day','Reflect on today\'s wins and set MIT',"nav('eod')"),
+  ];
+  if(_showReview){_dfItems.push(_dfItem(false,'📅','Weekly Review',_daysSinceReview<999?`Last: ${_daysSinceReview}d ago`:'Start your weekly review',"nav('review')"));}
+  const _dfDone=_dfItems.filter(s=>s.includes('✅')).length;
+  const _dfTotal=_dfItems.length;
+  _dfEl.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <div><div style="font-size:13px;font-weight:700;">📋 Daily Protocol</div><div style="font-size:11px;color:var(--muted);">What to do today · ${_dfDone}/${_dfTotal} done</div></div>
+      <div style="font-size:11px;color:var(--accent);font-weight:700;">${Math.round(_dfDone/_dfTotal*100)}%</div>
+    </div>
+    <div style="margin-bottom:-6px;">${_dfItems.join('')}</div>
+  </div>`;
+}
+function _renderDashQuests(){
   const quests=S.dailyQuests||[];
   const questsEl=document.getElementById('daily-quests-widget');
   if(questsEl){
@@ -2612,7 +2614,7 @@ function renderDash(){
       <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">⚔️ Daily Quests</div>
       ${quests.map(q=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;${q.done?'opacity:0.5;text-decoration:line-through;':''}">
         <span>${q.done?'✅':'⬜'}</span>
-        <span style="flex:1;">${esc(q.text)}${q.linkedOKR?`<span style="font-size:10px;background:rgba(105,219,124,.15);color:#69db7c;padding:1px 5px;border-radius:5px;margin-left:4px;">OKR</span>`:''}</span>
+        <span style="flex:1;">${esc(q.text)}${q.linkedOKR?`<span style="font-size:10px;background:rgba(105,219,124,.15);color:var(--q2,#69db7c);padding:1px 5px;border-radius:5px;margin-left:4px;">OKR</span>`:''}</span>
         <span style="font-size:11px;color:var(--accent);">+${q.xp} XP</span>
       </div>`).join('')}
     </div>`:'';
@@ -2874,7 +2876,7 @@ function goalHTML(g){
 // ── REVIEW WIZARD ─────────────────────────────────────────────
 let wizStep=0;
 const WIZ_STEPS=['✅ Done','📥 Inbox','🟢 Backlog','🏆 Goals','📝 Notes','⚙️ Systematize'];
-function renderReview(){wizStep=0;renderWizBar();renderWizPanel();setTimeout(()=>{if(!document.getElementById('kt-prompt-card')?.innerHTML)renderKnowThyself();_renderKTHistory();_renderManifestoSection();try{const _wd=JSON.parse(localStorage.getItem('taskos_wiz_draft')||'null');if(_wd&&_wd.date===new Date().toISOString().slice(0,10)){goStep(_wd.step||0);['rw','ri','rf','rcommit','rifnot','r-journal','r-gratitude','r-bigwin'].forEach(id=>{const el=document.getElementById(id);if(el&&_wd[id])el.value=_wd[id];});}}catch(e){}},200);}
+function renderReview(){wizStep=0;renderWizBar();renderWizPanel();setTimeout(()=>{if(!document.getElementById('kt-prompt-card')?.innerHTML)renderKnowThyself();_renderKTHistory();_renderManifestoSection();try{const _wd=JSON.parse(localStorage.getItem('taskos_wiz_draft')||'null');if(_wd&&_wd.date===new Date().toISOString().slice(0,10)){goStep(_wd.step||0);['rw','ri','rf','rcommit','rifnot','r-journal','r-gratitude','r-bigwin'].forEach(id=>{const el=document.getElementById(id);if(el&&_wd[id])el.value=_wd[id];});}}catch(e){console.warn('Review draft restore failed:', e);}},200);}
 function renderWizBar(){
   document.getElementById('wiz-bar').innerHTML=WIZ_STEPS.map((s,i)=>`<div class="wiz-step ${i===wizStep?'cur':i<wizStep?'done':''}" onclick="goStep(${i})">${i<wizStep?'✓ ':''}${s}</div>`).join('');
   document.getElementById('wiz-prog').textContent=`Step ${wizStep+1}/${WIZ_STEPS.length}`;
@@ -3227,7 +3229,7 @@ function _undoReschedule(){if(!_rsPrev)return;const t=S.tasks.find(x=>x.id===_rs
 
 // ── CELEBRATION ANIMATION ──────────────────────────────────────
 const _HX={tap:[8],done:[12,60,12],error:[20,40,20,40,20],swipe:[15],longpress:[25],nav:[5],warn:[15,30,15]};
-function _haptic(pattern=12){try{if(navigator.vibrate&&!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches))navigator.vibrate(typeof pattern==='string'?(_HX[pattern]||[12]):pattern);}catch(e){}}
+function _haptic(pattern=12){try{if(navigator.vibrate&&!(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches))navigator.vibrate(typeof pattern==='string'?(_HX[pattern]||[12]):pattern);}catch(e){/* vibrate() not supported — silently ignored */}}
 function _fireConfetti(depth){
   if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches)return;
   const canvas=document.getElementById('confetti-canvas');
@@ -4132,9 +4134,11 @@ function seedGoals(){
 // ── CALL CLAUDE ────────────────────────────────────────────────
 async function callClaude(prompt, maxTokens=1000){
   if(!S.claudeKey){toast('Add Claude API key in Settings first');return null;}
+  const _ctrl=new AbortController();
+  const _timeout=setTimeout(()=>_ctrl.abort(),30000);
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
-      method:'POST',
+      method:'POST',signal:_ctrl.signal,
       headers:{'Content-Type':'application/json','x-api-key':S.claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})
     });
@@ -4145,7 +4149,10 @@ async function callClaude(prompt, maxTokens=1000){
     }
     const data=await res.json();
     return data.content?.[0]?.text||null;
-  }catch(e){toast('AI error: '+e.message);return null;}
+  }catch(e){
+    const msg=e.name==='AbortError'?'Request timed out — check your connection and try again':e.message;
+    toast('AI error: '+msg);return null;
+  }finally{clearTimeout(_timeout);}
 }
 function showAiOut(title, text){
   document.getElementById('ai-out-title').textContent=title;
@@ -4453,7 +4460,7 @@ const _AI_WORKFLOWS=[
     return `${_wfAbout()}\n\nGivelink is a B2B SaaS that helps nonprofits with fundraising. Current traction: ${m.nonprofits||0} nonprofits onboarded, pipeline ${m.pipeline||0}.\n\nWrite a concise, warm cold-outreach email to a nonprofit director introducing Givelink and asking for a 15-minute call. Give 3 subject-line options first, then the email (under 120 words, specific, non-salesy).`;
   }},
   {id:'win-to-post',icon:'✍️',title:'Win → post',desc:'Turn a recent win into an X + LinkedIn post',build:()=>{
-    const win=(S.wins||[]).slice(-1)[0];
+    const win=(S.wins||[]).at(-1);
     return `${_wfAbout()}\n\nA recent win: "${win?.text||'shipped meaningful progress on Givelink'}"\n\nWrite 2 short, authentic social posts about it: one for X/Twitter (≤280 chars) and one for LinkedIn (≤120 words). Founder voice, specific, not braggy — share the lesson.`;
   }},
 ];
@@ -4513,7 +4520,7 @@ function _wfSaveAutomation(){
   if(!S.automations)S.automations=[];
   if(S.automations.some(a=>a.name===_wfLast.title&&a.tool==='Claude'))return toast('Already logged ✓');
   S.automations.push({id:uid(),name:_wfLast.title,desc:'AI workflow run from the Workflows Hub',category:_wfLast.category==='givelink'?'givelink':'personal',status:'running',tool:'Claude',timeSavedPerWeek:15,createdAt:new Date().toISOString()});
-  save();renderAilab();try{awardXP(5,'workflow');}catch(e){}toast('💾 Kept — counts toward your 100 automations! +5 XP');
+  save();renderAilab();try{awardXP(5,'workflow');}catch(e){console.warn('XP award failed:', e);}toast('💾 Kept — counts toward your 100 automations! +5 XP');
 }
 
 // ── RELATIONSHIPS ──────────────────────────────────────────────
@@ -6018,7 +6025,7 @@ const WHEEL_TIPS={
 };
 
 function openWheelModal(){
-  const last=(S.wheelAssessments||[]).slice(-1)[0];
+  const last=(S.wheelAssessments||[]).at(-1);
   const prev=last?.scores||{};
   const html=WHEEL_AREAS.map(a=>`
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
@@ -6460,7 +6467,7 @@ function renderDailyPicks(){
 async function aiDailyPicks(){
   const goals=(S.goals||[]).filter(g=>!g.complete).slice(0,6).map(g=>{const s=goalStats(g.id);return`${g.isTop3?'⭐':''}${g.title}${g.description?' — '+g.description:''} [${s.done}/${s.total} tasks done]`;}).join('\n');
   const tasks=(S.tasks||[]).filter(t=>t.status!=='done'&&['this-week','this-month','inbox'].includes(t.bucket)).slice(0,10).map(t=>`- ${t.title} [${t.importance||'med'} importance, ${t.bucket}${t.goalId?' → goal':''  }]`).join('\n');
-  const lastEnergy=((S.energyLog||[]).slice(-1)[0]||{}).level||'unknown';
+  const lastEnergy=((S.energyLog||[]).at(-1)||{}).level||'unknown';
   const dow=new Date().toLocaleDateString('en',{weekday:'long'});
   const about=getAboutMe()||'Panos — 20s founder building Givelink (B2B SaaS for nonprofits), targeting financial freedom and an SF move.';
   const activeOKRs=(S.okrs||[]).filter(o=>o.status==='active').map(o=>{const krs=o.keyResults||[];const avgPct=krs.length?Math.round(krs.reduce((a,k)=>a+(k.target?Math.min(100,Math.round((k.current||0)/(k.target)*100)):0),0)/krs.length):0;return`${o.title} (KR progress: ${avgPct}%)`;}).join('\n');
@@ -8553,10 +8560,10 @@ async function _sbAuth(grant,body){
   return r.json();
 }
 function _sbStoreSession(j){
-  if(j.access_token)localStorage.setItem('taskos_sb_access',j.access_token);
-  if(j.refresh_token)localStorage.setItem('taskos_sb_refresh',j.refresh_token);
-  localStorage.setItem('taskos_sb_exp',String(Date.now()+((j.expires_in||3600)*1000)));
-  if(j.user&&j.user.id)localStorage.setItem('taskos_sb_uid',j.user.id);
+  if(j.access_token)safeSet('taskos_sb_access',j.access_token);
+  if(j.refresh_token)safeSet('taskos_sb_refresh',j.refresh_token);
+  safeSet('taskos_sb_exp',String(Date.now()+((j.expires_in||3600)*1000)));
+  if(j.user&&j.user.id)safeSet('taskos_sb_uid',j.user.id);
 }
 async function _sbToken(){
   if(!_SB.refresh)throw new Error('not connected');
@@ -8570,7 +8577,7 @@ async function sbConnect(){
   const email=(document.getElementById('set-sb-email').value||'').trim();
   const pass=(document.getElementById('set-sb-pass').value||'').trim();
   if(!url||!anon||!email||!pass)return toast('Fill URL, anon key, email and password');
-  localStorage.setItem('taskos_sb_url',url);localStorage.setItem('taskos_sb_anon',anon);localStorage.setItem('taskos_sb_email',email);
+  safeSet('taskos_sb_url',url);safeSet('taskos_sb_anon',anon);safeSet('taskos_sb_email',email);
   _sbSetStatus('Connecting…');
   try{
     let j;
@@ -8617,18 +8624,23 @@ async function sbSyncNow(force){
     const localMs=S._updatedAt||0;
     if(remote&&remote.data&&remote.ms>localMs){
       _sbApplying=true;
-      S={...S,...remote.data};
-      S._updatedAt=remote.ms;
-      save();
-      _sbApplying=false;
-      try{refresh();}catch(e){}
-      _sbSetStatus('Synced ⬇ '+new Date().toLocaleTimeString());
+      try{
+        S={...S,...remote.data};
+        S._updatedAt=remote.ms;
+        save();
+        try{refresh();}catch(e){console.error('UI refresh after sync failed:', e);toast('Sync applied — reload to see latest changes');}
+        _sbSetStatus('Synced ⬇ '+new Date().toLocaleTimeString());
+      }finally{_sbApplying=false;}
     } else {
       await sbPush();
       _sbSetStatus('Synced ⬆ '+new Date().toLocaleTimeString());
     }
-  }catch(e){_sbSetStatus('⚠ '+e.message);}
-  finally{_sbBusy=false;}
+  }catch(e){
+    console.error('Sync error:', e);
+    const msg=e.message&&(e.message.includes('401')||e.message.includes('403'))?'Session expired — reconnect cloud sync in Settings':e.message;
+    _sbSetStatus('⚠ '+msg);
+    if(msg.includes('reconnect'))toast('☁ '+msg);
+  }finally{_sbBusy=false;}
 }
 function _sbScheduleSync(){
   if(!_sbEnabled()||_sbApplying)return;
@@ -8653,8 +8665,8 @@ function _autoSnapshot(){
         save();
       }
     }
-    localStorage.setItem('taskos_autosnap',today);
-  }catch(e){}
+    safeSet('taskos_autosnap',today);
+  }catch(e){console.warn('Auto-snapshot failed:', e);}
 }
 
 // ── KEYBOARD ──────────────────────────────────────────────────
@@ -8672,7 +8684,7 @@ function toggleSB(){
 // ── INIT ──────────────────────────────────────────────────────
 load();seed();seedGoals();resetRecurring();_genDailyQuests();_maybeShowWeeklyWrapped();_initSidebarSwipe();_autoSnapshot();
 setTimeout(()=>{if(_sbEnabled())sbSyncNow();},900);
-try{const _nc=JSON.parse(localStorage.getItem('taskos_nav_collapsed')||'{}');document.querySelectorAll('.ns-group').forEach(g=>{const collapsed=_nc[g.dataset.ns]??g.classList.contains('collapsed');if(collapsed)g.classList.add('collapsed');else g.classList.remove('collapsed');const arr=g.querySelector('.ns-arrow');if(arr)arr.textContent=collapsed?'▸':'▾';});}catch(e){}
+try{const _nc=JSON.parse(localStorage.getItem('taskos_nav_collapsed')||'{}');document.querySelectorAll('.ns-group').forEach(g=>{const collapsed=_nc[g.dataset.ns]??g.classList.contains('collapsed');if(collapsed)g.classList.add('collapsed');else g.classList.remove('collapsed');const arr=g.querySelector('.ns-arrow');if(arr)arr.textContent=collapsed?'▸':'▾';});}catch(e){console.warn('Nav collapse restore failed:', e);}
 document.title='Task OS — '+profileName;
 const _lastP=localStorage.getItem('taskos_lastview');
 if(_lastP&&_lastP!=='dashboard'){nav(_lastP);}else{renderDash();}
@@ -9307,7 +9319,7 @@ async function _ntfyPost(topic,title,msg,tags){
 async function postToNtfy(r){
   const topic=(S.ntfy||{}).topic;
   if(!topic||(S.ntfy||{}).enabled===false)return;
-  try{await _ntfyPost(topic,`${r.emoji} ${r.label}`,r.msg,['bell']);}catch(_){}
+  try{await _ntfyPost(topic,`${r.emoji} ${r.label}`,r.msg,['bell']);}catch(e){console.warn('ntfy notification failed:', e);}
 }
 async function testNtfy(){
   const topic=(document.getElementById('ntfy-topic-input')?.value||S.ntfy?.topic||'').trim().toLowerCase().replace(/[^a-z0-9-_]/g,'');
@@ -10051,7 +10063,7 @@ function _eodComplete(){
   // Persist energy to the energy log (one per day)
   if(_eodEnergy){if(!S.energyLog)S.energyLog=[];S.energyLog=S.energyLog.filter(e=>e.date!==today);S.energyLog.push({date:today,level:_eodEnergy});}
   save();updIBadge();
-  try{awardXP(15,'eod');}catch(e){}
+  try{awardXP(15,'eod');}catch(e){console.warn('EOD XP award failed:', e);}
   toast('🌙 End-of-Day logged! +15 XP');
 }
 
@@ -10934,7 +10946,7 @@ async function aiSleepInsight(){
   }).join('\n');
   const avgH=logs.reduce((a,l)=>a+(l.hoursSlept||0),0)/logs.length;
   const avgQ=logs.reduce((a,l)=>a+(l.quality||0),0)/logs.length;
-  const lastBody=(S.bodyLogs||[]).slice(-1)[0]||null;
+  const lastBody=(S.bodyLogs||[]).at(-1)||null;
   const bodyCtx=lastBody?`Body comp (${lastBody.date}): weight ${lastBody.weight||'?'}kg, BF% ${lastBody.bodyFat||'?'}%`:'No body comp data';
   const latestHRV=(S.biomarkers||[]).slice().reverse().find(b=>b.hrv!=null);
   const hrvCtx=latestHRV?`Latest HRV: ${latestHRV.hrv}ms (${latestHRV.date})`:'No HRV data';
@@ -10968,7 +10980,7 @@ function _renderBodySection(){
   if(!el)return;
   if(!S.bodyLogs)S.bodyLogs=[];
   const sorted=S.bodyLogs.slice().sort((a,b)=>a.date>b.date?1:-1);
-  const latest=sorted.slice(-1)[0];
+  const latest=sorted.at(-1);
   const prev=sorted.slice(-2,-1)[0];
   const goalBF=12;
   const weightDiff=latest&&prev?((latest.weightKg||0)-(prev.weightKg||0)):null;
@@ -11023,7 +11035,7 @@ function _renderPortfolioSection(){
   if(!el)return;
   if(!S.portfolioEntries)S.portfolioEntries=[];
   const sorted=S.portfolioEntries.slice().sort((a,b)=>a.date>b.date?1:-1);
-  const latest=sorted.slice(-1)[0];
+  const latest=sorted.at(-1);
   const first=sorted[0];
   const growth=latest&&first&&first.totalValue?Math.round((latest.totalValue-first.totalValue)/first.totalValue*100):null;
   const alloc=latest?.breakdown||{};

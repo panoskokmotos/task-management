@@ -315,8 +315,8 @@ select.fc option{background:var(--s2);}
 <div class="mo hidden" id="tm">
   <div class="md">
     <div class="mh"><h3 id="tm-title">Add Task</h3><button class="mc" onclick="closeM('tm')">×</button></div>
-    <div class="fg"><label>Title *</label><input class="fc" id="t-title" placeholder="What needs to be done?"></div>
-    <div class="fg"><label>Notes</label><textarea class="fc" id="t-notes" placeholder="Details, context, links..."></textarea></div>
+    <div class="fg"><label>Title *</label><input class="fc" id="t-title" placeholder="What needs to be done?" maxlength="200"></div>
+    <div class="fg"><label>Notes</label><textarea class="fc" id="t-notes" placeholder="Details, context, links..." maxlength="2000"></textarea></div>
     <div class="fr">
       <div class="fg"><label>Pillar</label>
         <select class="fc" id="t-pillar">
@@ -444,12 +444,12 @@ let S={
 let editId=null;
 
 // ── PERSIST ─────────────────────────────────────────────────────
-function save(){localStorage.setItem('givelink_sprint',JSON.stringify(S));}
+function save(){try{localStorage.setItem('givelink_sprint',JSON.stringify(S));}catch(e){if(e.name==='QuotaExceededError'||e.code===22)toast('⚠️ Storage full! Export your data to free space.');else console.error('save() failed:',e);}}
 function load(){const d=localStorage.getItem('givelink_sprint');if(d){const p=JSON.parse(d);S={...S,...p};}}
 
 // ── UTILS ───────────────────────────────────────────────────────
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function toast(msg,ms=2200){const t=document.getElementById('toast');t.innerHTML=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms);}
+function toast(msg,ms=2200){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms);}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2);}
 function daysLeft(){const e=new Date(S.sprint.end);const n=new Date();const d=Math.ceil((e-n)/(1000*60*60*24));return Math.max(0,d);}
 function sprintPct(){const s=new Date(S.sprint.start),e=new Date(S.sprint.end),n=new Date();const total=e-s,elapsed=Math.min(n-s,total);return Math.round(Math.max(0,elapsed/total)*100);}
@@ -1379,7 +1379,7 @@ function _showNPModal(np){
     m=document.createElement('div');m.id='np-modal';m.className='mo hidden';
     m.innerHTML=`<div class="md" style="max-width:520px;">
       <div class="mh"><h3 id="npm-title">Add Nonprofit</h3><button class="mc" onclick="closeM('np-modal')">×</button></div>
-      <div class="fg"><label>Organization Name *</label><input class="fc" id="np-name" placeholder="St. Anthony Foundation"></div>
+      <div class="fg"><label>Organization Name *</label><input class="fc" id="np-name" placeholder="St. Anthony Foundation" maxlength="200"></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div class="fg"><label>Contact Name</label><input class="fc" id="np-contact" placeholder="Jane Smith"></div>
         <div class="fg"><label>Title</label><input class="fc" id="np-title-field" placeholder="Executive Director"></div>
@@ -1388,7 +1388,7 @@ function _showNPModal(np){
         <div class="fg"><label>Email</label><input class="fc" id="np-email" placeholder="jane@org.org" type="email"></div>
         <div class="fg"><label>City</label><input class="fc" id="np-city" placeholder="San Francisco, CA"></div>
       </div>
-      <div class="fg"><label>Mission (1 sentence)</label><textarea class="fc" id="np-mission" rows="2" placeholder="What does this org do?"></textarea></div>
+      <div class="fg"><label>Mission (1 sentence)</label><textarea class="fc" id="np-mission" rows="2" placeholder="What does this org do?" maxlength="500"></textarea></div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div class="fg"><label>Pipeline Stage</label><select class="fc" id="np-stage">${CRM_STAGES.map(s=>`<option value="${s}">${CRM_STAGE_LABEL[s]}</option>`).join('')}</select></div>
         <div class="fg"><label>Est. People Served</label><input class="fc" id="np-people" type="number" placeholder="500" min="0"></div>
@@ -1427,7 +1427,7 @@ function saveNP(){
     city:document.getElementById('np-city').value.trim(),
     mission:document.getElementById('np-mission').value.trim(),
     stage:document.getElementById('np-stage').value,
-    estimatedPeople:parseInt(document.getElementById('np-people').value)||0,
+    estimatedPeople:Math.max(0,parseInt(document.getElementById('np-people').value)||0),
     lastActivityNote:document.getElementById('np-note').value.trim(),
     lastActivityAt:new Date().toISOString()
   };
@@ -1560,11 +1560,11 @@ function calcSprintVelocity(){
 function renderVelocityStats(){
   const el=document.getElementById('ov-stats');if(!el)return;
   const v=calcSprintVelocity();
-  const pctDone=Math.round(v.done/v.total*100);
-  const trackColor=v.onTrack?'#22c55e':'#ef4444';
+  const pctDone=v.total>0?Math.round(v.done/v.total*100):0;
+  const trackColor=v.onTrack?'var(--done,#22c55e)':'var(--block,#ef4444)';
   const trackLabel=v.onTrack?'On Track':'Behind';
   const etaLabel=v.etaDays!=null?`~${v.etaDays}d to clear`:'Sprint complete';
-  el.innerHTML+=`<div class="sc2"><div class="sn2" style="color:${v.tasksPerDay>=1?'#22c55e':'#fbbf24'}">${v.tasksPerDay.toFixed(1)}</div><div class="sl2">tasks/day</div></div>
+  el.innerHTML+=`<div class="sc2"><div class="sn2" style="color:${v.tasksPerDay>=1?'var(--done,#22c55e)':'var(--warn,#fbbf24)'}">${v.tasksPerDay.toFixed(1)}</div><div class="sl2">tasks/day</div></div>
   <div class="sc2"><div class="sn2" style="color:${trackColor}">${trackLabel}</div><div class="sl2">${etaLabel}</div></div>`;
 }
 function goalEtaChip(t){
@@ -1573,9 +1573,9 @@ function goalEtaChip(t){
   const daysElapsed=v.daysElapsed;
   const ratePerDay=t.current/daysElapsed;
   const remaining=t.target-t.current;
-  if(ratePerDay<=0)return'<span style="font-size:10px;color:#ef4444;">⏸ Stalled</span>';
+  if(ratePerDay<=0)return'<span style="font-size:10px;color:var(--block,#ef4444);">⏸ Stalled</span>';
   const etaDays=Math.ceil(remaining/ratePerDay);
-  const color=etaDays<=v.daysLeft?'#22c55e':'#ef4444';
+  const color=etaDays<=v.daysLeft?'var(--done,#22c55e)':'var(--block,#ef4444)';
   return`<span style="font-size:10px;color:${color};font-weight:600;">🏁 ~${etaDays}d at current pace</span>`;
 }
 

@@ -2066,7 +2066,7 @@ function fillBlockerDrop(currentId,selectedIds=[]){
 function applyTheme(light){
   document.body.classList.toggle('light',light);
   const mc=document.querySelector('meta[name="theme-color"]');
-  if(mc)mc.content=light?'#f5f5f0':'#6B3FA0';
+  if(mc)mc.content=light?'#EDE7F6':'#6B3FA0';
   const sb=document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
   if(sb)sb.content=light?'default':'black-translucent';
   const btn=document.getElementById('theme-toggle-btn');
@@ -2074,7 +2074,7 @@ function applyTheme(light){
 }
 function toggleTheme(){
   const next=!document.body.classList.contains('light');
-  localStorage.setItem('taskos_theme',next?'light':'dark');
+  safeSet('taskos_theme',next?'light':'dark');
   const reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   if(!reduce){document.body.classList.add('theme-anim');setTimeout(()=>document.body.classList.remove('theme-anim'),400);}
   applyTheme(next);
@@ -2271,7 +2271,7 @@ function depthB(depth){if(!depth||depth==='shallow')return'';const cls='depth-'+
 // ── TOAST ─────────────────────────────────────────────────────
 function toast(msg,ms=2500){
   const stack=document.getElementById('toast-stack');if(!stack)return null;
-  const el=document.createElement('div');el.className='toast-item';el.innerHTML=msg;
+  const el=document.createElement('div');el.className='toast-item';el.textContent=msg;
   stack.appendChild(el);
   while(stack.children.length>4){const f=stack.firstElementChild;if(f._timer)clearTimeout(f._timer);f.remove();}
   requestAnimationFrame(()=>el.classList.add('show'));
@@ -2824,7 +2824,7 @@ function renderGoals(){
   const top3El=document.getElementById('g-top3');
   if(top3El)top3El.innerHTML=top3.length?heroHTML:'<div class="empty" style="padding:20px;text-align:center;"><div style="font-size:28px;margin-bottom:6px;">⭐</div><div style="font-weight:600;margin-bottom:4px;">Set your North Stars</div><div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Your top 3 goals deserve the spotlight</div><button class="btn bp sm" onclick="openAddGoal()">+ Add a Top Goal</button></div>';
   document.getElementById('g-all').innerHTML=rest.length?rest.map(goalHTML).join(''):'<div class="empty" style="padding:20px;text-align:center;"><div style="font-size:28px;margin-bottom:6px;">🏆</div><div style="font-weight:600;margin-bottom:4px;">No goals yet</div><div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Every task should serve a goal</div><button class="btn bp sm" onclick="openAddGoal()">+ Create First Goal</button></div>';
-  document.getElementById('vals').innerHTML=S.values.length?`<div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px;">${S.values.map(v=>`<span class="badge co" style="font-size:12px;padding:5px 12px;cursor:pointer;" onclick="editVals()" title="Click to edit values">💎 ${v}</span>`).join('')}</div><p style="font-size:11px;color:var(--muted);margin:0;">Tap any value to edit · Values guide which goals matter</p>`:'<p style="color:var(--muted);">No values set — <a onclick="editVals()" style="color:var(--accent);cursor:pointer;">add your core values</a> to guide goal decisions.</p>';
+  document.getElementById('vals').innerHTML=S.values.length?`<div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px;">${S.values.map(v=>`<span class="badge co" style="font-size:12px;padding:5px 12px;cursor:pointer;" onclick="editVals()" title="Click to edit values">💎 ${esc(v)}</span>`).join('')}</div><p style="font-size:11px;color:var(--muted);margin:0;">Tap any value to edit · Values guide which goals matter</p>`:'<p style="color:var(--muted);">No values set — <a onclick="editVals()" style="color:var(--accent);cursor:pointer;">add your core values</a> to guide goal decisions.</p>';
   fillGoalDrop();
   renderSFTimeline();
   _renderAntiGoalsSection();
@@ -2884,75 +2884,82 @@ function renderWizBar(){
 function goStep(n){wizStep=n;renderWizBar();renderWizPanel();}
 function renderWizPanel(){
   const body=document.getElementById('wiz-body');
-  const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
-  if(wizStep===0){
-    const done=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>wAgo);
-    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🏆 Completed this week</h3>${done.length?done.map(t=>`<div class="tc" style="opacity:.75;"><div class="ck on">✓</div><div class="tb"><div class="tt" style="text-decoration:line-through;">${t.title}</div><div class="tm">${catB(t.category)}</div></div></div>`).join(''):'<div class="empty">No completed tasks this week yet.</div>'}</div><div class="wiz-nav"><span></span><button class="btn bp" onclick="goStep(1)">Next →</button></div>`;
-  } else if(wizStep===1){
-    const inbox=active().filter(t=>t.bucket==='inbox');
-    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">📥 Process your inbox (${inbox.length} items)</h3>${inbox.length?inbox.map(t=>inboxHTML(t)).join(''):'<div class="empty" style="color:var(--q2);">✓ Inbox clear!</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(0)">← Back</button><button class="btn bp" onclick="goStep(2)">Next →</button></div>`;
-  } else if(wizStep===2){
-    const backlog=active().filter(t=>t.bucket==='backlog').slice(0,8);
-    const wc=active().filter(t=>t.bucket==='this-week').length;
-    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🟢 Promote from Backlog (This Week: ${wc}/10)</h3>${backlog.length?backlog.map(t=>`<div class="tc"><div class="tb"><div class="tt">${t.title}</div><div class="tm">${catB(t.category)}${eB(t)}</div></div><button class="btn bg sm" onclick="mvB('${t.id}','this-week');renderWizPanel()">→ Week</button></div>`).join(''):'<div class="empty">Backlog empty.</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(1)">← Back</button><button class="btn bp" onclick="goStep(3)">Next →</button></div>`;
-  } else if(wizStep===3){
-    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🏆 Goal Progress</h3>${S.goals.slice(0,8).map(g=>{const s=goalStats(g.id);return`<div style="margin-bottom:10px;"><div style="font-size:13px;font-weight:500;margin-bottom:4px;">${g.isTop3?'⭐ ':''}${g.title}</div><div class="gp"><div class="gp-fill" style="width:${s.pct}%"></div></div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${s.done}/${s.total} tasks · ${s.pct}%</div></div>`;}).join('')||'<div class="empty">No goals set.</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(2)">← Back</button><button class="btn bp" onclick="goStep(4)">Next →</button></div>`;
-  } else if(wizStep===4){
-    const rev=[...S.reviews].reverse().slice(0,3);
-    const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
-    const mon=new Date();mon.setDate(mon.getDate()-((mon.getDay()+6)%7));
-    const workouts=(S.healthLogs||[]).filter(l=>l.type==='workout'&&new Date(l.date)>=mon).length;
-    const dwSess=(S.deepWorkSessions||[]).filter(s=>new Date(s.date)>=mon);
-    const dwH=Math.round(dwSess.reduce((s,x)=>s+x.duration,0)/3600*10)/10;
-    const incomeWk=(S.financeEntries||[]).filter(e=>e.type==='income'&&new Date(e.date)>wAgo).reduce((s,e)=>s+e.amount,0);
-    const habStreak=_habitStreak();
-    body.innerHTML=`<div class="rs">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-        <h3>📝 Reflect & Plan Next Week</h3>
-        <div style="display:flex;gap:6px;">
-          <button class="btn bg sm" onclick="autoFillReview()">🤖 Auto-Fill from Life OS</button>
-          <button class="btn bg sm" onclick="openNotesImport()">📥 Paste Notes</button>
-        </div>
-      </div>
-      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;">
-        <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center;"><div style="font-size:18px;font-weight:700;color:#69db7c;">${workouts}</div><div style="font-size:10px;color:var(--muted);">workouts</div></div>
-        <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center;"><div style="font-size:18px;font-weight:700;color:#58a6ff;">${dwH}h</div><div style="font-size:10px;color:var(--muted);">deep work</div></div>
-        <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center;"><div style="font-size:18px;font-weight:700;color:#fbbf24;">${habStreak}d</div><div style="font-size:10px;color:var(--muted);">habit streak</div></div>
-        <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center;"><div style="font-size:18px;font-weight:700;color:#69db7c;">€${incomeWk}</div><div style="font-size:10px;color:var(--muted);">income</div></div>
-      </div>
-      <div class="fg"><label>✅ What went well?</label><textarea class="fc" id="rw" placeholder="3 wins from this week..." oninput="_wizSave()"></textarea></div>
-      <div class="fg"><label>📈 What to improve?</label><textarea class="fc" id="ri" placeholder="1-2 things to do differently..." oninput="_wizSave()"></textarea></div>
-      <div class="fg"><label>🎯 Focus for next week?</label><textarea class="fc" id="rf" placeholder="The single most important thing..." oninput="_wizSave()"></textarea></div>
-      <div class="fg" style="margin-top:4px;border-top:1px solid var(--border);padding-top:10px;"><label style="color:var(--accent);font-weight:700;">📜 This Week I Commit To</label><input class="fc" id="rcommit" placeholder="e.g. Book 2 demo calls. No excuses." oninput="_wizSave()"></div>
-      <div class="fg"><label>If I don't follow through, it's because</label><input class="fc" id="rifnot" placeholder="Name your most likely excuse in advance..." oninput="_wizSave()"></div>
-      <div class="fg" style="margin-top:8px;">
-        <label>📔 Weekly Journal (free reflection)</label>
-        <textarea class="fc" id="r-journal" rows="3" placeholder="How did the week really feel? What surprised you? What would you tell yourself next Monday?" oninput="_wizSave()"></textarea>
-      </div>
-      <div class="fg">
-        <label>🙏 3 Things You're Grateful For</label>
-        <textarea class="fc" id="r-gratitude" rows="2" placeholder="1. ... 2. ... 3. ..." oninput="_wizSave()"></textarea>
-      </div>
-      <div class="fg">
-        <label>🏆 Biggest Win This Week</label>
-        <input class="fc" id="r-bigwin" placeholder="The single best thing that happened..." oninput="_wizSave()">
-      </div>
-    </div>
-    ${rev.length?`<h3 style="margin:14px 0 8px;font-size:13px;color:var(--muted);">Past Reviews</h3>${rev.map(r=>`<div class="card" style="margin-bottom:8px;"><div style="font-weight:600;margin-bottom:4px;font-size:13px;">📅 ${fd(r.weekOf)}</div>${r.focus?`<div style="font-size:12px;color:var(--muted);">🎯 ${r.focus}</div>`:''}</div>`).join('')}`:''}
-    <div class="wiz-nav"><button class="btn bg" onclick="goStep(3)">← Back</button><button class="btn bp" onclick="goStep(5)">Next → Systematize</button></div>`;
-  } else if(wizStep===5){
-    const autos=(S.automations||[]).filter(a=>a.status==='idea').slice(0,5);
-    body.innerHTML=`<div class="rs">
-      <h3 style="margin-bottom:12px;">⚙️ Systematize Your Week</h3>
-      <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">What did you do manually this week that could be automated, delegated, or turned into a system?</p>
-      <div class="fg"><label>Things to systematize or automate</label><textarea class="fc" id="wiz-systematize" style="min-height:80px;" placeholder="e.g. Manually sending follow-up emails, copying data between tools, weekly report generation..."></textarea></div>
-      <button class="btn bg sm" style="margin-bottom:16px;" onclick="addSystematizeToAutomations()">+ Add to Automation Ideas</button>
-      ${autos.length?`<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Recent automation ideas:</div>${autos.map(a=>`<div style="font-size:12px;padding:4px 0;border-bottom:1px solid var(--border);">${a.name||a.title||''}</div>`).join('')}`:''}
-    </div>
-    <div class="wiz-nav"><button class="btn bg" onclick="goStep(4)">← Back</button><button class="btn bp" onclick="finishReview()">✅ Save & Finish</button></div>`;
-  }
+  const steps=[_wizStep0,_wizStep1,_wizStep2,_wizStep3,_wizStep4,_wizStep5];
+  body.innerHTML=(steps[wizStep]||_wizStep0)();
 }
-function _wizSave(){try{const d={step:wizStep,date:new Date().toISOString().slice(0,10)};['rw','ri','rf','rcommit','rifnot','r-journal','r-gratitude','r-bigwin'].forEach(id=>{const el=document.getElementById(id);if(el)d[id]=el.value;});localStorage.setItem('taskos_wiz_draft',JSON.stringify(d));}catch(e){console.warn('_wizSave error',e);}}
+function _wizStep0(){
+  const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
+  const done=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>wAgo);
+  return`<div class="rs"><h3 style="margin-bottom:12px;">🏆 Completed this week</h3>${done.length?done.map(t=>`<div class="tc" style="opacity:.75;"><div class="ck on">✓</div><div class="tb"><div class="tt" style="text-decoration:line-through;">${esc(t.title)}</div><div class="tm">${catB(t.category)}</div></div></div>`).join(''):'<div class="empty">No completed tasks this week yet.</div>'}</div><div class="wiz-nav"><span></span><button class="btn bp" onclick="goStep(1)">Next →</button></div>`;
+}
+function _wizStep1(){
+  const inbox=active().filter(t=>t.bucket==='inbox');
+  return`<div class="rs"><h3 style="margin-bottom:12px;">📥 Process your inbox (${inbox.length} items)</h3>${inbox.length?inbox.map(t=>inboxHTML(t)).join(''):'<div class="empty" style="color:var(--q2);">✓ Inbox clear!</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(0)">← Back</button><button class="btn bp" onclick="goStep(2)">Next →</button></div>`;
+}
+function _wizStep2(){
+  const backlog=active().filter(t=>t.bucket==='backlog').slice(0,8);
+  const wc=active().filter(t=>t.bucket==='this-week').length;
+  return`<div class="rs"><h3 style="margin-bottom:12px;">🟢 Promote from Backlog (This Week: ${wc}/10)</h3>${backlog.length?backlog.map(t=>`<div class="tc"><div class="tb"><div class="tt">${esc(t.title)}</div><div class="tm">${catB(t.category)}${eB(t)}</div></div><button class="btn bg sm" onclick="mvB('${t.id}','this-week');renderWizPanel()">→ Week</button></div>`).join(''):'<div class="empty">Backlog empty.</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(1)">← Back</button><button class="btn bp" onclick="goStep(3)">Next →</button></div>`;
+}
+function _wizStep3(){
+  return`<div class="rs"><h3 style="margin-bottom:12px;">🏆 Goal Progress</h3>${S.goals.slice(0,8).map(g=>{const s=goalStats(g.id);return`<div style="margin-bottom:10px;"><div style="font-size:13px;font-weight:500;margin-bottom:4px;">${g.isTop3?'⭐ ':''}${esc(g.title)}</div><div class="gp"><div class="gp-fill" style="width:${s.pct}%"></div></div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${s.done}/${s.total} tasks · ${s.pct}%</div></div>`;}).join('')||'<div class="empty">No goals set.</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(2)">← Back</button><button class="btn bp" onclick="goStep(4)">Next →</button></div>`;
+}
+function _wizStep4(){
+  const rev=[...S.reviews].reverse().slice(0,3);
+  const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
+  const mon=new Date();mon.setDate(mon.getDate()-((mon.getDay()+6)%7));
+  const workouts=(S.healthLogs||[]).filter(l=>l.type==='workout'&&new Date(l.date)>=mon).length;
+  const dwSess=(S.deepWorkSessions||[]).filter(s=>new Date(s.date)>=mon);
+  const dwH=Math.round(dwSess.reduce((s,x)=>s+x.duration,0)/3600*10)/10;
+  const incomeWk=(S.financeEntries||[]).filter(e=>e.type==='income'&&new Date(e.date)>wAgo).reduce((s,e)=>s+e.amount,0);
+  const habStreak=_habitStreak();
+  return`<div class="rs">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <h3>📝 Reflect & Plan Next Week</h3>
+      <div style="display:flex;gap:6px;">
+        <button class="btn bg sm" onclick="autoFillReview()">🤖 Auto-Fill from Life OS</button>
+        <button class="btn bg sm" onclick="openNotesImport()">📥 Paste Notes</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;">
+      <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center;"><div style="font-size:18px;font-weight:700;color:var(--q2,#69db7c);">${workouts}</div><div style="font-size:10px;color:var(--muted);">workouts</div></div>
+      <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center;"><div style="font-size:18px;font-weight:700;color:var(--accent,#58a6ff);">${dwH}h</div><div style="font-size:10px;color:var(--muted);">deep work</div></div>
+      <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center;"><div style="font-size:18px;font-weight:700;color:var(--q3,#fbbf24);">${habStreak}d</div><div style="font-size:10px;color:var(--muted);">habit streak</div></div>
+      <div style="background:var(--surface2);border-radius:6px;padding:8px;text-align:center;"><div style="font-size:18px;font-weight:700;color:var(--q2,#69db7c);">€${incomeWk}</div><div style="font-size:10px;color:var(--muted);">income</div></div>
+    </div>
+    <div class="fg"><label>✅ What went well?</label><textarea class="fc" id="rw" placeholder="3 wins from this week..." oninput="_wizSave()"></textarea></div>
+    <div class="fg"><label>📈 What to improve?</label><textarea class="fc" id="ri" placeholder="1-2 things to do differently..." oninput="_wizSave()"></textarea></div>
+    <div class="fg"><label>🎯 Focus for next week?</label><textarea class="fc" id="rf" placeholder="The single most important thing..." oninput="_wizSave()"></textarea></div>
+    <div class="fg" style="margin-top:4px;border-top:1px solid var(--border);padding-top:10px;"><label style="color:var(--accent);font-weight:700;">📜 This Week I Commit To</label><input class="fc" id="rcommit" placeholder="e.g. Book 2 demo calls. No excuses." oninput="_wizSave()"></div>
+    <div class="fg"><label>If I don't follow through, it's because</label><input class="fc" id="rifnot" placeholder="Name your most likely excuse in advance..." oninput="_wizSave()"></div>
+    <div class="fg" style="margin-top:8px;">
+      <label>📔 Weekly Journal (free reflection)</label>
+      <textarea class="fc" id="r-journal" rows="3" placeholder="How did the week really feel? What surprised you? What would you tell yourself next Monday?" oninput="_wizSave()"></textarea>
+    </div>
+    <div class="fg">
+      <label>🙏 3 Things You're Grateful For</label>
+      <textarea class="fc" id="r-gratitude" rows="2" placeholder="1. ... 2. ... 3. ..." oninput="_wizSave()"></textarea>
+    </div>
+    <div class="fg">
+      <label>🏆 Biggest Win This Week</label>
+      <input class="fc" id="r-bigwin" placeholder="The single best thing that happened..." oninput="_wizSave()">
+    </div>
+  </div>
+  ${rev.length?`<h3 style="margin:14px 0 8px;font-size:13px;color:var(--muted);">Past Reviews</h3>${rev.map(r=>`<div class="card" style="margin-bottom:8px;"><div style="font-weight:600;margin-bottom:4px;font-size:13px;">📅 ${fd(r.weekOf)}</div>${r.focus?`<div style="font-size:12px;color:var(--muted);">🎯 ${esc(r.focus)}</div>`:''}</div>`).join('')}`:''}
+  <div class="wiz-nav"><button class="btn bg" onclick="goStep(3)">← Back</button><button class="btn bp" onclick="goStep(5)">Next → Systematize</button></div>`;
+}
+function _wizStep5(){
+  const autos=(S.automations||[]).filter(a=>a.status==='idea').slice(0,5);
+  return`<div class="rs">
+    <h3 style="margin-bottom:12px;">⚙️ Systematize Your Week</h3>
+    <p style="font-size:13px;color:var(--muted);margin-bottom:16px;">What did you do manually this week that could be automated, delegated, or turned into a system?</p>
+    <div class="fg"><label>Things to systematize or automate</label><textarea class="fc" id="wiz-systematize" style="min-height:80px;" placeholder="e.g. Manually sending follow-up emails, copying data between tools, weekly report generation..."></textarea></div>
+    <button class="btn bg sm" style="margin-bottom:16px;" onclick="addSystematizeToAutomations()">+ Add to Automation Ideas</button>
+    ${autos.length?`<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">Recent automation ideas:</div>${autos.map(a=>`<div style="font-size:12px;padding:4px 0;border-bottom:1px solid var(--border);">${esc(a.name||a.title||'')}</div>`).join('')}`:''}
+  </div>
+  <div class="wiz-nav"><button class="btn bg" onclick="goStep(4)">← Back</button><button class="btn bp" onclick="finishReview()">✅ Save & Finish</button></div>`;
+}
+function _wizSave(){try{const d={step:wizStep,date:new Date().toISOString().slice(0,10)};['rw','ri','rf','rcommit','rifnot','r-journal','r-gratitude','r-bigwin'].forEach(id=>{const el=document.getElementById(id);if(el)d[id]=el.value;});safeSet('taskos_wiz_draft',JSON.stringify(d));}catch(e){console.warn('_wizSave error',e);}}
 function _wizClearDraft(){localStorage.removeItem('taskos_wiz_draft');}
 function finishReview(){
   const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
@@ -2974,7 +2981,7 @@ function finishReview(){
   // also persist to external history for the history view
   const hist=JSON.parse(localStorage.getItem('taskos_history')||'[]');
   hist.push(review);
-  localStorage.setItem('taskos_history',JSON.stringify(hist));
+  safeSet('taskos_history',JSON.stringify(hist));
   const wNote={id:uid(),weekOf:new Date().toISOString().slice(0,10),note:document.getElementById('r-journal')?.value.trim()||'',gratitude:document.getElementById('r-gratitude')?.value.trim()||'',bigWin:document.getElementById('r-bigwin')?.value.trim()||'',intention:''};
   if(wNote.note||wNote.gratitude||wNote.bigWin){S.weeklyNotes=S.weeklyNotes||[];S.weeklyNotes.push(wNote);}
   _wizClearDraft();
@@ -3114,7 +3121,7 @@ function saveTask(){
     },{okLabel:'🔥 Hell Yes!',icon:'⚡',danger:false});
     return;
   }
-  if(editT){const i=S.tasks.findIndex(t=>t.id===editT);S.tasks[i]={...S.tasks[i],...d};}
+  if(editT){const i=S.tasks.findIndex(t=>t.id===editT);if(i<0){toast('Task no longer exists — it may have been deleted');return;}S.tasks[i]={...S.tasks[i],...d};}
   else S.tasks.push({id:uid(),...d,status:'todo',isT3:false,t3s:null,createdAt:new Date().toISOString(),completedAt:null});
   save();closeM('tm');refresh();
 }
@@ -3357,7 +3364,7 @@ function saveGoal(){
     unit:document.getElementById('g-unit').value||'',
     woop:{outcome:document.getElementById('g-woop-outcome').value.trim(),obstacle:document.getElementById('g-woop-obstacle').value.trim(),plan:document.getElementById('g-woop-plan').value.trim()}
   };
-  if(editG){const i=S.goals.findIndex(g=>g.id===editG);S.goals[i]={...S.goals[i],...d};}
+  if(editG){const i=S.goals.findIndex(g=>g.id===editG);if(i<0){toast('Goal no longer exists — it may have been deleted');return;}S.goals[i]={...S.goals[i],...d};}
   else S.goals.push({id:uid(),...d});
   save();closeM('gm');renderGoals();
 }
@@ -3445,7 +3452,7 @@ function _cmdkSearch(){
   }
   _cmdkItems=items;_cmdkIdx=0;
   if(!items.length){box.innerHTML='<div class="cmdk-res-empty">No matches — press <kbd>Enter</kbd> to capture "'+esc(q)+'"</div>';return;}
-  box.innerHTML=items.map((it,i)=>`<div class="cmdk-res-item${i===0?' cmdk-sel':''}" data-idx="${i}" onclick="_cmdkRun(${i})"><span class="cri-ic">${it.ic}</span><span class="cri-label">${esc(it.label)}</span><span class="cri-sub">${it.sub}</span></div>`).join('');
+  box.innerHTML=items.map((it,i)=>`<div class="cmdk-res-item${i===0?' cmdk-sel':''}" data-idx="${i}" onclick="_cmdkRun(${i})"><span class="cri-ic">${it.ic}</span><span class="cri-label">${esc(it.label)}</span><span class="cri-sub">${esc(it.sub||'')}</span></div>`).join('');
 }
 function _cmdkRun(idx){const it=_cmdkItems[idx];if(it&&it.run)it.run();}
 function _cmdkMove(dir){
@@ -4424,7 +4431,7 @@ async function aiSuggestAutomations(){
   _showAiLoader('✨ Generating automation ideas…');
   const existing=(S.automations||[]).map(a=>a.name).join(', ')||'none yet';
   const tasks=S.tasks.filter(t=>t.status!=='done').slice(0,10).map(t=>t.title).join(', ');
-  const about=getAboutMe()||'Panos — Greek founder building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';
+  const about=getAboutMe()||'A founder building a SaaS startup, targeting growth and financial freedom.';
   const prompt=`Context: ${about}\n\nI'm building 100 AI automations. I already have: ${existing}.\nMy current active tasks: ${tasks}.\nSuggest 5 NEW automation ideas I haven't built yet. Format: numbered list, each with name + one-line description. Focus on personal productivity, Givelink B2B SaaS for nonprofits, and content creation. Be specific to my situation as a founder.`;
   const result=await callClaude(prompt,600);
   if(result)showAiOut('✨ Automation Ideas',result);else closeM('ai-out-modal');
@@ -4434,7 +4441,7 @@ async function aiSuggestAutomations(){
 // ── AI WORKFLOWS HUB ───────────────────────────────────────────
 // One-click reusable AI actions that run on the user's own data.
 // Each one kept ("Log as automation") counts toward the 100-automation North Star.
-function _wfAbout(){return getAboutMe()||'Panos — Greek founder building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';}
+function _wfAbout(){return getAboutMe()||'A founder building a SaaS startup, targeting growth and financial freedom.';}
 const _AI_WORKFLOWS=[
   {id:'plan-week',icon:'🗓️',title:'Plan my week',desc:'Turn your North Stars + open tasks into a focused weekly plan',tasky:true,build:(ctx)=>{
     const stars=(S.goals||[]).filter(g=>g.isTop3);
@@ -4630,7 +4637,7 @@ async function aiRelNudge(){
   _showAiLoader('🤝 Finding who to reach out to…');
   const people=S.people||[];
   const list=people.map(p=>`${p.name} (${p.type}, ${daysSinceDate(p.lastContact)}d since contact, interval: ${p.interval||30}d${p.isTop?' TOP':''})${p.notes?', '+p.notes:''}`).join('\n');
-  const about=getAboutMe()||'Panos — Greek founder building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';
+  const about=getAboutMe()||'A founder building a SaaS startup, targeting growth and financial freedom.';
   const prompt=`${about?`Context: ${about}\n\n`:''}Here are my relationships:\n${list||'No people logged yet.'}\n\nToday is ${new Date().toLocaleDateString()}. Who should Panos reach out to this week and why? Consider his Givelink fundraising platform and startup journey. Suggest 3 people with specific reason and a concrete conversation starter.`;
   const result=await callClaude(prompt,500);
   if(result)showAiOut('🤝 Who to Reach Out To',result);else closeM('ai-out-modal');
@@ -4897,7 +4904,7 @@ function deleteDiscomfort(id){
 async function aiDiscomfortInsight(){
   const logs=(S.discomfortLogs||[]).slice(-20);
   if(!logs.length){toast('Log some challenges first!');return;}
-  const about=getAboutMe()||'Panos — Greek founder building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';
+  const about=getAboutMe()||'A founder building a SaaS startup, targeting growth and financial freedom.';
   const summary=logs.map(l=>`${l.date}: ${l.type} — ${l.desc} (difficulty ${l.difficulty}/5)`).join('\n');
   const streak=_discomfortStreak();
   const prompt=`Context: ${about}\n\nVoluntary discomfort log (most recent 20):\n${summary}\n\nCurrent streak: ${streak} days.\n\nAs a performance coach, give Panos:\n1. A 2-sentence pattern analysis of his discomfort practice\n2. One specific escalation recommendation for his next challenge\n3. How this practice is building the resilience he needs for the SF move and Givelink growth\n\nBe concise and founder-specific.`;
@@ -5010,7 +5017,7 @@ function checkEatTheFrog(){
   document.getElementById('frog-task').textContent=frog.title;
   document.getElementById('frog-meta').textContent=`${daysOld} days in your list · High urgency + importance · ${CATS[frog.category]?.l||'Other'}`;
   document.getElementById('frog-modal').classList.remove('hidden');
-  localStorage.setItem('taskos_frog_'+new Date().toISOString().slice(0,10),'shown');
+  safeSet('taskos_frog_'+new Date().toISOString().slice(0,10),'shown');
 }
 function pinFrogTask(){
   if(!_frogTaskId)return;
@@ -5669,7 +5676,7 @@ function savePreMortem(){
   if(last&&last.weekOf===today){last.premortemRisks=risks;}
   else{S.reviews.push({id:uid(),weekOf:today,premortemRisks:risks});}
   save();
-  localStorage.setItem('taskos_premortem_'+today,'done');
+  safeSet('taskos_premortem_'+today,'done');
   toast('🔮 Pre-mortem saved!');
   document.getElementById('premortem-widget').style.display='none';
 }
@@ -6811,7 +6818,7 @@ function _maybeShowWeeklyWrapped(){
   if(today.getDay()!==0)return;
   const key='taskos_wrapped_'+today.toISOString().slice(0,10);
   if(localStorage.getItem(key))return;
-  localStorage.setItem(key,'1');
+  safeSet(key,'1');
   const weekAgo=new Date(today-7*86400000).toISOString().slice(0,10);
   const tasks=(S.tasks||[]).filter(t=>t.completedAt&&t.completedAt.slice(0,10)>=weekAgo&&t.status==='done');
   const wins=(S.wins||[]).filter(w=>w.date&&w.date>=weekAgo);
@@ -7154,7 +7161,7 @@ function checkSomedayAudit(){
   const lastAudit = localStorage.getItem('taskos_someday_audit');
   const daysSince = lastAudit ? Math.floor((Date.now() - new Date(lastAudit)) / 86400000) : 999;
   if (daysSince < 7) return;
-  localStorage.setItem('taskos_someday_audit', new Date().toISOString().slice(0, 10));
+  safeSet('taskos_someday_audit', new Date().toISOString().slice(0, 10));
   const el = document.getElementById('anti-pattern-alerts');
   if (el) {
     const d = document.createElement('div');
@@ -8071,11 +8078,11 @@ function _onbRender(){
   document.getElementById('onb-next').textContent=_onbIdx<_ONB.length-1?'Next →':'Get started 🚀';
 }
 function _onbNext(){if(_onbIdx<_ONB.length-1){_onbIdx++;_onbRender();}else _onbFinish();}
-function _onbFinish(){localStorage.setItem('taskos_onboarded','1');document.getElementById('onboarding-modal').classList.add('hidden');document.body.classList.remove('modal-open');}
+function _onbFinish(){safeSet('taskos_onboarded','1');document.getElementById('onboarding-modal').classList.add('hidden');document.body.classList.remove('modal-open');}
 function _maybeOnboard(){
   if(localStorage.getItem('taskos_onboarded'))return;
   // Existing users (already have data) shouldn't be interrupted
-  if((S.tasks&&S.tasks.length>3)||(S.xp||0)>0){localStorage.setItem('taskos_onboarded','1');return;}
+  if((S.tasks&&S.tasks.length>3)||(S.xp||0)>0){safeSet('taskos_onboarded','1');return;}
   _onbIdx=0;_onbRender();document.getElementById('onboarding-modal').classList.remove('hidden');document.body.classList.add('modal-open');
 }
 // P3 — Pull to refresh (mobile)
@@ -8508,24 +8515,24 @@ function openSettings(){
 }
 function saveSettings(){
   const n=document.getElementById('set-name').value.trim();
-  if(n){profileName=n;localStorage.setItem('taskos_name',n);document.title='Task OS — '+n;}
+  if(n){profileName=n;safeSet('taskos_name',n);document.title='Task OS — '+n;}
   const k=document.getElementById('set-claude-key').value.trim();
   S.claudeKey=k;
   S.hellYesFilter=document.getElementById('set-hell-yes').value==='true';
   S.brandStatement=document.getElementById('set-brand')?.value.trim()||'';
   save();
   const ab=document.getElementById('set-about').value.trim();
-  if(ab)localStorage.setItem('taskos_about',ab); else localStorage.removeItem('taskos_about');
+  if(ab)safeSet('taskos_about',ab); else localStorage.removeItem('taskos_about');
   const rw=document.getElementById('set-readwise-key').value.trim();
-  if(rw)localStorage.setItem('taskos_readwise_key',rw); else localStorage.removeItem('taskos_readwise_key');
+  if(rw)safeSet('taskos_readwise_key',rw); else localStorage.removeItem('taskos_readwise_key');
   const nk=document.getElementById('set-notion-key').value.trim();
-  if(nk)localStorage.setItem('taskos_notion_key',nk); else localStorage.removeItem('taskos_notion_key');
+  if(nk)safeSet('taskos_notion_key',nk); else localStorage.removeItem('taskos_notion_key');
   const np=document.getElementById('set-notion-page').value.trim();
-  if(np)localStorage.setItem('taskos_notion_page',np); else localStorage.removeItem('taskos_notion_page');
+  if(np)safeSet('taskos_notion_page',np); else localStorage.removeItem('taskos_notion_page');
   // Persist Supabase config (credentials only saved on Connect)
-  const su=document.getElementById('set-sb-url').value.trim().replace(/\/+$/,'');if(su)localStorage.setItem('taskos_sb_url',su);
-  const sa=document.getElementById('set-sb-anon').value.trim();if(sa)localStorage.setItem('taskos_sb_anon',sa);
-  const sem=document.getElementById('set-sb-email').value.trim();if(sem)localStorage.setItem('taskos_sb_email',sem);
+  const su=document.getElementById('set-sb-url').value.trim().replace(/\/+$/,'');if(su)safeSet('taskos_sb_url',su);
+  const sa=document.getElementById('set-sb-anon').value.trim();if(sa)safeSet('taskos_sb_anon',sa);
+  const sem=document.getElementById('set-sb-email').value.trim();if(sem)safeSet('taskos_sb_email',sem);
   closeM('set-m');renderDash();
   toast('Settings saved!');
 }
@@ -8552,7 +8559,7 @@ function _sbRenderStatus(){
   if(!_SB.url||!_SB.anon){el.textContent='Not configured — offline (localStorage only).';el.style.color='var(--muted)';return;}
   if(!_sbEnabled()){el.textContent='Configured — click Connect & Sync to sign in.';el.style.color='var(--muted)';return;}
   el.textContent=_sbStatus||('Connected as '+_SB.email);
-  el.style.color=_sbStatus.startsWith('⚠')?'#ef4444':'#69db7c';
+  el.style.color=_sbStatus.startsWith('⚠')?'var(--q1,#ef4444)':'var(--q2,#69db7c)';
 }
 async function _sbAuth(grant,body){
   const r=await fetch(`${_SB.url}/auth/v1/token?grant_type=${grant}`,{method:'POST',headers:{'Content-Type':'application/json','apikey':_SB.anon},body:JSON.stringify(body)});
@@ -8739,7 +8746,7 @@ function initPWA(){
         const b=document.getElementById('install-banner');
         document.getElementById('install-ios-hint').style.display='';
         b.style.display='block';
-        localStorage.setItem('pwa_ios_shown','1');
+        safeSet('pwa_ios_shown','1');
       },3000);
     }
     return;
@@ -8753,13 +8760,17 @@ function initPWA(){
     },3000);
   });
 }
+function _dismissInstallBanner(){
+  document.getElementById('install-banner').style.display='none';
+  safeSet('pwa_install_dismissed','1');
+}
 function triggerInstall(){
   if(!_installPrompt)return;
   _installPrompt.prompt();
   _installPrompt.userChoice.then(()=>{
     _installPrompt=null;
     document.getElementById('install-banner').style.display='none';
-    localStorage.setItem('pwa_install_dismissed','1');
+    safeSet('pwa_install_dismissed','1');
   });
 }
 function showUpdateBanner(){
@@ -8864,7 +8875,7 @@ async function openReadwiseImport(){
 async function loadReadwiseHighlights(bookId,title,author){
   const body=document.getElementById('readwise-body');
   const footer=document.getElementById('readwise-footer');
-  body.innerHTML=`<div style="padding:20px;text-align:center;color:var(--muted);">⏳ Loading highlights for "${title}"...</div>`;
+  body.innerHTML=`<div style="padding:20px;text-align:center;color:var(--muted);">⏳ Loading highlights for "${esc(title)}"...</div>`;
   footer.innerHTML='';
   try{
     let all=[];let url=`/highlights/?book_id=${bookId}&page_size=500`;
@@ -9190,7 +9201,7 @@ function _cbChecked(type){
 function _cbToggle(type,id){
   const checked=_cbChecked(type);
   checked.has(id)?checked.delete(id):checked.add(id);
-  localStorage.setItem(_cbKey(type),JSON.stringify([...checked]));
+  safeSet(_cbKey(type),JSON.stringify([...checked]));
   renderChecklistBody(type);
   updateChecklistBadge();
 }
@@ -9248,7 +9259,7 @@ function initChecklists(){
   const today=new Date().toISOString().slice(0,10);
   const shownKey='taskos_cb_shown_'+today;
   if(!localStorage.getItem(shownKey)){
-    localStorage.setItem(shownKey,'1');
+    safeSet(shownKey,'1');
     const checked=_cbChecked('daily');
     if(checked.size<Math.ceil(CHECKLISTS.daily.length/2)){
       setTimeout(()=>openChecklist('daily'),1500);
@@ -9699,7 +9710,7 @@ WARNING: [if stalled goal: one sentence naming the goal and the risk. else: none
   const d={};
   text.split('\n').forEach(line=>{const m=line.match(/^(\w+(?:_\d+)?): (.+)/);if(m)d[m[1]]=m[2].trim();});
   if(!d.PRIORITY_1&&!d.PRIORITIES)return;
-  localStorage.setItem(cacheKey,JSON.stringify(d));
+  safeSet(cacheKey,JSON.stringify(d));
   _renderAIBriefing(d,el);
 }
 function _renderAIBriefing(d,el){
@@ -10938,7 +10949,7 @@ function saveSleep(){
 async function aiSleepInsight(){
   const logs=(S.sleepLogs||[]).slice(-14);
   if(!logs.length){toast('Log some sleep data first!');return;}
-  const about=getAboutMe()||'Panos — Greek founder building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';
+  const about=getAboutMe()||'A founder building a SaaS startup, targeting growth and financial freedom.';
   const dwSessions=S.deepWorkSessions||[];
   const summary=logs.map(l=>{
     const dwH=(dwSessions.filter(s=>s.date===l.date).reduce((a,s)=>a+s.duration,0)/3600).toFixed(1);
@@ -12013,7 +12024,7 @@ function _goalMomentum(goalId){
 <div id="install-banner" style="display:none;position:fixed;bottom:70px;right:16px;z-index:1200;background:var(--surface);border:1px solid var(--accent);border-radius:12px;padding:14px 16px;max-width:260px;box-shadow:0 4px 24px rgba(0,0,0,.4);">
   <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
     <span style="font-size:13px;font-weight:700;">📱 Install as App</span>
-    <button onclick="document.getElementById('install-banner').style.display='none';localStorage.setItem('pwa_install_dismissed','1')" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;">×</button>
+    <button onclick="_dismissInstallBanner()" style="background:none;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;">×</button>
   </div>
   <div id="install-ios-hint" style="display:none;font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:10px;">Tap the <strong>Share</strong> button (⬆️) then <strong>"Add to Home Screen"</strong></div>
   <button id="install-btn" style="display:none;width:100%;background:var(--accent);color:#000;border:none;border-radius:8px;padding:9px;font-size:13px;font-weight:700;cursor:pointer;" onclick="triggerInstall()">Add to Home Screen</button>

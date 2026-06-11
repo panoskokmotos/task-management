@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#58a6ff">
+<meta name="theme-color" content="#6B3FA0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Task OS">
@@ -12,22 +12,22 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<title>Task OS — Panos</title>
+<title>Task OS</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
 :root{
   --bg:#0d1117;--surface:#161b22;--surface2:#21262d;--border:#30363d;
-  --text:#e6edf3;--muted:#8b949e;--accent:#58a6ff;--accent-soft:rgba(88,166,255,.14);--hover:rgba(255,255,255,.04);
-  --brand:#58a6ff;--brand2:#bc8cff;--brand-gradient:linear-gradient(135deg,#58a6ff,#bc8cff);
+  --text:#e6edf3;--muted:#8b949e;--accent:#6B3FA0;--accent-soft:rgba(107,63,160,.14);--hover:rgba(255,255,255,.04);
+  --brand:#6B3FA0;--brand2:#E353B6;--brand-gradient:linear-gradient(135deg,#6B3FA0,#E353B6);
   --bw:#ff6b6b;--bm:#ffa94d;--bb:#69db7c;--bs:#74c0fc;--bi:#da77f2;
   --q1:#ff6b6b;--q2:#69db7c;--q3:#ffa94d;--q4:#868e96;
   --cg:#cc5de8;--cf:#ffa94d;--ca:#22d3ee;--ch:#ff6b6b;--cr:#69db7c;--cl:#74c0fc;--cb:#f783ac;--co:#868e96;
 }
 body.light{
   --bg:#f5f5f0;--surface:#ffffff;--surface2:#f0f0eb;--border:#e0ddd8;
-  --text:#1a1a1a;--muted:#6b7280;--accent:#2563eb;--accent-soft:rgba(37,99,235,.1);--hover:rgba(0,0,0,.04);
-  --brand:#2563eb;--brand2:#9333ea;--brand-gradient:linear-gradient(135deg,#2563eb,#9333ea);
+  --text:#1a1a1a;--muted:#6b7280;--accent:#5718CA;--accent-soft:rgba(87,24,202,.1);--hover:rgba(0,0,0,.04);
+  --brand:#5718CA;--brand2:#C2185B;--brand-gradient:linear-gradient(135deg,#5718CA,#C2185B);
   --bw:#dc2626;--bm:#d97706;--bb:#16a34a;--bs:#2563eb;--bi:#9333ea;
   --q1:#dc2626;--q2:#16a34a;--q3:#d97706;--q4:#6b7280;
   --cg:#9333ea;--cf:#d97706;--ca:#0891b2;--ch:#dc2626;--cr:#16a34a;--cl:#2563eb;--cb:#db2777;--co:#6b7280;
@@ -2027,6 +2027,8 @@ Read 50 books this year"></textarea>
 </div>
 
 <script>
+const MS_PER_DAY=86400000;
+
 // ── DATA ──────────────────────────────────────────────────────
 const CATS={givelink:{l:'Givelink',e:'🟣'},finance:{l:'Finance',e:'💰'},automation:{l:'Automation',e:'🤖'},health:{l:'Health',e:'🏋️'},relationships:{l:'Relationships',e:'🤝'},learning:{l:'Learning',e:'📚'},brand:{l:'Brand',e:'🌐'},other:{l:'Other',e:'📌'}};
 const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max:10},'this-month':{l:'This Month',e:'🟠',max:20},backlog:{l:'Backlog',e:'🟢'},someday:{l:'Someday',e:'🔵'}};
@@ -2035,7 +2037,7 @@ const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c',
 
 let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededV2:false,seededGoalsV3:false,dashCompact:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false,dailyIntention:[],energyLog:[],xp:0,level:1,badges:[],dailyQuests:[],questsDate:'',wheelAssessments:[],socialProfiles:[],brandStatement:'',weeklyNotes:[],taskPairs:{},brandAuditResult:'',givelinkMetrics:{nonprofits:0,pipeline:0,arr:0,users:0,impactStories:[],mrr:0,impactModel:{currentNonprofits:0,avgDonationsPerNonprofit:0,avgDonationSize:0,viralCoeff:1.1,targetPeople:1000000}},netWorthEntries:[],okrs:[],biomarkers:[],selfKnowledge:[],quarterlyReviews:[],annualReviews:[],agiPrep:{timeline:{},decisions:[],resources:[],scenarios:[]},sfTimeline:{targetDate:'',durationMonths:6,status:'planning',budget:0,milestones:[],network:[],notes:''},lifeScore:{score:0,breakdown:{},lastCalc:''},contentPipeline:[],skills:[],experiences:[],antiGoals:[],contracts:[],manifesto:{principles:[],identityStatements:[],rules:[],lastUpdated:''},bodyLogs:[],sleepLogs:[],portfolioEntries:[],givelinkHistory:[],dashWidgetOrder:['lifescore','daily-picks','daily-quests','habits','routines','deepwork','wheel-mini'],mentors:[],_allQuestsBonusDate:'',treasureChests:[],deadEnds:[],pitsOfDoom:[],optionalityLog:[],happinessLogs:[],maslowLog:[],lifeFrameworksLog:[],leverageLog:[],impossiblePeople:[],securityAuditLog:[]};
 let editT=null,editG=null,fCat='all';
-let profileName=localStorage.getItem('taskos_name')||'Panos';
+let profileName=localStorage.getItem('taskos_name')||'';
 let _editChecklist=[];
 function _renderChecklistEditor(){
   const items=document.getElementById('cl-items');
@@ -2119,7 +2121,9 @@ function importData(e){
     try{
       const d=JSON.parse(ev.target.result);
       if(!d.tasks||!Array.isArray(d.tasks)){toast('❌ Invalid backup file');return;}
-      Object.assign(S,d);save();refresh();
+      const ALLOWED=Object.keys(S);
+      const safe={};ALLOWED.forEach(k=>{if(k in d)safe[k]=d[k];});
+      Object.assign(S,safe);save();refresh();
       toast(`✅ Imported ${d.tasks.length} tasks!`);
     }catch(err){toast('❌ Failed to parse file');}
   };
@@ -2409,7 +2413,7 @@ function _renderSomedayCard(){
     return;
   }
   const t=_somedayQueue[_somedayIdx];
-  const daysOld=Math.floor((Date.now()-new Date(t.createdAt))/86400000);
+  const daysOld=Math.floor((Date.now()-new Date(t.createdAt))/MS_PER_DAY);
   el.innerHTML=`<div style="font-size:11px;color:var(--muted);margin-bottom:6px;">${_somedayIdx+1} of ${_somedayQueue.length}</div>
     <div style="font-size:16px;font-weight:600;margin-bottom:8px;">${esc(t.title)}</div>
     <div style="font-size:12px;color:var(--muted);margin-bottom:18px;">${daysOld}d in Someday · ${CATS[t.category]?.l||''}</div>
@@ -2725,7 +2729,7 @@ function renderBuckets(){
   const thirtyAgo=new Date();thirtyAgo.setDate(thirtyAgo.getDate()-30);
   const oldSomeday=S.tasks.filter(t=>t.bucket==='someday'&&t.status!=='done'&&t.createdAt&&new Date(t.createdAt)<thirtyAgo);
   const lastAudit=localStorage.getItem('taskos_someday_audit');
-  if(oldSomeday.length>=3&&(!lastAudit||Math.floor((Date.now()-new Date(lastAudit))/86400000)>29)){
+  if(oldSomeday.length>=3&&(!lastAudit||Math.floor((Date.now()-new Date(lastAudit))/MS_PER_DAY)>29)){
     setTimeout(()=>toast(`📋 ${oldSomeday.length} Someday items need review — click Someday Audit`,3000),800);
   }
   const a=active();
@@ -4152,7 +4156,7 @@ function showAiOut(title, text){
   document.getElementById('ai-out-body').textContent=text;
   document.getElementById('ai-out-modal').classList.remove('hidden');
 }
-function daysSinceDate(d){if(!d)return 999;return Math.floor((Date.now()-new Date(d))/(86400000));}
+function daysSinceDate(d){if(!d)return 999;return Math.floor((Date.now()-new Date(d))/(MS_PER_DAY));}
 
 // ── AI SEQUENCE SCORE (Eat That Frog) ─────────────────────────
 async function aiSequenceTasks(){
@@ -4977,7 +4981,7 @@ function renderAntiPatterns(){
   if(goalNoTasks.length>=2)patterns.push({icon:'🏆',color:'#a78bfa',msg:`${goalNoTasks.length} goals have no active tasks — goals need execution`});
   // Same Top 3 for 7+ days
   const top3=S.tasks.filter(t=>t.isT3&&t.status!=='done');
-  const stale=top3.filter(t=>t.createdAt&&new Date(t.createdAt)<new Date(Date.now()-7*86400000));
+  const stale=top3.filter(t=>t.createdAt&&new Date(t.createdAt)<new Date(Date.now()-7*MS_PER_DAY));
   if(stale.length>=2)patterns.push({icon:'🔄',color:'#ffa94d',msg:`Top 3 tasks unchanged for 7+ days — are you making progress or avoiding?`});
   const wrapper=document.createElement('div');wrapper.style.cssText='display:flex;flex-direction:column;gap:6px;margin-bottom:14px;';
   el.innerHTML='';el.appendChild(wrapper);
@@ -4999,7 +5003,7 @@ function checkEatTheFrog(){
   if(!candidates.length)return;
   const frog=candidates[0];
   _frogTaskId=frog.id;
-  const daysOld=Math.floor((Date.now()-new Date(frog.createdAt))/(86400000));
+  const daysOld=Math.floor((Date.now()-new Date(frog.createdAt))/(MS_PER_DAY));
   document.getElementById('frog-task').textContent=frog.title;
   document.getElementById('frog-meta').textContent=`${daysOld} days in your list · High urgency + importance · ${CATS[frog.category]?.l||'Other'}`;
   document.getElementById('frog-modal').classList.remove('hidden');
@@ -5481,7 +5485,7 @@ async function genAIChallenge(){
   toast('⏳ Generating your challenge...');
   const goals=S.goals.slice(0,5).map(g=>g.title).join(', ')||'Givelink growth, health, AI automations';
   const habits=S.habits.slice(0,5).join(', ')||'none set';
-  const done=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>new Date(Date.now()-7*86400000)).slice(0,5).map(t=>t.title).join(', ')||'nothing recent';
+  const done=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>new Date(Date.now()-7*MS_PER_DAY)).slice(0,5).map(t=>t.title).join(', ')||'nothing recent';
   const streak=_challengeStreak();
   const prompt='I need a daily challenge. My goals: '+goals+'. My habits: '+habits+'. Last week I did: '+done+'. Current challenge streak: '+streak+' days. Pick ONE specific, actionable challenge for today. Make it slightly outside my comfort zone. Format: TITLE: [challenge max 10 words] WHY: [1 sentence connecting to purpose] CAT: [one of: givelink/health/discipline/relationships/growth/finance/deep-work] DIFF: [1, 2, or 3]';
   const result=await callClaude(prompt,200);
@@ -5590,7 +5594,7 @@ function renderLadder(){
   const prog=document.getElementById('ladder-progress');
   const body=document.getElementById('ladder-body');
   if(!prog||!body)return;
-  const currentWeekNum=ladder.startWeek?Math.ceil((Date.now()-new Date(ladder.startWeek))/(7*86400000)):0;
+  const currentWeekNum=ladder.startWeek?Math.ceil((Date.now()-new Date(ladder.startWeek))/(7*MS_PER_DAY)):0;
   const completed=new Set(ladder.completedWeeks||[]);
   const total=DISCOMFORT_LADDER.length;
   const doneCount=completed.size;
@@ -6428,9 +6432,9 @@ function _scoreTasks(){
       else if(g&&!g.complete){sc+=3;reason='🏆 Goal-linked';}
       if(t.importance==='high'){sc+=3;if(reason==='📋 In queue')reason='⚡ High priority';}
       if(t.urgency==='high'){sc+=2;if(reason==='📋 In queue'||reason==='⚡ High priority')reason='🔥 Urgent';}
-      if(t.dueDate){const dd=new Date(t.dueDate);const days=(dd-now)/86400000;if(days<=3&&days>=0){sc+=2;if(!['⭐ Top goal','🏆 Goal-linked'].includes(reason))reason='📅 Due soon';}}
+      if(t.dueDate){const dd=new Date(t.dueDate);const days=(dd-now)/MS_PER_DAY;if(days<=3&&days>=0){sc+=2;if(!['⭐ Top goal','🏆 Goal-linked'].includes(reason))reason='📅 Due soon';}}
       if(t.bucket==='this-week')sc+=1;
-      if(t.createdAt&&(now-new Date(t.createdAt))/86400000>5){sc+=1;if(reason==='📋 In queue')reason='🔄 Stale';}
+      if(t.createdAt&&(now-new Date(t.createdAt))/MS_PER_DAY>5){sc+=1;if(reason==='📋 In queue')reason='🔄 Stale';}
       if(h<12&&t.energy==='high')sc+=1;
       if(h>=14&&t.energy==='low')sc+=1;
       return{task:t,score:sc,reason};
@@ -6780,12 +6784,12 @@ function _calcNetworkScore(){
   if(!people.length)return{score:0,overdue:[],recent:0};
   let total=0,max=0;
   const overdue=[];
-  const monthAgo=new Date(Date.now()-30*86400000).toISOString().slice(0,10);
+  const monthAgo=new Date(Date.now()-30*MS_PER_DAY).toISOString().slice(0,10);
   people.forEach(p=>{
     const weight={'close':3,'friend':2,'acquaintance':1,'professional':1}[p.type||'acquaintance']||1;
     const interval=p.contactInterval||p.interval||30;
     const last=p.lastContact||'2000-01-01';
-    const daysSince=Math.floor((Date.now()-new Date(last))/86400000);
+    const daysSince=Math.floor((Date.now()-new Date(last))/MS_PER_DAY);
     const recency=Math.max(0,1-daysSince/interval);
     total+=weight*recency;
     max+=weight;
@@ -6805,7 +6809,7 @@ function _maybeShowWeeklyWrapped(){
   const key='taskos_wrapped_'+today.toISOString().slice(0,10);
   if(localStorage.getItem(key))return;
   localStorage.setItem(key,'1');
-  const weekAgo=new Date(today-7*86400000).toISOString().slice(0,10);
+  const weekAgo=new Date(today-7*MS_PER_DAY).toISOString().slice(0,10);
   const tasks=(S.tasks||[]).filter(t=>t.completedAt&&t.completedAt.slice(0,10)>=weekAgo&&t.status==='done');
   const wins=(S.wins||[]).filter(w=>w.date&&w.date>=weekAgo);
   const xpThisWeek=tasks.reduce((a,t)=>a+({'deep':20,'medium':10,'shallow':5}[t.depth]||10),0);
@@ -6924,7 +6928,7 @@ function showCommitments(){
     el.innerHTML = '<div class="empty" style="padding:20px;">No commitments yet. Make one in the Weekly Review.</div>';
   } else {
     el.innerHTML = commits.map(c => {
-      const daysAgo = Math.floor((Date.now() - new Date(c.weekOf)) / 86400000);
+      const daysAgo = Math.floor((Date.now() - new Date(c.weekOf)) / MS_PER_DAY);
       const isThisWeek = daysAgo < 7;
       return `<div style="padding:12px 0;border-bottom:1px solid var(--border);">
         <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:6px;">
@@ -7115,7 +7119,7 @@ function openSomedayAudit(){
     el.innerHTML = '<div class="empty" style="padding:20px;">No Someday tasks older than 30 days. 🎉</div>';
   } else {
     el.innerHTML = old.map(t => {
-      const daysOld = Math.floor((Date.now() - new Date(t.createdAt)) / 86400000);
+      const daysOld = Math.floor((Date.now() - new Date(t.createdAt)) / MS_PER_DAY);
       return `<div style="padding:10px 0;border-bottom:1px solid var(--border);">
         <div style="font-size:13px;font-weight:500;margin-bottom:6px;">${t.title} <span style="font-size:10px;color:var(--muted);">(${daysOld}d old)</span></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
@@ -7145,7 +7149,7 @@ function checkSomedayAudit(){
   const old = S.tasks.filter(t => t.bucket === 'someday' && t.status !== 'done' && t.createdAt && new Date(t.createdAt) < thirtyAgo);
   if (old.length < 3) return;
   const lastAudit = localStorage.getItem('taskos_someday_audit');
-  const daysSince = lastAudit ? Math.floor((Date.now() - new Date(lastAudit)) / 86400000) : 999;
+  const daysSince = lastAudit ? Math.floor((Date.now() - new Date(lastAudit)) / MS_PER_DAY) : 999;
   if (daysSince < 7) return;
   localStorage.setItem('taskos_someday_audit', new Date().toISOString().slice(0, 10));
   const el = document.getElementById('anti-pattern-alerts');
@@ -7164,7 +7168,7 @@ function _logContextSwitch(category){
   if (!S.contextLog) S.contextLog = [];
   const today = new Date().toISOString().slice(0,10);
   // Trim old entries (keep last 7 days)
-  S.contextLog = S.contextLog.filter(e => e.date >= new Date(Date.now() - 7*86400000).toISOString().slice(0,10));
+  S.contextLog = S.contextLog.filter(e => e.date >= new Date(Date.now() - 7*MS_PER_DAY).toISOString().slice(0,10));
   S.contextLog.push({ date: today, cat: category, ts: Date.now() });
 }
 function _countContextSwitches(date){
@@ -7959,7 +7963,7 @@ function _saveBookApply(){
 // FEATURE 10 — RELATIONSHIPS: PER-PERSON QUALITY SCORE
 // ════════════════════════════════════════════════════════════════
 function _relationshipScore(person){
-  const daysSince=person.lastContact?Math.floor((Date.now()-new Date(person.lastContact))/(86400000)):999;
+  const daysSince=person.lastContact?Math.floor((Date.now()-new Date(person.lastContact))/(MS_PER_DAY)):999;
   const frequency=daysSince<7?5:daysSince<30?4:daysSince<60?3:daysSince<90?2:1;
   const quality=person.quality||3;
   return Math.round((frequency*quality)/5*10);
@@ -8432,7 +8436,7 @@ function renderSFTimeline(){
     sf.milestones=SF_MILESTONES_SEED.map(m=>({id:uid(),title:m.title,done:false,category:m.cat,targetDate:''}));
     save();
   }
-  const daysLeft=sf.targetDate?Math.max(0,Math.ceil((new Date(sf.targetDate)-Date.now())/86400000)):null;
+  const daysLeft=sf.targetDate?Math.max(0,Math.ceil((new Date(sf.targetDate)-Date.now())/MS_PER_DAY)):null;
   const catColors={visa:'#58a6ff',housing:'#69db7c',network:'#a78bfa',givelink:'#f783ac',personal:'#fbbf24'};
   const done=sf.milestones.filter(m=>m.done).length;
   el.innerHTML=`<div style="display:flex;gap:14px;margin-bottom:20px;flex-wrap:wrap;">
@@ -8587,7 +8591,12 @@ async function sbConnect(){
     await sbSyncNow(true);
     _sbSetStatus('Connected as '+email);
     toast('☁️ Cloud sync connected');
-  }catch(e){_sbSetStatus('⚠ '+e.message);toast('⚠ Sync failed: '+e.message);}
+  }catch(e){
+    ['access','refresh','exp','uid'].forEach(k=>localStorage.removeItem('taskos_sb_'+k));
+    _sbSetStatus('');
+    _sbRenderStatus();
+    toast('⚠ Connection failed: '+e.message+'. Check your credentials and try again.',5000);
+  }
 }
 function sbDisconnect(){
   ['access','refresh','exp','uid'].forEach(k=>localStorage.removeItem('taskos_sb_'+k));
@@ -8607,6 +8616,7 @@ async function sbPush(){
   if(!S._updatedAt)S._updatedAt=Date.now();
   const body=[{user_id:_SB.uid,data:S,updated_at:new Date().toISOString()}];
   const r=await fetch(`${_SB.url}/rest/v1/app_state`,{method:'POST',headers:{'apikey':_SB.anon,'Authorization':'Bearer '+tok,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(body)});
+  if(r.status===429){const retry=parseInt(r.headers.get('Retry-After')||'60');_sbSetStatus('⚠ Rate limited — retry in '+retry+'s');throw new Error('push rate-limited');}
   if(!r.ok)throw new Error('push '+r.status);
 }
 async function sbSyncNow(force){
@@ -8635,8 +8645,11 @@ function _sbScheduleSync(){
   clearTimeout(_sbTimer);
   _sbTimer=setTimeout(()=>{
     if(!_sbEnabled())return;
-    sbPush().then(()=>_sbSetStatus('Synced ⬆ '+new Date().toLocaleTimeString())).catch(e=>_sbSetStatus('⚠ '+e.message));
-  },2500);
+    sbPush().then(()=>_sbSetStatus('Synced ⬆ '+new Date().toLocaleTimeString())).catch(e=>{
+      if(e.message==='push rate-limited')return;
+      _sbSetStatus('⚠ '+e.message);
+    });
+  },3000);
 }
 // Auto-snapshot: capture a daily Givelink history point so the Pace Engine
 // always has trend data without manual snapshots.
@@ -9826,9 +9839,7 @@ function regenRelDraft(){
 }
 function copyRelDraft(){
   const text=document.getElementById('rel-draft-text')?.value||'';
-  navigator.clipboard.writeText(text).then(()=>toast('📋 Copied!')).catch(()=>{
-    const ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();toast('📋 Copied!');
-  });
+  navigator.clipboard.writeText(text).then(()=>toast('📋 Copied!')).catch(()=>toast('Copy failed — please copy manually'));
 }
 function closeRelDraft(){
   const sheet=document.getElementById('rel-draft-sheet');
@@ -9854,7 +9865,7 @@ async function showGoalDigest(){
   body.innerHTML='<div style="text-align:center;padding:30px;color:var(--muted);">⏳ Analyzing your goals...</div>';
   const now=new Date();
   const yearStart=new Date(now.getFullYear(),0,1);
-  const weeksElapsed=Math.floor((now-yearStart)/(7*86400000));
+  const weeksElapsed=Math.floor((now-yearStart)/(7*MS_PER_DAY));
   const expectedPct=Math.round(weeksElapsed/52*100);
   const goals=S.goals.slice(0,12);
   const goalsCtx=goals.map(g=>{

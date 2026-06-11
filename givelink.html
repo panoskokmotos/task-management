@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#3b82f6">
+<meta name="theme-color" content="#6B3FA0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Givelink">
@@ -14,8 +14,8 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 :root{
   --bg:#070d1a;--sf:#0e1628;--s2:#162035;--border:#1c2d47;
-  --text:#e2e8f0;--muted:#4e6180;--accent:#3b82f6;
-  --gr:#4ade80;--np:#60a5fa;--pr:#f472b6;--ex:#fbbf24;--op:#a78bfa;
+  --text:#e2e8f0;--muted:#4e6180;--accent:#6B3FA0;
+  --gr:#4ade80;--np:#60a5fa;--pr:#E353B6;--ex:#fbbf24;--op:#a78bfa;
   --done:#22c55e;--prog:#3b82f6;--block:#ef4444;--todo:#475569;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden;}
@@ -30,7 +30,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .sprint-days{font-size:18px;font-weight:700;color:var(--text);margin-top:4px;}
 .sprint-days span{font-size:10px;font-weight:400;color:var(--muted);margin-left:2px;}
 .ns{padding:8px 14px 3px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:8px;}
-.ni{padding:8px 14px;cursor:pointer;border-radius:6px;margin:1px 6px;font-size:13px;display:flex;align-items:center;gap:8px;color:var(--muted);transition:background .12s;position:relative;}
+.ni{padding:8px 14px;cursor:pointer;border-radius:6px;margin:1px 6px;font-size:13px;display:flex;align-items:center;gap:8px;color:var(--muted);transition:background .12s;position:relative;border:none;background:transparent;text-align:left;width:calc(100% - 12px);font-family:inherit;}
 .ni:hover{background:var(--s2);color:var(--text);}
 .ni.active{background:var(--s2);color:var(--text);}
 .ni.active::before{content:'';position:absolute;left:0;top:50%;transform:translateY(-50%);width:3px;height:60%;border-radius:2px;background:var(--accent);}
@@ -230,18 +230,18 @@ select.fc option{background:var(--s2);}
     <div class="sprint-days" id="sb-days">— <span>days left</span></div>
   </div>
   <div class="ns">Sprint</div>
-  <div class="ni active" onclick="nav('overview')">📊 Overview</div>
+  <button class="ni active" type="button" onclick="nav('overview')">📊 Overview</button>
   <div class="ns">Pillars</div>
-  <div class="ni" onclick="nav('growth')"><span class="pip" style="background:var(--gr)"></span>US Growth <span class="bcnt2" id="cnt-growth"></span></div>
-  <div class="ni" onclick="nav('nonprofits')"><span class="pip" style="background:var(--np)"></span>Nonprofits <span class="bcnt2" id="cnt-nonprofits"></span></div>
-  <div class="ni" onclick="nav('product')"><span class="pip" style="background:var(--pr)"></span>Product <span class="bcnt2" id="cnt-product"></span></div>
-  <div class="ni" onclick="nav('execution')"><span class="pip" style="background:var(--ex)"></span>Execution <span class="bcnt2" id="cnt-execution"></span></div>
-  <div class="ni" onclick="nav('ops')"><span class="pip" style="background:var(--op)"></span>Smooth Ops <span class="bcnt2" id="cnt-ops"></span></div>
+  <button class="ni" type="button" onclick="nav('growth')"><span class="pip" style="background:var(--gr)"></span>US Growth <span class="bcnt2" id="cnt-growth"></span></button>
+  <button class="ni" type="button" onclick="nav('nonprofits')"><span class="pip" style="background:var(--np)"></span>Nonprofits <span class="bcnt2" id="cnt-nonprofits"></span></button>
+  <button class="ni" type="button" onclick="nav('product')"><span class="pip" style="background:var(--pr)"></span>Product <span class="bcnt2" id="cnt-product"></span></button>
+  <button class="ni" type="button" onclick="nav('execution')"><span class="pip" style="background:var(--ex)"></span>Execution <span class="bcnt2" id="cnt-execution"></span></button>
+  <button class="ni" type="button" onclick="nav('ops')"><span class="pip" style="background:var(--op)"></span>Smooth Ops <span class="bcnt2" id="cnt-ops"></span></button>
   <div class="ns">More</div>
-  <div class="ni" onclick="nav('crm')">🏢 Nonprofit CRM <span class="bcnt2" id="cnt-crm"></span></div>
-  <div class="ni" onclick="nav('backlog')">📋 Backlog <span class="bcnt2" id="cnt-backlog"></span></div>
-  <div class="ni" onclick="nav('past')">📚 Past Sprints <span class="bcnt2" id="cnt-past"></span></div>
-  <div class="ni" onclick="openSprintSettings()">⚙️ Sprint Settings</div>
+  <button class="ni" type="button" onclick="nav('crm')">🏢 Nonprofit CRM <span class="bcnt2" id="cnt-crm"></span></button>
+  <button class="ni" type="button" onclick="nav('backlog')">📋 Backlog <span class="bcnt2" id="cnt-backlog"></span></button>
+  <button class="ni" type="button" onclick="nav('past')">📚 Past Sprints <span class="bcnt2" id="cnt-past"></span></button>
+  <button class="ni" type="button" onclick="openSprintSettings()">⚙️ Sprint Settings</button>
 </nav>
 
 <div class="main">
@@ -400,6 +400,30 @@ select.fc option{background:var(--s2);}
   </div>
 </div>
 
+<!-- CONFIRM MODAL -->
+<div class="mo hidden" id="gl-confirm-modal" onclick="if(event.target===this){closeM('gl-confirm-modal');_glConfirmCb&&_glConfirmCb(false);}">
+  <div class="md" style="width:340px;">
+    <div class="mh"><h3 id="gl-confirm-msg">Are you sure?</h3></div>
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('gl-confirm-modal');_glConfirmCb&&_glConfirmCb(false);_glConfirmCb=null;">Cancel</button>
+      <button class="btn bd" id="gl-confirm-ok" onclick="closeM('gl-confirm-modal');_glConfirmCb&&_glConfirmCb(true);_glConfirmCb=null;">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- PROMPT MODAL -->
+<div class="mo hidden" id="gl-prompt-modal" onclick="if(event.target===this){closeM('gl-prompt-modal');_glPromptResolve&&_glPromptResolve(null);}">
+  <div class="md" style="width:380px;">
+    <div class="mh"><h3 id="gl-prompt-label">Enter value</h3></div>
+    <input class="fc" id="gl-prompt-input" type="text" style="margin-bottom:0;"
+      onkeydown="if(event.key==='Enter'){_glPromptOK();}if(event.key==='Escape'){closeM('gl-prompt-modal');_glPromptResolve&&_glPromptResolve(null);}">
+    <div class="mf">
+      <button class="btn bg" onclick="closeM('gl-prompt-modal');_glPromptResolve&&_glPromptResolve(null);_glPromptResolve=null;">Cancel</button>
+      <button class="btn bp" onclick="_glPromptOK()">Save</button>
+    </div>
+  </div>
+</div>
+
 <!-- AI SPRINT PLANNER MODAL -->
 <div class="mo hidden" id="ai-sprint-modal">
   <div class="md" style="width:580px;">
@@ -421,7 +445,7 @@ select.fc option{background:var(--s2);}
 const PILLARS={
   growth:{l:'US Growth',e:'🚀',c:'var(--gr)',hex:'#4ade80'},
   nonprofits:{l:'Nonprofits & Communities',e:'🤝',c:'var(--np)',hex:'#60a5fa'},
-  product:{l:'Product & Magic',e:'🏗️',c:'var(--pr)',hex:'#f472b6'},
+  product:{l:'Product & Magic',e:'🏗️',c:'var(--pr)',hex:'#E353B6'},
   execution:{l:'Execution & Systems',e:'⚡',c:'var(--ex)',hex:'#fbbf24'},
   ops:{l:'Smooth Ops',e:'🔧',c:'var(--op)',hex:'#a78bfa'}
 };
@@ -443,9 +467,11 @@ let S={
 };
 let editId=null;
 
+const MS_PER_DAY=86400000;
+
 // ── PERSIST ─────────────────────────────────────────────────────
-function save(){localStorage.setItem('givelink_sprint',JSON.stringify(S));}
-function load(){const d=localStorage.getItem('givelink_sprint');if(d){const p=JSON.parse(d);S={...S,...p};}}
+function save(){try{localStorage.setItem('givelink_sprint',JSON.stringify(S));}catch(e){if(e.name==='QuotaExceededError')toast('Storage full — data not saved.');else throw e;}}
+function load(){const d=localStorage.getItem('givelink_sprint');if(d)try{const p=JSON.parse(d);S={...S,...p};}catch(e){console.warn('givelink: corrupt localStorage, using defaults',e);}}
 
 // ── UTILS ───────────────────────────────────────────────────────
 function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
@@ -729,7 +755,7 @@ function saveTask(){
   else S.tasks.push({id:uid(),...d,createdAt:new Date().toISOString(),completedAt:null});
   save();closeM('tm');refresh();
 }
-function delCur(){if(!editId||!confirm('Delete?'))return;S.tasks=S.tasks.filter(t=>t.id!==editId);save();closeM('tm');refresh();}
+function delCur(){if(!editId)return;showConfirmGL('Delete this task?',ok=>{if(!ok)return;S.tasks=S.tasks.filter(t=>t.id!==editId);save();closeM('tm');refresh();});}
 function toggleDone(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
   t.status=t.status==='done'?'todo':'done';
@@ -758,10 +784,10 @@ function renderBurndown(){
   if(snapshots.length<2){el.innerHTML='<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px;">Complete tasks to see burndown progress</div>';return;}
   const start=new Date(S.sprint.start);
   const end=new Date(S.sprint.end);
-  const totalDays=Math.max(1,Math.round((end-start)/86400000));
+  const totalDays=Math.max(1,Math.round((end-start)/MS_PER_DAY));
   const total=snapshots[0]?.total||S.tasks.filter(t=>t.sprint==='current').length;
   const W=280,H=100,pad=20;
-  const dateToX=d=>pad+Math.round((new Date(d)-start)/86400000/totalDays*(W-pad*2));
+  const dateToX=d=>pad+Math.round((new Date(d)-start)/MS_PER_DAY/totalDays*(W-pad*2));
   const doneToY=done=>H-pad-Math.round(done/Math.max(total,1)*(H-pad*2));
   const idealPts=[[pad,H-pad],[W-pad,pad]];
   const actualPts=snapshots.map(s=>[dateToX(s.date),doneToY(s.done)]);
@@ -872,6 +898,32 @@ function renderPastSprints(){
 
 // ── MODAL ─────────────────────────────────────────────────────────
 function closeM(id){document.getElementById(id).classList.add('hidden');editId=null;}
+
+let _glConfirmCb=null;
+function showConfirmGL(msg,cb,{okLabel='Delete'}={}){
+  document.getElementById('gl-confirm-msg').textContent=msg;
+  document.getElementById('gl-confirm-ok').textContent=okLabel;
+  _glConfirmCb=cb;
+  document.getElementById('gl-confirm-modal').classList.remove('hidden');
+}
+
+let _glPromptResolve=null;
+function showPromptGL(label,{placeholder='',value=''}={}){
+  return new Promise(resolve=>{
+    document.getElementById('gl-prompt-label').textContent=label;
+    const inp=document.getElementById('gl-prompt-input');
+    inp.value=value;inp.placeholder=placeholder;
+    _glPromptResolve=resolve;
+    document.getElementById('gl-prompt-modal').classList.remove('hidden');
+    setTimeout(()=>{inp.focus();},60);
+  });
+}
+function _glPromptOK(){
+  const v=document.getElementById('gl-prompt-input').value.trim();
+  const resolve=_glPromptResolve;_glPromptResolve=null;
+  closeM('gl-prompt-modal');
+  if(resolve)resolve(v||null);
+}
 document.querySelectorAll('.mo').forEach(o=>o.addEventListener('click',function(e){if(e.target===this){this.classList.add('hidden');editId=null;}}));
 document.addEventListener('keydown',e=>{
   if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')return;
@@ -1072,7 +1124,7 @@ function seed(){
 }
 
 // ── AI SPRINT PLANNER ─────────────────────────────────────────────
-function getApiKey(){
+async function getApiKey(){
   // Try to find key from a Task OS profile's data
   try{
     const profiles=JSON.parse(localStorage.getItem('taskos_profiles')||'[]');
@@ -1083,7 +1135,7 @@ function getApiKey(){
   }catch(e){}
   // Fall back to shared key
   let k=localStorage.getItem('taskos_api_key');
-  if(!k){k=prompt('Enter your Anthropic API key:');if(k)localStorage.setItem('taskos_api_key',k);}
+  if(!k){k=await showPromptGL('Enter your Anthropic API key:',{placeholder:'sk-ant-...'});if(k)localStorage.setItem('taskos_api_key',k);}
   return k||null;
 }
 
@@ -1095,7 +1147,7 @@ function openAiSprintPlanner(){
 }
 
 async function runAiSprintPlanner(){
-  const apiKey=getApiKey();
+  const apiKey=await getApiKey();
   if(!apiKey){toast('API key required.');return;}
   const genBtn=document.getElementById('ai-gen-btn');
   genBtn.disabled=true;genBtn.textContent='⏳ Thinking...';
@@ -1258,7 +1310,7 @@ async function callClaudeGL(prompt,maxTokens=800,model='claude-haiku-4-5-2025100
   if(!k){
     try{const p=JSON.parse(localStorage.getItem('taskos')||'{}');k=p.claudeKey||'';}catch(e){}
   }
-  if(!k){k=window.prompt('Enter Anthropic API key:');if(k)localStorage.setItem('taskos_api_key',k);}
+  if(!k){k=await showPromptGL('Enter Anthropic API key:',{placeholder:'sk-ant-...'});if(k)localStorage.setItem('taskos_api_key',k);}
   if(!k){toast('API key required');return null;}
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
@@ -1281,19 +1333,19 @@ const CRM_STAGE_COLOR={lead:'#64748b',contacted:'#60a5fa',meeting:'#fbbf24',prop
 function seedNonprofits(){
   if((S.nonprofits||[]).length)return;
   S.nonprofits=[
-    {id:uid(),name:"St. Anthony Foundation",contactName:"Development Team",contactTitle:"",contactEmail:"",city:"San Francisco, CA",mission:"Providing food, shelter and services to those in need in San Francisco",estimatedPeople:2000,stage:'won',lastActivityAt:new Date(Date.now()-3*86400000).toISOString(),lastActivityNote:"Materials sent, onboarded",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()},
-    {id:uid(),name:"SF Safehouse",contactName:"Programs Director",contactTitle:"Director",contactEmail:"",city:"San Francisco, CA",mission:"Supporting survivors of domestic violence in San Francisco",estimatedPeople:500,stage:'won',lastActivityAt:new Date(Date.now()-5*86400000).toISOString(),lastActivityNote:"Social media coordination active",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()},
-    {id:uid(),name:"Edgewood",contactName:"Development Lead",contactTitle:"",contactEmail:"",city:"San Francisco, CA",mission:"Supporting children and families with mental health and education services",estimatedPeople:1200,stage:'meeting',lastActivityAt:new Date(Date.now()-8*86400000).toISOString(),lastActivityNote:"Products to add, follow-up needed",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()},
-    {id:uid(),name:"Swords to Plowshares",contactName:"Executive Director",contactTitle:"Executive Director",contactEmail:"",city:"San Francisco, CA",mission:"Providing legal services and support to veterans",estimatedPeople:800,stage:'contacted',lastActivityAt:new Date(Date.now()-12*86400000).toISOString(),lastActivityNote:"Materials sent",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()},
-    {id:uid(),name:"Quo",contactName:"Contact",contactTitle:"",contactEmail:"",city:"US",mission:"Nonprofit community platform",estimatedPeople:300,stage:'meeting',lastActivityAt:new Date(Date.now()-2*86400000).toISOString(),lastActivityNote:"Apollo onboarding in progress",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()},
-    {id:uid(),name:"Exelixi Zois",contactName:"Team",contactTitle:"",contactEmail:"",city:"Greece",mission:"Life development and empowerment programs",estimatedPeople:400,stage:'won',lastActivityAt:new Date(Date.now()-6*86400000).toISOString(),lastActivityNote:"Social media photos coordinated",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()}
+    {id:uid(),name:"Community Kitchen Alpha",contactName:"Development Team",contactTitle:"",contactEmail:"",city:"San Francisco, CA",mission:"Providing meals and wraparound services to those in need",estimatedPeople:2000,stage:'won',lastActivityAt:new Date(Date.now()-3*MS_PER_DAY).toISOString(),lastActivityNote:"Materials sent, onboarded",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()},
+    {id:uid(),name:"City Shelter Beta",contactName:"Programs Director",contactTitle:"Director",contactEmail:"",city:"San Francisco, CA",mission:"Supporting survivors of housing insecurity in the city",estimatedPeople:500,stage:'won',lastActivityAt:new Date(Date.now()-5*MS_PER_DAY).toISOString(),lastActivityNote:"Social media coordination active",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()},
+    {id:uid(),name:"Youth Futures Demo",contactName:"Development Lead",contactTitle:"",contactEmail:"",city:"San Francisco, CA",mission:"Supporting children and families with mental health and education services",estimatedPeople:1200,stage:'meeting',lastActivityAt:new Date(Date.now()-8*MS_PER_DAY).toISOString(),lastActivityNote:"Products to add, follow-up needed",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()},
+    {id:uid(),name:"Veterans Aid Example",contactName:"Executive Director",contactTitle:"Executive Director",contactEmail:"",city:"San Francisco, CA",mission:"Providing legal services and support to veterans",estimatedPeople:800,stage:'contacted',lastActivityAt:new Date(Date.now()-12*MS_PER_DAY).toISOString(),lastActivityNote:"Materials sent",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()},
+    {id:uid(),name:"Connect Platform Sample",contactName:"Contact",contactTitle:"",contactEmail:"",city:"US",mission:"Nonprofit community platform example",estimatedPeople:300,stage:'meeting',lastActivityAt:new Date(Date.now()-2*MS_PER_DAY).toISOString(),lastActivityNote:"Onboarding in progress",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()},
+    {id:uid(),name:"Global Reach Test",contactName:"Team",contactTitle:"",contactEmail:"",city:"International",mission:"Life development and empowerment programs",estimatedPeople:400,stage:'won',lastActivityAt:new Date(Date.now()-6*MS_PER_DAY).toISOString(),lastActivityNote:"Social media photos coordinated",activityLog:[],outreachDraft:'',createdAt:new Date().toISOString()}
   ];
   save();
 }
 
 function daysSinceCRM(np){
   if(!np.lastActivityAt)return 999;
-  return Math.floor((Date.now()-new Date(np.lastActivityAt))/86400000);
+  return Math.floor((Date.now()-new Date(np.lastActivityAt))/MS_PER_DAY);
 }
 
 function renderCRM(){
@@ -1422,13 +1474,16 @@ function saveNP(){
   save();closeM('np-modal');renderCRM();renderImpactWidget();toast('✅ Saved!');
 }
 function deleteNP(){
-  if(!editNpId||!confirm('Delete this org?'))return;
-  S.nonprofits=S.nonprofits.filter(n=>n.id!==editNpId);
-  save();closeM('np-modal');renderCRM();renderImpactWidget();
-}
-function logActivityNP(){
   if(!editNpId)return;
-  const note=window.prompt('Log activity (what happened?):');
+  showConfirmGL('Delete this organisation?',ok=>{
+    if(!ok)return;
+    S.nonprofits=S.nonprofits.filter(n=>n.id!==editNpId);
+    save();closeM('np-modal');renderCRM();renderImpactWidget();
+  });
+}
+async function logActivityNP(){
+  if(!editNpId)return;
+  const note=await showPromptGL('Log activity (what happened?):',{placeholder:'e.g. Sent materials, had a call...'});
   if(!note)return;
   const np=S.nonprofits.find(n=>n.id===editNpId);if(!np)return;
   np.lastActivityNote=note;
@@ -1529,9 +1584,9 @@ function calcSprintVelocity(){
   const start=new Date(S.sprint.start);
   const end=new Date(S.sprint.end);
   const now=new Date();
-  const daysTotal=Math.max(1,Math.ceil((end-start)/86400000));
-  const daysElapsed=Math.max(1,Math.ceil((Math.min(now,end)-start)/86400000));
-  const daysLeft=Math.max(0,Math.ceil((end-now)/86400000));
+  const daysTotal=Math.max(1,Math.ceil((end-start)/MS_PER_DAY));
+  const daysElapsed=Math.max(1,Math.ceil((Math.min(now,end)-start)/MS_PER_DAY));
+  const daysLeft=Math.max(0,Math.ceil((end-now)/MS_PER_DAY));
   const ct=curTasks();
   const done=ct.filter(t=>t.status==='done').length;
   const total=ct.length||1;

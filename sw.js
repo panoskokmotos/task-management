@@ -64,7 +64,7 @@ self.addEventListener('fetch', e => {
       caches.match(e.request).then(cached => cached || fetch(e.request).then(res => {
         if (res && res.status === 200) {
           const clone = res.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
+          caches.open(CACHE).then(c => c.put(e.request, clone)).catch(err => console.warn('SW cache write failed:', err));
         }
         return res;
       }))
@@ -78,7 +78,7 @@ self.addEventListener('fetch', e => {
       fetch(e.request).then(res => {
         if (res && res.status === 200) {
           const clone = res.clone();
-          caches.open(CACHE).then(c => c.put(e.request, clone));
+          caches.open(CACHE).then(c => c.put(e.request, clone)).catch(err => console.warn('SW cache write failed:', err));
         }
         return res;
       }).catch(() => caches.match(e.request))
@@ -98,7 +98,7 @@ self.addEventListener('fetch', e => {
       cache.match(e.request).then(cached => {
         const fetchPromise = fetch(e.request).then(res => {
           if (res && res.status === 200 && res.type === 'basic') {
-            cache.put(e.request, res.clone());
+            cache.put(e.request, res.clone()).catch(err => console.warn('SW cache write failed:', err));
           }
           return res;
         }).catch(() => cached);

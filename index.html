@@ -2033,7 +2033,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededV2:false,seededGoalsV3:false,dashCompact:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false,dailyIntention:[],energyLog:[],xp:0,level:1,badges:[],dailyQuests:[],questsDate:'',wheelAssessments:[],socialProfiles:[],brandStatement:'',weeklyNotes:[],taskPairs:{},brandAuditResult:'',givelinkMetrics:{nonprofits:0,pipeline:0,arr:0,users:0,impactStories:[],mrr:0,impactModel:{currentNonprofits:0,avgDonationsPerNonprofit:0,avgDonationSize:0,viralCoeff:1.1,targetPeople:1000000}},netWorthEntries:[],okrs:[],biomarkers:[],selfKnowledge:[],quarterlyReviews:[],annualReviews:[],agiPrep:{timeline:{},decisions:[],resources:[],scenarios:[]},sfTimeline:{targetDate:'',durationMonths:6,status:'planning',budget:0,milestones:[],network:[],notes:''},lifeScore:{score:0,breakdown:{},lastCalc:''},contentPipeline:[],skills:[],experiences:[],antiGoals:[],contracts:[],manifesto:{principles:[],identityStatements:[],rules:[],lastUpdated:''},bodyLogs:[],sleepLogs:[],portfolioEntries:[],givelinkHistory:[],dashWidgetOrder:['lifescore','daily-picks','daily-quests','habits','routines','deepwork','wheel-mini'],mentors:[],_allQuestsBonusDate:'',treasureChests:[],deadEnds:[],pitsOfDoom:[],optionalityLog:[],happinessLogs:[],maslowLog:[],lifeFrameworksLog:[],leverageLog:[],impossiblePeople:[],securityAuditLog:[]};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededV2:false,seededGoalsV3:false,dashCompact:false,healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false,dailyIntention:[],energyLog:[],xp:0,level:1,badges:[],dailyQuests:[],questsDate:'',wheelAssessments:[],socialProfiles:[],brandStatement:'',weeklyNotes:[],taskPairs:{},brandAuditResult:'',givelinkMetrics:{nonprofits:0,pipeline:0,arr:0,users:0,impactStories:[],mrr:0,impactModel:{currentNonprofits:0,avgDonationsPerNonprofit:0,avgDonationSize:0,viralCoeff:1.1,targetPeople:1000000}},netWorthEntries:[],okrs:[],biomarkers:[],selfKnowledge:[],quarterlyReviews:[],annualReviews:[],agiPrep:{timeline:{},decisions:[],resources:[],scenarios:[]},sfTimeline:{targetDate:'',durationMonths:6,status:'planning',budget:0,milestones:[],network:[],notes:''},lifeScore:{score:0,breakdown:{},lastCalc:''},contentPipeline:[],skills:[],experiences:[],antiGoals:[],contracts:[],manifesto:{principles:[],identityStatements:[],rules:[],lastUpdated:''},bodyLogs:[],sleepLogs:[],portfolioEntries:[],givelinkHistory:[],dashWidgetOrder:['lifescore','daily-picks','daily-quests','habits','routines','deepwork','wheel-mini'],mentors:[],_allQuestsBonusDate:'',treasureChests:[],deadEnds:[],pitsOfDoom:[],optionalityLog:[],happinessLogs:[],maslowLog:[],lifeFrameworksLog:[],leverageLog:[],impossiblePeople:[],securityAuditLog:[]};
 let editT=null,editG=null,fCat='all';
 let profileName=localStorage.getItem('taskos_name')||'Panos';
 let _editChecklist=[];
@@ -2104,7 +2104,7 @@ function save(){
   }
   if(!_sbApplying&&typeof _sbScheduleSync==='function')_sbScheduleSync();
 }
-function load(){const d=localStorage.getItem('taskos');if(d)try{S={...S,...JSON.parse(d)};}catch(e){console.warn('Corrupt localStorage, using defaults',e);}}
+function load(){const d=localStorage.getItem('taskos');if(d)try{const p=JSON.parse(d);if(p.claudeKey&&!localStorage.getItem('taskos_claude_key')){localStorage.setItem('taskos_claude_key',p.claudeKey);}delete p.claudeKey;S={...S,...p};}catch(e){console.warn('Corrupt localStorage, using defaults',e);}}
 function exportData(){
   const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
@@ -2624,7 +2624,7 @@ function renderTop3(){
     return`<div class="t3s s${s}">
       <div class="sl2">${labels[s-1]}</div>
       ${t?`<div onclick="openEdit('${t.id}')" style="cursor:pointer;">
-        <div style="font-size:13px;font-weight:500;line-height:1.4;margin-bottom:8px;">${t.title}</div>
+        <div style="font-size:13px;font-weight:500;line-height:1.4;margin-bottom:8px;">${esc(t.title)}</div>
         <div class="tm">${catB(t.category)}${eB(t)}</div>
         ${t.ifThen?`<div style="font-size:11px;color:var(--muted);margin-top:5px;">📌 ${esc(t.ifThen)}</div>`:''}
         ${t.bundledWith?`<div style="font-size:11px;color:var(--q2);margin-top:3px;">🍬 Then: ${esc(t.bundledWith)}</div>`:''}
@@ -2688,7 +2688,7 @@ function inboxHTML(t){
   return`<div class="tc fi" id="itc-${t.id}">
     <div class="ck ${t.status==='done'?'on':''}" onclick="toggleDone('${t.id}')"></div>
     <div class="tb">
-      <div class="tt">${t.title}</div>
+      <div class="tt">${esc(t.title)}</div>
       <div class="tm">
         ${catB(t.category)}
         <span style="font-size:11px;color:var(--muted);">Move to:</span>
@@ -2738,7 +2738,7 @@ function renderBuckets(){
       ${tasks.length?tasks.map(t=>`<div class="tc fi ${t.status==='done'?'done':''} ${t.isT3&&t.status!=='done'?'top3':''}" data-swipe-id="${t.id}" draggable="true" ondragstart="_onDragStart(event,'${t.id}')" onclick="openEdit('${t.id}')">
         <div class="ck ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')">${t.status==='done'?'<span style="color:#fff;font-size:10px;">✓</span>':''}</div>
         <div class="tb">
-          <div class="tt">${t.title}</div>
+          <div class="tt">${esc(t.title)}</div>
           <div class="tm">${catB(t.category)}${eB(t)}${t.timeBlock?`<span class="tag">⏱ ${ft(t.timeBlock)}</span>`:''}${t.recurring?'<span style="font-size:11px;">🔄</span>':''}</div>
         </div>
         ${bid==='this-week'&&!t.isT3&&t.status!=='done'?`<button class="btn bg sm" onclick="event.stopPropagation();addT3('${t.id}')" title="Top 3">⭐</button>`:''}
@@ -2770,7 +2770,7 @@ function renderEisenhower(){
       ${qs[q].length?qs[q].map(t=>`
         <div class="tc" onclick="openEdit('${t.id}')">
           <div class="ck ${t.status==='done'?'on':''}" onclick="event.stopPropagation();toggleDone('${t.id}')"></div>
-          <div class="tb"><div class="tt">${t.title}</div><div class="tm">${catB(t.category)}<span class="badge co">${BKTS[t.bucket]?.e} ${BKTS[t.bucket]?.l}</span></div></div>
+          <div class="tb"><div class="tt">${esc(t.title)}</div><div class="tm">${catB(t.category)}<span class="badge co">${BKTS[t.bucket]?.e} ${BKTS[t.bucket]?.l}</span></div></div>
         </div>`).join(''):'<div class="empty" style="padding:16px 0;font-size:12px;">Clear ✓</div>'}`;
   });
 }
@@ -2807,7 +2807,7 @@ function renderGoals(){
   if(gd)gd.innerHTML=S.goals.map(g=>{
     const s=goalStats(g.id);const c=CATS[g.category]||CATS.other;
     return`<div class="gdc" onclick="openEditGoal('${g.id}')">
-      <div class="gdc-title">${g.isTop3?'⭐ ':''}${g.title}</div>
+      <div class="gdc-title">${g.isTop3?'⭐ ':''}${esc(g.title)}</div>
       <div class="gdc-row"><span class="badge c${g.category[0]}">${c.e}</span><span style="font-size:11px;color:var(--muted);">${s.pct}%</span></div>
       <div class="gp"><div class="gp-fill" style="width:${s.pct}%"></div></div>
       <div style="font-size:10px;color:var(--muted);margin-top:4px;">${s.done}/${s.total} tasks</div>
@@ -2858,8 +2858,8 @@ function goalHTML(g){
       ${g.isTop3?'<span>⭐</span>':'<span></span>'}
       <span title="${momentumTip}" style="cursor:default;">${momentumDot}</span>
     </div>
-    <div style="font-weight:600;margin-bottom:5px;">${g.title}</div>
-    ${g.description?`<div style="font-size:12px;color:var(--muted);margin-bottom:7px;">${g.description}</div>`:''}
+    <div style="font-weight:600;margin-bottom:5px;">${esc(g.title)}</div>
+    ${g.description?`<div style="font-size:12px;color:var(--muted);margin-bottom:7px;">${esc(g.description)}</div>`:''}
     <span class="badge c${g.category[0]}">${c.e} ${c.l}</span>
     ${s.total?`<div style="margin-top:8px;"><div class="gp" style="margin-bottom:3px;"><div class="gp-fill" style="width:${s.pct}%"></div></div><div style="font-size:10px;color:var(--muted);">${s.done}/${s.total} tasks · ${s.pct}%</div></div>`:''}
     ${metricHTML}${habitHTML}${finHTML}
@@ -2882,16 +2882,16 @@ function renderWizPanel(){
   const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
   if(wizStep===0){
     const done=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>wAgo);
-    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🏆 Completed this week</h3>${done.length?done.map(t=>`<div class="tc" style="opacity:.75;"><div class="ck on">✓</div><div class="tb"><div class="tt" style="text-decoration:line-through;">${t.title}</div><div class="tm">${catB(t.category)}</div></div></div>`).join(''):'<div class="empty">No completed tasks this week yet.</div>'}</div><div class="wiz-nav"><span></span><button class="btn bp" onclick="goStep(1)">Next →</button></div>`;
+    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🏆 Completed this week</h3>${done.length?done.map(t=>`<div class="tc" style="opacity:.75;"><div class="ck on">✓</div><div class="tb"><div class="tt" style="text-decoration:line-through;">${esc(t.title)}</div><div class="tm">${catB(t.category)}</div></div></div>`).join(''):'<div class="empty">No completed tasks this week yet.</div>'}</div><div class="wiz-nav"><span></span><button class="btn bp" onclick="goStep(1)">Next →</button></div>`;
   } else if(wizStep===1){
     const inbox=active().filter(t=>t.bucket==='inbox');
     body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">📥 Process your inbox (${inbox.length} items)</h3>${inbox.length?inbox.map(t=>inboxHTML(t)).join(''):'<div class="empty" style="color:var(--q2);">✓ Inbox clear!</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(0)">← Back</button><button class="btn bp" onclick="goStep(2)">Next →</button></div>`;
   } else if(wizStep===2){
     const backlog=active().filter(t=>t.bucket==='backlog').slice(0,8);
     const wc=active().filter(t=>t.bucket==='this-week').length;
-    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🟢 Promote from Backlog (This Week: ${wc}/10)</h3>${backlog.length?backlog.map(t=>`<div class="tc"><div class="tb"><div class="tt">${t.title}</div><div class="tm">${catB(t.category)}${eB(t)}</div></div><button class="btn bg sm" onclick="mvB('${t.id}','this-week');renderWizPanel()">→ Week</button></div>`).join(''):'<div class="empty">Backlog empty.</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(1)">← Back</button><button class="btn bp" onclick="goStep(3)">Next →</button></div>`;
+    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🟢 Promote from Backlog (This Week: ${wc}/10)</h3>${backlog.length?backlog.map(t=>`<div class="tc"><div class="tb"><div class="tt">${esc(t.title)}</div><div class="tm">${catB(t.category)}${eB(t)}</div></div><button class="btn bg sm" onclick="mvB('${t.id}','this-week');renderWizPanel()">→ Week</button></div>`).join(''):'<div class="empty">Backlog empty.</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(1)">← Back</button><button class="btn bp" onclick="goStep(3)">Next →</button></div>`;
   } else if(wizStep===3){
-    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🏆 Goal Progress</h3>${S.goals.slice(0,8).map(g=>{const s=goalStats(g.id);return`<div style="margin-bottom:10px;"><div style="font-size:13px;font-weight:500;margin-bottom:4px;">${g.isTop3?'⭐ ':''}${g.title}</div><div class="gp"><div class="gp-fill" style="width:${s.pct}%"></div></div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${s.done}/${s.total} tasks · ${s.pct}%</div></div>`;}).join('')||'<div class="empty">No goals set.</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(2)">← Back</button><button class="btn bp" onclick="goStep(4)">Next →</button></div>`;
+    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🏆 Goal Progress</h3>${S.goals.slice(0,8).map(g=>{const s=goalStats(g.id);return`<div style="margin-bottom:10px;"><div style="font-size:13px;font-weight:500;margin-bottom:4px;">${g.isTop3?'⭐ ':''}${esc(g.title)}</div><div class="gp"><div class="gp-fill" style="width:${s.pct}%"></div></div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${s.done}/${s.total} tasks · ${s.pct}%</div></div>`;}).join('')||'<div class="empty">No goals set.</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(2)">← Back</button><button class="btn bp" onclick="goStep(4)">Next →</button></div>`;
   } else if(wizStep===4){
     const rev=[...S.reviews].reverse().slice(0,3);
     const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
@@ -3000,7 +3000,7 @@ function tcHTML(t,showT3btn=false){
   return`<div class="tc fi ${t.status==='done'?'done':''} ${t.isT3&&t.status!=='done'?'top3':''}" data-swipe-id="${t.id}" onclick="openEdit('${t.id}')">
     <div class="ck ${t.status==='done'?'on':t.status==='in-progress'?'ip':''}" onclick="event.stopPropagation();cycleStatus('${t.id}')" title="${t.status==='done'?'Done':t.status==='in-progress'?'In Progress':'Todo — click to start'}">${t.status==='done'?'<span style="color:#fff;font-size:10px;">✓</span>':t.status==='in-progress'?'<span style="font-size:10px;">▶</span>':''}</div>
     <div class="tb">
-      <div class="tt">${t.title}${t.checklist?.length?`<span style="font-size:10px;background:var(--surface2);border-radius:8px;padding:1px 6px;color:var(--muted);margin-left:6px;">${t.checklist.filter(c=>c.done).length}/${t.checklist.length} ✓</span>`:''}${t.blockedBy?.length&&t.blockedBy.some(bid=>S.tasks.find(x=>x.id===bid&&x.status!=='done'))?'<span class="badge" style="background:rgba(255,107,107,.15);color:#ff6b6b;font-size:10px;margin-left:4px;">🚫 Blocked</span>':''}</div>
+      <div class="tt">${esc(t.title)}${t.checklist?.length?`<span style="font-size:10px;background:var(--surface2);border-radius:8px;padding:1px 6px;color:var(--muted);margin-left:6px;">${t.checklist.filter(c=>c.done).length}/${t.checklist.length} ✓</span>`:''}${t.blockedBy?.length&&t.blockedBy.some(bid=>S.tasks.find(x=>x.id===bid&&x.status!=='done'))?'<span class="badge" style="background:rgba(255,107,107,.15);color:#ff6b6b;font-size:10px;margin-left:4px;">🚫 Blocked</span>':''}</div>
       <div class="tm">
         ${catB(t.category)}${eB(t)}${depthB(t.depth)}
         ${t.timeBlock?`<span class="tag">⏱ ${ft(t.timeBlock)}</span>`:''}
@@ -3008,7 +3008,7 @@ function tcHTML(t,showT3btn=false){
         ${overdue?'<span class="badge" style="background:rgba(220,38,38,.15);color:#dc2626;">⚠ Overdue</span>':''}
         ${t.recurring?`<span style="font-size:11px;" title="${t.recurring}">🔄</span>`:''}
         ${t.isT3&&t.status!=='done'?'<span style="font-size:11px;">⭐</span>':''}
-        ${gl?`<span style="font-size:10px;color:var(--muted);">↳ ${gl.title.slice(0,20)}</span>`:''}
+        ${gl?`<span style="font-size:10px;color:var(--muted);">↳ ${esc(gl.title.slice(0,20))}</span>`:''}
       </div>
       ${t.ifThen?`<div style="font-size:10px;color:var(--muted);margin-top:2px;">📌 ${esc(t.ifThen)}</div>`:''}
     </div>
@@ -3574,7 +3574,7 @@ function renderFocusRecs(){
     <div class="focus-rec">
       <div class="focus-num">${i+1}</div>
       <div style="flex:1;">
-        <div class="tt">${t.title}</div>
+        <div class="tt">${esc(t.title)}</div>
         <div class="tm">${catB(t.category)}${eB(t)}<span class="badge co">${BKTS[t.bucket]?.e} ${BKTS[t.bucket]?.l}</span>${t.timeBlock?`<span class="tag">⏱ ${ft(t.timeBlock)}</span>`:''}</div>
       </div>
       <button class="btn bp sm" onclick="event.stopPropagation();toggleDone('${t.id}');renderFocusRecs()">✓</button>
@@ -3597,7 +3597,7 @@ function renderProcCard(){
   const t=inbox[0];
   pa.innerHTML=`<div class="proc-card">
     <div style="font-size:13px;color:var(--muted);">Task ${inbox.indexOf(t)+1} of ${inbox.length}</div>
-    <div class="proc-ttl">${t.title}</div>
+    <div class="proc-ttl">${esc(t.title)}</div>
     <div class="tm" style="justify-content:center;margin-bottom:8px;">${catB(t.category)}</div>
     <div class="proc-acts">
       <button class="proc-btn" style="background:rgba(255,107,107,.2);color:var(--q1);" onclick="procMove('${t.id}','this-week')">🔴 This Week <kbd>1</kbd></button>
@@ -4128,11 +4128,12 @@ function seedGoals(){
 
 // ── CALL CLAUDE ────────────────────────────────────────────────
 async function callClaude(prompt, maxTokens=1000){
-  if(!S.claudeKey){toast('Add Claude API key in Settings first');return null;}
+  const _claudeKey=localStorage.getItem('taskos_claude_key')||'';
+  if(!_claudeKey){toast('Add Claude API key in Settings first');return null;}
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':S.claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      headers:{'Content-Type':'application/json','x-api-key':_claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})
     });
     if(!res.ok){
@@ -7114,7 +7115,7 @@ function openSomedayAudit(){
     el.innerHTML = old.map(t => {
       const daysOld = Math.floor((Date.now() - new Date(t.createdAt)) / 86400000);
       return `<div style="padding:10px 0;border-bottom:1px solid var(--border);">
-        <div style="font-size:13px;font-weight:500;margin-bottom:6px;">${t.title} <span style="font-size:10px;color:var(--muted);">(${daysOld}d old)</span></div>
+        <div style="font-size:13px;font-weight:500;margin-bottom:6px;">${esc(t.title)} <span style="font-size:10px;color:var(--muted);">(${daysOld}d old)</span></div>
         <div style="display:flex;gap:6px;flex-wrap:wrap;">
           <button class="btn bg sm" onclick="somedayPromote('${t.id}','this-week')" style="color:#58a6ff;">→ This Week</button>
           <button class="btn bg sm" onclick="somedayPromote('${t.id}','this-month')" style="color:#fbbf24;">→ This Month</button>
@@ -8478,7 +8479,7 @@ function _addSFMilestone(){
 // ── SETTINGS ──────────────────────────────────────────────────
 function openSettings(){
   document.getElementById('set-name').value=profileName;
-  document.getElementById('set-claude-key').value=S.claudeKey||'';
+  document.getElementById('set-claude-key').value=localStorage.getItem('taskos_claude_key')||'';
   document.getElementById('set-about').value=localStorage.getItem('taskos_about')||'';
   document.getElementById('set-readwise-key').value=localStorage.getItem('taskos_readwise_key')||'';
   document.getElementById('set-notion-key').value=localStorage.getItem('taskos_notion_key')||'';
@@ -8498,7 +8499,7 @@ function saveSettings(){
   const n=document.getElementById('set-name').value.trim();
   if(n){profileName=n;localStorage.setItem('taskos_name',n);document.title='Task OS — '+n;}
   const k=document.getElementById('set-claude-key').value.trim();
-  S.claudeKey=k;
+  if(k)localStorage.setItem('taskos_claude_key',k); else localStorage.removeItem('taskos_claude_key');
   S.hellYesFilter=document.getElementById('set-hell-yes').value==='true';
   S.brandStatement=document.getElementById('set-brand')?.value.trim()||'';
   save();
@@ -8532,7 +8533,7 @@ const _SB={
   get uid(){return localStorage.getItem('taskos_sb_uid')||'';},
   get exp(){return parseInt(localStorage.getItem('taskos_sb_exp')||'0')||0;},
 };
-let _sbBusy=false,_sbApplying=false,_sbTimer=null,_sbStatus='';
+let _sbBusy=false,_sbApplying=false,_sbTimer=null,_sbStatus='',_sbLastPush=0;
 function _sbEnabled(){return !!(_SB.url&&_SB.anon&&_SB.refresh&&_SB.uid);}
 function _sbSetStatus(s){_sbStatus=s;_sbRenderStatus();}
 function _sbRenderStatus(){
@@ -8616,7 +8617,7 @@ async function sbSyncNow(force){
       S._updatedAt=remote.ms;
       save();
       _sbApplying=false;
-      try{refresh();}catch(e){}
+      try{refresh();}catch(e){console.warn('Render failed after sync pull:',e);}
       _sbSetStatus('Synced ⬇ '+new Date().toLocaleTimeString());
     } else {
       await sbPush();
@@ -8630,6 +8631,9 @@ function _sbScheduleSync(){
   clearTimeout(_sbTimer);
   _sbTimer=setTimeout(()=>{
     if(!_sbEnabled())return;
+    const now=Date.now();
+    if(now-_sbLastPush<30000){_sbTimer=setTimeout(()=>_sbScheduleSync(),30000-(now-_sbLastPush));return;}
+    _sbLastPush=now;
     sbPush().then(()=>_sbSetStatus('Synced ⬆ '+new Date().toLocaleTimeString())).catch(e=>_sbSetStatus('⚠ '+e.message));
   },2500);
 }
@@ -8645,6 +8649,7 @@ function _autoSnapshot(){
       if(!S.givelinkHistory)S.givelinkHistory=[];
       if(!S.givelinkHistory.some(h=>h.date===today)){
         S.givelinkHistory.push({date:today,nonprofits:m.nonprofits||0,pipeline:m.pipeline||0,arr:m.arr||0,users:m.users||0,mrr:m.mrr||0});
+        S.givelinkHistory=S.givelinkHistory.slice(-365);
         save();
       }
     }
@@ -9659,7 +9664,7 @@ function renderMorningBriefing(){
   _fetchAIBriefing(ctx,el,cacheKey);
 }
 async function _fetchAIBriefing(ctx,el,cacheKey){
-  if(!S.claudeKey&&!localStorage.getItem('taskos_api_key'))return;
+  if(!localStorage.getItem('taskos_claude_key'))return;
   const dayLabel=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
   const prompt=`You are the personal chief-of-staff for Panos, founder of Givelink (B2B SaaS for nonprofits). Today is ${dayLabel}.
 
@@ -9960,6 +9965,7 @@ function _renderUpcoming(){
   el.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:12px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
       <span style="font-size:13px;font-weight:700;">📆 Upcoming</span>
+      <span style="font-size:10px;color:var(--muted);" title="Based on task due dates — no external calendar sync">local only</span>
       <button class="sec-link" onclick="nav('calendar')">Calendar <span class="arr">→</span></button>
     </div>
     ${rows?`<div style="margin-bottom:-7px;">${rows}</div>`:'<div style="font-size:12px;color:var(--muted);padding:6px 0;">Nothing scheduled in the next 7 days. Add a due date to a task and it shows here.</div>'}
@@ -10046,7 +10052,7 @@ function _eodComplete(){
   // Persist energy to the energy log (one per day)
   if(_eodEnergy){if(!S.energyLog)S.energyLog=[];S.energyLog=S.energyLog.filter(e=>e.date!==today);S.energyLog.push({date:today,level:_eodEnergy});}
   save();updIBadge();
-  try{awardXP(15,'eod');}catch(e){}
+  awardXP(15,'eod');
   toast('🌙 End-of-Day logged! +15 XP');
 }
 
@@ -10542,7 +10548,7 @@ async function aiCategorizePaste(){
   const raw=document.getElementById('paste-import-text').value;
   const lines=raw.split('\n').map(l=>l.replace(/^[-•*\d.]+\s*/,'').trim()).filter(Boolean);
   if(!lines.length)return toast('Paste some items first');
-  if(!S.claudeKey)return toast('Add Claude API key in Settings for AI categorization');
+  if(!localStorage.getItem('taskos_claude_key'))return toast('Add Claude API key in Settings for AI categorization');
   const target=document.getElementById('paste-import-target').value;
   const about=getAboutMe();
   const schemas={

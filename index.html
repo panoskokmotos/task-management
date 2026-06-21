@@ -2059,7 +2059,7 @@ function _toggleCLItem(id){const c=_editChecklist.find(x=>x.id===id);if(c){c.don
 function _removeCLItem(id){_editChecklist=_editChecklist.filter(x=>x.id!==id);_renderChecklistEditor();}
 function fillBlockerDrop(currentId,selectedIds=[]){
   const s=document.getElementById('t-blocked');if(!s)return;
-  s.innerHTML=active().filter(t=>t.id!==currentId).map(t=>'<option value="'+t.id+'"'+(selectedIds.includes(t.id)?' selected':'')+'>'+t.title.slice(0,45)+'</option>').join('');
+  s.innerHTML=active().filter(t=>t.id!==currentId).map(t=>'<option value="'+t.id+'"'+(selectedIds.includes(t.id)?' selected':'')+'>'+esc(t.title.slice(0,45))+'</option>').join('');
 }
 
 // ── THEME ─────────────────────────────────────────────────────
@@ -2885,16 +2885,16 @@ function renderWizPanel(){
   const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
   if(wizStep===0){
     const done=S.tasks.filter(t=>t.completedAt&&new Date(t.completedAt)>wAgo);
-    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🏆 Completed this week</h3>${done.length?done.map(t=>`<div class="tc" style="opacity:.75;"><div class="ck on">✓</div><div class="tb"><div class="tt" style="text-decoration:line-through;">${t.title}</div><div class="tm">${catB(t.category)}</div></div></div>`).join(''):'<div class="empty">No completed tasks this week yet.</div>'}</div><div class="wiz-nav"><span></span><button class="btn bp" onclick="goStep(1)">Next →</button></div>`;
+    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🏆 Completed this week</h3>${done.length?done.map(t=>`<div class="tc" style="opacity:.75;"><div class="ck on">✓</div><div class="tb"><div class="tt" style="text-decoration:line-through;">${esc(t.title)}</div><div class="tm">${catB(t.category)}</div></div></div>`).join(''):'<div class="empty">No completed tasks this week yet.</div>'}</div><div class="wiz-nav"><span></span><button class="btn bp" onclick="goStep(1)">Next →</button></div>`;
   } else if(wizStep===1){
     const inbox=active().filter(t=>t.bucket==='inbox');
     body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">📥 Process your inbox (${inbox.length} items)</h3>${inbox.length?inbox.map(t=>inboxHTML(t)).join(''):'<div class="empty" style="color:var(--q2);">✓ Inbox clear!</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(0)">← Back</button><button class="btn bp" onclick="goStep(2)">Next →</button></div>`;
   } else if(wizStep===2){
     const backlog=active().filter(t=>t.bucket==='backlog').slice(0,8);
     const wc=active().filter(t=>t.bucket==='this-week').length;
-    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🟢 Promote from Backlog (This Week: ${wc}/10)</h3>${backlog.length?backlog.map(t=>`<div class="tc"><div class="tb"><div class="tt">${t.title}</div><div class="tm">${catB(t.category)}${eB(t)}</div></div><button class="btn bg sm" onclick="mvB('${t.id}','this-week');renderWizPanel()">→ Week</button></div>`).join(''):'<div class="empty">Backlog empty.</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(1)">← Back</button><button class="btn bp" onclick="goStep(3)">Next →</button></div>`;
+    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🟢 Promote from Backlog (This Week: ${wc}/10)</h3>${backlog.length?backlog.map(t=>`<div class="tc"><div class="tb"><div class="tt">${esc(t.title)}</div><div class="tm">${catB(t.category)}${eB(t)}</div></div><button class="btn bg sm" onclick="mvB('${t.id}','this-week');renderWizPanel()">→ Week</button></div>`).join(''):'<div class="empty">Backlog empty.</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(1)">← Back</button><button class="btn bp" onclick="goStep(3)">Next →</button></div>`;
   } else if(wizStep===3){
-    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🏆 Goal Progress</h3>${S.goals.slice(0,8).map(g=>{const s=goalStats(g.id);return`<div style="margin-bottom:10px;"><div style="font-size:13px;font-weight:500;margin-bottom:4px;">${g.isTop3?'⭐ ':''}${g.title}</div><div class="gp"><div class="gp-fill" style="width:${s.pct}%"></div></div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${s.done}/${s.total} tasks · ${s.pct}%</div></div>`;}).join('')||'<div class="empty">No goals set.</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(2)">← Back</button><button class="btn bp" onclick="goStep(4)">Next →</button></div>`;
+    body.innerHTML=`<div class="rs"><h3 style="margin-bottom:12px;">🏆 Goal Progress</h3>${S.goals.slice(0,8).map(g=>{const s=goalStats(g.id);return`<div style="margin-bottom:10px;"><div style="font-size:13px;font-weight:500;margin-bottom:4px;">${g.isTop3?'⭐ ':''}${esc(g.title)}</div><div class="gp"><div class="gp-fill" style="width:${s.pct}%"></div></div><div style="font-size:10px;color:var(--muted);margin-top:2px;">${s.done}/${s.total} tasks · ${s.pct}%</div></div>`;}).join('')||'<div class="empty">No goals set.</div>'}</div><div class="wiz-nav"><button class="btn bg" onclick="goStep(2)">← Back</button><button class="btn bp" onclick="goStep(4)">Next →</button></div>`;
   } else if(wizStep===4){
     const rev=[...S.reviews].reverse().slice(0,3);
     const wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
@@ -7503,7 +7503,7 @@ function renderGivelinkDash(){
     const avgDon=im.avgDonationsPerNonprofit||10;
     const avgSize=im.avgDonationSize||50;
     const totalDonations=nonprofits*avgDon*avgSize;
-    const peopleImpacted=Math.round(totalDonations/50);
+    const peopleImpacted=Math.round(avgSize>0?totalDonations/avgSize:0);
     const target=im.targetPeople||1000000;
     const hist2=S.givelinkHistory||[];
     let monthsToTarget=null;
@@ -8537,7 +8537,7 @@ const _SB={
   get uid(){return localStorage.getItem('taskos_sb_uid')||'';},
   get exp(){return parseInt(localStorage.getItem('taskos_sb_exp')||'0')||0;},
 };
-let _sbBusy=false,_sbApplying=false,_sbTimer=null,_sbStatus='';
+let _sbBusy=false,_sbApplying=false,_sbTimer=null,_sbStatus='',_sbDirty=false;
 function _sbEnabled(){return !!(_SB.url&&_SB.anon&&_SB.refresh&&_SB.uid);}
 function _sbSetStatus(s){_sbStatus=s;_sbRenderStatus();}
 function _sbRenderStatus(){
@@ -8605,7 +8605,8 @@ async function sbPull(){
 async function sbPush(){
   const tok=await _sbToken();
   if(!S._updatedAt)S._updatedAt=Date.now();
-  const body=[{user_id:_SB.uid,data:S,updated_at:new Date().toISOString()}];
+  const {claudeKey:_ck,...safeS}=S;
+  const body=[{user_id:_SB.uid,data:safeS,updated_at:new Date().toISOString()}];
   const r=await fetch(`${_SB.url}/rest/v1/app_state`,{method:'POST',headers:{'apikey':_SB.anon,'Authorization':'Bearer '+tok,'Content-Type':'application/json','Prefer':'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(body)});
   if(!r.ok)throw new Error('push '+r.status);
 }
@@ -8617,7 +8618,9 @@ async function sbSyncNow(force){
     const localMs=S._updatedAt||0;
     if(remote&&remote.data&&remote.ms>localMs){
       _sbApplying=true;
+      const localKey=S.claudeKey;
       S={...S,...remote.data};
+      if(localKey)S.claudeKey=localKey;
       S._updatedAt=remote.ms;
       save();
       _sbApplying=false;
@@ -8632,10 +8635,12 @@ async function sbSyncNow(force){
 }
 function _sbScheduleSync(){
   if(!_sbEnabled()||_sbApplying)return;
+  _sbDirty=true;
   clearTimeout(_sbTimer);
   _sbTimer=setTimeout(()=>{
-    if(!_sbEnabled())return;
-    sbPush().then(()=>_sbSetStatus('Synced ⬆ '+new Date().toLocaleTimeString())).catch(e=>_sbSetStatus('⚠ '+e.message));
+    if(!_sbEnabled()||!_sbDirty)return;
+    _sbDirty=false;
+    sbPush().then(()=>_sbSetStatus('Synced ⬆ '+new Date().toLocaleTimeString())).catch(e=>{_sbDirty=true;_sbSetStatus('⚠ '+e.message);});
   },2500);
 }
 // Auto-snapshot: capture a daily Givelink history point so the Pace Engine
@@ -9283,7 +9288,7 @@ function checkReminders(){
     if(r.lastFired===today)return;
     r.lastFired=today;save();
     try{
-      const n=new Notification(`${r.emoji} ${r.label}`,{body:r.msg,icon:'./icons/icon-192.png',tag:r.id});
+      const n=new Notification(`${r.emoji} ${r.label}`,{body:r.msg,icon:'./icon.svg',tag:r.id});
       n.onclick=()=>{window.focus();n.close();};
     }catch(e){console.warn('Notification failed:',e);}
     postToNtfy(r);

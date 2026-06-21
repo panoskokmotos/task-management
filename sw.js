@@ -1,4 +1,4 @@
-const CACHE = 'task-os-20260530';
+const CACHE = 'task-os-20260621';
 const STATIC = [
   './manifest.json',
   './manifest-givelink.json',
@@ -35,8 +35,8 @@ self.addEventListener('push', e => {
   e.waitUntil(
     self.registration.showNotification(title,{
       body,
-      icon:'./icons/icon-192.png',
-      badge:'./icons/icon-192.png',
+      icon:'./icon.svg',
+      badge:'./icon.svg',
       tag:data.id||'taskos-reminder',
       data:{url:self.location.origin+'/index.html'},
     })

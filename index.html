@@ -2318,7 +2318,7 @@ function _promptOK(){
 }
 
 // ── AI LOADING SPINNERS ───────────────────────────────────────
-function _showAiLoader(title='AI thinking…'){const t=document.getElementById('ai-out-title');if(t&&title)t.textContent=title;const b=document.getElementById('ai-out-body');if(b)b.innerHTML='<div class="skel" style="width:92%"></div><div class="skel" style="width:100%"></div><div class="skel" style="width:76%"></div><div class="skel" style="width:88%"></div><div class="skel" style="width:62%"></div>';document.getElementById('ai-out-modal').classList.remove('hidden');document.body.classList.add('modal-open');}
+function _showAiLoader(title='AI thinking…'){const t=document.getElementById('ai-out-title');if(t&&title)t.textContent=title;const b=document.getElementById('ai-out-body');if(b)b.innerHTML='<div class="skel" style="width:92%"></div><div class="skel" style="width:100%"></div><div class="skel" style="width:76%"></div><div class="skel" style="width:88%"></div><div class="skel" style="width:62%"></div>';openM('ai-out-modal');document.body.classList.add('modal-open');}
 function _btnLoading(btn,loading){
   if(!btn)return;
   if(loading){btn._origText=btn.innerHTML;btn.innerHTML='<span class="spin-icon">⟳</span> Working...';btn.disabled=true;}
@@ -2399,7 +2399,7 @@ function openSomedayReview(){
   _somedayQueue=S.tasks.filter(t=>t.bucket==='someday'&&t.status!=='done');
   _somedayIdx=0;
   _renderSomedayCard();
-  document.getElementById('someday-review-modal').classList.remove('hidden');
+  openM('someday-review-modal');
 }
 function _renderSomedayCard(){
   const el=document.getElementById('someday-card-body');
@@ -3051,7 +3051,7 @@ function openAdd(bucket='inbox',goalId=null){
   if(aiImproveBtn)aiImproveBtn.style.display='none';
   document.getElementById('tm-advanced')?.classList.add('hidden');
   const mb=document.getElementById('tm-more-btn');if(mb)mb.textContent='⊕ More options';
-  document.getElementById('tm').classList.remove('hidden');
+  openM('tm');
   setTimeout(()=>_trapFocus(document.getElementById('tm')),50);
   document.getElementById('t-title').focus();
 }
@@ -3091,7 +3091,7 @@ function openEdit(id){
   if(tiRes)tiRes.innerHTML='';
   document.getElementById('tm-advanced')?.classList.remove('hidden');
   const mb2=document.getElementById('tm-more-btn');if(mb2)mb2.textContent='⊖ Fewer options';
-  document.getElementById('tm').classList.remove('hidden');
+  openM('tm');
   setTimeout(()=>_trapFocus(document.getElementById('tm')),50);
   document.getElementById('t-title').focus();
 }
@@ -3313,7 +3313,7 @@ function openAddGoal(){
   document.getElementById('g-woop-outcome').value='';
   document.getElementById('g-woop-obstacle').value='';
   document.getElementById('g-woop-plan').value='';
-  document.getElementById('gm').classList.remove('hidden');
+  openM('gm');
   setTimeout(()=>_trapFocus(document.getElementById('gm')),50);
 }
 
@@ -3336,7 +3336,7 @@ function openEditGoal(id){
   document.getElementById('g-woop-outcome').value=woop.outcome||'';
   document.getElementById('g-woop-obstacle').value=woop.obstacle||'';
   document.getElementById('g-woop-plan').value=woop.plan||'';
-  document.getElementById('gm').classList.remove('hidden');
+  openM('gm');
   setTimeout(()=>_trapFocus(document.getElementById('gm')),50);
 }
 
@@ -3369,7 +3369,7 @@ function fillGoalDrop(sel=''){
 }
 
 // ── VALUES ────────────────────────────────────────────────────
-function editVals(){document.getElementById('v-inp').value=S.values.join('\n');document.getElementById('vm').classList.remove('hidden');}
+function editVals(){document.getElementById('v-inp').value=S.values.join('\n');openM('vm');}
 function saveVals(){S.values=document.getElementById('v-inp').value.split('\n').map(v=>v.trim()).filter(Boolean);save();closeM('vm');renderGoals();}
 
 // ── MODAL ─────────────────────────────────────────────────────
@@ -3641,7 +3641,7 @@ document.addEventListener('keydown',e=>{
     if(e.key==='r'||e.key==='R'){e.preventDefault();nav('review');return;}
     if(e.key==='f'||e.key==='F'){e.preventDefault();nav('focus');return;}
     if(e.key==='c'||e.key==='C'){e.preventDefault();nav('capture');return;}
-    if(e.key==='Escape'){const _openModal=document.querySelector('.modal-bg:not(.hidden)');if(_openModal){closeM(_openModal.id);return;}if(!document.getElementById('cmdk').classList.contains('hidden')){closeCmdK();return;}document.querySelectorAll('.mo:not(.hidden)').forEach(m=>{m.classList.add('hidden');editT=null;editG=null;});document.body.classList.remove('modal-open');return;}
+    if(e.key==='Escape'){const _openModal=document.querySelector('.modal-bg:not(.hidden)');if(_openModal){closeM(_openModal.id);return;}if(!document.getElementById('cmdk').classList.contains('hidden')){closeCmdK();return;}document.querySelectorAll('.mo:not(.hidden)').forEach(m=>closeM(m.id));return;}
   }
   if(procMode){
     const inbox=active().filter(t=>t.bucket==='inbox');
@@ -4150,7 +4150,7 @@ async function callClaude(prompt, maxTokens=1000){
 function showAiOut(title, text){
   document.getElementById('ai-out-title').textContent=title;
   document.getElementById('ai-out-body').textContent=text;
-  document.getElementById('ai-out-modal').classList.remove('hidden');
+  openM('ai-out-modal');
 }
 function daysSinceDate(d){if(!d)return 999;return Math.floor((Date.now()-new Date(d))/(86400000));}
 
@@ -4224,7 +4224,7 @@ function renderHealth(){
 function openAddHealth(id=null){
   document.getElementById('h-date').value=new Date().toISOString().slice(0,10);
   document.getElementById('h-value').value='';document.getElementById('h-notes').value='';
-  document.getElementById('health-modal').classList.remove('hidden');
+  openM('health-modal');
 }
 function toggleWorkoutFields(){
   const type=document.getElementById('h-type').value;
@@ -4337,7 +4337,7 @@ function renderFinance(){
 function openAddFinance(id=null){
   document.getElementById('f-date').value=new Date().toISOString().slice(0,10);
   document.getElementById('f-amount').value='';document.getElementById('f-desc').value='';
-  document.getElementById('finance-modal').classList.remove('hidden');
+  openM('finance-modal');
 }
 function saveFinanceEntry(){
   const date=document.getElementById('f-date').value;
@@ -4352,7 +4352,7 @@ function saveFinanceEntry(){
 function openAddInvestment(){
   document.getElementById('iv-name').value='';document.getElementById('iv-amount').value='';
   document.getElementById('iv-current').value='';document.getElementById('iv-date').value=new Date().toISOString().slice(0,10);
-  document.getElementById('invest-modal').classList.remove('hidden');
+  openM('invest-modal');
 }
 function saveInvestment(){
   const name=document.getElementById('iv-name').value.trim();
@@ -4399,7 +4399,7 @@ function setAilabF(f,el){
 }
 function openAddAutomation(){
   document.getElementById('al-name').value='';document.getElementById('al-desc').value='';
-  document.getElementById('ailab-modal').classList.remove('hidden');
+  openM('ailab-modal');
 }
 function saveAutomation(){
   const name=document.getElementById('al-name').value.trim();
@@ -4601,7 +4601,7 @@ function openAddPerson(id=null){
   document.getElementById('rel-notes').value=p?(p.notes||''):'';
   document.getElementById('rel-top').checked=p?!!p.isTop:false;
   const relQuality=document.getElementById('rel-quality');if(relQuality)relQuality.value=p?(p.quality||3):3;
-  document.getElementById('rel-modal').classList.remove('hidden');
+  openM('rel-modal');
 }
 function savePerson(){
   const name=document.getElementById('rel-name').value.trim();
@@ -4825,7 +4825,7 @@ function openHabitSettings(){
       <input class="fc" value="${h}" id="hr-${i}" style="flex:1;">
       <button class="btn bd sm" onclick="this.parentElement.remove()">×</button>
     </div>`).join('');
-  document.getElementById('habit-settings-modal').classList.remove('hidden');
+  openM('habit-settings-modal');
 }
 function addHabitRow(){
   const c=document.createElement('div');c.style.cssText='display:flex;gap:8px;margin-bottom:7px;';
@@ -4871,7 +4871,7 @@ function renderDiscomfort(){
 function openAddDiscomfort(){
   document.getElementById('dis-date').value=new Date().toISOString().slice(0,10);
   document.getElementById('dis-desc').value='';document.getElementById('dis-notes').value='';
-  document.getElementById('dis-modal').classList.remove('hidden');
+  openM('dis-modal');
 }
 function saveDiscomfort(){
   const date=document.getElementById('dis-date').value;
@@ -5002,7 +5002,7 @@ function checkEatTheFrog(){
   const daysOld=Math.floor((Date.now()-new Date(frog.createdAt))/(86400000));
   document.getElementById('frog-task').textContent=frog.title;
   document.getElementById('frog-meta').textContent=`${daysOld} days in your list · High urgency + importance · ${CATS[frog.category]?.l||'Other'}`;
-  document.getElementById('frog-modal').classList.remove('hidden');
+  openM('frog-modal');
   localStorage.setItem('taskos_frog_'+new Date().toISOString().slice(0,10),'shown');
 }
 function pinFrogTask(){
@@ -5020,7 +5020,7 @@ function pinFrogTask(){
 // ── SMART BATCHING ─────────────────────────────────────────────
 async function showBatchSuggestions(){
   const el=document.getElementById('batch-body');
-  document.getElementById('batch-modal').classList.remove('hidden');
+  openM('batch-modal');
   el.innerHTML='<div style="color:var(--muted);">⏳ Analyzing your tasks...</div>';
   const tasks=active().filter(t=>t.bucket==='this-week'||t.bucket==='inbox').slice(0,20);
   if(!tasks.length){el.innerHTML='No tasks to batch.';return;}
@@ -5040,7 +5040,7 @@ function openTweetGenerator(){
     ?all.map(i=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 0;font-size:12px;cursor:pointer;"><input type="checkbox" class="tweet-sel" value="${i.text.replace(/"/g,'&quot;')}" style="width:14px;height:14px;"> ${i.type==='win'?'🏆':'✅'} ${i.text}</label>`).join('')
     :'<div style="color:var(--muted);font-size:12px;">No wins or completed tasks this week yet.</div>';
   document.getElementById('tweet-output').style.display='none';
-  document.getElementById('tweet-modal').classList.remove('hidden');
+  openM('tweet-modal');
 }
 async function generateTweet(){
   if(!_aiLock('generateTweet'))return;
@@ -5108,7 +5108,7 @@ TOP COMPLETED
 ${done.slice(0,5).map(t=>'  ✅ '+t.title).join('\n')||'  None this week'}
 ${'─'.repeat(44)}`;
   document.getElementById('digest-body').textContent=digest;
-  document.getElementById('digest-modal').classList.remove('hidden');
+  openM('digest-modal');
 }
 
 // ── GOAL → METRIC → HABIT LOOP ────────────────────────────────
@@ -5464,7 +5464,7 @@ function openAddChallenge(){
   document.getElementById('dc-why').value='';
   document.getElementById('dc-cat').value='givelink';
   document.getElementById('dc-diff').value='2';
-  document.getElementById('dc-modal').classList.remove('hidden');
+  openM('dc-modal');
 }
 function saveChallenge(){
   const title=document.getElementById('dc-title').value.trim();
@@ -5538,7 +5538,7 @@ ALL TIME
   📊 Completion rate: ${(S.challengeLogs||[]).length?Math.round((S.challengeLogs||[]).filter(c=>c.completed).length/(S.challengeLogs||[]).length*100)+'%':'—'}
 ${'─'.repeat(40)}`;
   document.getElementById('cdigest-body').textContent=digest;
-  document.getElementById('cdigest-modal').classList.remove('hidden');
+  openM('cdigest-modal');
 }
 
 // ── CHALLENGE LEADERBOARD WITH PAST SELF ─────────────────────────
@@ -5689,7 +5689,7 @@ function openAddPhoto(){
   document.getElementById('ph-bf').value='';
   document.getElementById('ph-note').value='';
   document.getElementById('ph-yes').checked=true;
-  document.getElementById('photo-modal').classList.remove('hidden');
+  openM('photo-modal');
 }
 function savePhotoLog(){
   const date=document.getElementById('ph-date').value;
@@ -5841,7 +5841,7 @@ function clearOneThing(id){
 // ════════════════════════════════════════════════════════════════
 // QUICK ADD
 // ════════════════════════════════════════════════════════════════
-function openQuickAdd(){document.getElementById('qa-input').value='';document.getElementById('quick-add-modal').classList.remove('hidden');setTimeout(()=>document.getElementById('qa-input').focus(),50);}
+function openQuickAdd(){document.getElementById('qa-input').value='';openM('quick-add-modal');setTimeout(()=>document.getElementById('qa-input').focus(),50);}
 function doQuickAdd(){const lines=document.getElementById('qa-input').value.split('\n').map(l=>l.trim()).filter(Boolean);if(!lines.length)return;lines.forEach(title=>S.tasks.push({id:uid(),title,notes:'',bucket:'inbox',category:'other',urgency:'low',importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',createdAt:new Date().toISOString(),completedAt:null}));save();refresh();closeM('quick-add-modal');toast(`Added ${lines.length} task${lines.length>1?'s':''} to Inbox`);}
 
 // ════════════════════════════════════════════════════════════════
@@ -5860,7 +5860,7 @@ function openStartDay(){
   document.getElementById('sd-word').value='';
   document.querySelectorAll('.sd-energy-btn').forEach(b=>b.classList.remove('active'));
   _sdShowStep(0);
-  document.getElementById('start-day-modal').classList.remove('hidden');
+  openM('start-day-modal');
 }
 function _sdShowStep(n){
   _sdStep=n;
@@ -6027,7 +6027,7 @@ function openWheelModal(){
       <span id="wv-${a.id}" style="width:20px;font-size:13px;font-weight:700;color:var(--accent);">${prev[a.id]||5}</span>
     </div>`).join('');
   document.getElementById('wheel-sliders').innerHTML=html;
-  document.getElementById('wheel-modal').classList.remove('hidden');
+  openM('wheel-modal');
 }
 
 function saveWheelAssessment(){
@@ -6178,7 +6178,7 @@ function openSocialProfileModal(id=null){
   if(document.getElementById('sp-url'))document.getElementById('sp-url').value=p?.url||'';
   document.getElementById('sp-bio').value=p?.bio||'';
   document.getElementById('social-profile-modal').dataset.editId=id||'';
-  document.getElementById('social-profile-modal').classList.remove('hidden');
+  openM('social-profile-modal');
 }
 
 function saveSocialProfile(){
@@ -6270,7 +6270,7 @@ let _wpCurrentStep=0;
 function openWeekPlan(){
   _wpCurrentStep=0;
   _wpShowStep(0);
-  document.getElementById('week-plan-modal').classList.remove('hidden');
+  openM('week-plan-modal');
 }
 function _wpShowStep(n){
   _wpCurrentStep=n;
@@ -6825,7 +6825,7 @@ function _maybeShowWeeklyWrapped(){
     ${wins.length?`<div style="font-size:12px;color:var(--muted);margin-bottom:8px;">⭐ Best win: <em>${esc(wins[wins.length-1].text||wins[wins.length-1].title)}</em></div>`:''}
     <button class="btn bg sm" onclick="(function(){const txt='Week of ${dateStr}: ${tasks.length} tasks, +${xpThisWeek} XP, ${wins.length} wins, ${deepCount} deep tasks';navigator.clipboard?.writeText(txt);toast('Copied to clipboard!');})()">📋 Copy Summary</button>
   </div>`;
-  document.getElementById('weekly-wrapped-modal').classList.remove('hidden');
+  openM('weekly-wrapped-modal');
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -6942,7 +6942,7 @@ function showCommitments(){
       </div>`;
     }).join('');
   }
-  document.getElementById('commit-modal').classList.remove('hidden');
+  openM('commit-modal');
 }
 function reviewCommit(id, outcome){
   const c = (S.commitments || []).find(x => x.id === id);
@@ -7032,7 +7032,7 @@ End with ONE specific recommendation for next week. Be direct, no fluff, max 300
 // ════════════════════════════════════════════════════════════════
 function showValueAlignment(){
   const el = document.getElementById('values-body');
-  document.getElementById('values-modal').classList.remove('hidden');
+  openM('values-modal');
 
   // Map categories → values
   const CAT_VALUE = {
@@ -7127,7 +7127,7 @@ function openSomedayAudit(){
       </div>`;
     }).join('');
   }
-  document.getElementById('someday-modal').classList.remove('hidden');
+  openM('someday-modal');
   // Show badge on nav if any
   if (old.length) toast(`📋 ${old.length} Someday task${old.length > 1 ? 's' : ''} need review`);
 }
@@ -7226,7 +7226,7 @@ function showContextReport(){
     <div style="margin-top:12px;font-size:11px;color:var(--muted);background:var(--surface2);border-radius:6px;padding:10px;">
       💡 Research shows >4 context switches/day reduces deep work quality by ~40%. Batch similar tasks (e.g., all Givelink → all admin → all learning).
     </div>`;
-  document.getElementById('context-modal').classList.remove('hidden');
+  openM('context-modal');
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -7612,7 +7612,7 @@ function openAddNetWorth(id=null){
   document.getElementById('nw-liabilities').value=e?e.liabilities:'';
   document.getElementById('nw-notes').value=e?e.notes:'';
   document.getElementById('nw-edit-id').value=id||'';
-  document.getElementById('networth-modal').classList.remove('hidden');
+  openM('networth-modal');
 }
 function saveNetWorth(){
   const id=document.getElementById('nw-edit-id').value;
@@ -7684,7 +7684,7 @@ function openAddOKR(id=null){
   goalSel.innerHTML='<option value="">— No goal —</option>'+(S.goals||[]).map(g=>`<option value="${g.id}" ${o&&o.goalId===g.id?'selected':''}>${esc(g.title.slice(0,40))}</option>`).join('');
   _okrKRs=o?(o.keyResults||[]).map(kr=>({...kr})):[{id:uid(),title:'',target:0,current:0,unit:''}];
   _renderOKRKeyResults();
-  document.getElementById('okr-modal').classList.remove('hidden');
+  openM('okr-modal');
 }
 function _renderOKRKeyResults(){
   const el=document.getElementById('okr-kr-rows');if(!el)return;
@@ -7781,7 +7781,7 @@ function openAddBiomarker(){
   document.getElementById('bm-date').value=today;
   ['bm-hrv','bm-rhr','bm-test','bm-ferritin','bm-vitd','bm-glucose','bm-crp','bm-ldl','bm-bf'].forEach(id=>{document.getElementById(id).value='';});
   document.getElementById('bm-notes').value='';
-  document.getElementById('biomarker-modal').classList.remove('hidden');
+  openM('biomarker-modal');
 }
 function saveBiomarker(){
   if(!S.biomarkers)S.biomarkers=[];
@@ -7875,7 +7875,7 @@ function openQuarterlyReview(id=null){
     }
     const footer=document.getElementById('qrm-footer');
     footer.innerHTML=`${step>0?`<button class="btn bg" onclick="_qrStep(${step-1})">← Back</button>`:'<span></span>'}${step<steps.length-1?`<button class="btn bp" onclick="_qrStep(${step+1})">Next →</button>`:`<button class="btn bp" onclick="_saveQR()">Save Review</button>`}`;
-    document.getElementById('qreview-modal').classList.remove('hidden');
+    openM('qreview-modal');
   }
   window._qrStep=function(n){step=n;renderQRModal();};
   window._saveQR=function(){
@@ -7903,7 +7903,7 @@ function openAnnualReview(){
     else {body.innerHTML=`<div class="fg"><label>Values Reaffirmation — what matters most?</label><textarea class="fc" id="ar-values" rows="2" placeholder="My core values are...">${existing?.valuesReaffirmation||''}</textarea></div><div class="fg"><label>Gratitude — 3 things you're grateful for in ${yr}</label><textarea class="fc" id="ar-gratitude" rows="2" placeholder="1. ...\n2. ...\n3. ...">${existing?.gratitude||''}</textarea></div>`;}
     const footer=document.getElementById('qrm-footer');
     footer.innerHTML=`${step>0?`<button class="btn bg" onclick="_arStep(${step-1})">← Back</button>`:'<span></span>'}${step<3?`<button class="btn bp" onclick="_arStep(${step+1})">Next →</button>`:`<button class="btn bp" onclick="_saveAR()">Save Review</button>`}`;
-    document.getElementById('qreview-modal').classList.remove('hidden');
+    openM('qreview-modal');
   }
   window._arStep=function(n){step=n;renderAR();};
   window._saveAR=function(){
@@ -8069,7 +8069,7 @@ function _maybeOnboard(){
   if(localStorage.getItem('taskos_onboarded'))return;
   // Existing users (already have data) shouldn't be interrupted
   if((S.tasks&&S.tasks.length>3)||(S.xp||0)>0){localStorage.setItem('taskos_onboarded','1');return;}
-  _onbIdx=0;_onbRender();document.getElementById('onboarding-modal').classList.remove('hidden');document.body.classList.add('modal-open');
+  _onbIdx=0;_onbRender();openM('onboarding-modal');
 }
 // P3 — Pull to refresh (mobile)
 function _initPullRefresh(){
@@ -8327,7 +8327,7 @@ function openAddAGIItem(type='decision'){
       <div class="fg"><label>Rationale / Context</label><textarea class="fc" id="agi-d-rationale" rows="2"></textarea></div>`;
     footer.innerHTML=`<button class="btn bg" onclick="closeM('agi-modal')">Cancel</button><button class="btn bp" onclick="_saveAGIDecision()">Save</button>`;
   }
-  document.getElementById('agi-modal').classList.remove('hidden');
+  openM('agi-modal');
 }
 function _saveAGIDecision(){const text=document.getElementById('agi-d-text').value.trim();if(!text)return toast('Decision required');if(!S.agiPrep)S.agiPrep={timeline:{},decisions:[],resources:[],scenarios:[]};S.agiPrep.decisions.push({id:uid(),decision:text,rationale:document.getElementById('agi-d-rationale').value,status:'pending',createdAt:new Date().toISOString()});save();closeM('agi-modal');_renderAGITab('decisions');toast('Decision added!');}
 function _saveAGIResource(){const title=document.getElementById('agi-r-title').value.trim();if(!title)return toast('Title required');if(!S.agiPrep)S.agiPrep={timeline:{},decisions:[],resources:[],scenarios:[]};S.agiPrep.resources.push({id:uid(),title,type:document.getElementById('agi-r-type').value,url:document.getElementById('agi-r-url').value,notes:document.getElementById('agi-r-notes').value,readAt:null});save();closeM('agi-modal');_renderAGITab('resources');toast('Resource added!');}
@@ -8497,7 +8497,7 @@ function openSettings(){
   _renderSocialProfilesList();
   setTimeout(_restoreBrandAudit,50);
   applyTheme(document.body.classList.contains('light'));
-  document.getElementById('set-m').classList.remove('hidden');
+  openM('set-m');
 }
 function saveSettings(){
   const n=document.getElementById('set-name').value.trim();
@@ -8815,7 +8815,7 @@ async function openReadwiseImport(){
   const token=localStorage.getItem('taskos_readwise_key');
   const body=document.getElementById('readwise-body');
   const footer=document.getElementById('readwise-footer');
-  document.getElementById('readwise-modal').classList.remove('hidden');
+  openM('readwise-modal');
   if(!token){
     body.innerHTML=`<div style="padding:20px;text-align:center;">
       <div style="font-size:14px;font-weight:600;margin-bottom:8px;">Connect Readwise</div>
@@ -8873,7 +8873,7 @@ async function loadReadwiseHighlights(bookId,title,author){
     document.getElementById('hl-input').value=text;
     document.getElementById('hl-result').innerHTML='';
     document.getElementById('hl-footer').innerHTML=`<button class="btn bg" onclick="closeM('highlights-modal')">Cancel</button><button class="btn bg sm" onclick="addBookFromReadwise('${esc(title)}','${esc(author||'')}')">+ Add to Library</button><button class="btn bp" onclick="extractHighlightTasks()">🤖 Extract Tasks</button>`;
-    document.getElementById('highlights-modal').classList.remove('hidden');
+    openM('highlights-modal');
     toast(`✅ ${all.length} highlights loaded from Readwise`);
   }catch(e){
     body.innerHTML=`<div style="padding:20px;color:#ef4444;">Failed to load highlights: ${e.message}</div>`;
@@ -8962,7 +8962,7 @@ function openCSVImport(){
   document.getElementById('csv-input').value='';
   document.getElementById('csv-preview').innerHTML='';
   document.getElementById('csv-footer').innerHTML=`<button class="btn bg" onclick="closeM('csv-import-modal')">Cancel</button><button class="btn bp" onclick="previewCSV()">Preview</button>`;
-  document.getElementById('csv-import-modal').classList.remove('hidden');
+  openM('csv-import-modal');
   setTimeout(()=>document.getElementById('csv-input').focus(),80);
 }
 function parseCSVInput(raw){
@@ -9080,7 +9080,7 @@ function openAddBook(){
   document.getElementById('book-pages').value='';
   document.getElementById('book-current').value='';
   document.getElementById('book-modal-title').textContent='📚 Add Book';
-  document.getElementById('book-modal').classList.remove('hidden');
+  openM('book-modal');
   setTimeout(()=>document.getElementById('book-title').focus(),80);
 }
 function openEditBook(id){
@@ -9091,7 +9091,7 @@ function openEditBook(id){
   document.getElementById('book-pages').value=b.totalPages||'';
   document.getElementById('book-current').value=b.currentPage||'';
   document.getElementById('book-modal-title').textContent='✏️ Edit Book';
-  document.getElementById('book-modal').classList.remove('hidden');
+  openM('book-modal');
 }
 function saveBook(){
   const id=document.getElementById('book-id').value;
@@ -9119,7 +9119,7 @@ function openBookHighlights(id){
   document.getElementById('hl-input').value=b.highlights||'';
   document.getElementById('hl-result').innerHTML='';
   document.getElementById('hl-footer').innerHTML=`<button class="btn bg" onclick="closeM('highlights-modal')">Cancel</button><button class="btn bp" onclick="extractHighlightTasks()">🤖 Extract Tasks</button>`;
-  document.getElementById('highlights-modal').classList.remove('hidden');
+  openM('highlights-modal');
 }
 async function summarizeBook(id){
   const b=(S.books||[]).find(x=>x.id===id);if(!b||!b.highlights)return toast('Add highlights first');
@@ -9199,7 +9199,7 @@ function openChecklist(type='daily'){
   const titles={daily:'☀️ Daily Checklist',weekly:'📅 Weekly Checklist',monthly:'📈 Monthly Checklist'};
   document.getElementById('checklist-modal-title').textContent=titles[type];
   renderChecklistBody(type);
-  document.getElementById('checklist-modal').classList.remove('hidden');
+  openM('checklist-modal');
 }
 function renderChecklistBody(type){
   const items=CHECKLISTS[type]||[];
@@ -9381,7 +9381,7 @@ function openReminderSettings(){
       </div>
       <div style="margin-top:8px;font-size:10px;color:var(--muted);">Topic must be unique — e.g. <code>taskos-panos-2026</code>. Anyone who knows your topic can send to it, so keep it private.</div>
     </div>`;
-  document.getElementById('remind-modal').classList.remove('hidden');
+  openM('remind-modal');
 }
 function toggleReminder(i,val){
   if(!S.reminders[i])return;
@@ -9398,7 +9398,7 @@ function openNotesImport(){
   document.getElementById('notes-import-input').value='';
   document.getElementById('notes-import-result').innerHTML='';
   document.getElementById('notes-import-footer').innerHTML=`<button class="btn bg" onclick="closeM('notes-import-modal')">Cancel</button><button class="btn bp" onclick="synthesizeWeeklyNotes()">🤖 Synthesize</button>`;
-  document.getElementById('notes-import-modal').classList.remove('hidden');
+  openM('notes-import-modal');
   setTimeout(()=>document.getElementById('notes-import-input').focus(),80);
 }
 async function synthesizeWeeklyNotes(){
@@ -9489,7 +9489,7 @@ function openHighlightsImport(){
   document.getElementById('hl-input').value='';
   document.getElementById('hl-result').innerHTML='';
   document.getElementById('hl-footer').innerHTML=`<button class="btn bg" onclick="closeM('highlights-modal')">Cancel</button><button class="btn bp" onclick="extractHighlightTasks()">🤖 Extract Tasks</button>`;
-  document.getElementById('highlights-modal').classList.remove('hidden');
+  openM('highlights-modal');
   setTimeout(()=>document.getElementById('hl-book-title').focus(),80);
 }
 async function extractHighlightTasks(){
@@ -10098,7 +10098,7 @@ function openAddDecision(prefill){
   document.getElementById('dec-outcome').value=(prefill&&prefill.insight)||'';
   document.getElementById('dec-r30').checked=true;
   document.getElementById('dec-r90').checked=true;
-  document.getElementById('dec-modal').classList.remove('hidden');
+  openM('dec-modal');
 }
 
 function saveDecision(){
@@ -10166,7 +10166,7 @@ function openAddWin(){
   document.getElementById('win-cat').value='work';
   document.getElementById('win-emoji').value='';
   document.getElementById('win-date').value=new Date().toISOString().slice(0,10);
-  document.getElementById('win-modal').classList.remove('hidden');
+  openM('win-modal');
   setTimeout(()=>document.getElementById('win-title').focus(),80);
 }
 function saveWin(){
@@ -10178,7 +10178,7 @@ function saveWin(){
 }
 function deleteWin(id){softDelete('wins',id,renderWins,'Win');}
 async function aiSuggestWins(){
-  const wins=(S.wins||[]).slice(-10).map(w=>w.title).join(', ');
+  const wins=(S.wins||[]).slice(-10).map(w=>w.title||w.text).filter(Boolean).join(', ');
   const goals=(S.goals||[]).slice(0,5).map(g=>g.title).join(', ');
   const about=getAboutMe()||'Panos — Greek founder in his 20s building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';
   const prompt=`About Panos: ${about}\n\nBased on these recent wins: ${wins||'none yet'}\nAnd these goals: ${goals||'none set'}\n\nWrite a short, motivating reflection (3-4 sentences) on Panos's progress and patterns you see. Be specific to Givelink/his journey. Then suggest 2 areas where Panos might look for his next win.`;
@@ -10245,7 +10245,7 @@ function openAddBucket(prefill){
   document.getElementById('bl-priority').value='medium';
   document.getElementById('bl-year').value='';
   document.getElementById('bl-modal-title').textContent='🌍 Add to Bucket List';
-  document.getElementById('bl-modal').classList.remove('hidden');
+  openM('bl-modal');
   setTimeout(()=>document.getElementById('bl-title').focus(),80);
 }
 function openEditBucket(id){
@@ -10257,7 +10257,7 @@ function openEditBucket(id){
   document.getElementById('bl-priority').value=x.priority||'medium';
   document.getElementById('bl-year').value=x.year||'';
   document.getElementById('bl-modal-title').textContent='✏️ Edit Bucket Item';
-  document.getElementById('bl-modal').classList.remove('hidden');
+  openM('bl-modal');
 }
 function saveBucket(){
   const title=document.getElementById('bl-title').value.trim();
@@ -10349,7 +10349,7 @@ function openAddWish(prefill){
   document.getElementById('wish-price').value='';
   document.getElementById('wish-url').value='';
   document.getElementById('wish-modal-title').textContent='🛒 Add to Wishlist';
-  document.getElementById('wish-modal').classList.remove('hidden');
+  openM('wish-modal');
   setTimeout(()=>document.getElementById('wish-title').focus(),80);
 }
 function openEditWish(id){
@@ -10362,7 +10362,7 @@ function openEditWish(id){
   document.getElementById('wish-price').value=x.price||'';
   document.getElementById('wish-url').value=x.url||'';
   document.getElementById('wish-modal-title').textContent='✏️ Edit Item';
-  document.getElementById('wish-modal').classList.remove('hidden');
+  openM('wish-modal');
 }
 function saveWish(){
   const title=document.getElementById('wish-title').value.trim();
@@ -10446,7 +10446,7 @@ function openAddProject(prefill){
   document.getElementById('proj-url').value='';
   document.getElementById('proj-repo').value='';
   document.getElementById('proj-modal-title').textContent='🚀 Add Project';
-  document.getElementById('proj-modal').classList.remove('hidden');
+  openM('proj-modal');
   setTimeout(()=>document.getElementById('proj-title').focus(),80);
 }
 function openEditProject(id){
@@ -10460,7 +10460,7 @@ function openEditProject(id){
   document.getElementById('proj-url').value=x.url||'';
   document.getElementById('proj-repo').value=x.repo||'';
   document.getElementById('proj-modal-title').textContent='✏️ Edit Project';
-  document.getElementById('proj-modal').classList.remove('hidden');
+  openM('proj-modal');
 }
 function saveProject(){
   const title=document.getElementById('proj-title').value.trim();
@@ -10501,7 +10501,7 @@ function openPasteImport(target){
   document.getElementById('paste-import-text').value='';
   document.getElementById('paste-import-preview').style.display='none';
   document.getElementById('paste-confirm-btn').style.display='none';
-  document.getElementById('paste-import-modal').classList.remove('hidden');
+  openM('paste-import-modal');
   setTimeout(()=>document.getElementById('paste-import-text').focus(),80);
 }
 
@@ -10641,7 +10641,7 @@ function openContentModal(id){
   document.getElementById('content-date').value=c?.date||new Date().toISOString().slice(0,10);
   document.getElementById('content-url').value=c?.url||'';
   document.getElementById('content-edit-id').value=c?.id||'';
-  document.getElementById('content-modal').classList.remove('hidden');
+  openM('content-modal');
 }
 function saveContent(){
   const title=document.getElementById('content-title').value.trim();
@@ -10724,7 +10724,7 @@ function openSkillModal(id){
   document.getElementById('skill-target').value=sk?.targetHours||500;
   document.getElementById('skill-color').value=sk?.color||'#58a6ff';
   document.getElementById('skill-edit-id').value=sk?.id||'';
-  document.getElementById('skill-modal').classList.remove('hidden');
+  openM('skill-modal');
 }
 function saveSkill(){
   const name=document.getElementById('skill-name').value.trim();
@@ -10743,7 +10743,7 @@ function openSkillSessionModal(skillId){
   document.getElementById('ss-duration').value=30;
   document.getElementById('ss-date').value=new Date().toISOString().slice(0,10);
   document.getElementById('ss-notes').value='';
-  document.getElementById('skill-session-modal').classList.remove('hidden');
+  openM('skill-session-modal');
 }
 function saveSkillSession(){
   const skillId=document.getElementById('ss-skill-id').value;
@@ -10805,7 +10805,7 @@ function openExpModal(id){
   document.getElementById('exp-impact-val').textContent=e?.impact||3;
   document.getElementById('exp-notes').value=e?.notes||'';
   document.getElementById('exp-edit-id').value=e?.id||'';
-  document.getElementById('exp-modal').classList.remove('hidden');
+  openM('exp-modal');
 }
 function saveExperience(){
   const title=document.getElementById('exp-title').value.trim();
@@ -10899,7 +10899,7 @@ function openSleepModal(){
   document.getElementById('sl-nofood').checked=false;
   document.getElementById('sl-notes').value='';
   document.getElementById('sl-edit-id').value='';
-  document.getElementById('sleep-modal').classList.remove('hidden');
+  openM('sleep-modal');
 }
 function saveSleep(){
   const date=document.getElementById('sl-date').value;
@@ -11006,7 +11006,7 @@ function openBodyModal(){
   document.getElementById('body-bf').value='';
   document.getElementById('body-notes').value='';
   document.getElementById('body-edit-id').value='';
-  document.getElementById('body-modal').classList.remove('hidden');
+  openM('body-modal');
 }
 function saveBodyLog(){
   if(!S.bodyLogs)S.bodyLogs=[];
@@ -11051,7 +11051,7 @@ function openPortfolioModal(){
   ['stocks','crypto','realestate','bonds','cash'].forEach(k=>{document.getElementById('port-'+k).value='';});
   document.getElementById('port-notes').value='';
   document.getElementById('port-edit-id').value='';
-  document.getElementById('portfolio-modal').classList.remove('hidden');
+  openM('portfolio-modal');
 }
 function savePortfolio(){
   if(!S.portfolioEntries)S.portfolioEntries=[];
@@ -11090,7 +11090,7 @@ function _renderAntiGoalsSection(){
 function openAntiGoalModal(){
   document.getElementById('ag-title').value='';
   document.getElementById('ag-reason').value='';
-  document.getElementById('antigoal-modal').classList.remove('hidden');
+  openM('antigoal-modal');
 }
 function saveAntiGoal(){
   const title=document.getElementById('ag-title').value.trim();
@@ -11141,7 +11141,7 @@ function openContractModal(){
   document.getElementById('ct-witness').value='';
   document.getElementById('ct-deadline').value='';
   document.getElementById('ct-edit-id').value='';
-  document.getElementById('contract-modal').classList.remove('hidden');
+  openM('contract-modal');
 }
 function saveContract(){
   const commitment=document.getElementById('ct-commitment').value.trim();
@@ -11247,7 +11247,7 @@ function openMentorModal(id){
   document.getElementById('mentor-last').value=m?.lastContact||'';
   document.getElementById('mentor-notes').value=m?.notes||'';
   document.getElementById('mentor-edit-id').value=m?.id||'';
-  document.getElementById('mentor-modal').classList.remove('hidden');
+  openM('mentor-modal');
 }
 function saveMentor(){
   const name=document.getElementById('mentor-name').value.trim();
@@ -11267,7 +11267,7 @@ function logMentorContact(id){
   document.getElementById('mc-date').value=new Date().toISOString().slice(0,10);
   document.getElementById('mc-notes').value='';
   document.getElementById('mc-insight').value='';
-  document.getElementById('mentor-contact-modal').classList.remove('hidden');
+  openM('mentor-contact-modal');
 }
 function saveMentorContact(){
   const id=document.getElementById('mc-mentor-id').value;
@@ -11348,7 +11348,7 @@ function openHindsightModal(decId,period){
   document.getElementById('hindsight-title').textContent=`⏰ Rate Decision (${period}-day hindsight)`;
   for(let i=1;i<=5;i++){const b=document.getElementById('hs-star-'+i);if(b)b.style.color='var(--muted)';}
   document.getElementById('hs-star-val').textContent='';
-  document.getElementById('hindsight-modal').classList.remove('hidden');
+  openM('hindsight-modal');
 }
 function saveHindsight(){
   if(!_hsStarVal)return toast('Please select a rating');
@@ -11606,7 +11606,7 @@ function logHappiness(){
 }
 async function aiMaslow(){
   const about=typeof getAboutMe==='function'?getAboutMe():'Panos, Givelink founder, Greece→SF, financial freedom goal';
-  const wins=(S.wins||[]).slice(-5).map(w=>w.title).join(', ');
+  const wins=(S.wins||[]).slice(-5).map(w=>w.title||w.text).filter(Boolean).join(', ');
   const habits=(S.habits||[]).map(h=>h.name).join(', ');
   const hl=S.happinessLogs||[];const last=hl.slice(-1)[0];
   const prompt=`${about}\n\nRecent wins: ${wins||'none logged'}\nHabits: ${habits||'none'}\n${last?`Latest PERMA scores: Meaning ${last.meaning}/10, Pleasure ${last.pleasure}/10, Engagement ${last.engagement}/10, Relationships ${last.relationships}/10, Accomplishment ${last.accomplishment}/10`:''}\n\nMap this person's current life onto Maslow's Hierarchy of Needs. Be specific and honest:\n1. Physiological needs — are they met?\n2. Safety needs — financial, health, security?\n3. Love/belonging — relationships, community?\n4. Esteem — achievements, recognition?\n5. Self-actualization — purpose, growth, peak experiences?\n\nFor each level: current status (met/partial/unmet) + the single most important action to strengthen it. End with: what level is the current bottleneck?`;
@@ -11617,7 +11617,7 @@ async function aiMaslow(){
 async function aiEudaimonia(){
   const about=typeof getAboutMe==='function'?getAboutMe():'Panos, Givelink founder, Greece→SF, financial freedom goal';
   const dw=(S.deepWorkSessions||[]).slice(-5).map(s=>s.task||'deep work').join(', ');
-  const wins=(S.wins||[]).slice(-5).map(w=>w.title).join(', ');
+  const wins=(S.wins||[]).slice(-5).map(w=>w.title||w.text).filter(Boolean).join(', ');
   const prompt=`${about}\n\nRecent deep work activities: ${dw||'not tracked'}\nRecent wins: ${wins||'none'}\n\nUsing Aristotle's concept of Eudaimonia (flourishing through virtuous activity):\n\n1. Which of this person's current activities most likely produce genuine eudaimonia (not just pleasure)? Rank the top 3.\n2. Which activities are they doing that produce hedonic pleasure but not eudaimonia?\n3. What is their current "telos" — their highest purpose — based on their goals and patterns?\n4. One specific daily practice that would most increase their eudaimonia.\n5. Their current Eudaimonia score (1-10) with brief justification.\n\nBe Aristotelian in framing but concrete and modern in application.`;
   const result=await callClaude(prompt,600);
   S.lifeFrameworksLog=[...((S.lifeFrameworksLog||[]).slice(-4)),{id:uid(),date:new Date().toISOString(),aiAnalysis:result}];

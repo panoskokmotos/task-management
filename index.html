@@ -2033,7 +2033,7 @@ const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
 
-let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededV2:false,seededGoalsV3:false,dashCompact:false,claudeKey:'',healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false,dailyIntention:[],energyLog:[],xp:0,level:1,badges:[],dailyQuests:[],questsDate:'',wheelAssessments:[],socialProfiles:[],brandStatement:'',weeklyNotes:[],taskPairs:{},brandAuditResult:'',givelinkMetrics:{nonprofits:0,pipeline:0,arr:0,users:0,impactStories:[],mrr:0,impactModel:{currentNonprofits:0,avgDonationsPerNonprofit:0,avgDonationSize:0,viralCoeff:1.1,targetPeople:1000000}},netWorthEntries:[],okrs:[],biomarkers:[],selfKnowledge:[],quarterlyReviews:[],annualReviews:[],agiPrep:{timeline:{},decisions:[],resources:[],scenarios:[]},sfTimeline:{targetDate:'',durationMonths:6,status:'planning',budget:0,milestones:[],network:[],notes:''},lifeScore:{score:0,breakdown:{},lastCalc:''},contentPipeline:[],skills:[],experiences:[],antiGoals:[],contracts:[],manifesto:{principles:[],identityStatements:[],rules:[],lastUpdated:''},bodyLogs:[],sleepLogs:[],portfolioEntries:[],givelinkHistory:[],dashWidgetOrder:['lifescore','daily-picks','daily-quests','habits','routines','deepwork','wheel-mini'],mentors:[],_allQuestsBonusDate:'',treasureChests:[],deadEnds:[],pitsOfDoom:[],optionalityLog:[],happinessLogs:[],maslowLog:[],lifeFrameworksLog:[],leverageLog:[],impossiblePeople:[],securityAuditLog:[]};
+let S={tasks:[],goals:[],values:['Impact','Ownership','Growth','Health','Deep Work'],reviews:[],seededV2:false,seededGoalsV3:false,dashCompact:false,healthLogs:[],financeEntries:[],investments:[],automations:[],people:[],habits:[],habitLogs:{},deepWorkSessions:[],discomfortLogs:[],decisions:[],wins:[],challengeLogs:[],discomfortLadder:{startWeek:null,completedWeeks:[]},photoLogs:[],commitments:[],oneThing:[],habitUnits:{},contextLog:[],reminders:[],books:[],ntfy:{topic:'',enabled:false,subscribed:false},weeklyTheme:[],bucketlist:[],wishlist:[],projects:[],hellYesFilter:false,dailyIntention:[],energyLog:[],xp:0,level:1,badges:[],dailyQuests:[],questsDate:'',wheelAssessments:[],socialProfiles:[],brandStatement:'',weeklyNotes:[],taskPairs:{},brandAuditResult:'',givelinkMetrics:{nonprofits:0,pipeline:0,arr:0,users:0,impactStories:[],mrr:0,impactModel:{currentNonprofits:0,avgDonationsPerNonprofit:0,avgDonationSize:0,viralCoeff:1.1,targetPeople:1000000}},netWorthEntries:[],okrs:[],biomarkers:[],selfKnowledge:[],quarterlyReviews:[],annualReviews:[],agiPrep:{timeline:{},decisions:[],resources:[],scenarios:[]},sfTimeline:{targetDate:'',durationMonths:6,status:'planning',budget:0,milestones:[],network:[],notes:''},lifeScore:{score:0,breakdown:{},lastCalc:''},contentPipeline:[],skills:[],experiences:[],antiGoals:[],contracts:[],manifesto:{principles:[],identityStatements:[],rules:[],lastUpdated:''},bodyLogs:[],sleepLogs:[],portfolioEntries:[],givelinkHistory:[],dashWidgetOrder:['lifescore','daily-picks','daily-quests','habits','routines','deepwork','wheel-mini'],mentors:[],_allQuestsBonusDate:'',treasureChests:[],deadEnds:[],pitsOfDoom:[],optionalityLog:[],happinessLogs:[],maslowLog:[],lifeFrameworksLog:[],leverageLog:[],impossiblePeople:[],securityAuditLog:[]};
 let editT=null,editG=null,fCat='all';
 let profileName=localStorage.getItem('taskos_name')||'Panos';
 let _editChecklist=[];
@@ -2104,7 +2104,7 @@ function save(){
   }
   if(!_sbApplying&&typeof _sbScheduleSync==='function')_sbScheduleSync();
 }
-function load(){const d=localStorage.getItem('taskos');if(d)try{S={...S,...JSON.parse(d)};}catch(e){console.warn('Corrupt localStorage, using defaults',e);}}
+function load(){const d=localStorage.getItem('taskos');if(d)try{S={...S,...JSON.parse(d)};}catch(e){console.warn('Corrupt localStorage, using defaults',e);}if(S.claudeKey){localStorage.setItem('taskos_claude_key',S.claudeKey);delete S.claudeKey;}}
 function exportData(){
   const blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);
@@ -4131,11 +4131,11 @@ function seedGoals(){
 
 // ── CALL CLAUDE ────────────────────────────────────────────────
 async function callClaude(prompt, maxTokens=1000){
-  if(!S.claudeKey){toast('Add Claude API key in Settings first');return null;}
+  if(!localStorage.getItem('taskos_claude_key')){toast('Add Claude API key in Settings first');return null;}
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json','x-api-key':S.claudeKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
+      headers:{'Content-Type':'application/json','x-api-key':localStorage.getItem('taskos_claude_key'),'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:maxTokens,messages:[{role:'user',content:prompt}]})
     });
     if(!res.ok){
@@ -8483,7 +8483,7 @@ function _addSFMilestone(){
 // ── SETTINGS ──────────────────────────────────────────────────
 function openSettings(){
   document.getElementById('set-name').value=profileName;
-  document.getElementById('set-claude-key').value=S.claudeKey||'';
+  document.getElementById('set-claude-key').value=localStorage.getItem('taskos_claude_key')||'';
   document.getElementById('set-about').value=localStorage.getItem('taskos_about')||'';
   document.getElementById('set-readwise-key').value=localStorage.getItem('taskos_readwise_key')||'';
   document.getElementById('set-notion-key').value=localStorage.getItem('taskos_notion_key')||'';
@@ -8503,7 +8503,7 @@ function saveSettings(){
   const n=document.getElementById('set-name').value.trim();
   if(n){profileName=n;localStorage.setItem('taskos_name',n);document.title='Task OS — '+n;}
   const k=document.getElementById('set-claude-key').value.trim();
-  S.claudeKey=k;
+  if(k)localStorage.setItem('taskos_claude_key',k); else localStorage.removeItem('taskos_claude_key');
   S.hellYesFilter=document.getElementById('set-hell-yes').value==='true';
   S.brandStatement=document.getElementById('set-brand')?.value.trim()||'';
   save();
@@ -8654,7 +8654,7 @@ function _autoSnapshot(){
       }
     }
     localStorage.setItem('taskos_autosnap',today);
-  }catch(e){}
+  }catch(e){console.warn('_autoSnapshot failed:',e);}
 }
 
 // ── KEYBOARD ──────────────────────────────────────────────────
@@ -8913,46 +8913,14 @@ function _notionBlocksToText(blocks){
   }
   return lines.join('\n').trim();
 }
-async function fetchFromNotion(){
-  const token=localStorage.getItem('taskos_notion_key');
-  const pageUrl=localStorage.getItem('taskos_notion_page');
-  const input=document.getElementById('notes-import-input');
-  if(!token||!pageUrl){
-    // show setup instructions inline
-    const msg=!token?'Add your Notion integration token in ⚙️ Settings.':'Add your Notion page URL in ⚙️ Settings.';
-    toast(msg);openSettings();return;
-  }
-  const pageId=_notionPageId(pageUrl);
-  if(!pageId){toast('Invalid Notion URL — paste the full page URL in Settings.');return;}
-  if(input)input.value='⏳ Fetching from Notion...';
-  try{
-    const res=await fetch(`https://api.notion.com/v1/blocks/${pageId}/children?page_size=100`,{
-      headers:{'Authorization':'Bearer '+token,'Notion-Version':'2022-06-28','Content-Type':'application/json'},
-    });
-    if(res.status===401){throw new Error('Invalid token. Check your Notion integration.');}
-    if(res.status===403){throw new Error('Page not shared with integration. Open the page in Notion → ··· → Connections → add your integration.');}
-    if(res.status===404){throw new Error('Page not found. Check the URL in Settings.');}
-    if(!res.ok){throw new Error('Notion API error '+res.status);}
-    const data=await res.json();
-    const text=_notionBlocksToText(data.results||[]);
-    if(!text){if(input)input.value='';toast('Page is empty or has no readable text.');return;}
-    if(input)input.value=text;
-    toast('✅ Pulled from Notion! Click Synthesize.');
-  }catch(e){
-    if(input)input.value='';
-    const isCors=e instanceof TypeError&&e.message.includes('fetch');
-    if(isCors){
-      toast('Notion blocked browser access (CORS). See instructions below.');
-      const result=document.getElementById('notes-import-result');
-      if(result)result.innerHTML=`<div style="background:var(--surface2);border-radius:8px;padding:12px;font-size:12px;line-height:1.7;">
-        <strong>Notion doesn't allow direct browser requests.</strong><br>
-        Workaround: Open your Notion page → <strong>···</strong> → <strong>Export</strong> → <strong>Markdown & CSV</strong> → paste the content here.<br>
-        Or share the page as a public web link and paste its URL.
-      </div>`;
-    }else{
-      toast('❌ '+e.message);
-    }
-  }
+function fetchFromNotion(){
+  // Notion blocks browser-origin requests (CORS). Direct fetch is not possible
+  // without a server-side proxy. Show export instructions immediately.
+  const result=document.getElementById('notes-import-result');
+  if(result)result.innerHTML=`<div style="background:var(--surface2);border-radius:8px;padding:12px;font-size:12px;line-height:1.7;">
+    <strong>Notion blocks direct browser requests (CORS restriction).</strong><br>
+    To import: open your Notion page → <strong>···</strong> → <strong>Export</strong> → <strong>Markdown &amp; CSV</strong>, then paste the text into the box above.
+  </div>`;
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -8962,8 +8930,7 @@ function openCSVImport(){
   document.getElementById('csv-input').value='';
   document.getElementById('csv-preview').innerHTML='';
   document.getElementById('csv-footer').innerHTML=`<button class="btn bg" onclick="closeM('csv-import-modal')">Cancel</button><button class="btn bp" onclick="previewCSV()">Preview</button>`;
-  document.getElementById('csv-import-modal').classList.remove('hidden');
-  setTimeout(()=>document.getElementById('csv-input').focus(),80);
+  openM('csv-import-modal');
 }
 function parseCSVInput(raw){
   const lines=raw.trim().split('\n').filter(l=>l.trim());
@@ -9664,7 +9631,7 @@ function renderMorningBriefing(){
   _fetchAIBriefing(ctx,el,cacheKey);
 }
 async function _fetchAIBriefing(ctx,el,cacheKey){
-  if(!S.claudeKey&&!localStorage.getItem('taskos_api_key'))return;
+  if(!localStorage.getItem('taskos_claude_key')&&!localStorage.getItem('taskos_api_key'))return;
   const dayLabel=new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
   const prompt=`You are the personal chief-of-staff for Panos, founder of Givelink (B2B SaaS for nonprofits). Today is ${dayLabel}.
 
@@ -10166,8 +10133,7 @@ function openAddWin(){
   document.getElementById('win-cat').value='work';
   document.getElementById('win-emoji').value='';
   document.getElementById('win-date').value=new Date().toISOString().slice(0,10);
-  document.getElementById('win-modal').classList.remove('hidden');
-  setTimeout(()=>document.getElementById('win-title').focus(),80);
+  openM('win-modal');
 }
 function saveWin(){
   const title=document.getElementById('win-title').value.trim();
@@ -10245,8 +10211,7 @@ function openAddBucket(prefill){
   document.getElementById('bl-priority').value='medium';
   document.getElementById('bl-year').value='';
   document.getElementById('bl-modal-title').textContent='🌍 Add to Bucket List';
-  document.getElementById('bl-modal').classList.remove('hidden');
-  setTimeout(()=>document.getElementById('bl-title').focus(),80);
+  openM('bl-modal');
 }
 function openEditBucket(id){
   const x=(S.bucketlist||[]).find(b=>b.id===id);if(!x)return;
@@ -10257,7 +10222,7 @@ function openEditBucket(id){
   document.getElementById('bl-priority').value=x.priority||'medium';
   document.getElementById('bl-year').value=x.year||'';
   document.getElementById('bl-modal-title').textContent='✏️ Edit Bucket Item';
-  document.getElementById('bl-modal').classList.remove('hidden');
+  openM('bl-modal');
 }
 function saveBucket(){
   const title=document.getElementById('bl-title').value.trim();
@@ -10349,8 +10314,7 @@ function openAddWish(prefill){
   document.getElementById('wish-price').value='';
   document.getElementById('wish-url').value='';
   document.getElementById('wish-modal-title').textContent='🛒 Add to Wishlist';
-  document.getElementById('wish-modal').classList.remove('hidden');
-  setTimeout(()=>document.getElementById('wish-title').focus(),80);
+  openM('wish-modal');
 }
 function openEditWish(id){
   const x=(S.wishlist||[]).find(w=>w.id===id);if(!x)return;
@@ -10362,7 +10326,7 @@ function openEditWish(id){
   document.getElementById('wish-price').value=x.price||'';
   document.getElementById('wish-url').value=x.url||'';
   document.getElementById('wish-modal-title').textContent='✏️ Edit Item';
-  document.getElementById('wish-modal').classList.remove('hidden');
+  openM('wish-modal');
 }
 function saveWish(){
   const title=document.getElementById('wish-title').value.trim();
@@ -10446,8 +10410,7 @@ function openAddProject(prefill){
   document.getElementById('proj-url').value='';
   document.getElementById('proj-repo').value='';
   document.getElementById('proj-modal-title').textContent='🚀 Add Project';
-  document.getElementById('proj-modal').classList.remove('hidden');
-  setTimeout(()=>document.getElementById('proj-title').focus(),80);
+  openM('proj-modal');
 }
 function openEditProject(id){
   const x=(S.projects||[]).find(p=>p.id===id);if(!x)return;
@@ -10460,7 +10423,7 @@ function openEditProject(id){
   document.getElementById('proj-url').value=x.url||'';
   document.getElementById('proj-repo').value=x.repo||'';
   document.getElementById('proj-modal-title').textContent='✏️ Edit Project';
-  document.getElementById('proj-modal').classList.remove('hidden');
+  openM('proj-modal');
 }
 function saveProject(){
   const title=document.getElementById('proj-title').value.trim();
@@ -10501,8 +10464,7 @@ function openPasteImport(target){
   document.getElementById('paste-import-text').value='';
   document.getElementById('paste-import-preview').style.display='none';
   document.getElementById('paste-confirm-btn').style.display='none';
-  document.getElementById('paste-import-modal').classList.remove('hidden');
-  setTimeout(()=>document.getElementById('paste-import-text').focus(),80);
+  openM('paste-import-modal');
 }
 
 function previewPasteImport(force){
@@ -10547,7 +10509,7 @@ async function aiCategorizePaste(){
   const raw=document.getElementById('paste-import-text').value;
   const lines=raw.split('\n').map(l=>l.replace(/^[-•*\d.]+\s*/,'').trim()).filter(Boolean);
   if(!lines.length)return toast('Paste some items first');
-  if(!S.claudeKey)return toast('Add Claude API key in Settings for AI categorization');
+  if(!localStorage.getItem('taskos_claude_key'))return toast('Add Claude API key in Settings for AI categorization');
   const target=document.getElementById('paste-import-target').value;
   const about=getAboutMe();
   const schemas={
@@ -10581,7 +10543,7 @@ function confirmPasteImport(){
 }
 
 // shared close helper (some modals use closeModal, some closeM — unify)
-function closeModal(id){document.getElementById(id)?.classList.add('hidden');}
+const closeModal=closeM;
 
 // ── OFFLINE INDICATOR ─────────────────────────────────────────
 window.addEventListener('online',()=>{const p=document.getElementById('offline-pill');if(p)p.style.display='none';});

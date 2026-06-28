@@ -231,3 +231,30 @@ _Generated: 2026-06-28 | Scope: index.html (12,893 lines), givelink.html (1,755 
 ---
 
 _Max 20 items shown. Ordered within each tier by ROI. All file references verified against source at time of analysis._
+
+---
+
+## 🔎 Overflow findings (deep scan — didn't fit in top 20)
+
+These were surfaced by a full line-by-line read of `index.html` but were crowded out by higher-priority items. Worth addressing in the next sprint.
+
+### A. 15+ async AI feature functions have no `try/catch` — buttons can lock permanently
+
+- **Where**: `index.html:5021` (`showBatchSuggestions`), `6049` (`aiWheelInsight`), `6216` (`aiSocialAudit`), `6376` (`aiExtractTasksFromNotes`), `6575` (`aiBreakdownGoal`), `6620` (`aiImproveTask`), `6661` (`aiTaskHealthCheck`), `6975` (`runPriorityAudit`), `7427` (`aiGenerateNewsletter`), `9404` (`synthesizeWeeklyNotes`), `9666` (`_fetchAIBriefing`), and ~14 more in `10180–11759`
+- **What**: `callClaude()` itself catches and returns `null`, but callers skip try/catch entirely. Any TypeError from operating on a `null` result propagates uncaught. `showBatchSuggestions` sets `btn.disabled=true` before the call and only resets inside the function body — a throw mid-function permanently locks the button. `_fetchAIBriefing` runs on app init, so an uncaught rejection on startup can poison the init chain.
+- **Effort**: M
+- **Suggested fix**: Wrap every async AI feature function body with `try { ... } finally { _aiUnlock(key); resetButtonState(); }`. Create a shared `_wrapAi(fn)` decorator used by all feature buttons so error handling lives in one place.
+
+### B. `caches.addAll()` in SW install has no error handler — silent install failure
+
+- **Where**: `sw.js:14-17`
+- **What**: If any asset in the `[...HTML, ...STATIC]` list returns non-200 (e.g., a deploy that drops `manifest-givelink.json`), `addAll` rejects and the `install` event's `waitUntil` promise rejects — the new SW installation fails silently. The user remains on the old cached version with no notification.
+- **Effort**: S
+- **Suggested fix**: Wrap `caches.addAll` in a try/catch and cache HTML/STATIC separately so a missing icon doesn't block HTML caching: `await cache.addAll(HTML); try { await cache.addAll(STATIC); } catch(e) { console.warn('Static pre-cache partial fail', e); }`
+
+### C. Supabase refresh-token failure is silently swallowed — user stuck in broken auth
+
+- **Where**: `index.html:8624` (`try{refresh();}catch(e){}`)
+- **What**: When the Supabase `refresh_token` expires, `_sbToken()` throws. The outer catch at line 8624 swallows it with no logging or re-auth prompt. Subsequent `sbPush()` calls fail with 401 but show only the generic sync-warning toast. The user has no indication they need to reconnect.
+- **Effort**: S
+- **Suggested fix**: In the catch at `8624`, check `e.message` for `'auth 401'` / `'not connected'` and call `sbDisconnect()` + `toast('☁️ Session expired — reconnect in Settings')` to guide the user to re-authenticate.

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<meta name="theme-color" content="#58a6ff">
+<meta name="theme-color" content="#8b7cff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Task OS">
@@ -17,24 +17,25 @@
 *{margin:0;padding:0;box-sizing:border-box;}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
 :root{
-  --bg:#0d1117;--surface:#161b22;--surface2:#21262d;--border:#30363d;
-  --text:#e6edf3;--muted:#8b949e;--accent:#58a6ff;--accent-soft:rgba(88,166,255,.14);--hover:rgba(255,255,255,.04);
-  --brand:#58a6ff;--brand2:#bc8cff;--brand-gradient:linear-gradient(135deg,#58a6ff,#bc8cff);
-  --bw:#ff6b6b;--bm:#ffa94d;--bb:#69db7c;--bs:#74c0fc;--bi:#da77f2;
-  --q1:#ff6b6b;--q2:#69db7c;--q3:#ffa94d;--q4:#868e96;
-  --cg:#cc5de8;--cf:#ffa94d;--ca:#22d3ee;--ch:#ff6b6b;--cr:#69db7c;--cl:#74c0fc;--cb:#f783ac;--co:#868e96;
+  --bg:#0a0a0f;--surface:#131319;--surface2:#1c1c25;--border:#262630;
+  --text:#ecedf3;--muted:#8b8b9c;--accent:#8b7cff;--accent-soft:rgba(139,124,255,.15);--hover:rgba(255,255,255,.035);
+  --brand:#8b7cff;--brand2:#c08cff;--brand-gradient:linear-gradient(135deg,#7b8cff,#c08cff);
+  --bw:#ff8a8a;--bm:#ffc078;--bb:#7ee0a0;--bs:#8ec5ff;--bi:#d99cf5;
+  --q1:#ff8a8a;--q2:#7ee0a0;--q3:#ffc078;--q4:#9098a5;
+  --cg:#d59cf5;--cf:#ffc078;--ca:#5fd3e6;--ch:#ff8a8a;--cr:#7ee0a0;--cl:#8ec5ff;--cb:#f79ac0;--co:#9098a5;
 }
 body.light{
-  --bg:#f5f5f0;--surface:#ffffff;--surface2:#f0f0eb;--border:#e0ddd8;
-  --text:#1a1a1a;--muted:#6b7280;--accent:#2563eb;--accent-soft:rgba(37,99,235,.1);--hover:rgba(0,0,0,.04);
-  --brand:#2563eb;--brand2:#9333ea;--brand-gradient:linear-gradient(135deg,#2563eb,#9333ea);
-  --bw:#dc2626;--bm:#d97706;--bb:#16a34a;--bs:#2563eb;--bi:#9333ea;
-  --q1:#dc2626;--q2:#16a34a;--q3:#d97706;--q4:#6b7280;
-  --cg:#9333ea;--cf:#d97706;--ca:#0891b2;--ch:#dc2626;--cr:#16a34a;--cl:#2563eb;--cb:#db2777;--co:#6b7280;
+  --bg:#f7f6f3;--surface:#ffffff;--surface2:#f3f2ee;--border:#e9e7e1;
+  --text:#32302c;--muted:#8a857b;--accent:#5a49e0;--accent-soft:rgba(90,73,224,.09);--hover:rgba(0,0,0,.035);
+  --brand:#5a49e0;--brand2:#9a5bd0;--brand-gradient:linear-gradient(135deg,#5a49e0,#9a5bd0);
+  --bw:#e0645c;--bm:#cf8a3c;--bb:#3fa66a;--bs:#3f7ad0;--bi:#8a4bc4;
+  --q1:#e0645c;--q2:#3fa66a;--q3:#cf8a3c;--q4:#8a857b;
+  --cg:#8a4bc4;--cf:#cf8a3c;--ca:#0e91a8;--ch:#e0645c;--cr:#3fa66a;--cl:#3f7ad0;--cb:#d1568f;--co:#8a857b;
 }
+body.light{background:radial-gradient(1000px 560px at 84% -14%,rgba(90,73,224,.055),transparent 58%),radial-gradient(760px 520px at 4% 114%,rgba(14,145,168,.035),transparent 55%),var(--bg);background-attachment:fixed;}
 body.light .bp{color:#fff;}
 body.light .bni.active{color:var(--accent);}
-body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--text);display:flex;height:100vh;overflow:hidden;}
+body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:radial-gradient(1100px 620px at 82% -12%,rgba(139,124,255,.10),transparent 60%),radial-gradient(820px 560px at 6% 112%,rgba(95,211,230,.055),transparent 55%),var(--bg);background-attachment:fixed;color:var(--text);display:flex;height:100vh;overflow:hidden;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;letter-spacing:-.006em;}
 /* SIDEBAR */
 .sidebar{width:210px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 0;flex-shrink:0;overflow-y:auto;}
 .logo{display:flex;align-items:center;gap:9px;padding:0 16px 16px;border-bottom:1px solid var(--border);margin-bottom:8px;}
@@ -44,26 +45,28 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 #mobile-brand{display:none;}
 @media(max-width:768px){#mobile-brand{display:flex;position:fixed;top:max(13px,env(safe-area-inset-top,13px));left:50%;transform:translateX(-50%);z-index:199;align-items:center;gap:6px;pointer-events:none;}#mobile-brand .logo-mark{width:22px;height:22px;}#mobile-brand .logo-word{font-size:15px;font-weight:800;}}
 .logo span{color:var(--accent);}
-.ns{padding:10px 18px 5px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-top:5px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;opacity:.72;transition:opacity .12s;border-radius:6px;}
-.ns:hover{opacity:1;}
-.ns-arrow{font-size:9px;opacity:.55;transition:transform .15s;}
+.ns{padding:6px 10px;margin:11px 8px 1px;font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;opacity:.5;transition:opacity .12s,background .12s;border-radius:6px;}
+.ns:hover{opacity:.85;background:var(--hover);}
+.ns-arrow{font-size:9px;opacity:.35;transition:transform .15s,opacity .12s;}
+.ns:hover .ns-arrow{opacity:.7;}
 .ns-group.collapsed .ni,.ns-group.collapsed .ns-sub{display:none;}
-.ni{padding:8px 12px;cursor:pointer;border-radius:8px;margin:1px 8px;font-size:13px;display:flex;align-items:center;gap:11px;color:var(--muted);transition:background .12s,color .12s;position:relative;line-height:1.2;}
-.ni-ic{width:20px;min-width:20px;text-align:center;font-size:15px;flex-shrink:0;}
+.ni{padding:6px 10px;cursor:pointer;border-radius:6px;margin:1px 8px;font-size:13.5px;display:flex;align-items:center;gap:9px;color:var(--muted);font-weight:500;transition:background .12s,color .12s;position:relative;line-height:1.25;}
+.ni-ic{width:18px;min-width:18px;text-align:center;font-size:15px;flex-shrink:0;opacity:.88;}
 .ni:hover{background:var(--hover);color:var(--text);}
-.ni.active{background:var(--accent-soft);color:var(--accent);font-weight:600;}
-.ni.active::before{content:'';position:absolute;left:-8px;top:50%;transform:translateY(-50%);width:3px;height:17px;border-radius:0 3px 3px 0;background:var(--brand-gradient);}
+.ni.active{background:var(--surface2);color:var(--text);font-weight:600;}
+.ni.active .ni-ic{opacity:1;}
+.ni.active::before{content:none;}
 #ib{display:contents;}
 .ibadge{margin-left:auto;background:var(--accent);color:#fff;font-size:10px;font-weight:700;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px;}
 /* MAIN */
-.main{flex:1;overflow-y:auto;padding:24px 28px;}
+.main{flex:1;overflow-y:auto;padding:30px 36px;position:relative;z-index:1;}
 .view{display:none;max-width:1400px;margin:0 auto;}.view.active{display:block;animation:view-in .26s ease;}
 @keyframes view-in{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
 /* TYPE */
-h1{font-size:22px;font-weight:700;margin-bottom:3px;}
-h2{font-size:16px;font-weight:600;margin-bottom:14px;}
-h3{font-size:14px;font-weight:600;}
-.sub{color:var(--muted);font-size:13px;margin-bottom:20px;}
+h1{font-size:24px;font-weight:700;margin-bottom:4px;letter-spacing:-.02em;}
+h2{font-size:16px;font-weight:600;margin-bottom:14px;letter-spacing:-.01em;}
+h3{font-size:14px;font-weight:600;letter-spacing:-.005em;}
+.sub{color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.5;}
 /* LAYOUT */
 .ph{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:14px;}
 .ph>div:first-child{min-width:0;}
@@ -79,11 +82,11 @@ h3{font-size:14px;font-weight:600;}
 .g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
 hr{border:none;border-top:1px solid var(--border);margin:18px 0;}
 /* CARD */
-.card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 18px;box-shadow:0 1px 2px rgba(0,0,0,.04);}
 /* STATS */
 .stats{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
-.sc{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 10px;text-align:center;cursor:pointer;transition:border-color .12s,background .12s,transform .1s;-webkit-tap-highlight-color:transparent;position:relative;}
-.sc:hover{border-color:var(--accent);background:var(--surface2);}
+.sc{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 10px;text-align:center;cursor:pointer;transition:border-color .12s,background .12s,transform .1s,box-shadow .12s;-webkit-tap-highlight-color:transparent;position:relative;}
+.sc:hover{border-color:var(--accent);background:var(--surface2);box-shadow:0 0 0 3px var(--accent-soft);}
 .sc:active{transform:scale(.96);}
 .sn{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.5px;line-height:1.1;}
 .sl{font-size:11px;color:var(--muted);margin-top:3px;display:flex;align-items:center;justify-content:center;gap:3px;}
@@ -93,7 +96,7 @@ hr{border:none;border-top:1px solid var(--border);margin:18px 0;}
 .sec-link .arr{transition:transform .15s;}
 .sec-link:hover .arr{transform:translateX(2px);}
 /* TASK CARD */
-.tc{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:11px 13px;margin-bottom:7px;cursor:pointer;transition:border-color .12s,background .12s;display:flex;align-items:flex-start;gap:9px;}
+.tc{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:12px 14px;margin-bottom:7px;cursor:pointer;transition:border-color .12s,background .12s,box-shadow .12s;display:flex;align-items:flex-start;gap:9px;}
 .tc:hover{border-color:var(--accent);background:var(--surface2);}
 .tc.done{opacity:.5;}.tc.done .tt{text-decoration:line-through;}
 .tc.top3{border-left:3px solid var(--accent);}
@@ -119,8 +122,8 @@ hr{border:none;border-top:1px solid var(--border);margin:18px 0;}
 .cb{background:rgba(247,131,172,.15);color:var(--cb);}
 .co{background:rgba(134,142,150,.15);color:var(--co);}
 /* BUTTONS */
-.btn{padding:9px 16px;border-radius:6px;border:none;cursor:pointer;font-size:13px;font-weight:500;transition:all .12s;display:inline-flex;align-items:center;gap:5px;}
-.bp{background:var(--brand-gradient);color:#fff;}.bp:hover{opacity:.9;filter:brightness(1.05);}
+.btn{padding:9px 16px;border-radius:9px;border:none;cursor:pointer;font-size:13px;font-weight:600;transition:all .12s;display:inline-flex;align-items:center;gap:5px;}
+.bp{background:var(--brand-gradient);color:#fff;box-shadow:0 4px 16px -4px rgba(139,124,255,.5);}.bp:hover{filter:brightness(1.07);box-shadow:0 6px 22px -4px rgba(139,124,255,.6);}
 .btn:active{transform:scale(.96);}
 .bg{background:transparent;color:var(--muted);border:1px solid var(--border);}.bg:hover{background:var(--surface2);color:var(--text);}
 .bd{background:rgba(255,107,107,.12);color:var(--q1);border:1px solid rgba(255,107,107,.25);}.bd:hover{background:rgba(255,107,107,.22);}
@@ -207,13 +210,13 @@ select.fc option{background:var(--surface2);}
 .app-lnk{padding:8px 16px;font-size:12px;display:flex;align-items:center;gap:7px;color:var(--muted);text-decoration:none;border-radius:6px;transition:background .12s;}
 .app-lnk:hover{background:var(--surface2);color:var(--text);}
 @media(max-width:768px){body{flex-direction:column;}.mob-bar{display:flex;}.main{padding:14px;}.fr{grid-template-columns:1fr;}.goal-dash{grid-template-columns:1fr 1fr;}}
-.cmdk{position:fixed;inset:0;background:rgba(0,0,0,.75);display:flex;align-items:flex-start;justify-content:center;padding-top:14vh;z-index:2000;backdrop-filter:blur(5px);}.cmdk.hidden{display:none;}
-.cmdk-box{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:540px;max-width:94vw;}
-.cmdk-ir{display:flex;align-items:center;gap:8px;padding:6px 14px;border-bottom:1px solid var(--border);}
-.cmdk-i{flex:1;background:none;border:none;padding:11px 0;color:var(--text);font-size:15px;outline:none;}
+.cmdk{position:fixed;inset:0;background:rgba(6,6,10,.6);display:flex;align-items:flex-start;justify-content:center;padding-top:12vh;z-index:2000;backdrop-filter:blur(8px) saturate(120%);}.cmdk.hidden{display:none;}
+.cmdk-box{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:580px;max-width:94vw;box-shadow:0 28px 90px -12px rgba(0,0,0,.6),0 0 0 1px var(--border),0 0 70px -20px rgba(139,124,255,.4);overflow:hidden;}
+.cmdk-ir{display:flex;align-items:center;gap:10px;padding:8px 16px;border-bottom:1px solid var(--border);}
+.cmdk-i{flex:1;background:none;border:none;padding:12px 0;color:var(--text);font-size:16px;outline:none;letter-spacing:-.01em;}
 .cmdk-opts{display:flex;gap:6px;padding:9px 14px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
 .cmdk-hint{padding:7px 14px;font-size:11px;color:var(--muted);display:flex;gap:12px;}
-kbd{background:var(--surface2);padding:1px 5px;border-radius:3px;font-size:10px;}
+kbd{background:var(--surface2);border:1px solid var(--border);border-bottom-width:2px;padding:2px 6px;border-radius:5px;font-size:10px;font-weight:600;color:var(--muted);box-shadow:0 1px 0 rgba(0,0,0,.12);line-height:1.4;}
 .bc.drag-over{border-color:var(--accent);border-style:dashed;background:rgba(88,166,255,.05);}
 .tc[draggable]{cursor:grab;}
 .proc-card{background:var(--surface);border:2px solid var(--accent);border-radius:12px;padding:24px;text-align:center;margin-bottom:16px;}
@@ -514,6 +517,38 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
 .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
 .dash-col-main,.dash-col-side{display:flex;flex-direction:column;gap:14px;}
 @media(max-width:900px){.dash-grid{grid-template-columns:1fr;}}
+/* ── COMMAND-PALETTE CHIP (Superhuman ⌘K affordance) ─────────────── */
+.cmdk-chip{display:flex;align-items:center;gap:8px;width:calc(100% - 16px);margin:8px 8px 6px;padding:8px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-size:12.5px;font-weight:500;cursor:pointer;transition:border-color .12s,background .12s,box-shadow .12s;-webkit-tap-highlight-color:transparent;}
+.cmdk-chip:hover{border-color:var(--accent);color:var(--text);box-shadow:0 0 0 3px var(--accent-soft);}
+.cmdk-chip .ck-keys{margin-left:auto;display:flex;gap:3px;}
+.cmdk-chip kbd{font-size:10px;}
+/* header inline variant */
+.cmdk-chip-h{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;color:var(--muted);font-size:12.5px;font-weight:500;cursor:pointer;transition:border-color .12s,color .12s,box-shadow .12s;}
+.cmdk-chip-h:hover{border-color:var(--accent);color:var(--text);box-shadow:0 0 0 3px var(--accent-soft);}
+/* ── NOTION COLLAPSIBLE BLOCKS ───────────────────────────────────── */
+.block-h{cursor:pointer;user-select:none;border-radius:9px;transition:background .12s;padding:2px 6px;margin-left:-6px;}
+.block-h:hover{background:var(--hover);}
+.block-caret{display:inline-flex;align-items:center;justify-content:center;width:16px;font-size:11px;color:var(--muted);opacity:0;transition:transform .18s ease,opacity .12s;flex-shrink:0;}
+.block-h:hover .block-caret{opacity:.65;}
+.block.collapsed .block-caret{transform:rotate(-90deg);opacity:.65;}
+.block.collapsed .block-body{display:none;}
+.block.collapsed .block-h{margin-bottom:0!important;}
+/* ── SUPERHUMAN-STYLE TASK ROWS ──────────────────────────────────── */
+.tc:hover{box-shadow:0 2px 10px -4px rgba(0,0,0,.25);}
+.tc.kb-sel{outline:none;border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--accent-soft);}
+.tc.kb-sel::after{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;border-radius:3px;background:var(--brand-gradient);}
+.tc{position:relative;}
+/* Superhuman-style hover action bar on task rows */
+.tc-actions{display:flex;gap:2px;margin-left:auto;align-items:center;opacity:0;transform:translateX(5px);transition:opacity .12s ease,transform .12s ease;flex-shrink:0;}
+.tc:hover .tc-actions,.tc.kb-sel .tc-actions{opacity:1;transform:none;}
+.tc-act{background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;transition:background .12s,color .12s,transform .1s;line-height:1;}
+.tc-act:hover{background:var(--hover);color:var(--text);}
+.tc-act:active{transform:scale(.9);}
+@media(hover:none){.tc-actions{display:none;}}
+/* ── OURA RING ───────────────────────────────────────────────────── */
+.oura-ring{position:relative;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+.oura-ring svg{position:absolute;top:0;left:0;transform:rotate(-90deg);}
+.oura-ring .or-center{position:relative;text-align:center;line-height:1;}
 
 </style>
 </head>
@@ -529,9 +564,13 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
   <!-- WORKSPACE SWITCHER -->
   <div style="padding:8px 10px 10px;border-bottom:1px solid var(--border);margin-bottom:4px;">
     <div style="display:flex;gap:5px;">
-      <button style="flex:1;padding:7px 6px;border-radius:8px;border:none;cursor:pointer;font-size:11px;font-weight:700;background:var(--accent);color:#000;letter-spacing:.2px;">🏠 Personal</button>
+      <button style="flex:1;padding:7px 6px;border-radius:8px;border:none;cursor:pointer;font-size:11px;font-weight:700;background:var(--accent);color:#fff;letter-spacing:.2px;">🏠 Personal</button>
       <a href="givelink.html" style="flex:1;padding:7px 6px;border-radius:8px;border:1px solid rgba(167,139,250,.4);cursor:pointer;font-size:11px;font-weight:700;background:rgba(167,139,250,.1);color:#a78bfa;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center;gap:4px;letter-spacing:.2px;" title="Switch to Givelink Sprint Board (⌘2)">🟣 Givelink</a>
     </div>
+  </div>
+  <div class="cmdk-chip" onclick="openCmdK()" title="Command palette — search, navigate, capture">
+    <span style="font-size:13px;">🔍</span><span>Quick find…</span>
+    <span class="ck-keys"><kbd>⌘</kbd><kbd>K</kbd></span>
   </div>
   <div class="ns-group" data-ns="main">
   <span class="ns" onclick="_toggleNsGroup(this)">Main<span class="ns-arrow">▾</span></span>
@@ -612,7 +651,7 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
         <span id="xp-label">0 XP</span>
       </div>
       <button class="btn bg sm" id="start-day-btn" onclick="openStartDay()" style="display:none;">☀️ Start Day</button>
-      <button class="btn bg sm dash-extra" onclick="openCmdK()" title="⌘K">⌘K</button>
+      <button class="cmdk-chip-h" onclick="openCmdK()" title="Command palette — search, navigate, capture">🔍 <span>Search</span> <kbd>⌘K</kbd></button>
       <button class="btn bg sm dash-extra" onclick="openChecklist('daily')" id="checklist-btn" title="Daily / Weekly / Monthly Checklist">📋 <span id="checklist-badge" style="display:none;background:#ef4444;color:#fff;border-radius:8px;padding:0 5px;font-size:10px;font-weight:700;"></span></button>
       <button class="btn bg sm dash-extra" onclick="openReminderSettings()" title="Reminders" id="remind-btn">🔔</button>
       <button class="btn bg sm dash-extra" onclick="showWeeklyDigest()">📊 Digest</button>
@@ -699,36 +738,38 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
       <!-- NORTH STAR COCKPIT -->
       <div id="north-star-strip"></div>
       <!-- DAILY PICKS -->
-      <div id="daily-picks-card" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <span style="font-size:13px;font-weight:700;">🎯 Today's Picks</span>
-          <div style="display:flex;gap:6px;">
+      <div id="daily-picks-card" class="block" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;">
+        <div class="block-h" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;" onclick="_toggleBlock('daily-picks-card')">
+          <span style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;"><span class="block-caret">▾</span>🎯 Today's Picks</span>
+          <div style="display:flex;gap:6px;" onclick="event.stopPropagation();">
             <button class="btn bg sm" onclick="renderDailyPicks()" title="Refresh">↺</button>
             <button class="btn bg sm" onclick="_aiBtn(this,aiDailyPicks)">🤖 AI Pick</button>
           </div>
         </div>
-        <div id="daily-picks-list"></div>
-        <div id="daily-picks-ai-result" style="margin-top:10px;font-size:12px;"></div>
+        <div class="block-body">
+          <div id="daily-picks-list"></div>
+          <div id="daily-picks-ai-result" style="margin-top:10px;font-size:12px;"></div>
+        </div>
       </div>
       <!-- GIVELINK TODAY -->
       <div id="givelink-today-card"></div>
       <!-- DAILY FLOW CARD -->
       <div id="daily-flow-card"></div>
       <!-- TOP 3 -->
-      <div>
-        <div class="rb" style="margin-bottom:10px;">
-          <h2 style="margin:0">🎯 Today's Top 3</h2>
-          <button class="sec-link" onclick="nav('buckets')">Pick from This Week <span class="arr">→</span></button>
+      <div class="block" id="blk-top3">
+        <div class="rb block-h" style="margin-bottom:10px;" onclick="_toggleBlock('blk-top3')">
+          <h2 style="margin:0;display:flex;align-items:center;gap:6px;"><span class="block-caret">▾</span>🎯 Today's Top 3</h2>
+          <button class="sec-link" onclick="event.stopPropagation();nav('buckets')">Pick from This Week <span class="arr">→</span></button>
         </div>
-        <div class="t3g" id="top3"></div>
+        <div class="block-body"><div class="t3g" id="top3"></div></div>
       </div>
       <!-- THIS WEEK -->
-      <div>
-        <div class="rb" style="margin-bottom:10px;">
-          <h2 style="margin:0">🔴 This Week</h2>
-          <button class="sec-link" onclick="nav('buckets')">View All <span class="arr">→</span></button>
+      <div class="block" id="blk-week">
+        <div class="rb block-h" style="margin-bottom:10px;" onclick="_toggleBlock('blk-week')">
+          <h2 style="margin:0;display:flex;align-items:center;gap:6px;"><span class="block-caret">▾</span>🔴 This Week</h2>
+          <button class="sec-link" onclick="event.stopPropagation();nav('buckets')">View All <span class="arr">→</span></button>
         </div>
-        <div id="dash-week"></div>
+        <div class="block-body"><div id="dash-week"></div></div>
       </div>
     </div>
     <!-- RIGHT COLUMN: insight-focused -->
@@ -2466,6 +2507,7 @@ function renderDash(){
   // Auto-recalc Life Score once per day
   if(!S.lifeScore||new Date(S.lifeScore.lastCalc||0).toDateString()!==new Date().toDateString()){calcLifeScore();save();}
   _updateXPBar();
+  _applyCollapsed();
   if(!sessionStorage.getItem('xp_animated')){
     sessionStorage.setItem('xp_animated','1');
     const fill=document.getElementById('xp-fill');
@@ -3015,7 +3057,11 @@ function tcHTML(t,showT3btn=false){
       </div>
       ${t.ifThen?`<div style="font-size:10px;color:var(--muted);margin-top:2px;">📌 ${esc(t.ifThen)}</div>`:''}
     </div>
-    ${showT3btn&&t.bucket==='this-week'&&!t.isT3&&t.status!=='done'?`<button class="btn bg sm" onclick="event.stopPropagation();addT3('${t.id}')" title="Add to Top 3">⭐</button>`:''}
+    <div class="tc-actions" onclick="event.stopPropagation();">
+      ${t.status!=='done'?`<button class="tc-act" title="Snooze to Someday" onclick="event.stopPropagation();mvB('${t.id}','someday')">😴</button>`:''}
+      ${t.status!=='done'&&!t.isT3?`<button class="tc-act" title="Add to Top 3" onclick="event.stopPropagation();addT3('${t.id}')">⭐</button>`:''}
+      <button class="tc-act" title="Delete (undo available)" onclick="event.stopPropagation();delTask('${t.id}')">🗑</button>
+    </div>
   </div>`;
 }
 
@@ -4743,10 +4789,11 @@ function renderHabits(){
   const habits=S.habits||[];
   const todayLog=S.habitLogs?.[today]||{};
   const doneToday=habits.filter(h=>todayLog[h]);
+  const _htPct=habits.length?Math.round(doneToday.length/habits.length*100):0;
   document.getElementById('habits-stats').innerHTML=`
-    <div class="los-card los-stat"><div class="los-stat-n" style="color:#69db7c;">${doneToday.length}/${habits.length}</div><div class="los-stat-l">Done today</div></div>
-    <div class="los-card los-stat"><div class="los-stat-n" style="color:#fbbf24;">${_habitStreak()}</div><div class="los-stat-l">Day streak (all done)</div></div>
-    <div class="los-card los-stat"><div class="los-stat-n" style="color:#74c0fc;">${habits.length}</div><div class="los-stat-l">Active habits</div></div>`;
+    <div class="los-card los-stat" style="display:flex;flex-direction:column;align-items:center;gap:8px;">${ouraRing(_htPct,{size:74,stroke:7,center:doneToday.length+'/'+habits.length,centerSize:19})}<div class="los-stat-l">Done today</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#ffc078;">${_habitStreak()}</div><div class="los-stat-l">Day streak (all done)</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#8ec5ff;">${habits.length}</div><div class="los-stat-l">Active habits</div></div>`;
   if(!habits.length){
     document.getElementById('habits-checklist').innerHTML='<div class="empty" style="padding:20px;text-align:center;"><div style="font-size:28px;margin-bottom:6px;">✅</div><div style="font-weight:600;margin-bottom:4px;">No habits yet</div><div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Small daily actions compound into big results</div><button class="btn bp sm" onclick="openHabitSettings()">+ Add Habits</button></div>';
   } else {
@@ -4760,13 +4807,16 @@ function renderHabits(){
       const bestDay=validRates.length?validRates.reduce((a,b)=>b.r>a.r?b:a):null;
       const worstDay=validRates.length?validRates.reduce((a,b)=>b.r<a.r?b:a):null;
       const dowHint=bestDay&&worstDay&&bestDay.i!==worstDay.i?`<div style="font-size:11px;color:var(--muted);margin-top:2px;">Best: ${_DOW[bestDay.i]} · Needs work: ${_DOW[worstDay.i]}</div>`:'';
+      // 30-day completion rate → per-habit Oura ring
+      let _hDone=0;for(let i=0;i<30;i++){const dd=new Date();dd.setDate(dd.getDate()-i);const k=dd.toISOString().slice(0,10);if((S.habitLogs?.[k]||{})[h])_hDone++;}
+      const _hRate=Math.round(_hDone/30*100);
       return`<div class="habit-row" style="flex-direction:column;align-items:flex-start;gap:2px;">
-        <div style="display:flex;align-items:center;width:100%;gap:8px;">
+        <div style="display:flex;align-items:center;width:100%;gap:10px;">
           <div class="habit-ck ${todayLog[h]?'on':''}" onclick="toggleHabit('${h.replace(/'/g,"\\\'")}')">
             ${todayLog[h]?'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':''}
           </div>
           <span style="font-size:13px;flex:1;">${h}</span>
-          ${todayLog[h]?'<span style="font-size:12px;color:#69db7c;">✓ Done</span>':''}
+          <span title="30-day consistency">${ouraRing(_hRate,{size:38,stroke:4,centerSize:11})}</span>
         </div>
         ${dowHint}
       </div>`;
@@ -6109,7 +6159,7 @@ function renderWheel(){
           const diff=cur-prev.scores[a.id];
           delta=diff>0?`<span style="color:#69db7c;font-size:10px;">▲${diff}</span>`:diff<0?`<span style="color:#ff6b6b;font-size:10px;">▼${Math.abs(diff)}</span>`:`<span style="color:var(--muted);font-size:10px;">→</span>`;
         }
-        return`<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:2px 0;"><span>${a.emoji} ${a.label}</span><span style="display:flex;align-items:center;gap:6px;"><strong>${cur}/10</strong>${delta}</span></div>`;
+        return`<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:3px 0;"><span>${a.emoji} ${a.label}</span><span style="display:flex;align-items:center;gap:8px;">${ouraRing(cur*10,{size:30,stroke:3,centerSize:11,center:cur})}${delta}</span></div>`;
       }).join('');
       const lowestArea=WHEEL_AREAS.reduce((min,a)=>latest.scores[a.id]<latest.scores[min.id]?a:min);
       // Average-over-time trend across all assessments in this filter (oldest → newest)
@@ -6120,9 +6170,13 @@ function renderWheel(){
         ${_sparklineSVG(trendVals,120,30)}
         <span style="font-size:10px;color:var(--muted);">${trendVals.length} weeks</span>
       </div>`:'';
+      const _wAvg=Object.values(latest.scores).reduce((a,b)=>a+b,0)/8;
       chartEl.innerHTML=`<div>${_renderWheelSVG(latest.scores)}</div>
         <div style="flex:1;min-width:180px;">
-          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${latest.cadence} · ${d}${prev?` <span style="color:var(--muted);">(vs prev)</span>`:''}</div>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+            ${ouraRing(Math.round(_wAvg*10),{size:64,stroke:6,center:_wAvg.toFixed(1),centerSize:17,sub:'/ 10'})}
+            <div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700;">Life Balance</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">${latest.cadence} · ${d}${prev?' (vs prev)':''}</div></div>
+          </div>
           ${scoreList}
           <div style="margin-top:10px;padding:8px 10px;background:rgba(255,107,107,.1);border-radius:8px;font-size:12px;border-left:3px solid #ff6b6b;">🎯 Focus: ${lowestArea.emoji} <strong>${lowestArea.label}</strong> needs most attention</div>
           ${trendHTML}
@@ -6896,19 +6950,50 @@ function _calcExecScore(){
   const score=Math.round(done/weekTasks.length*100);
   return{score,done,total:weekTasks.length,label:score>=85?'On Track':score>=60?'Behind':'At Risk'};
 }
+// ── OURA RING (reusable radial score) ───────────────────────────
+function ouraRing(pct,opts){
+  opts=opts||{};
+  pct=Math.max(0,Math.min(100,pct));
+  const size=opts.size||64, sw=opts.stroke||6, r=(size-sw)/2, c=size/2;
+  const circ=2*Math.PI*r, dash=circ*(pct/100);
+  const col=opts.color||(pct>=80?'#7ee0a0':pct>=50?'#8b7cff':pct>=30?'#ffc078':'#ff8a8a');
+  const center=opts.center!==undefined?opts.center:Math.round(pct)+(opts.pctSign?'%':'');
+  const fs=opts.centerSize||Math.round(size*0.28);
+  const sub=opts.sub?`<div style="font-size:${Math.max(8,Math.round(size*0.13))}px;color:var(--muted);margin-top:1px;font-weight:600;">${opts.sub}</div>`:'';
+  return`<div class="oura-ring" style="width:${size}px;height:${size}px;">
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="var(--surface2)" stroke-width="${sw}"/>
+      <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round"
+        stroke-dasharray="${dash} ${circ}" style="filter:drop-shadow(0 0 5px ${col}77);transition:stroke-dasharray .6s cubic-bezier(.4,0,.2,1);"/>
+    </svg>
+    <div class="or-center"><div style="font-size:${fs}px;font-weight:800;color:${col};font-variant-numeric:tabular-nums;">${center}</div>${sub}</div>
+  </div>`;
+}
+// ── NOTION COLLAPSIBLE BLOCKS ───────────────────────────────────
+function _toggleBlock(id){
+  const el=document.getElementById(id); if(!el)return;
+  el.classList.toggle('collapsed');
+  let c={}; try{c=JSON.parse(localStorage.getItem('taskos_collapsed')||'{}');}catch(e){}
+  c[id]=el.classList.contains('collapsed');
+  localStorage.setItem('taskos_collapsed',JSON.stringify(c));
+}
+function _applyCollapsed(){
+  let c={}; try{c=JSON.parse(localStorage.getItem('taskos_collapsed')||'{}');}catch(e){}
+  Object.entries(c).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.classList.toggle('collapsed',!!v);});
+}
 function renderExecutionScore(){
   const ring=document.getElementById('exec-ring');
   const label=document.getElementById('exec-label');
   if(!ring)return;
   const e=_calcExecScore();
   const s=e.score;
-  const color=s>=85?'#69db7c':s>=60?'#fbbf24':'#ff6b6b';
+  const color=s>=85?'#7ee0a0':s>=60?'#ffc078':'#ff8a8a';
   const r=22,circ=2*Math.PI*r,dash=circ*(s/100);
   ring.innerHTML=`<svg width="52" height="52" style="position:absolute;top:0;left:0;" viewBox="0 0 52 52">
     <circle cx="26" cy="26" r="${r}" fill="none" stroke="var(--surface2)" stroke-width="4"/>
     <circle cx="26" cy="26" r="${r}" fill="none" stroke="${color}" stroke-width="4"
       stroke-dasharray="${dash} ${circ}" stroke-dashoffset="${circ*0.25}"
-      stroke-linecap="round" style="transition:stroke-dasharray .4s ease;"/>
+      stroke-linecap="round" style="transition:stroke-dasharray .4s ease;filter:drop-shadow(0 0 5px ${color}88);"/>
   </svg><span style="position:relative;font-size:14px;font-weight:800;color:${color};">${s}%</span>`;
   ring.style.cssText='width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;';
   label.innerHTML=`<span style="color:${color};font-weight:600;">${e.done}/${e.total} this week</span><br><span style="font-size:10px;color:var(--muted);">${e.label} · target 85%</span>`;

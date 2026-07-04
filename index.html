@@ -538,6 +538,13 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
 .tc.kb-sel{outline:none;border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--accent-soft);}
 .tc.kb-sel::after{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;border-radius:3px;background:var(--brand-gradient);}
 .tc{position:relative;}
+/* Superhuman-style hover action bar on task rows */
+.tc-actions{display:flex;gap:2px;margin-left:auto;align-items:center;opacity:0;transform:translateX(5px);transition:opacity .12s ease,transform .12s ease;flex-shrink:0;}
+.tc:hover .tc-actions,.tc.kb-sel .tc-actions{opacity:1;transform:none;}
+.tc-act{background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;transition:background .12s,color .12s,transform .1s;line-height:1;}
+.tc-act:hover{background:var(--hover);color:var(--text);}
+.tc-act:active{transform:scale(.9);}
+@media(hover:none){.tc-actions{display:none;}}
 /* ── OURA RING ───────────────────────────────────────────────────── */
 .oura-ring{position:relative;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
 .oura-ring svg{position:absolute;top:0;left:0;transform:rotate(-90deg);}
@@ -3050,7 +3057,11 @@ function tcHTML(t,showT3btn=false){
       </div>
       ${t.ifThen?`<div style="font-size:10px;color:var(--muted);margin-top:2px;">📌 ${esc(t.ifThen)}</div>`:''}
     </div>
-    ${showT3btn&&t.bucket==='this-week'&&!t.isT3&&t.status!=='done'?`<button class="btn bg sm" onclick="event.stopPropagation();addT3('${t.id}')" title="Add to Top 3">⭐</button>`:''}
+    <div class="tc-actions" onclick="event.stopPropagation();">
+      ${t.status!=='done'?`<button class="tc-act" title="Snooze to Someday" onclick="event.stopPropagation();mvB('${t.id}','someday')">😴</button>`:''}
+      ${t.status!=='done'&&!t.isT3?`<button class="tc-act" title="Add to Top 3" onclick="event.stopPropagation();addT3('${t.id}')">⭐</button>`:''}
+      <button class="tc-act" title="Delete (undo available)" onclick="event.stopPropagation();delTask('${t.id}')">🗑</button>
+    </div>
   </div>`;
 }
 

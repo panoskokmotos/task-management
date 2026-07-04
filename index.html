@@ -50,12 +50,13 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 .ns-arrow{font-size:9px;opacity:.35;transition:transform .15s,opacity .12s;}
 .ns:hover .ns-arrow{opacity:.7;}
 .ns-group.collapsed .ni,.ns-group.collapsed .ns-sub{display:none;}
-.ni{padding:6px 10px;cursor:pointer;border-radius:6px;margin:1px 8px;font-size:13.5px;display:flex;align-items:center;gap:9px;color:var(--muted);font-weight:500;transition:background .12s,color .12s;position:relative;line-height:1.25;}
-.ni-ic{width:18px;min-width:18px;text-align:center;font-size:15px;flex-shrink:0;opacity:.88;}
+.ni{padding:6px 10px;cursor:pointer;border-radius:6px;margin:1px 8px;font-size:13.5px;display:flex;align-items:center;gap:10px;color:var(--muted);font-weight:500;transition:background .12s,color .12s;position:relative;line-height:1.25;}
+.ni-ic{display:none;}
+.ni::before{content:"";width:5px;height:5px;border-radius:50%;background:transparent;flex:none;transition:background .12s;}
 .ni:hover{background:var(--hover);color:var(--text);}
+.ni:hover::before{background:var(--border);}
 .ni.active{background:var(--surface2);color:var(--text);font-weight:600;}
-.ni.active .ni-ic{opacity:1;}
-.ni.active::before{content:none;}
+.ni.active::before{background:var(--accent);}
 #ib{display:contents;}
 .ibadge{margin-left:auto;background:var(--accent);color:#fff;font-size:10px;font-weight:700;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px;}
 /* MAIN */
@@ -73,8 +74,8 @@ h3{font-size:14px;font-weight:600;letter-spacing:-.005em;}
 .ph h1{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
 /* Declutter dashboard header: secondary actions hidden until ⋯ is tapped */
-.dash-extra{display:none;}
-.dash-extra.shown{display:inline-flex;}
+.dash-extra{display:none!important;}
+.dash-extra.shown{display:inline-flex!important;}
 #dash-more-btn.on{background:var(--accent-soft);color:var(--accent);border-color:var(--accent);}
 .rb{display:flex;align-items:center;justify-content:space-between;}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
@@ -96,19 +97,34 @@ hr{border:none;border-top:1px solid var(--border);margin:18px 0;}
 .sec-link .arr{transition:transform .15s;}
 .sec-link:hover .arr{transform:translateX(2px);}
 /* TASK CARD */
-.tc{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:12px 14px;margin-bottom:7px;cursor:pointer;transition:border-color .12s,background .12s,box-shadow .12s;display:flex;align-items:flex-start;gap:9px;}
+.tc{background:var(--surface);border:1px solid var(--border);border-radius:11px;padding:9px 14px;margin-bottom:6px;cursor:pointer;transition:border-color .12s,background .12s,box-shadow .12s;display:flex;align-items:center;gap:10px;}
+/* single-line row internals (restraint) */
+.tc-pri{width:6px;height:6px;border-radius:50%;background:transparent;flex:none;}
+.tc-pri.hi{background:var(--q1);}
+.tc-meta{display:flex;align-items:center;gap:12px;flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;}
+.tc-cat{display:inline-flex;align-items:center;gap:5px;color:var(--muted);}
+.tc-cat .cdot{width:6px;height:6px;border-radius:50%;flex:none;opacity:.9;}
+.tc-due{color:var(--muted);}
+.tc-due.over{color:var(--q1);font-weight:600;}
+.tc-r{color:var(--muted);font-size:12px;flex:none;}
+.tc-chk-ct{font-size:10.5px;color:var(--muted);background:var(--surface2);border-radius:6px;padding:0 6px;flex:none;}
+.tc-flag{font-size:10.5px;color:var(--muted);flex:none;}
+.tc-flag.star{color:var(--accent);}
 .tc:hover{border-color:var(--accent);background:var(--surface2);}
 .tc.done{opacity:.5;}.tc.done .tt{text-decoration:line-through;}
 .tc.top3{border-left:3px solid var(--accent);}
-.ck{width:26px;height:26px;min-width:26px;border:2px solid var(--border);border-radius:4px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:all .12s;}
+.ck{width:18px;height:18px;min-width:18px;border:1.5px solid var(--border);border-radius:5px;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;}
 .ck:hover{border-color:var(--accent);}
 .ck.on{background:var(--accent);border-color:var(--accent);}
 .ck.ip{background:rgba(251,191,36,.3);border-color:#fbbf24;}
 .tb{flex:1;min-width:0;}
-.tt{font-size:13px;font-weight:500;line-height:1.4;}
+.tt{font-size:13.5px;font-weight:500;line-height:1.4;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .tm{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap;align-items:center;}
 /* BADGES */
 .badge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500;display:inline-flex;align-items:center;gap:3px;}
+/* quiet, restraint-first badge: dot + muted label, no fill */
+.badge-q{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:500;color:var(--muted);white-space:nowrap;}
+.cdot{width:6px;height:6px;border-radius:50%;flex:none;opacity:.9;}
 .q1{background:rgba(255,107,107,.15);color:var(--q1);}
 .q2{background:rgba(105,219,124,.15);color:var(--q2);}
 .q3{background:rgba(255,169,77,.15);color:var(--q3);}
@@ -139,6 +155,14 @@ select.fc option{background:var(--surface2);}
 /* MODAL */
 .mo{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px);}
 .mo.hidden{display:none;}
+/* legacy .modal-bg modals (e.g. keyboard shortcuts) were unstyled and leaked
+   into the body flex row as an always-visible panel — make them real modals */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:1000;backdrop-filter:blur(4px);padding:20px;}
+.modal-bg.hidden{display:none!important;}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:14px;max-height:88vh;overflow:auto;width:100%;box-shadow:0 24px 80px -12px rgba(0,0,0,.5);}
+.modal .mh{padding:16px 16px 0;}
+.modal .ic{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1;padding:4px 8px;border-radius:6px;}
+.modal .ic:hover{color:var(--text);}
 .md{background:var(--surface);border:1px solid var(--border);border-radius:12px;width:540px;max-width:95vw;max-height:90vh;overflow-y:auto;padding:22px;}
 .mh{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
 .mc{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;padding:3px;border-radius:4px;transition:color .12s;}.mc:hover{color:var(--text);}
@@ -539,12 +563,17 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
 .tc.kb-sel::after{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;border-radius:3px;background:var(--brand-gradient);}
 .tc{position:relative;}
 /* Superhuman-style hover action bar on task rows */
-.tc-actions{display:flex;gap:2px;margin-left:auto;align-items:center;opacity:0;transform:translateX(5px);transition:opacity .12s ease,transform .12s ease;flex-shrink:0;}
-.tc:hover .tc-actions,.tc.kb-sel .tc-actions{opacity:1;transform:none;}
-.tc-act{background:none;border:none;cursor:pointer;color:var(--muted);font-size:13px;width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;transition:background .12s,color .12s,transform .1s;line-height:1;}
+.tc-actions{position:absolute;right:8px;top:3px;bottom:3px;display:flex;gap:1px;align-items:center;opacity:0;transition:opacity .12s ease;background:var(--surface2);padding:0 4px 0 18px;border-radius:9px;}
+.tc:hover .tc-actions,.tc.kb-sel .tc-actions{opacity:1;}
+.tc-act{background:none;border:none;cursor:pointer;color:var(--muted);font-size:15px;width:26px;height:26px;border-radius:7px;display:flex;align-items:center;justify-content:center;transition:background .12s,color .12s,transform .1s;line-height:1;}
 .tc-act:hover{background:var(--hover);color:var(--text);}
 .tc-act:active{transform:scale(.9);}
 @media(hover:none){.tc-actions{display:none;}}
+/* ── SUPERHUMAN TWO-PANE READING VIEW (All Tasks) ────────────────── */
+.all-two-pane{display:grid;grid-template-columns:1fr;gap:18px;align-items:start;}
+@media(min-width:1000px){.all-two-pane{grid-template-columns:minmax(0,1.15fr) minmax(300px,.82fr);}}
+.reading-pane{position:sticky;top:6px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;max-height:calc(100vh - 78px);overflow-y:auto;box-shadow:0 1px 3px rgba(0,0,0,.05);}
+@media(max-width:999px){.reading-pane{display:none;}}
 /* ── OURA RING ───────────────────────────────────────────────────── */
 .oura-ring{position:relative;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
 .oura-ring svg{position:absolute;top:0;left:0;transform:rotate(-90deg);}
@@ -661,8 +690,8 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
       <button class="btn bg sm dash-extra" onclick="showValueAlignment()">🎯 Values</button>
       <button class="btn bg sm dash-extra" onclick="showCommitments()">📜 Commits</button>
       <button class="btn bg sm dash-extra" onclick="showContextReport()">🔀</button>
-      <button class="btn bg sm" onclick="S.dashCompact=!S.dashCompact;save();renderDash();" id="dash-compact-btn" title="Toggle compact mode">🗜</button>
-      <button class="btn bg sm" onclick="openM('shortcuts-modal')" title="Keyboard shortcuts (?)">?</button>
+      <button class="btn bg sm dash-extra" onclick="S.dashCompact=!S.dashCompact;save();renderDash();" id="dash-compact-btn" title="Toggle compact mode">🗜</button>
+      <button class="btn bg sm dash-extra" onclick="openM('shortcuts-modal')" title="Keyboard shortcuts (?)">?</button>
       <button class="btn bg sm dash-extra" onclick="nav('eod')">🌙 EOD</button>
       <button class="btn bg sm" onclick="openQuickAdd()">⚡ Quick Add</button>
       <button class="btn bg sm dash-extra" id="plan-week-btn" onclick="openWeekPlan()">📋 Plan Week</button>
@@ -740,7 +769,7 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
       <!-- DAILY PICKS -->
       <div id="daily-picks-card" class="block" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;">
         <div class="block-h" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;" onclick="_toggleBlock('daily-picks-card')">
-          <span style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;"><span class="block-caret">▾</span>🎯 Today's Picks</span>
+          <span style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;"><span class="block-caret">▾</span>Today's Picks</span>
           <div style="display:flex;gap:6px;" onclick="event.stopPropagation();">
             <button class="btn bg sm" onclick="renderDailyPicks()" title="Refresh">↺</button>
             <button class="btn bg sm" onclick="_aiBtn(this,aiDailyPicks)">🤖 AI Pick</button>
@@ -758,7 +787,7 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
       <!-- TOP 3 -->
       <div class="block" id="blk-top3">
         <div class="rb block-h" style="margin-bottom:10px;" onclick="_toggleBlock('blk-top3')">
-          <h2 style="margin:0;display:flex;align-items:center;gap:6px;"><span class="block-caret">▾</span>🎯 Today's Top 3</h2>
+          <h2 style="margin:0;display:flex;align-items:center;gap:6px;"><span class="block-caret">▾</span>Today's Top 3</h2>
           <button class="sec-link" onclick="event.stopPropagation();nav('buckets')">Pick from This Week <span class="arr">→</span></button>
         </div>
         <div class="block-body"><div class="t3g" id="top3"></div></div>
@@ -766,7 +795,7 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
       <!-- THIS WEEK -->
       <div class="block" id="blk-week">
         <div class="rb block-h" style="margin-bottom:10px;" onclick="_toggleBlock('blk-week')">
-          <h2 style="margin:0;display:flex;align-items:center;gap:6px;"><span class="block-caret">▾</span>🔴 This Week</h2>
+          <h2 style="margin:0;display:flex;align-items:center;gap:6px;"><span class="block-caret">▾</span>This Week</h2>
           <button class="sec-link" onclick="event.stopPropagation();nav('buckets')">View All <span class="arr">→</span></button>
         </div>
         <div class="block-body"><div id="dash-week"></div></div>
@@ -866,15 +895,18 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
   <div class="fb">
     <span style="font-size:11px;color:var(--muted);">Filter:</span>
     <button class="fp active" onclick="setF('all',this)">All</button>
-    <button class="fp" onclick="setF('givelink',this)">🟣 Givelink</button>
-    <button class="fp" onclick="setF('finance',this)">💰 Finance</button>
-    <button class="fp" onclick="setF('automation',this)">🤖 Auto</button>
-    <button class="fp" onclick="setF('health',this)">🏋️ Health</button>
-    <button class="fp" onclick="setF('relationships',this)">🤝 Relations</button>
-    <button class="fp" onclick="setF('learning',this)">📚 Learning</button>
-    <button class="fp" onclick="setF('brand',this)">🌐 Brand</button>
+    <button class="fp" onclick="setF('givelink',this)">Givelink</button>
+    <button class="fp" onclick="setF('finance',this)">Finance</button>
+    <button class="fp" onclick="setF('automation',this)">Automation</button>
+    <button class="fp" onclick="setF('health',this)">Health</button>
+    <button class="fp" onclick="setF('relationships',this)">Relationships</button>
+    <button class="fp" onclick="setF('learning',this)">Learning</button>
+    <button class="fp" onclick="setF('brand',this)">Brand</button>
   </div>
-  <div id="all-list"></div>
+  <div class="all-two-pane">
+    <div id="all-list"></div>
+    <aside class="reading-pane" id="reading-pane"></aside>
+  </div>
 </div>
 
 <!-- FOCUS NOW -->
@@ -915,7 +947,7 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
   <h2>📊 Progress Dashboard</h2>
   <div class="goal-dash" id="goal-dash"></div>
   <hr>
-  <div class="rb" style="margin-bottom:14px;"><h2 style="margin:0;">⭐ North Stars</h2></div>
+  <div class="rb" style="margin-bottom:14px;"><h2 style="margin:0;">North Stars</h2></div>
   <div id="g-top3"></div>
   <div class="rb" style="margin:14px 0;"><h2 style="margin:0;">All Goals</h2></div>
   <div id="g-all"></div>
@@ -2303,10 +2335,10 @@ function ei(t){if(t.urgency==='high'&&t.importance==='high')return'q1';if(t.urge
 function fd(d){if(!d)return'';const dt=new Date(d);return isNaN(dt)?'':dt.toLocaleDateString('en-US',{month:'short',day:'numeric'});}
 function ft(m){if(!m)return'';if(m<60)return m+'m';const h=Math.floor(m/60),r=m%60;return r?h+'h '+r+'m':h+'h';}
 function active(){return S.tasks.filter(t=>t.status!=='done');}
-function catB(c){const x=CATS[c]||CATS.other;return`<span class="badge c${c[0]}">${x.e} ${x.l}</span>`;}
-function eB(t){const q=ei(t);return`<span class="badge ${q}">${EQ[q].a}</span>`;}
+function catB(c){const x=CATS[c]||CATS.other;return`<span class="badge-q"><span class="cdot" style="background:var(--c${c[0]})"></span>${x.l}</span>`;}
+function eB(t){const q=ei(t);const lbl=EQ[q].a.replace(/^\S+\s+/,'');return`<span class="badge-q"><span class="cdot" style="background:var(--${q})"></span>${lbl}</span>`;}
 function goalStats(gId){const linked=S.tasks.filter(t=>t.goalId===gId);const done=linked.filter(t=>t.status==='done');return{total:linked.length,done:done.length,pct:linked.length?Math.round(done.length/linked.length*100):0};}
-function depthB(depth){if(!depth||depth==='shallow')return'';const cls='depth-'+depth;const label=depth==='deep'?'🟢 Deep':depth==='medium'?'🔵 Medium':'';return label?`<span class="badge ${cls}" style="font-size:10px;">${label}</span>`:'';}
+function depthB(depth){if(!depth||depth==='shallow')return'';const label=depth==='deep'?'Deep':depth==='medium'?'Medium':'';return label?`<span class="badge-q" style="opacity:.72;">${label}</span>`:'';}
 
 // ── TOAST ─────────────────────────────────────────────────────
 function toast(msg,ms=2500){
@@ -2494,6 +2526,16 @@ function nav(v){
   document.getElementById('s-ov')?.classList.remove('open');
   document.querySelectorAll('.bni').forEach(b=>{b.classList.toggle('active',b.dataset.v===v);});
 }
+// Restraint: strip leading emoji from view page titles (chrome, not content)
+function _stripH1Emoji(){
+  document.querySelectorAll('.view .ph h1').forEach(h=>{
+    if(h.id==='greeting'||h.children.length)return;
+    const t=h.textContent||'';
+    let s;try{s=t.replace(/^[^\p{L}\p{N}]+\s*/u,'');}catch(e){s=t.replace(/^[^\wͰ-Ͽ]+\s*/,'');}
+    if(s&&s!==t)h.textContent=s;
+  });
+}
+try{_stripH1Emoji();}catch(e){}
 function renderView(v){({dashboard:renderDash,capture:renderCapture,buckets:renderBuckets,eisenhower:renderEisenhower,all:renderAll,goals:renderGoals,wheel:renderWheel,review:renderReview,weeklynotes:renderWeeklyNotes,focus:renderFocus,history:renderHistoryView,health:renderHealth,finance:renderFinance,ailab:renderAilab,relationships:renderRelationships,deepwork:renderDeepWork,habits:renderHabits,discomfort:renderDiscomfort,eod:renderEod,decisions:renderDecisions,challenge:renderChallenge,ladder:renderLadder,books:renderBooks,wins:renderWins,bucketlist:renderBucketList,wishlist:renderWishlist,projects:renderProjects,'givelink-dash':renderGivelinkDash,networth:renderNetWorth,okrs:renderOKRs,qreview:renderQReview,agi:renderAGI,content:renderContent,skills:renderSkills,sleep:renderSleep,mentors:renderMentors,calendar:renderCalendar,optionality:renderOptionality,flourishing:renderFlourishing,security:renderSecurity})[v]?.();}
 function refresh(){const a=document.querySelector('.view.active');if(a)renderView(a.id.replace('v-',''));}
 
@@ -2528,11 +2570,11 @@ function renderDash(){
   const bc=a.filter(t=>t.bucket==='backlog').length;
   const dc=S.tasks.filter(t=>t.status==='done'&&t.completedAt&&new Date(t.completedAt).toDateString()===now.toDateString()).length;
   document.getElementById('stats').innerHTML=`
-    <div class="sc" onclick="nav('capture')" title="Go to Inbox"><div class="sn" style="color:var(--bi)">${ic}</div><div class="sl"><span>📥</span>Inbox</div></div>
-    <div class="sc" onclick="nav('buckets')" title="Go to This Week"><div class="sn" style="color:var(--bw)">${wc}</div><div class="sl"><span>🔴</span>This Week</div></div>
-    <div class="sc" onclick="nav('buckets')" title="Go to This Month"><div class="sn" style="color:var(--bm)">${mc}</div><div class="sl"><span>🟠</span>This Month</div></div>
-    <div class="sc" onclick="nav('buckets')" title="Go to Backlog"><div class="sn" style="color:var(--bb)">${bc}</div><div class="sl"><span>🟢</span>Backlog</div></div>
-    <div class="sc" onclick="nav('all')" title="View completed tasks"><div class="sn" style="color:var(--accent)">${dc}</div><div class="sl"><span>✅</span>Done Today</div></div>`;
+    <div class="sc" onclick="nav('capture')" title="Go to Inbox"><div class="sn" style="color:var(--bi)">${ic}</div><div class="sl">Inbox</div></div>
+    <div class="sc" onclick="nav('buckets')" title="Go to This Week"><div class="sn" style="color:var(--bw)">${wc}</div><div class="sl">This Week</div></div>
+    <div class="sc" onclick="nav('buckets')" title="Go to This Month"><div class="sn" style="color:var(--bm)">${mc}</div><div class="sl">This Month</div></div>
+    <div class="sc" onclick="nav('buckets')" title="Go to Backlog"><div class="sn" style="color:var(--bb)">${bc}</div><div class="sl">Backlog</div></div>
+    <div class="sc" onclick="nav('all')" title="View completed tasks"><div class="sn" style="color:var(--accent)">${dc}</div><div class="sl">Done Today</div></div>`;
   if(window._dashAnim){window._dashAnim=false;setTimeout(()=>{document.querySelectorAll('#stats .sn').forEach(el=>{const txt=(el.textContent||'').trim();if(!/^\d[\d,]*$/.test(txt))return;const to=parseInt(txt.replace(/,/g,''))||0;el.textContent='0';_countUp(el,to,650);});},20);}
   renderTop3();
   renderDailyPicks();
@@ -2651,7 +2693,7 @@ function renderDash(){
   const questsEl=document.getElementById('daily-quests-widget');
   if(questsEl){
     questsEl.innerHTML=quests.length?`<div style="margin-bottom:14px;background:var(--surface2);border-radius:12px;padding:12px 14px;">
-      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">⚔️ Daily Quests</div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Daily Quests</div>
       ${quests.map(q=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;${q.done?'opacity:0.5;text-decoration:line-through;':''}">
         <span>${q.done?'✅':'⬜'}</span>
         <span style="flex:1;">${esc(q.text)}${q.linkedOKR?`<span style="font-size:10px;background:rgba(105,219,124,.15);color:#69db7c;padding:1px 5px;border-radius:5px;margin-left:4px;">OKR</span>`:''}</span>
@@ -2832,7 +2874,7 @@ function renderAll(){
   const bo={inbox:0,'this-week':1,'this-month':2,backlog:3,someday:4};
   tasks.sort((a,b)=>{if(a.status==='done'&&b.status!=='done')return 1;if(a.status!=='done'&&b.status==='done')return -1;return(bo[a.bucket]||9)-(bo[b.bucket]||9);});
   document.getElementById('atc').textContent=tasks.filter(t=>t.status!=='done').length+' active · '+tasks.filter(t=>t.status==='done').length+' done';
-  if(!tasks.length){document.getElementById('all-list').innerHTML=_empty('✅','No tasks here','Add your first task or adjust the filter above.','<button class="btn bp sm" onclick="openAdd()">+ Add Task</button>');return;}
+  if(!tasks.length){document.getElementById('all-list').innerHTML=_empty('✅','No tasks here','Add your first task or adjust the filter above.','<button class="btn bp sm" onclick="openAdd()">+ Add Task</button>');_selTaskId=null;renderReadingPane(null);return;}
   const grouped={};
   tasks.forEach(t=>{const k=t.status==='done'?'done':t.bucket;(grouped[k]=grouped[k]||[]).push(t);});
   let html='';
@@ -2844,6 +2886,13 @@ function renderAll(){
   });
   document.getElementById('all-list').innerHTML=html;
   setTimeout(_attachSwipes,0);
+  // Two-pane reading view: keep selection valid, default to first task, refresh pane
+  if(document.getElementById('reading-pane')){
+    const ids=[...document.querySelectorAll('#all-list .tc[data-swipe-id]')].map(c=>c.dataset.swipeId);
+    if(!_selTaskId||!ids.includes(_selTaskId))_selTaskId=ids[0]||null;
+    _paintKbSel();
+    renderReadingPane(_selTaskId);
+  }
 }
 
 // ── GOALS ─────────────────────────────────────────────────────
@@ -3039,28 +3088,27 @@ function addSystematizeToAutomations(){
 
 // ── TASK CARD HTML ────────────────────────────────────────────
 function tcHTML(t,showT3btn=false){
-  const gl=t.goalId?S.goals.find(g=>g.id===t.goalId):null;
   const today=new Date().toISOString().slice(0,10);
   const overdue=t.dueDate&&t.dueDate<today&&t.status!=='done';
+  const q=ei(t);
+  const cat=CATS[t.category]||CATS.other;
+  const blocked=t.blockedBy?.length&&t.blockedBy.some(bid=>S.tasks.find(x=>x.id===bid&&x.status!=='done'));
   return`<div class="tc fi ${t.status==='done'?'done':''} ${t.isT3&&t.status!=='done'?'top3':''}" data-swipe-id="${t.id}" onclick="openEdit('${t.id}')">
-    <div class="ck ${t.status==='done'?'on':t.status==='in-progress'?'ip':''}" onclick="event.stopPropagation();cycleStatus('${t.id}')" title="${t.status==='done'?'Done':t.status==='in-progress'?'In Progress':'Todo — click to start'}">${t.status==='done'?'<span style="color:#fff;font-size:10px;">✓</span>':t.status==='in-progress'?'<span style="font-size:10px;">▶</span>':''}</div>
-    <div class="tb">
-      <div class="tt">${t.title}${t.checklist?.length?`<span style="font-size:10px;background:var(--surface2);border-radius:8px;padding:1px 6px;color:var(--muted);margin-left:6px;">${t.checklist.filter(c=>c.done).length}/${t.checklist.length} ✓</span>`:''}${t.blockedBy?.length&&t.blockedBy.some(bid=>S.tasks.find(x=>x.id===bid&&x.status!=='done'))?'<span class="badge" style="background:rgba(255,107,107,.15);color:#ff6b6b;font-size:10px;margin-left:4px;">🚫 Blocked</span>':''}</div>
-      <div class="tm">
-        ${catB(t.category)}${eB(t)}${depthB(t.depth)}
-        ${t.timeBlock?`<span class="tag">⏱ ${ft(t.timeBlock)}</span>`:''}
-        ${t.dueDate?`<span class="tag" style="${overdue?'color:#dc2626;font-weight:600;':''}">📅 ${fd(t.dueDate)}</span>`:''}
-        ${overdue?'<span class="badge" style="background:rgba(220,38,38,.15);color:#dc2626;">⚠ Overdue</span>':''}
-        ${t.recurring?`<span style="font-size:11px;" title="${t.recurring}">🔄</span>`:''}
-        ${t.isT3&&t.status!=='done'?'<span style="font-size:11px;">⭐</span>':''}
-        ${gl?`<span style="font-size:10px;color:var(--muted);">↳ ${gl.title.slice(0,20)}</span>`:''}
-      </div>
-      ${t.ifThen?`<div style="font-size:10px;color:var(--muted);margin-top:2px;">📌 ${esc(t.ifThen)}</div>`:''}
-    </div>
+    <div class="ck ${t.status==='done'?'on':t.status==='in-progress'?'ip':''}" onclick="event.stopPropagation();cycleStatus('${t.id}')" title="${t.status==='done'?'Done':t.status==='in-progress'?'In progress':'To do — click to start'}">${t.status==='done'?'<span style="color:#fff;font-size:10px;">✓</span>':t.status==='in-progress'?'<span style="font-size:9px;">▶</span>':''}</div>
+    <span class="tc-pri ${q==='q1'?'hi':''}" title="${EQ[q].l}"></span>
+    <span class="tt">${t.title}</span>
+    ${t.checklist?.length?`<span class="tc-chk-ct">${t.checklist.filter(c=>c.done).length}/${t.checklist.length}</span>`:''}
+    ${blocked?'<span class="tc-flag" style="color:var(--q1);" title="Blocked">Blocked</span>':''}
+    ${t.isT3&&t.status!=='done'?'<span class="tc-flag star" title="Top 3">★</span>':''}
+    <span class="tc-meta">
+      ${t.recurring?'<span class="tc-r" title="Recurring">↻</span>':''}
+      ${t.dueDate?`<span class="tc-due ${overdue?'over':''}">${overdue?'Overdue · ':''}${fd(t.dueDate)}</span>`:''}
+      <span class="tc-cat"><span class="cdot" style="background:var(--c${t.category[0]})"></span>${cat.l}</span>
+    </span>
     <div class="tc-actions" onclick="event.stopPropagation();">
-      ${t.status!=='done'?`<button class="tc-act" title="Snooze to Someday" onclick="event.stopPropagation();mvB('${t.id}','someday')">😴</button>`:''}
-      ${t.status!=='done'&&!t.isT3?`<button class="tc-act" title="Add to Top 3" onclick="event.stopPropagation();addT3('${t.id}')">⭐</button>`:''}
-      <button class="tc-act" title="Delete (undo available)" onclick="event.stopPropagation();delTask('${t.id}')">🗑</button>
+      ${t.status!=='done'?`<button class="tc-act" title="Snooze to Someday" onclick="event.stopPropagation();mvB('${t.id}','someday')">◔</button>`:''}
+      ${t.status!=='done'&&!t.isT3?`<button class="tc-act" title="Add to Top 3" onclick="event.stopPropagation();addT3('${t.id}')">★</button>`:''}
+      <button class="tc-act" title="Delete (undo available)" onclick="event.stopPropagation();delTask('${t.id}')">×</button>
     </div>
   </div>`;
 }
@@ -5291,9 +5339,9 @@ function _renderNorthStarStrip(){
       </div>
     </div>`;
   }).join('');
-  el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(88,166,255,.08),var(--surface));border:1px solid rgba(88,166,255,.3);border-radius:12px;padding:14px 16px;">
+  el.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-      <span style="font-size:13px;font-weight:700;">⭐ North Stars</span>
+      <span style="font-size:13px;font-weight:700;">North Stars</span>
       <button class="sec-link" onclick="nav('goals')">All goals <span class="arr">→</span></button>
     </div>
     <div style="margin-bottom:-9px;">${rows}</div>
@@ -6502,10 +6550,10 @@ function renderDailyPicks(){
     return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
       <div class="ck ${t.status==='done'?'on':''}" onclick="toggleDone('${t.id}')" style="flex-shrink:0;"></div>
       <div style="flex:1;min-width:0;cursor:pointer;" onclick="openEdit('${t.id}')">
-        <div style="font-size:13px;font-weight:500;${t.status==='done'?'text-decoration:line-through;color:var(--muted)':''}">${g?.isTop3?'⭐ ':''}${esc(t.title.slice(0,55))}</div>
+        <div style="font-size:13px;font-weight:500;${t.status==='done'?'text-decoration:line-through;color:var(--muted)':''}">${esc(t.title.slice(0,55))}</div>
         <div style="display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap;">
           ${g?`<div style="font-size:11px;color:var(--accent);">${esc(g.title.slice(0,25))}</div>`:''}
-          <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:1px 6px;border-radius:8px;">${reason}</span>
+          <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:1px 6px;border-radius:8px;">${(reason||'').replace(/^[^A-Za-z0-9]+\s*/,'').trim()}</span>
         </div>
       </div>
     </div>`;
@@ -8088,6 +8136,7 @@ function _kbMove(dir){
   _selTaskId=cards[idx].dataset.swipeId;
   _paintKbSel(cards);
   cards[idx].scrollIntoView({block:'nearest'});
+  if(document.getElementById('v-all')?.classList.contains('active'))renderReadingPane(_selTaskId);
 }
 function _inlineRename(id){
   const card=document.querySelector('.tc[data-swipe-id="'+id+'"]');if(!card)return;
@@ -8100,6 +8149,57 @@ function _inlineRename(id){
   inp.addEventListener('keydown',ev=>{ev.stopPropagation();if(ev.key==='Enter'){ev.preventDefault();commit(true);}else if(ev.key==='Escape'){ev.preventDefault();commit(false);}});
   inp.addEventListener('blur',()=>commit(true));
 }
+// ── SUPERHUMAN TWO-PANE READING VIEW ────────────────────────────
+function renderReadingPane(id){
+  const pane=document.getElementById('reading-pane'); if(!pane)return;
+  const t=id?S.tasks.find(x=>x.id===id):null;
+  if(!t){
+    pane.innerHTML=`<div style="text-align:center;color:var(--muted);padding:44px 12px;">
+      <div style="font-size:34px;margin-bottom:10px;opacity:.45;">📖</div>
+      <div style="font-weight:600;margin-bottom:6px;">No task selected</div>
+      <div style="font-size:12px;line-height:1.7;">Click a task, or press <kbd>J</kbd> <kbd>K</kbd> to browse.<br><kbd>O</kbd> edit · <kbd>X</kbd> complete · <kbd>1–5</kbd> move</div></div>`;
+    return;
+  }
+  const today=new Date().toISOString().slice(0,10);
+  const overdue=t.dueDate&&t.dueDate<today&&t.status!=='done';
+  const gl=t.goalId?S.goals.find(g=>g.id===t.goalId):null;
+  const _bkt={'this-week':'This Week','this-month':'This Month','backlog':'Backlog','someday':'Someday','inbox':'Inbox'}[t.bucket]||t.bucket||'—';
+  const statusLabel=t.status==='done'?'✓ Done':t.status==='in-progress'?'▶ In Progress':'○ To do';
+  const statusCol=t.status==='done'?'#7ee0a0':t.status==='in-progress'?'#ffc078':'var(--muted)';
+  const meta=(lbl,val)=>val?`<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12.5px;"><span style="color:var(--muted);">${lbl}</span><span style="font-weight:600;text-align:right;">${val}</span></div>`:'';
+  pane.innerHTML=`
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">${catB(t.category)}${eB(t)}${depthB(t.depth)}</div>
+      <span style="font-size:11px;font-weight:700;color:${statusCol};white-space:nowrap;">${statusLabel}</span>
+    </div>
+    <h2 style="font-size:19px;line-height:1.35;margin-bottom:14px;${t.status==='done'?'text-decoration:line-through;opacity:.6;':''}">${esc(t.title)}</h2>
+    <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px;">
+      <button class="btn bp sm" onclick="openEdit('${t.id}')">✎ Edit</button>
+      <button class="btn bg sm" onclick="cycleStatus('${t.id}');renderReadingPane('${t.id}')">${t.status==='done'?'↺ Reopen':'✓ Complete'}</button>
+      <button class="btn bg sm" onclick="mvB('${t.id}','someday')" title="Snooze to Someday">😴</button>
+      <button class="btn bd sm" onclick="delTask('${t.id}')" title="Delete (undo available)">🗑</button>
+    </div>
+    ${meta('Bucket',_bkt)}
+    ${meta('Due',t.dueDate?`<span style="${overdue?'color:#ff8a8a;':''}">📅 ${fd(t.dueDate)}${overdue?' · Overdue':''}</span>`:'')}
+    ${meta('Time block',t.timeBlock?('⏱ '+ft(t.timeBlock)):'')}
+    ${meta('Recurring',t.recurring?('🔄 '+t.recurring):'')}
+    ${meta('Goal',gl?('↳ '+esc(gl.title)):'')}
+    ${t.ifThen?`<div style="margin-top:14px;font-size:12.5px;background:var(--surface2);border-radius:8px;padding:10px 12px;line-height:1.5;">📌 <strong>If-Then:</strong> ${esc(t.ifThen)}</div>`:''}
+    ${t.notes?`<div style="margin-top:16px;"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Notes</div><div style="font-size:13px;line-height:1.65;white-space:pre-wrap;">${esc(t.notes)}</div></div>`:''}
+    ${t.checklist?.length?`<div style="margin-top:16px;"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Checklist · ${t.checklist.filter(c=>c.done).length}/${t.checklist.length}</div>${t.checklist.map(c=>`<div style="display:flex;align-items:center;gap:8px;font-size:13px;padding:3px 0;"><span>${c.done?'✅':'⬜'}</span><span style="${c.done?'opacity:.55;text-decoration:line-through;':''}">${esc(c.text)}</span></div>`).join('')}</div>`:''}
+    <div style="margin-top:18px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap;"><span><kbd>O</kbd> edit</span><span><kbd>X</kbd> done</span><span><kbd>1–5</kbd> move</span><span><kbd>⌫</kbd> delete</span></div>`;
+}
+// Click a row in All Tasks (desktop) → open it in the reading pane instead of the modal
+document.addEventListener('click',function(e){
+  if(!document.getElementById('v-all')?.classList.contains('active'))return;
+  if(window.innerWidth<1000)return;
+  if(!document.getElementById('reading-pane'))return;
+  const tc=e.target.closest('.tc[data-swipe-id]');
+  if(!tc||!document.getElementById('all-list')?.contains(tc))return;
+  if(e.target.closest('.ck')||e.target.closest('.tc-actions'))return;
+  e.stopPropagation();e.preventDefault();
+  _selTaskId=tc.dataset.swipeId;_paintKbSel();renderReadingPane(_selTaskId);
+},true);
 // M3 — Swipe sidebar open/close
 function _initSidebarSwipe(){
   let _ssx=0,_ssy=0;
@@ -10007,7 +10107,7 @@ function _renderGivelinkToday(){
     </div>`).join('');
   el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(167,139,250,.08),var(--surface));border:1px solid rgba(167,139,250,.3);border-radius:12px;padding:14px 16px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <span style="font-size:13px;font-weight:700;">🟣 Givelink Today</span>
+      <span style="font-size:13px;font-weight:700;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--brand2);margin-right:7px;vertical-align:middle;"></span>Givelink Today</span>
       <button class="sec-link" onclick="nav('givelink-dash')">Givelink OS <span class="arr">→</span></button>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:10px;">
@@ -10049,7 +10149,7 @@ function _renderUpcoming(){
   }).join('');
   el.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:12px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-      <span style="font-size:13px;font-weight:700;">📆 Upcoming</span>
+      <span style="font-size:13px;font-weight:700;">Upcoming</span>
       <button class="sec-link" onclick="nav('calendar')">Calendar <span class="arr">→</span></button>
     </div>
     ${rows?`<div style="margin-bottom:-7px;">${rows}</div>`:'<div style="font-size:12px;color:var(--muted);padding:6px 0;">Nothing scheduled in the next 7 days. Add a due date to a task and it shows here.</div>'}

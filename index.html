@@ -103,6 +103,7 @@ hr{border:none;border-top:1px solid var(--border);margin:18px 0;}
 .tc-pri.hi{background:var(--q1);}
 .tc-meta{display:flex;align-items:center;gap:12px;flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;}
 .tc-cat{display:inline-flex;align-items:center;gap:5px;color:var(--muted);}
+.tc-goal{color:var(--accent);opacity:.82;font-weight:500;max-width:180px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
 .tc-cat .cdot{width:6px;height:6px;border-radius:50%;flex:none;opacity:.9;}
 .tc-due{color:var(--muted);}
 .tc-due.over{color:var(--q1);font-weight:600;}
@@ -538,6 +539,18 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
 /* ── DATA TABLE ──────────────────────────────────────────────── */
 .data-table{width:100%;border-collapse:collapse;font-size:13px;}.data-table th{text-align:left;padding:8px 10px;color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;border-bottom:2px solid var(--border);}.data-table td{padding:8px 10px;border-bottom:1px solid var(--border);vertical-align:middle;}.data-table tbody tr:hover{background:var(--surface2);}.data-table tbody tr:last-child td{border-bottom:none;}
 /* ── DASH GRID ───────────────────────────────────────────────── */
+/* ── TODAY RING BAND ─────────────────────────────────────────── */
+.tband{display:flex;align-items:center;gap:28px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:16px 22px;margin-bottom:18px;box-shadow:0 1px 2px rgba(0,0,0,.04);}
+.tband-ring{display:flex;align-items:center;gap:12px;cursor:pointer;}
+.tband-ring .tl b{font-size:12.5px;font-weight:600;display:block;}
+.tband-ring .tl span{font-size:11px;color:var(--muted);}
+.tband-div{width:1px;height:42px;background:var(--border);}
+.tband-counts{display:flex;gap:24px;margin-left:auto;}
+.tband-counts>div{cursor:pointer;line-height:1.2;text-align:center;transition:opacity .12s;}
+.tband-counts>div:hover{opacity:.7;}
+.tband-counts b{font-size:21px;font-weight:700;font-variant-numeric:tabular-nums;display:block;letter-spacing:-.02em;}
+.tband-counts span{font-size:11px;color:var(--muted);}
+@media(max-width:640px){.tband{gap:18px;padding:14px 16px;}.tband-counts{margin-left:0;gap:18px;}.tband-div{display:none;}}
 .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
 .dash-col-main,.dash-col-side{display:flex;flex-direction:column;gap:14px;}
 @media(max-width:900px){.dash-grid{grid-template-columns:1fr;}}
@@ -699,6 +712,8 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
       <button class="btn bp" onclick="openAdd()">+ Add Task</button>
     </div>
   </div>
+  <!-- TODAY RING BAND (focused cockpit hero metric) -->
+  <div id="today-band"></div>
   <!-- MOMENTUM SCORE + ONE THING ROW -->
   <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;" id="momentum-row">
     <!-- MOMENTUM SCORE -->
@@ -2576,6 +2591,8 @@ function renderDash(){
     <div class="sc" onclick="nav('buckets')" title="Go to Backlog"><div class="sn" style="color:var(--bb)">${bc}</div><div class="sl">Backlog</div></div>
     <div class="sc" onclick="nav('all')" title="View completed tasks"><div class="sn" style="color:var(--accent)">${dc}</div><div class="sl">Done Today</div></div>`;
   if(window._dashAnim){window._dashAnim=false;setTimeout(()=>{document.querySelectorAll('#stats .sn').forEach(el=>{const txt=(el.textContent||'').trim();if(!/^\d[\d,]*$/.test(txt))return;const to=parseInt(txt.replace(/,/g,''))||0;el.textContent='0';_countUp(el,to,650);});},20);}
+  _renderTodayBand({ic,bc,dc});
+  const _statsEl=document.getElementById('stats');if(_statsEl)_statsEl.style.display='none';
   renderTop3();
   renderDailyPicks();
   _renderNorthStarStrip();
@@ -3092,6 +3109,7 @@ function tcHTML(t,showT3btn=false){
   const overdue=t.dueDate&&t.dueDate<today&&t.status!=='done';
   const q=ei(t);
   const cat=CATS[t.category]||CATS.other;
+  const gl=t.goalId?(S.goals||[]).find(g=>g.id===t.goalId):null;
   const blocked=t.blockedBy?.length&&t.blockedBy.some(bid=>S.tasks.find(x=>x.id===bid&&x.status!=='done'));
   return`<div class="tc fi ${t.status==='done'?'done':''} ${t.isT3&&t.status!=='done'?'top3':''}" data-swipe-id="${t.id}" onclick="openEdit('${t.id}')">
     <div class="ck ${t.status==='done'?'on':t.status==='in-progress'?'ip':''}" onclick="event.stopPropagation();cycleStatus('${t.id}')" title="${t.status==='done'?'Done':t.status==='in-progress'?'In progress':'To do — click to start'}">${t.status==='done'?'<span style="color:#fff;font-size:10px;">✓</span>':t.status==='in-progress'?'<span style="font-size:9px;">▶</span>':''}</div>
@@ -3103,7 +3121,7 @@ function tcHTML(t,showT3btn=false){
     <span class="tc-meta">
       ${t.recurring?'<span class="tc-r" title="Recurring">↻</span>':''}
       ${t.dueDate?`<span class="tc-due ${overdue?'over':''}">${overdue?'Overdue · ':''}${fd(t.dueDate)}</span>`:''}
-      <span class="tc-cat"><span class="cdot" style="background:var(--c${t.category[0]})"></span>${cat.l}</span>
+      ${gl?`<span class="tc-goal" title="Advances goal: ${esc(gl.title)}">↳ ${esc(gl.title.length>20?gl.title.slice(0,20)+'…':gl.title)}</span>`:`<span class="tc-cat"><span class="cdot" style="background:var(--c${t.category[0]})"></span>${cat.l}</span>`}
     </span>
     <div class="tc-actions" onclick="event.stopPropagation();">
       ${t.status!=='done'?`<button class="tc-act" title="Snooze to Someday" onclick="event.stopPropagation();mvB('${t.id}','someday')">◔</button>`:''}
@@ -5337,6 +5355,9 @@ function _renderNorthStarStrip(){
         <span>${p.pct}%${p.ratePerWeek!=null&&p.status!=='hit'?` · ${p.ratePerWeek>0?'+':''}${_fmtNum(p.ratePerWeek)}/wk`:''}</span>
         <span>${_nsEtaText(p)}</span>
       </div>
+      ${(()=>{const open=S.tasks.filter(t=>t.goalId===g.id&&t.status!=='done');return open.length
+        ?`<div style="display:flex;align-items:center;gap:6px;font-size:11px;margin-top:7px;"><span style="color:var(--accent);">↳</span><span style="flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${esc(open[0].title)}</span><span style="color:var(--faint);white-space:nowrap;">${open.length} task${open.length>1?'s':''}</span></div>`
+        :`<div style="font-size:11px;margin-top:7px;color:var(--faint);">No tasks linked yet</div>`;})()}
     </div>`;
   }).join('');
   el.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;">
@@ -6988,6 +7009,32 @@ function clearWeeklyTheme(){
 // ════════════════════════════════════════════════════════════════
 // WEEKLY EXECUTION SCORE (12 Week Year)
 // ════════════════════════════════════════════════════════════════
+function _renderTodayBand(c){
+  const el=document.getElementById('today-band'); if(!el)return;
+  const week=S.tasks.filter(t=>t.bucket==='this-week');
+  const weekDone=week.filter(t=>t.status==='done').length;
+  const weekPct=week.length?Math.round(weekDone/week.length*100):0;
+  const t3=S.tasks.filter(t=>t.isT3);
+  const t3Done=t3.filter(t=>t.status==='done').length;
+  const t3Pct=t3.length?Math.round(t3Done/t3.length*100):0;
+  const habits=S.habits||[];
+  const today=new Date().toISOString().slice(0,10);
+  const hLog=(S.habitLogs||{})[today]||{};
+  const hDone=habits.filter(h=>hLog[h]).length;
+  const hPct=habits.length?Math.round(hDone/habits.length*100):0;
+  const ringBlock=(pct,center,label,onclick)=>`<div class="tband-ring" onclick="${onclick}">${ouraRing(pct,{size:56,stroke:6,center,centerSize:15})}<div class="tl"><b>${label}</b><span>${pct}%</span></div></div>`;
+  el.innerHTML=`<div class="tband">
+    ${ringBlock(t3Pct, t3.length?t3Done+'/'+t3.length:'0/3', 'Top 3', "nav('buckets')")}
+    ${ringBlock(weekPct, weekDone+'/'+week.length, 'This Week', "nav('buckets')")}
+    ${habits.length?ringBlock(hPct, hDone+'/'+habits.length, 'Habits', "nav('habits')"):''}
+    <div class="tband-div"></div>
+    <div class="tband-counts">
+      <div onclick="nav('capture')"><b>${c.ic}</b><span>Inbox</span></div>
+      <div onclick="nav('buckets')"><b>${c.bc}</b><span>Backlog</span></div>
+      <div onclick="nav('all')"><b>${c.dc}</b><span>Done today</span></div>
+    </div>
+  </div>`;
+}
 function _calcExecScore(){
   const monday=new Date();
   monday.setDate(monday.getDate()-((monday.getDay()+6)%7));

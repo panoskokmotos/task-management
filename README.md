@@ -1,5 +1,14 @@
 # Task OS
 
+<!--
+  HERO IMAGE: assets/hero.svg is a placeholder. To swap in a real screenshot,
+  drop your image at assets/hero.png (a 1280x640 shot works well) and change
+  the src below from assets/hero.svg to assets/hero.png. Nothing else to edit.
+-->
+<p align="center">
+  <img src="assets/hero.svg" alt="Task OS preview" width="820">
+</p>
+
 A personal productivity operating system for planning goals, running sprints, reflecting daily, and staying accountable with the help of AI coaching. It installs as an offline-first Progressive Web App and optionally syncs across your devices through Supabase.
 
 ## 🎯 Overview

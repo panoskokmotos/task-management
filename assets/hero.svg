@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-label="Task OS preview placeholder">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0a0a0f"/>
+      <stop offset="1" stop-color="#15132a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#8b7cff"/>
+      <stop offset="1" stop-color="#6ee7c7"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="640" fill="url(#bg)"/>
+  <circle cx="1060" cy="150" r="220" fill="#8b7cff" opacity="0.12"/>
+  <circle cx="230" cy="520" r="180" fill="#6ee7c7" opacity="0.08"/>
+  <text x="640" y="286" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="92" font-weight="800" fill="url(#accent)">Task OS</text>
+  <text x="640" y="352" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="34" font-weight="500" fill="#e7e5f2">A personal productivity operating system</text>
+  <text x="640" y="404" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="22" fill="#8f8ba8">Goals, sprints, reflections, and AI coaching in an offline first PWA</text>
+  <rect x="529" y="470" width="222" height="52" rx="26" fill="none" stroke="#8b7cff" stroke-width="1.5" opacity="0.6"/>
+  <text x="640" y="503" text-anchor="middle" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-size="18" fill="#b8b3d6">Replace with a screenshot</text>
+</svg>

@@ -104,6 +104,15 @@ hr{border:none;border-top:1px solid var(--border);margin:18px 0;}
 .tc-meta{display:flex;align-items:center;gap:12px;flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;}
 .tc-cat{display:inline-flex;align-items:center;gap:5px;color:var(--muted);}
 .tc-goal{color:var(--accent);opacity:.82;font-weight:500;max-width:180px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+/* Today grouped by goal (line of sight) */
+.goal-group{margin-bottom:15px;}
+.gg-head{display:flex;align-items:center;gap:8px;padding:0 2px 8px;font-size:12.5px;font-weight:600;cursor:pointer;}
+.gg-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex:none;}
+.gg-dot.star{box-shadow:0 0 0 3px var(--accent-soft);}
+.gg-name{color:var(--text);overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.gg-ct{margin-left:auto;font-size:11px;color:var(--faint);font-variant-numeric:tabular-nums;flex:none;}
+.gg-none{color:var(--muted);cursor:default;font-weight:500;}
+.gg-none .gg-ct{margin-left:8px;}
 .tc-cat .cdot{width:6px;height:6px;border-radius:50%;flex:none;opacity:.9;}
 .tc-due{color:var(--muted);}
 .tc-due.over{color:var(--q1);font-weight:600;}
@@ -1434,7 +1443,7 @@ Read 50 books this year"></textarea>
         <option value="this-month">🟠 This Month</option><option value="backlog">🟢 Backlog</option>
       </select>
     </div>
-    <div class="cmdk-hint"><span><kbd>↑↓</kbd> navigate</span><span><kbd>Enter</kbd> run / capture</span><span><kbd>Esc</kbd> close</span></div>
+    <div class="cmdk-hint"><span><kbd>↑↓</kbd> navigate</span><span><kbd>Enter</kbd> run / capture</span><span><kbd>#goal</kbd> link</span><span><kbd>Esc</kbd> close</span></div>
   </div>
 </div>
 
@@ -2602,8 +2611,7 @@ function renderDash(){
   try{const _wd=JSON.parse(localStorage.getItem('taskos_wiz_draft')||'null');const _rdEl=document.getElementById('review-draft-banner');if(_rdEl){if(_wd&&_wd.date===new Date().toISOString().slice(0,10)){const _wdStep=(_wd.step||0)+1;_rdEl.innerHTML=`<div style="background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.25);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:13px;"><span>📅 Weekly Review in progress — Step ${_wdStep}/6</span><button class="btn bp sm" onclick="nav('review')">Resume →</button></div>`;_rdEl.style.display='';}else{_rdEl.innerHTML='';_rdEl.style.display='none';}}}catch(e){}
   if(!_compact)_renderBookInsight();
   setTimeout(_attachSwipes,50);
-  const wt=a.filter(t=>t.bucket==='this-week').slice(0,6);
-  document.getElementById('dash-week').innerHTML=wt.length?wt.map(t=>tcHTML(t,true)).join(''):'<div class="empty">No tasks this week. <span style="color:var(--accent);cursor:pointer;" onclick="nav(\'buckets\')">Add some →</span></div>';
+  _renderWeekByGoal();
   updIBadge();
   if(!_compact){renderMorningBriefing();renderStreakRow();renderAntiPatterns();checkEatTheFrog();checkPreMortem();renderMomentumScore();renderOneThing();renderWeeklyTheme();renderExecutionScore();}
   else{['momentum-row','theme-exec-row','morning-briefing','premortem-widget','xp-nudge','book-insight-card','life-score-widget','network-health-widget','wheel-dash-widget','streak-row','anti-pattern-alerts'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.display='none';});renderOneThing();}
@@ -3104,7 +3112,7 @@ function addSystematizeToAutomations(){
 }
 
 // ── TASK CARD HTML ────────────────────────────────────────────
-function tcHTML(t,showT3btn=false){
+function tcHTML(t,showT3btn=false,hideGoal=false){
   const today=new Date().toISOString().slice(0,10);
   const overdue=t.dueDate&&t.dueDate<today&&t.status!=='done';
   const q=ei(t);
@@ -3121,7 +3129,7 @@ function tcHTML(t,showT3btn=false){
     <span class="tc-meta">
       ${t.recurring?'<span class="tc-r" title="Recurring">↻</span>':''}
       ${t.dueDate?`<span class="tc-due ${overdue?'over':''}">${overdue?'Overdue · ':''}${fd(t.dueDate)}</span>`:''}
-      ${gl?`<span class="tc-goal" title="Advances goal: ${esc(gl.title)}">↳ ${esc(gl.title.length>20?gl.title.slice(0,20)+'…':gl.title)}</span>`:`<span class="tc-cat"><span class="cdot" style="background:var(--c${t.category[0]})"></span>${cat.l}</span>`}
+      ${(gl&&!hideGoal)?`<span class="tc-goal" title="Advances goal: ${esc(gl.title)}">↳ ${esc(gl.title.length>20?gl.title.slice(0,20)+'…':gl.title)}</span>`:`<span class="tc-cat"><span class="cdot" style="background:var(--c${t.category[0]})"></span>${cat.l}</span>`}
     </span>
     <div class="tc-actions" onclick="event.stopPropagation();">
       ${t.status!=='done'?`<button class="tc-act" title="Snooze to Someday" onclick="event.stopPropagation();mvB('${t.id}','someday')">◔</button>`:''}
@@ -3564,13 +3572,25 @@ function _cmdkMove(dir){
   const box=document.getElementById('cmdk-results');if(!box)return;
   [...box.querySelectorAll('.cmdk-res-item')].forEach((el,i)=>{el.classList.toggle('cmdk-sel',i===_cmdkIdx);if(i===_cmdkIdx)el.scrollIntoView({block:'nearest'});});
 }
+// Parse a "#goal" tag from capture text → match a goal by prefix, strip the tag
+function _parseGoalTag(title){
+  const m=title.match(/#(\S+)/);
+  if(!m)return{title,goalId:null};
+  const tag=m[1].toLowerCase();
+  const g=(S.goals||[]).find(x=>{const w=x.title.toLowerCase();return w.replace(/\s+/g,'').includes(tag)||w.split(/\s+/).some(word=>word.startsWith(tag));});
+  const clean=title.replace(/#\S+/,'').replace(/\s{2,}/g,' ').trim();
+  return{title:clean||title,goalId:g?g.id:null};
+}
 function _cmdkCapture(input){
   const cat=document.getElementById('cmdk-cat').value;
   const bucket=document.getElementById('cmdk-bkt').value;
-  const {title,dueDate}=_parseNLDate(input);
-  S.tasks.push({id:uid(),title,notes:'',bucket,category:cat,urgency:'low',importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:dueDate||'',goalId:null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',createdAt:new Date().toISOString(),completedAt:null});
+  const nl=_parseNLDate(input);
+  const {title,goalId}=_parseGoalTag(nl.title);
+  const dueDate=nl.dueDate;
+  S.tasks.push({id:uid(),title,notes:'',bucket,category:cat,urgency:'low',importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:dueDate||'',goalId:goalId||null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',createdAt:new Date().toISOString(),completedAt:null});
   save();closeCmdK();refresh();updIBadge();
-  toast(dueDate?'📥 Captured — due '+fd(dueDate):'📥 Captured');
+  const g=goalId?(S.goals||[]).find(x=>x.id===goalId):null;
+  toast((g?'↳ '+esc(g.title)+' · ':'')+(dueDate?'Captured — due '+fd(dueDate):'Captured'));
 }
 function handleCmdK(e){
   if(e.key==='Escape'){closeCmdK();return;}
@@ -5961,7 +5981,7 @@ function clearOneThing(id){
 // QUICK ADD
 // ════════════════════════════════════════════════════════════════
 function openQuickAdd(){document.getElementById('qa-input').value='';document.getElementById('quick-add-modal').classList.remove('hidden');setTimeout(()=>document.getElementById('qa-input').focus(),50);}
-function doQuickAdd(){const lines=document.getElementById('qa-input').value.split('\n').map(l=>l.trim()).filter(Boolean);if(!lines.length)return;lines.forEach(title=>S.tasks.push({id:uid(),title,notes:'',bucket:'inbox',category:'other',urgency:'low',importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',createdAt:new Date().toISOString(),completedAt:null}));save();refresh();closeM('quick-add-modal');toast(`Added ${lines.length} task${lines.length>1?'s':''} to Inbox`);}
+function doQuickAdd(){const lines=document.getElementById('qa-input').value.split('\n').map(l=>l.trim()).filter(Boolean);if(!lines.length)return;let _linked=0;lines.forEach(raw=>{const {title,goalId}=_parseGoalTag(raw);if(goalId)_linked++;S.tasks.push({id:uid(),title,notes:'',bucket:'inbox',category:'other',urgency:'low',importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:goalId||null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',createdAt:new Date().toISOString(),completedAt:null});});save();refresh();closeM('quick-add-modal');toast(`Added ${lines.length} task${lines.length>1?'s':''}${_linked?' · '+_linked+' linked to a goal':''}`);}
 
 // ════════════════════════════════════════════════════════════════
 // START DAY MODAL
@@ -7009,6 +7029,28 @@ function clearWeeklyTheme(){
 // ════════════════════════════════════════════════════════════════
 // WEEKLY EXECUTION SCORE (12 Week Year)
 // ════════════════════════════════════════════════════════════════
+function _renderWeekByGoal(){
+  const el=document.getElementById('dash-week'); if(!el)return;
+  const wt=active().filter(t=>t.bucket==='this-week');
+  if(!wt.length){el.innerHTML='<div class="empty">No tasks this week. <span style="color:var(--accent);cursor:pointer;" onclick="nav(\'buckets\')">Add some →</span></div>';return;}
+  const goals=S.goals||[];
+  const byGoal={};
+  wt.forEach(t=>{const k=t.goalId&&goals.some(g=>g.id===t.goalId)?t.goalId:'_none';(byGoal[k]=byGoal[k]||[]).push(t);});
+  // order: North Stars first, then other goals with tasks, then unlinked
+  const order=[];
+  goals.filter(g=>g.isTop3).forEach(g=>{if(byGoal[g.id])order.push(g.id);});
+  goals.filter(g=>!g.isTop3).forEach(g=>{if(byGoal[g.id])order.push(g.id);});
+  if(byGoal['_none'])order.push('_none');
+  el.innerHTML=order.map(k=>{
+    const tasks=byGoal[k];
+    if(k==='_none'){
+      return`<div class="goal-group"><div class="gg-head gg-none">Not linked to a goal <span class="gg-ct">${tasks.length}</span></div>${tasks.map(t=>tcHTML(t,true,true)).join('')}</div>`;
+    }
+    const g=goals.find(x=>x.id===k);
+    const st=goalStats(k);
+    return`<div class="goal-group"><div class="gg-head" onclick="nav('goals')" title="${esc(g?g.title:'')}"><span class="gg-dot${g&&g.isTop3?' star':''}"></span><span class="gg-name">${esc(g?g.title:'Goal')}</span><span class="gg-ct">${st.done}/${st.total}</span></div>${tasks.map(t=>tcHTML(t,true,true)).join('')}</div>`;
+  }).join('');
+}
 function _renderTodayBand(c){
   const el=document.getElementById('today-band'); if(!el)return;
   const week=S.tasks.filter(t=>t.bucket==='this-week');
@@ -8197,6 +8239,12 @@ function _inlineRename(id){
   inp.addEventListener('blur',()=>commit(true));
 }
 // ── SUPERHUMAN TWO-PANE READING VIEW ────────────────────────────
+function _linkTaskGoal(id,goalId){
+  const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  t.goalId=goalId||null;save();refresh();
+  const g=goalId?(S.goals||[]).find(x=>x.id===goalId):null;
+  toast(g?('↳ Linked to '+esc(g.title)):'Unlinked from goal');
+}
 function renderReadingPane(id){
   const pane=document.getElementById('reading-pane'); if(!pane)return;
   const t=id?S.tasks.find(x=>x.id===id):null;
@@ -8230,7 +8278,7 @@ function renderReadingPane(id){
     ${meta('Due',t.dueDate?`<span style="${overdue?'color:#ff8a8a;':''}">📅 ${fd(t.dueDate)}${overdue?' · Overdue':''}</span>`:'')}
     ${meta('Time block',t.timeBlock?('⏱ '+ft(t.timeBlock)):'')}
     ${meta('Recurring',t.recurring?('🔄 '+t.recurring):'')}
-    ${meta('Goal',gl?('↳ '+esc(gl.title)):'')}
+    ${(S.goals||[]).length?`<div class="mrow"><span>Goal</span><select onclick="event.stopPropagation()" onchange="_linkTaskGoal('${t.id}',this.value)" style="background:var(--surface2);border:1px solid ${gl?'var(--accent)':'var(--border)'};border-radius:6px;color:${gl?'var(--accent)':'var(--muted)'};font:inherit;font-size:12px;font-weight:600;padding:3px 7px;max-width:180px;cursor:pointer;">${'<option value="">— link to a goal —</option>'}${(S.goals||[]).map(g=>`<option value="${g.id}" ${t.goalId===g.id?'selected':''}>${esc(g.title)}</option>`).join('')}</select></div>`:''}
     ${t.ifThen?`<div style="margin-top:14px;font-size:12.5px;background:var(--surface2);border-radius:8px;padding:10px 12px;line-height:1.5;">📌 <strong>If-Then:</strong> ${esc(t.ifThen)}</div>`:''}
     ${t.notes?`<div style="margin-top:16px;"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Notes</div><div style="font-size:13px;line-height:1.65;white-space:pre-wrap;">${esc(t.notes)}</div></div>`:''}
     ${t.checklist?.length?`<div style="margin-top:16px;"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Checklist · ${t.checklist.filter(c=>c.done).length}/${t.checklist.length}</div>${t.checklist.map(c=>`<div style="display:flex;align-items:center;gap:8px;font-size:13px;padding:3px 0;"><span>${c.done?'✅':'⬜'}</span><span style="${c.done?'opacity:.55;text-decoration:line-through;':''}">${esc(c.text)}</span></div>`).join('')}</div>`:''}
@@ -12358,7 +12406,7 @@ function _goalMomentum(goalId){
   <div class="md" style="width:460px;max-width:94vw;">
     <div class="mh"><h3>⚡ Quick Add Tasks</h3><button class="mc" aria-label="Close" onclick="closeM('quick-add-modal')">×</button></div>
     <p style="font-size:12px;color:var(--muted);margin-bottom:8px;">One task per line — all land in Inbox</p>
-    <textarea id="qa-input" class="fc" style="min-height:120px;resize:vertical;" placeholder="Buy groceries&#10;Call dentist&#10;Review Q3 report"></textarea>
+    <textarea id="qa-input" class="fc" style="min-height:120px;resize:vertical;" placeholder="Buy groceries&#10;Call dentist&#10;Ship onboarding fix #givelink   ← type #goal to link a task to a goal"></textarea>
     <div class="mf" style="margin-top:12px;">
       <button class="btn bg" onclick="closeM('quick-add-modal')">Cancel</button>
       <button class="btn bp" onclick="doQuickAdd()">Add to Inbox</button>

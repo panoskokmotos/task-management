@@ -517,6 +517,31 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
 .dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;}
 .dash-col-main,.dash-col-side{display:flex;flex-direction:column;gap:14px;}
 @media(max-width:900px){.dash-grid{grid-template-columns:1fr;}}
+/* ── COMMAND-PALETTE CHIP (Superhuman ⌘K affordance) ─────────────── */
+.cmdk-chip{display:flex;align-items:center;gap:8px;width:calc(100% - 16px);margin:8px 8px 6px;padding:8px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--muted);font-size:12.5px;font-weight:500;cursor:pointer;transition:border-color .12s,background .12s,box-shadow .12s;-webkit-tap-highlight-color:transparent;}
+.cmdk-chip:hover{border-color:var(--accent);color:var(--text);box-shadow:0 0 0 3px var(--accent-soft);}
+.cmdk-chip .ck-keys{margin-left:auto;display:flex;gap:3px;}
+.cmdk-chip kbd{font-size:10px;}
+/* header inline variant */
+.cmdk-chip-h{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;background:var(--surface2);border:1px solid var(--border);border-radius:9px;color:var(--muted);font-size:12.5px;font-weight:500;cursor:pointer;transition:border-color .12s,color .12s,box-shadow .12s;}
+.cmdk-chip-h:hover{border-color:var(--accent);color:var(--text);box-shadow:0 0 0 3px var(--accent-soft);}
+/* ── NOTION COLLAPSIBLE BLOCKS ───────────────────────────────────── */
+.block-h{cursor:pointer;user-select:none;border-radius:9px;transition:background .12s;padding:2px 6px;margin-left:-6px;}
+.block-h:hover{background:var(--hover);}
+.block-caret{display:inline-flex;align-items:center;justify-content:center;width:16px;font-size:11px;color:var(--muted);opacity:0;transition:transform .18s ease,opacity .12s;flex-shrink:0;}
+.block-h:hover .block-caret{opacity:.65;}
+.block.collapsed .block-caret{transform:rotate(-90deg);opacity:.65;}
+.block.collapsed .block-body{display:none;}
+.block.collapsed .block-h{margin-bottom:0!important;}
+/* ── SUPERHUMAN-STYLE TASK ROWS ──────────────────────────────────── */
+.tc:hover{box-shadow:0 2px 10px -4px rgba(0,0,0,.25);}
+.tc.kb-sel{outline:none;border-color:var(--accent);box-shadow:0 0 0 1px var(--accent),0 0 0 4px var(--accent-soft);}
+.tc.kb-sel::after{content:'';position:absolute;left:0;top:6px;bottom:6px;width:3px;border-radius:3px;background:var(--brand-gradient);}
+.tc{position:relative;}
+/* ── OURA RING ───────────────────────────────────────────────────── */
+.oura-ring{position:relative;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
+.oura-ring svg{position:absolute;top:0;left:0;transform:rotate(-90deg);}
+.oura-ring .or-center{position:relative;text-align:center;line-height:1;}
 
 </style>
 </head>
@@ -535,6 +560,10 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
       <button style="flex:1;padding:7px 6px;border-radius:8px;border:none;cursor:pointer;font-size:11px;font-weight:700;background:var(--accent);color:#fff;letter-spacing:.2px;">🏠 Personal</button>
       <a href="givelink.html" style="flex:1;padding:7px 6px;border-radius:8px;border:1px solid rgba(167,139,250,.4);cursor:pointer;font-size:11px;font-weight:700;background:rgba(167,139,250,.1);color:#a78bfa;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center;gap:4px;letter-spacing:.2px;" title="Switch to Givelink Sprint Board (⌘2)">🟣 Givelink</a>
     </div>
+  </div>
+  <div class="cmdk-chip" onclick="openCmdK()" title="Command palette — search, navigate, capture">
+    <span style="font-size:13px;">🔍</span><span>Quick find…</span>
+    <span class="ck-keys"><kbd>⌘</kbd><kbd>K</kbd></span>
   </div>
   <div class="ns-group" data-ns="main">
   <span class="ns" onclick="_toggleNsGroup(this)">Main<span class="ns-arrow">▾</span></span>
@@ -615,7 +644,7 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
         <span id="xp-label">0 XP</span>
       </div>
       <button class="btn bg sm" id="start-day-btn" onclick="openStartDay()" style="display:none;">☀️ Start Day</button>
-      <button class="btn bg sm dash-extra" onclick="openCmdK()" title="⌘K">⌘K</button>
+      <button class="cmdk-chip-h" onclick="openCmdK()" title="Command palette — search, navigate, capture">🔍 <span>Search</span> <kbd>⌘K</kbd></button>
       <button class="btn bg sm dash-extra" onclick="openChecklist('daily')" id="checklist-btn" title="Daily / Weekly / Monthly Checklist">📋 <span id="checklist-badge" style="display:none;background:#ef4444;color:#fff;border-radius:8px;padding:0 5px;font-size:10px;font-weight:700;"></span></button>
       <button class="btn bg sm dash-extra" onclick="openReminderSettings()" title="Reminders" id="remind-btn">🔔</button>
       <button class="btn bg sm dash-extra" onclick="showWeeklyDigest()">📊 Digest</button>
@@ -702,36 +731,38 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
       <!-- NORTH STAR COCKPIT -->
       <div id="north-star-strip"></div>
       <!-- DAILY PICKS -->
-      <div id="daily-picks-card" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-          <span style="font-size:13px;font-weight:700;">🎯 Today's Picks</span>
-          <div style="display:flex;gap:6px;">
+      <div id="daily-picks-card" class="block" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;">
+        <div class="block-h" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;" onclick="_toggleBlock('daily-picks-card')">
+          <span style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;"><span class="block-caret">▾</span>🎯 Today's Picks</span>
+          <div style="display:flex;gap:6px;" onclick="event.stopPropagation();">
             <button class="btn bg sm" onclick="renderDailyPicks()" title="Refresh">↺</button>
             <button class="btn bg sm" onclick="_aiBtn(this,aiDailyPicks)">🤖 AI Pick</button>
           </div>
         </div>
-        <div id="daily-picks-list"></div>
-        <div id="daily-picks-ai-result" style="margin-top:10px;font-size:12px;"></div>
+        <div class="block-body">
+          <div id="daily-picks-list"></div>
+          <div id="daily-picks-ai-result" style="margin-top:10px;font-size:12px;"></div>
+        </div>
       </div>
       <!-- GIVELINK TODAY -->
       <div id="givelink-today-card"></div>
       <!-- DAILY FLOW CARD -->
       <div id="daily-flow-card"></div>
       <!-- TOP 3 -->
-      <div>
-        <div class="rb" style="margin-bottom:10px;">
-          <h2 style="margin:0">🎯 Today's Top 3</h2>
-          <button class="sec-link" onclick="nav('buckets')">Pick from This Week <span class="arr">→</span></button>
+      <div class="block" id="blk-top3">
+        <div class="rb block-h" style="margin-bottom:10px;" onclick="_toggleBlock('blk-top3')">
+          <h2 style="margin:0;display:flex;align-items:center;gap:6px;"><span class="block-caret">▾</span>🎯 Today's Top 3</h2>
+          <button class="sec-link" onclick="event.stopPropagation();nav('buckets')">Pick from This Week <span class="arr">→</span></button>
         </div>
-        <div class="t3g" id="top3"></div>
+        <div class="block-body"><div class="t3g" id="top3"></div></div>
       </div>
       <!-- THIS WEEK -->
-      <div>
-        <div class="rb" style="margin-bottom:10px;">
-          <h2 style="margin:0">🔴 This Week</h2>
-          <button class="sec-link" onclick="nav('buckets')">View All <span class="arr">→</span></button>
+      <div class="block" id="blk-week">
+        <div class="rb block-h" style="margin-bottom:10px;" onclick="_toggleBlock('blk-week')">
+          <h2 style="margin:0;display:flex;align-items:center;gap:6px;"><span class="block-caret">▾</span>🔴 This Week</h2>
+          <button class="sec-link" onclick="event.stopPropagation();nav('buckets')">View All <span class="arr">→</span></button>
         </div>
-        <div id="dash-week"></div>
+        <div class="block-body"><div id="dash-week"></div></div>
       </div>
     </div>
     <!-- RIGHT COLUMN: insight-focused -->
@@ -2469,6 +2500,7 @@ function renderDash(){
   // Auto-recalc Life Score once per day
   if(!S.lifeScore||new Date(S.lifeScore.lastCalc||0).toDateString()!==new Date().toDateString()){calcLifeScore();save();}
   _updateXPBar();
+  _applyCollapsed();
   if(!sessionStorage.getItem('xp_animated')){
     sessionStorage.setItem('xp_animated','1');
     const fill=document.getElementById('xp-fill');
@@ -4746,10 +4778,11 @@ function renderHabits(){
   const habits=S.habits||[];
   const todayLog=S.habitLogs?.[today]||{};
   const doneToday=habits.filter(h=>todayLog[h]);
+  const _htPct=habits.length?Math.round(doneToday.length/habits.length*100):0;
   document.getElementById('habits-stats').innerHTML=`
-    <div class="los-card los-stat"><div class="los-stat-n" style="color:#69db7c;">${doneToday.length}/${habits.length}</div><div class="los-stat-l">Done today</div></div>
-    <div class="los-card los-stat"><div class="los-stat-n" style="color:#fbbf24;">${_habitStreak()}</div><div class="los-stat-l">Day streak (all done)</div></div>
-    <div class="los-card los-stat"><div class="los-stat-n" style="color:#74c0fc;">${habits.length}</div><div class="los-stat-l">Active habits</div></div>`;
+    <div class="los-card los-stat" style="display:flex;flex-direction:column;align-items:center;gap:8px;">${ouraRing(_htPct,{size:74,stroke:7,center:doneToday.length+'/'+habits.length,centerSize:19})}<div class="los-stat-l">Done today</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#ffc078;">${_habitStreak()}</div><div class="los-stat-l">Day streak (all done)</div></div>
+    <div class="los-card los-stat"><div class="los-stat-n" style="color:#8ec5ff;">${habits.length}</div><div class="los-stat-l">Active habits</div></div>`;
   if(!habits.length){
     document.getElementById('habits-checklist').innerHTML='<div class="empty" style="padding:20px;text-align:center;"><div style="font-size:28px;margin-bottom:6px;">✅</div><div style="font-weight:600;margin-bottom:4px;">No habits yet</div><div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Small daily actions compound into big results</div><button class="btn bp sm" onclick="openHabitSettings()">+ Add Habits</button></div>';
   } else {
@@ -4763,13 +4796,16 @@ function renderHabits(){
       const bestDay=validRates.length?validRates.reduce((a,b)=>b.r>a.r?b:a):null;
       const worstDay=validRates.length?validRates.reduce((a,b)=>b.r<a.r?b:a):null;
       const dowHint=bestDay&&worstDay&&bestDay.i!==worstDay.i?`<div style="font-size:11px;color:var(--muted);margin-top:2px;">Best: ${_DOW[bestDay.i]} · Needs work: ${_DOW[worstDay.i]}</div>`:'';
+      // 30-day completion rate → per-habit Oura ring
+      let _hDone=0;for(let i=0;i<30;i++){const dd=new Date();dd.setDate(dd.getDate()-i);const k=dd.toISOString().slice(0,10);if((S.habitLogs?.[k]||{})[h])_hDone++;}
+      const _hRate=Math.round(_hDone/30*100);
       return`<div class="habit-row" style="flex-direction:column;align-items:flex-start;gap:2px;">
-        <div style="display:flex;align-items:center;width:100%;gap:8px;">
+        <div style="display:flex;align-items:center;width:100%;gap:10px;">
           <div class="habit-ck ${todayLog[h]?'on':''}" onclick="toggleHabit('${h.replace(/'/g,"\\\'")}')">
             ${todayLog[h]?'<svg width="12" height="12" viewBox="0 0 12 12"><path d="M2 6l3 3 5-5" stroke="#000" stroke-width="2" fill="none" stroke-linecap="round"/></svg>':''}
           </div>
           <span style="font-size:13px;flex:1;">${h}</span>
-          ${todayLog[h]?'<span style="font-size:12px;color:#69db7c;">✓ Done</span>':''}
+          <span title="30-day consistency">${ouraRing(_hRate,{size:38,stroke:4,centerSize:11})}</span>
         </div>
         ${dowHint}
       </div>`;
@@ -6112,7 +6148,7 @@ function renderWheel(){
           const diff=cur-prev.scores[a.id];
           delta=diff>0?`<span style="color:#69db7c;font-size:10px;">▲${diff}</span>`:diff<0?`<span style="color:#ff6b6b;font-size:10px;">▼${Math.abs(diff)}</span>`:`<span style="color:var(--muted);font-size:10px;">→</span>`;
         }
-        return`<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:2px 0;"><span>${a.emoji} ${a.label}</span><span style="display:flex;align-items:center;gap:6px;"><strong>${cur}/10</strong>${delta}</span></div>`;
+        return`<div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:3px 0;"><span>${a.emoji} ${a.label}</span><span style="display:flex;align-items:center;gap:8px;">${ouraRing(cur*10,{size:30,stroke:3,centerSize:11,center:cur})}${delta}</span></div>`;
       }).join('');
       const lowestArea=WHEEL_AREAS.reduce((min,a)=>latest.scores[a.id]<latest.scores[min.id]?a:min);
       // Average-over-time trend across all assessments in this filter (oldest → newest)
@@ -6123,9 +6159,13 @@ function renderWheel(){
         ${_sparklineSVG(trendVals,120,30)}
         <span style="font-size:10px;color:var(--muted);">${trendVals.length} weeks</span>
       </div>`:'';
+      const _wAvg=Object.values(latest.scores).reduce((a,b)=>a+b,0)/8;
       chartEl.innerHTML=`<div>${_renderWheelSVG(latest.scores)}</div>
         <div style="flex:1;min-width:180px;">
-          <div style="font-size:11px;color:var(--muted);margin-bottom:8px;">${latest.cadence} · ${d}${prev?` <span style="color:var(--muted);">(vs prev)</span>`:''}</div>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+            ${ouraRing(Math.round(_wAvg*10),{size:64,stroke:6,center:_wAvg.toFixed(1),centerSize:17,sub:'/ 10'})}
+            <div><div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:700;">Life Balance</div><div style="font-size:12px;color:var(--muted);margin-top:2px;">${latest.cadence} · ${d}${prev?' (vs prev)':''}</div></div>
+          </div>
           ${scoreList}
           <div style="margin-top:10px;padding:8px 10px;background:rgba(255,107,107,.1);border-radius:8px;font-size:12px;border-left:3px solid #ff6b6b;">🎯 Focus: ${lowestArea.emoji} <strong>${lowestArea.label}</strong> needs most attention</div>
           ${trendHTML}
@@ -6898,6 +6938,37 @@ function _calcExecScore(){
   const done=weekTasks.filter(t=>t.status==='done').length;
   const score=Math.round(done/weekTasks.length*100);
   return{score,done,total:weekTasks.length,label:score>=85?'On Track':score>=60?'Behind':'At Risk'};
+}
+// ── OURA RING (reusable radial score) ───────────────────────────
+function ouraRing(pct,opts){
+  opts=opts||{};
+  pct=Math.max(0,Math.min(100,pct));
+  const size=opts.size||64, sw=opts.stroke||6, r=(size-sw)/2, c=size/2;
+  const circ=2*Math.PI*r, dash=circ*(pct/100);
+  const col=opts.color||(pct>=80?'#7ee0a0':pct>=50?'#8b7cff':pct>=30?'#ffc078':'#ff8a8a');
+  const center=opts.center!==undefined?opts.center:Math.round(pct)+(opts.pctSign?'%':'');
+  const fs=opts.centerSize||Math.round(size*0.28);
+  const sub=opts.sub?`<div style="font-size:${Math.max(8,Math.round(size*0.13))}px;color:var(--muted);margin-top:1px;font-weight:600;">${opts.sub}</div>`:'';
+  return`<div class="oura-ring" style="width:${size}px;height:${size}px;">
+    <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}">
+      <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="var(--surface2)" stroke-width="${sw}"/>
+      <circle cx="${c}" cy="${c}" r="${r}" fill="none" stroke="${col}" stroke-width="${sw}" stroke-linecap="round"
+        stroke-dasharray="${dash} ${circ}" style="filter:drop-shadow(0 0 5px ${col}77);transition:stroke-dasharray .6s cubic-bezier(.4,0,.2,1);"/>
+    </svg>
+    <div class="or-center"><div style="font-size:${fs}px;font-weight:800;color:${col};font-variant-numeric:tabular-nums;">${center}</div>${sub}</div>
+  </div>`;
+}
+// ── NOTION COLLAPSIBLE BLOCKS ───────────────────────────────────
+function _toggleBlock(id){
+  const el=document.getElementById(id); if(!el)return;
+  el.classList.toggle('collapsed');
+  let c={}; try{c=JSON.parse(localStorage.getItem('taskos_collapsed')||'{}');}catch(e){}
+  c[id]=el.classList.contains('collapsed');
+  localStorage.setItem('taskos_collapsed',JSON.stringify(c));
+}
+function _applyCollapsed(){
+  let c={}; try{c=JSON.parse(localStorage.getItem('taskos_collapsed')||'{}');}catch(e){}
+  Object.entries(c).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.classList.toggle('collapsed',!!v);});
 }
 function renderExecutionScore(){
   const ring=document.getElementById('exec-ring');

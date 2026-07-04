@@ -45,15 +45,17 @@ body{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
 #mobile-brand{display:none;}
 @media(max-width:768px){#mobile-brand{display:flex;position:fixed;top:max(13px,env(safe-area-inset-top,13px));left:50%;transform:translateX(-50%);z-index:199;align-items:center;gap:6px;pointer-events:none;}#mobile-brand .logo-mark{width:22px;height:22px;}#mobile-brand .logo-word{font-size:15px;font-weight:800;}}
 .logo span{color:var(--accent);}
-.ns{padding:10px 18px 5px;font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.7px;margin-top:5px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;opacity:.72;transition:opacity .12s;border-radius:6px;}
-.ns:hover{opacity:1;}
-.ns-arrow{font-size:9px;opacity:.55;transition:transform .15s;}
+.ns{padding:6px 10px;margin:11px 8px 1px;font-size:10.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none;opacity:.5;transition:opacity .12s,background .12s;border-radius:6px;}
+.ns:hover{opacity:.85;background:var(--hover);}
+.ns-arrow{font-size:9px;opacity:.35;transition:transform .15s,opacity .12s;}
+.ns:hover .ns-arrow{opacity:.7;}
 .ns-group.collapsed .ni,.ns-group.collapsed .ns-sub{display:none;}
-.ni{padding:8px 12px;cursor:pointer;border-radius:8px;margin:1px 8px;font-size:13px;display:flex;align-items:center;gap:11px;color:var(--muted);transition:background .12s,color .12s;position:relative;line-height:1.2;}
-.ni-ic{width:20px;min-width:20px;text-align:center;font-size:15px;flex-shrink:0;}
+.ni{padding:6px 10px;cursor:pointer;border-radius:6px;margin:1px 8px;font-size:13.5px;display:flex;align-items:center;gap:9px;color:var(--muted);font-weight:500;transition:background .12s,color .12s;position:relative;line-height:1.25;}
+.ni-ic{width:18px;min-width:18px;text-align:center;font-size:15px;flex-shrink:0;opacity:.88;}
 .ni:hover{background:var(--hover);color:var(--text);}
-.ni.active{background:var(--accent-soft);color:var(--accent);font-weight:600;}
-.ni.active::before{content:'';position:absolute;left:-8px;top:50%;transform:translateY(-50%);width:3px;height:17px;border-radius:0 3px 3px 0;background:var(--brand-gradient);}
+.ni.active{background:var(--surface2);color:var(--text);font-weight:600;}
+.ni.active .ni-ic{opacity:1;}
+.ni.active::before{content:none;}
 #ib{display:contents;}
 .ibadge{margin-left:auto;background:var(--accent);color:#fff;font-size:10px;font-weight:700;min-width:17px;height:17px;border-radius:9px;display:flex;align-items:center;justify-content:center;padding:0 4px;}
 /* MAIN */
@@ -530,7 +532,7 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
   <!-- WORKSPACE SWITCHER -->
   <div style="padding:8px 10px 10px;border-bottom:1px solid var(--border);margin-bottom:4px;">
     <div style="display:flex;gap:5px;">
-      <button style="flex:1;padding:7px 6px;border-radius:8px;border:none;cursor:pointer;font-size:11px;font-weight:700;background:var(--accent);color:#000;letter-spacing:.2px;">🏠 Personal</button>
+      <button style="flex:1;padding:7px 6px;border-radius:8px;border:none;cursor:pointer;font-size:11px;font-weight:700;background:var(--accent);color:#fff;letter-spacing:.2px;">🏠 Personal</button>
       <a href="givelink.html" style="flex:1;padding:7px 6px;border-radius:8px;border:1px solid rgba(167,139,250,.4);cursor:pointer;font-size:11px;font-weight:700;background:rgba(167,139,250,.1);color:#a78bfa;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center;gap:4px;letter-spacing:.2px;" title="Switch to Givelink Sprint Board (⌘2)">🟣 Givelink</a>
     </div>
   </div>

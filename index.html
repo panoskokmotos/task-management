@@ -769,7 +769,7 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
       <!-- DAILY PICKS -->
       <div id="daily-picks-card" class="block" style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;">
         <div class="block-h" style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;" onclick="_toggleBlock('daily-picks-card')">
-          <span style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;"><span class="block-caret">▾</span>🎯 Today's Picks</span>
+          <span style="font-size:13px;font-weight:700;display:flex;align-items:center;gap:6px;"><span class="block-caret">▾</span>Today's Picks</span>
           <div style="display:flex;gap:6px;" onclick="event.stopPropagation();">
             <button class="btn bg sm" onclick="renderDailyPicks()" title="Refresh">↺</button>
             <button class="btn bg sm" onclick="_aiBtn(this,aiDailyPicks)">🤖 AI Pick</button>
@@ -787,7 +787,7 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
       <!-- TOP 3 -->
       <div class="block" id="blk-top3">
         <div class="rb block-h" style="margin-bottom:10px;" onclick="_toggleBlock('blk-top3')">
-          <h2 style="margin:0;display:flex;align-items:center;gap:6px;"><span class="block-caret">▾</span>🎯 Today's Top 3</h2>
+          <h2 style="margin:0;display:flex;align-items:center;gap:6px;"><span class="block-caret">▾</span>Today's Top 3</h2>
           <button class="sec-link" onclick="event.stopPropagation();nav('buckets')">Pick from This Week <span class="arr">→</span></button>
         </div>
         <div class="block-body"><div class="t3g" id="top3"></div></div>
@@ -795,7 +795,7 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
       <!-- THIS WEEK -->
       <div class="block" id="blk-week">
         <div class="rb block-h" style="margin-bottom:10px;" onclick="_toggleBlock('blk-week')">
-          <h2 style="margin:0;display:flex;align-items:center;gap:6px;"><span class="block-caret">▾</span>🔴 This Week</h2>
+          <h2 style="margin:0;display:flex;align-items:center;gap:6px;"><span class="block-caret">▾</span>This Week</h2>
           <button class="sec-link" onclick="event.stopPropagation();nav('buckets')">View All <span class="arr">→</span></button>
         </div>
         <div class="block-body"><div id="dash-week"></div></div>
@@ -947,7 +947,7 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
   <h2>📊 Progress Dashboard</h2>
   <div class="goal-dash" id="goal-dash"></div>
   <hr>
-  <div class="rb" style="margin-bottom:14px;"><h2 style="margin:0;">⭐ North Stars</h2></div>
+  <div class="rb" style="margin-bottom:14px;"><h2 style="margin:0;">North Stars</h2></div>
   <div id="g-top3"></div>
   <div class="rb" style="margin:14px 0;"><h2 style="margin:0;">All Goals</h2></div>
   <div id="g-all"></div>
@@ -2570,11 +2570,11 @@ function renderDash(){
   const bc=a.filter(t=>t.bucket==='backlog').length;
   const dc=S.tasks.filter(t=>t.status==='done'&&t.completedAt&&new Date(t.completedAt).toDateString()===now.toDateString()).length;
   document.getElementById('stats').innerHTML=`
-    <div class="sc" onclick="nav('capture')" title="Go to Inbox"><div class="sn" style="color:var(--bi)">${ic}</div><div class="sl"><span>📥</span>Inbox</div></div>
-    <div class="sc" onclick="nav('buckets')" title="Go to This Week"><div class="sn" style="color:var(--bw)">${wc}</div><div class="sl"><span>🔴</span>This Week</div></div>
-    <div class="sc" onclick="nav('buckets')" title="Go to This Month"><div class="sn" style="color:var(--bm)">${mc}</div><div class="sl"><span>🟠</span>This Month</div></div>
-    <div class="sc" onclick="nav('buckets')" title="Go to Backlog"><div class="sn" style="color:var(--bb)">${bc}</div><div class="sl"><span>🟢</span>Backlog</div></div>
-    <div class="sc" onclick="nav('all')" title="View completed tasks"><div class="sn" style="color:var(--accent)">${dc}</div><div class="sl"><span>✅</span>Done Today</div></div>`;
+    <div class="sc" onclick="nav('capture')" title="Go to Inbox"><div class="sn" style="color:var(--bi)">${ic}</div><div class="sl">Inbox</div></div>
+    <div class="sc" onclick="nav('buckets')" title="Go to This Week"><div class="sn" style="color:var(--bw)">${wc}</div><div class="sl">This Week</div></div>
+    <div class="sc" onclick="nav('buckets')" title="Go to This Month"><div class="sn" style="color:var(--bm)">${mc}</div><div class="sl">This Month</div></div>
+    <div class="sc" onclick="nav('buckets')" title="Go to Backlog"><div class="sn" style="color:var(--bb)">${bc}</div><div class="sl">Backlog</div></div>
+    <div class="sc" onclick="nav('all')" title="View completed tasks"><div class="sn" style="color:var(--accent)">${dc}</div><div class="sl">Done Today</div></div>`;
   if(window._dashAnim){window._dashAnim=false;setTimeout(()=>{document.querySelectorAll('#stats .sn').forEach(el=>{const txt=(el.textContent||'').trim();if(!/^\d[\d,]*$/.test(txt))return;const to=parseInt(txt.replace(/,/g,''))||0;el.textContent='0';_countUp(el,to,650);});},20);}
   renderTop3();
   renderDailyPicks();
@@ -2693,7 +2693,7 @@ function renderDash(){
   const questsEl=document.getElementById('daily-quests-widget');
   if(questsEl){
     questsEl.innerHTML=quests.length?`<div style="margin-bottom:14px;background:var(--surface2);border-radius:12px;padding:12px 14px;">
-      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;margin-bottom:8px;">⚔️ Daily Quests</div>
+      <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Daily Quests</div>
       ${quests.map(q=>`<div style="display:flex;align-items:center;gap:8px;padding:4px 0;font-size:13px;${q.done?'opacity:0.5;text-decoration:line-through;':''}">
         <span>${q.done?'✅':'⬜'}</span>
         <span style="flex:1;">${esc(q.text)}${q.linkedOKR?`<span style="font-size:10px;background:rgba(105,219,124,.15);color:#69db7c;padding:1px 5px;border-radius:5px;margin-left:4px;">OKR</span>`:''}</span>
@@ -5339,9 +5339,9 @@ function _renderNorthStarStrip(){
       </div>
     </div>`;
   }).join('');
-  el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(88,166,255,.08),var(--surface));border:1px solid rgba(88,166,255,.3);border-radius:12px;padding:14px 16px;">
+  el.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-      <span style="font-size:13px;font-weight:700;">⭐ North Stars</span>
+      <span style="font-size:13px;font-weight:700;">North Stars</span>
       <button class="sec-link" onclick="nav('goals')">All goals <span class="arr">→</span></button>
     </div>
     <div style="margin-bottom:-9px;">${rows}</div>
@@ -6550,10 +6550,10 @@ function renderDailyPicks(){
     return`<div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);">
       <div class="ck ${t.status==='done'?'on':''}" onclick="toggleDone('${t.id}')" style="flex-shrink:0;"></div>
       <div style="flex:1;min-width:0;cursor:pointer;" onclick="openEdit('${t.id}')">
-        <div style="font-size:13px;font-weight:500;${t.status==='done'?'text-decoration:line-through;color:var(--muted)':''}">${g?.isTop3?'⭐ ':''}${esc(t.title.slice(0,55))}</div>
+        <div style="font-size:13px;font-weight:500;${t.status==='done'?'text-decoration:line-through;color:var(--muted)':''}">${esc(t.title.slice(0,55))}</div>
         <div style="display:flex;align-items:center;gap:5px;margin-top:3px;flex-wrap:wrap;">
           ${g?`<div style="font-size:11px;color:var(--accent);">${esc(g.title.slice(0,25))}</div>`:''}
-          <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:1px 6px;border-radius:8px;">${reason}</span>
+          <span style="font-size:10px;color:var(--muted);background:var(--surface2);padding:1px 6px;border-radius:8px;">${(reason||'').replace(/^[^A-Za-z0-9]+\s*/,'').trim()}</span>
         </div>
       </div>
     </div>`;
@@ -10107,7 +10107,7 @@ function _renderGivelinkToday(){
     </div>`).join('');
   el.innerHTML=`<div style="background:linear-gradient(135deg,rgba(167,139,250,.08),var(--surface));border:1px solid rgba(167,139,250,.3);border-radius:12px;padding:14px 16px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-      <span style="font-size:13px;font-weight:700;">🟣 Givelink Today</span>
+      <span style="font-size:13px;font-weight:700;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--brand2);margin-right:7px;vertical-align:middle;"></span>Givelink Today</span>
       <button class="sec-link" onclick="nav('givelink-dash')">Givelink OS <span class="arr">→</span></button>
     </div>
     <div style="display:flex;gap:6px;margin-bottom:10px;">
@@ -10149,7 +10149,7 @@ function _renderUpcoming(){
   }).join('');
   el.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin-bottom:12px;">
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-      <span style="font-size:13px;font-weight:700;">📆 Upcoming</span>
+      <span style="font-size:13px;font-weight:700;">Upcoming</span>
       <button class="sec-link" onclick="nav('calendar')">Calendar <span class="arr">→</span></button>
     </div>
     ${rows?`<div style="margin-bottom:-7px;">${rows}</div>`:'<div style="font-size:12px;color:var(--muted);padding:6px 0;">Nothing scheduled in the next 7 days. Add a due date to a task and it shows here.</div>'}

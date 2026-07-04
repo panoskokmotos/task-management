@@ -104,6 +104,12 @@ hr{border:none;border-top:1px solid var(--border);margin:18px 0;}
 .tc-meta{display:flex;align-items:center;gap:12px;flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;}
 .tc-cat{display:inline-flex;align-items:center;gap:5px;color:var(--muted);}
 .tc-goal{color:var(--accent);opacity:.82;font-weight:500;max-width:180px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
+.tc-snz{color:var(--bi);opacity:.9;font-weight:500;}
+/* Snooze picker */
+.snooze-list{display:flex;flex-direction:column;gap:1px;}
+.snooze-opt{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border:none;background:transparent;color:var(--text);font:inherit;font-size:13.5px;font-weight:500;border-radius:9px;cursor:pointer;transition:background .12s;text-align:left;}
+.snooze-opt:hover{background:var(--hover);}
+.snooze-opt .sh{color:var(--muted);font-size:12px;font-variant-numeric:tabular-nums;}
 /* Today grouped by goal (line of sight) */
 .goal-group{margin-bottom:15px;}
 .gg-head{display:flex;align-items:center;gap:8px;padding:0 2px 8px;font-size:12.5px;font-weight:600;cursor:pointer;}
@@ -253,10 +259,24 @@ select.fc option{background:var(--surface2);}
 kbd{background:var(--surface2);border:1px solid var(--border);border-bottom-width:2px;padding:2px 6px;border-radius:5px;font-size:10px;font-weight:600;color:var(--muted);box-shadow:0 1px 0 rgba(0,0,0,.12);line-height:1.4;}
 .bc.drag-over{border-color:var(--accent);border-style:dashed;background:rgba(88,166,255,.05);}
 .tc[draggable]{cursor:grab;}
-.proc-card{background:var(--surface);border:2px solid var(--accent);border-radius:12px;padding:24px;text-align:center;margin-bottom:16px;}
-.proc-ttl{font-size:18px;font-weight:600;margin:8px 0;}
-.proc-acts{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:16px;}
-.proc-btn{padding:10px 16px;border-radius:8px;border:none;cursor:pointer;font-size:13px;font-weight:600;}
+.proc-card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:26px 26px 20px;max-width:560px;margin:0 auto 16px;box-shadow:0 10px 34px -18px rgba(0,0,0,.35);}
+.proc-prog{height:3px;background:var(--surface2);border-radius:3px;overflow:hidden;margin-bottom:14px;}
+.proc-prog-fill{height:100%;background:var(--accent);border-radius:3px;transition:width .3s ease;}
+.proc-count{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;font-weight:600;margin-bottom:10px;}
+.proc-ttl{font-size:20px;font-weight:600;line-height:1.35;letter-spacing:-.02em;margin-bottom:10px;text-wrap:balance;}
+.proc-notes{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:12px;white-space:pre-wrap;}
+.proc-meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:18px;}
+.proc-acts{display:flex;gap:7px;flex-wrap:wrap;margin-top:4px;}
+.proc-btn{padding:9px 13px;border-radius:9px;border:1px solid var(--border);background:var(--surface2);color:var(--text);cursor:pointer;font:inherit;font-size:13px;font-weight:550;display:inline-flex;align-items:center;gap:7px;transition:border-color .12s,background .12s;-webkit-tap-highlight-color:transparent;}
+.proc-btn:hover{border-color:var(--accent);}
+.proc-btn kbd{background:var(--surface);}
+.proc-btn.proc-del{color:var(--q1);}
+.proc-btn.proc-del:hover{border-color:var(--q1);}
+.proc-hint{margin-top:16px;font-size:11px;color:var(--faint);}
+.proc-done{text-align:center;padding:50px 20px;max-width:420px;margin:0 auto;}
+.proc-done .pd-check{width:56px;height:56px;border-radius:50%;background:var(--accent);color:#fff;font-size:26px;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;box-shadow:0 0 0 8px var(--accent-soft);}
+.proc-done .pd-title{font-size:22px;font-weight:700;letter-spacing:-.02em;margin-bottom:6px;}
+.proc-done .pd-sub{font-size:13px;color:var(--muted);}
 .eng-btns{display:flex;gap:10px;margin-bottom:22px;}
 .eng-btn{flex:1;padding:16px;border:2px solid var(--border);border-radius:10px;cursor:pointer;text-align:center;font-size:14px;font-weight:600;background:var(--surface);color:var(--muted);transition:all .15s;}
 .eng-btn:hover,.eng-btn.sel{border-color:var(--accent);background:rgba(88,166,255,.1);color:var(--accent);}
@@ -3128,11 +3148,11 @@ function tcHTML(t,showT3btn=false,hideGoal=false){
     ${t.isT3&&t.status!=='done'?'<span class="tc-flag star" title="Top 3">★</span>':''}
     <span class="tc-meta">
       ${t.recurring?'<span class="tc-r" title="Recurring">↻</span>':''}
-      ${t.dueDate?`<span class="tc-due ${overdue?'over':''}">${overdue?'Overdue · ':''}${fd(t.dueDate)}</span>`:''}
+      ${_isSnoozed(t)?`<span class="tc-snz" title="Snoozed">Snoozed · ${_fmtSnooze(new Date(t.snoozedUntil))}</span>`:(t.dueDate?`<span class="tc-due ${overdue?'over':''}">${overdue?'Overdue · ':''}${fd(t.dueDate)}</span>`:'')}
       ${(gl&&!hideGoal)?`<span class="tc-goal" title="Advances goal: ${esc(gl.title)}">↳ ${esc(gl.title.length>20?gl.title.slice(0,20)+'…':gl.title)}</span>`:`<span class="tc-cat"><span class="cdot" style="background:var(--c${t.category[0]})"></span>${cat.l}</span>`}
     </span>
     <div class="tc-actions" onclick="event.stopPropagation();">
-      ${t.status!=='done'?`<button class="tc-act" title="Snooze to Someday" onclick="event.stopPropagation();mvB('${t.id}','someday')">◔</button>`:''}
+      ${t.status!=='done'?`<button class="tc-act" title="Snooze until…" onclick="event.stopPropagation();openSnooze('${t.id}')">◔</button>`:''}
       ${t.status!=='done'&&!t.isT3?`<button class="tc-act" title="Add to Top 3" onclick="event.stopPropagation();addT3('${t.id}')">★</button>`:''}
       <button class="tc-act" title="Delete (undo available)" onclick="event.stopPropagation();delTask('${t.id}')">×</button>
     </div>
@@ -3314,6 +3334,27 @@ function cycleStatus(id){
   else toggleDone(id);
 }
 function mvB(id,b){const t=S.tasks.find(x=>x.id===id);if(!t)return;t.bucket=b;save();refresh();}
+// ── SNOOZE (Superhuman-style "snooze until") ──────────────────
+function _snoozeAt(daysAhead,hour){const d=new Date();d.setDate(d.getDate()+daysAhead);d.setHours(hour,0,0,0);if(daysAhead===0&&d<=new Date())d.setTime(Date.now()+3*3600000);return d;}
+function _nextWeekendD(){const d=new Date();let add=(6-d.getDay()+7)%7;if(add===0)add=7;d.setDate(d.getDate()+add);d.setHours(9,0,0,0);return d;}
+function _nextMondayD(){const d=new Date();let add=(1-d.getDay()+7)%7;if(add===0)add=7;d.setDate(d.getDate()+add);d.setHours(9,0,0,0);return d;}
+function _isSnoozed(t){return !!(t&&t.snoozedUntil&&new Date(t.snoozedUntil)>new Date());}
+function _fmtSnooze(d){const tm=d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});const today=new Date();if(d.toDateString()===today.toDateString())return tm;const t1=new Date(today);t1.setDate(t1.getDate()+1);if(d.toDateString()===t1.toDateString())return 'Tomorrow '+tm;return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});}
+let _snoozeId=null;
+function snoozeTask(id,dt){const t=S.tasks.find(x=>x.id===id);if(!t)return;t.snoozedUntil=dt.toISOString();t.dueDate=dt.toISOString().slice(0,10);const days=Math.ceil((dt-new Date())/86400000);t.bucket=days<=7?'this-week':days<=31?'this-month':'backlog';if(t.isT3&&days>=1)t.isT3=false;save();refresh();if(typeof updIBadge==='function')updIBadge();toast('😴 Snoozed until '+_fmtSnooze(dt));}
+function openSnooze(id){
+  _snoozeId=id;
+  let el=document.getElementById('snooze-modal');
+  if(!el){el=document.createElement('div');el.className='mo hidden';el.id='snooze-modal';el.addEventListener('click',e=>{if(e.target===el)closeSnooze();});document.body.appendChild(el);}
+  const opts=[['Later today',_snoozeAt(0,18)],['Tonight',_snoozeAt(0,21)],['Tomorrow',_snoozeAt(1,9)],['This weekend',_nextWeekendD()],['Next week',_nextMondayD()]];
+  el.innerHTML=`<div class="md" style="width:340px;max-width:92vw;">
+    <div class="mh"><h3 style="font-size:15px;">Snooze until…</h3><button class="mc" onclick="closeSnooze()">×</button></div>
+    <div class="snooze-list">${opts.map(([label,d])=>`<button class="snooze-opt" onclick="snoozeTask(_snoozeId,new Date(${d.getTime()}));closeSnooze();"><span>${label}</span><span class="sh">${_fmtSnooze(d)}</span></button>`).join('')}</div>
+    <div class="fg" style="margin-top:12px;margin-bottom:0;"><label>Custom date</label><input type="date" class="fc" id="snooze-custom" min="${new Date().toISOString().slice(0,10)}" onchange="if(this.value){snoozeTask(_snoozeId,new Date(this.value+'T09:00'));closeSnooze();}"></div>
+  </div>`;
+  el.classList.remove('hidden');document.body.classList.add('modal-open');
+}
+function closeSnooze(){const el=document.getElementById('snooze-modal');if(el)el.classList.add('hidden');document.body.classList.remove('modal-open');}
 
 // ── SMART RESCHEDULE SHEET (right-swipe) ──────────────────────
 let _rsTaskId=null,_rsPrev=null;
@@ -3720,7 +3761,8 @@ function renderFocusRecs(){
 let procMode=false;
 function toggleProc(){
   procMode=!procMode;
-  document.getElementById('proc-toggle').textContent=procMode?'× Exit Process':'⚡ Process Mode';
+  if(procMode){window._procStartTotal=null;window._procCelebrated=false;}
+  document.getElementById('proc-toggle').textContent=procMode?'✕ Exit':'⚡ Process Inbox';
   document.getElementById('proc-area').style.display=procMode?'block':'none';
   document.getElementById('inbox-list').style.display=procMode?'none':'block';
   if(procMode)renderProcCard();
@@ -3728,19 +3770,32 @@ function toggleProc(){
 function renderProcCard(){
   const inbox=active().filter(t=>t.bucket==='inbox');
   const pa=document.getElementById('proc-area');
-  if(!inbox.length){pa.innerHTML='<div class="empty" style="padding:40px;font-size:15px;">🎉 Inbox clear!</div>';return;}
+  if(!inbox.length){
+    pa.innerHTML=`<div class="proc-done"><div class="pd-check">✓</div><div class="pd-title">Inbox Zero</div><div class="pd-sub">Every thought has a home. Nice work.</div><button class="btn bp sm" onclick="toggleProc()" style="margin-top:18px;">Done</button></div>`;
+    if(!window._procCelebrated){window._procCelebrated=true;try{_fireConfetti('deep');}catch(e){}}
+    return;
+  }
+  window._procCelebrated=false;
   const t=inbox[0];
+  const total=inbox.length;
+  if(window._procStartTotal==null||window._procStartTotal<total)window._procStartTotal=total;
+  const start=window._procStartTotal;const done=Math.max(0,start-total);
+  const gl=t.goalId?(S.goals||[]).find(g=>g.id===t.goalId):null;
   pa.innerHTML=`<div class="proc-card">
-    <div style="font-size:13px;color:var(--muted);">Task ${inbox.indexOf(t)+1} of ${inbox.length}</div>
-    <div class="proc-ttl">${t.title}</div>
-    <div class="tm" style="justify-content:center;margin-bottom:8px;">${catB(t.category)}</div>
+    <div class="proc-prog"><div class="proc-prog-fill" style="width:${start?done/start*100:0}%"></div></div>
+    <div class="proc-count">${done} of ${start} processed · ${total} left</div>
+    <div class="proc-ttl">${esc(t.title)}</div>
+    ${t.notes?`<div class="proc-notes">${esc(t.notes.slice(0,180))}</div>`:''}
+    <div class="proc-meta">${catB(t.category)}${gl?`<span class="tc-goal">↳ ${esc(gl.title)}</span>`:''}</div>
     <div class="proc-acts">
-      <button class="proc-btn" style="background:rgba(255,107,107,.2);color:var(--q1);" onclick="procMove('${t.id}','this-week')">🔴 This Week <kbd>1</kbd></button>
-      <button class="proc-btn" style="background:rgba(255,169,77,.2);color:var(--bm);" onclick="procMove('${t.id}','this-month')">🟠 Month <kbd>2</kbd></button>
-      <button class="proc-btn" style="background:rgba(105,219,124,.2);color:var(--q2);" onclick="procMove('${t.id}','backlog')">🟢 Backlog <kbd>3</kbd></button>
-      <button class="proc-btn" style="background:rgba(116,192,252,.2);color:var(--bs);" onclick="procMove('${t.id}','someday')">🔵 Someday <kbd>4</kbd></button>
-      <button class="proc-btn" style="background:rgba(255,107,107,.12);color:var(--q1);" onclick="procDelete('${t.id}')">🗑 Delete <kbd>d</kbd></button>
+      <button class="proc-btn" onclick="procMove('${t.id}','this-week')">This Week <kbd>1</kbd></button>
+      <button class="proc-btn" onclick="procMove('${t.id}','this-month')">This Month <kbd>2</kbd></button>
+      <button class="proc-btn" onclick="procMove('${t.id}','backlog')">Backlog <kbd>3</kbd></button>
+      <button class="proc-btn" onclick="procMove('${t.id}','someday')">Someday <kbd>4</kbd></button>
+      <button class="proc-btn" onclick="openSnooze('${t.id}')">Snooze <kbd>5</kbd></button>
+      <button class="proc-btn proc-del" onclick="procDelete('${t.id}')">Delete <kbd>d</kbd></button>
     </div>
+    <div class="proc-hint">Give each thought a home. <kbd>1</kbd>–<kbd>4</kbd> file · <kbd>5</kbd> snooze · <kbd>d</kbd> delete · <kbd>e</kbd> edit</div>
   </div>`;
 }
 function procMove(id,b){mvB(id,b);if(procMode)renderProcCard();}
@@ -3776,6 +3831,7 @@ document.addEventListener('keydown',e=>{
     if(e.key==='Escape'){const _openModal=document.querySelector('.modal-bg:not(.hidden)');if(_openModal){closeM(_openModal.id);return;}if(!document.getElementById('cmdk').classList.contains('hidden')){closeCmdK();return;}document.querySelectorAll('.mo:not(.hidden)').forEach(m=>{m.classList.add('hidden');editT=null;editG=null;});document.body.classList.remove('modal-open');return;}
   }
   if(procMode){
+    if(document.querySelector('.mo:not(.hidden)'))return;
     const inbox=active().filter(t=>t.bucket==='inbox');
     if(!inbox.length)return;
     const id=inbox[0].id;
@@ -3783,7 +3839,9 @@ document.addEventListener('keydown',e=>{
     else if(e.key==='2')procMove(id,'this-month');
     else if(e.key==='3')procMove(id,'backlog');
     else if(e.key==='4')procMove(id,'someday');
+    else if(e.key==='5')openSnooze(id);
     else if(e.key==='d')procDelete(id);
+    else if(e.key==='e')openEdit(id);
   }
 });
 
@@ -6563,7 +6621,7 @@ function _scoreTasks(){
   const now=new Date();const h=now.getHours();
   const goals=S.goals||[];
   return(S.tasks||[])
-    .filter(t=>t.status!=='done'&&!t.isT3&&['inbox','this-week','this-month'].includes(t.bucket))
+    .filter(t=>t.status!=='done'&&!t.isT3&&!_isSnoozed(t)&&['inbox','this-week','this-month'].includes(t.bucket))
     .map(t=>{
       let sc=0;let reason='📋 In queue';
       const g=t.goalId?goals.find(x=>x.id===t.goalId):null;
@@ -7031,7 +7089,7 @@ function clearWeeklyTheme(){
 // ════════════════════════════════════════════════════════════════
 function _renderWeekByGoal(){
   const el=document.getElementById('dash-week'); if(!el)return;
-  const wt=active().filter(t=>t.bucket==='this-week');
+  const wt=active().filter(t=>t.bucket==='this-week'&&!_isSnoozed(t));
   if(!wt.length){el.innerHTML='<div class="empty">No tasks this week. <span style="color:var(--accent);cursor:pointer;" onclick="nav(\'buckets\')">Add some →</span></div>';return;}
   const goals=S.goals||[];
   const byGoal={};
@@ -8271,7 +8329,7 @@ function renderReadingPane(id){
     <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px;">
       <button class="btn bp sm" onclick="openEdit('${t.id}')">✎ Edit</button>
       <button class="btn bg sm" onclick="cycleStatus('${t.id}');renderReadingPane('${t.id}')">${t.status==='done'?'↺ Reopen':'✓ Complete'}</button>
-      <button class="btn bg sm" onclick="mvB('${t.id}','someday')" title="Snooze to Someday">😴</button>
+      <button class="btn bg sm" onclick="openSnooze('${t.id}')" title="Snooze until…">😴 Snooze</button>
       <button class="btn bd sm" onclick="delTask('${t.id}')" title="Delete (undo available)">🗑</button>
     </div>
     ${meta('Bucket',_bkt)}

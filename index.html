@@ -616,6 +616,16 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
 @media(min-width:1000px){.all-two-pane{grid-template-columns:minmax(0,1.15fr) minmax(300px,.82fr);}}
 .reading-pane{position:sticky;top:6px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:18px 20px;max-height:calc(100vh - 78px);overflow-y:auto;box-shadow:0 1px 3px rgba(0,0,0,.05);}
 @media(max-width:999px){.reading-pane{display:none;}}
+/* ── UNIVERSAL TASK DRAWER ───────────────────────────────────────── */
+.task-drawer{position:fixed;inset:0;z-index:1500;pointer-events:none;}
+.task-drawer .td-scrim{position:absolute;inset:0;background:rgba(6,6,10,.5);opacity:0;transition:opacity .22s;backdrop-filter:blur(2px);}
+.task-drawer .td-panel{position:absolute;top:0;right:0;bottom:0;width:410px;max-width:92vw;background:var(--surface);border-left:1px solid var(--border);box-shadow:-16px 0 50px -20px rgba(0,0,0,.5);padding:44px 22px 24px;overflow-y:auto;transform:translateX(100%);transition:transform .26s cubic-bezier(.32,.72,0,1);}
+.task-drawer.open{pointer-events:auto;}
+.task-drawer.open .td-scrim{opacity:1;}
+.task-drawer.open .td-panel{transform:none;}
+.td-close{position:absolute;top:12px;right:14px;background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;padding:4px 9px;border-radius:7px;transition:background .12s,color .12s;}
+.td-close:hover{color:var(--text);background:var(--hover);}
+@media(max-width:768px){.task-drawer .td-panel{width:100%;max-width:100%;border-left:none;}}
 /* ── OURA RING ───────────────────────────────────────────────────── */
 .oura-ring{position:relative;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
 .oura-ring svg{position:absolute;top:0;left:0;transform:rotate(-90deg);}
@@ -3262,6 +3272,7 @@ function _debouncedSearch(){clearTimeout(_searchTimer);_searchTimer=setTimeout(r
 let _undoTask=null,_undoTimer=null;
 function delTask(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
+  if(document.getElementById('task-drawer')?.classList.contains('open'))closeTaskDrawer();
   _undoTask={...t};
   const cardEl=document.querySelector(`[data-swipe-id="${id}"]`)||document.getElementById('itc-'+id);
   if(cardEl){Object.assign(cardEl.style,{transition:'opacity .18s,transform .18s',opacity:'0',transform:'scale(.95)'});}
@@ -3828,7 +3839,7 @@ document.addEventListener('keydown',e=>{
     if(e.key==='r'||e.key==='R'){e.preventDefault();nav('review');return;}
     if(e.key==='f'||e.key==='F'){e.preventDefault();nav('focus');return;}
     if(e.key==='c'||e.key==='C'){e.preventDefault();nav('capture');return;}
-    if(e.key==='Escape'){const _openModal=document.querySelector('.modal-bg:not(.hidden)');if(_openModal){closeM(_openModal.id);return;}if(!document.getElementById('cmdk').classList.contains('hidden')){closeCmdK();return;}document.querySelectorAll('.mo:not(.hidden)').forEach(m=>{m.classList.add('hidden');editT=null;editG=null;});document.body.classList.remove('modal-open');return;}
+    if(e.key==='Escape'){if(document.getElementById('task-drawer')?.classList.contains('open')){closeTaskDrawer();return;}const _openModal=document.querySelector('.modal-bg:not(.hidden)');if(_openModal){closeM(_openModal.id);return;}if(!document.getElementById('cmdk').classList.contains('hidden')){closeCmdK();return;}document.querySelectorAll('.mo:not(.hidden)').forEach(m=>{m.classList.add('hidden');editT=null;editG=null;});document.body.classList.remove('modal-open');return;}
   }
   if(procMode){
     if(document.querySelector('.mo:not(.hidden)'))return;
@@ -8303,16 +8314,7 @@ function _linkTaskGoal(id,goalId){
   const g=goalId?(S.goals||[]).find(x=>x.id===goalId):null;
   toast(g?('↳ Linked to '+esc(g.title)):'Unlinked from goal');
 }
-function renderReadingPane(id){
-  const pane=document.getElementById('reading-pane'); if(!pane)return;
-  const t=id?S.tasks.find(x=>x.id===id):null;
-  if(!t){
-    pane.innerHTML=`<div style="text-align:center;color:var(--muted);padding:44px 12px;">
-      <div style="font-size:34px;margin-bottom:10px;opacity:.45;">📖</div>
-      <div style="font-weight:600;margin-bottom:6px;">No task selected</div>
-      <div style="font-size:12px;line-height:1.7;">Click a task, or press <kbd>J</kbd> <kbd>K</kbd> to browse.<br><kbd>O</kbd> edit · <kbd>X</kbd> complete · <kbd>1–5</kbd> move</div></div>`;
-    return;
-  }
+function _taskDetailHTML(t){
   const today=new Date().toISOString().slice(0,10);
   const overdue=t.dueDate&&t.dueDate<today&&t.status!=='done';
   const gl=t.goalId?S.goals.find(g=>g.id===t.goalId):null;
@@ -8320,15 +8322,15 @@ function renderReadingPane(id){
   const statusLabel=t.status==='done'?'✓ Done':t.status==='in-progress'?'▶ In Progress':'○ To do';
   const statusCol=t.status==='done'?'#7ee0a0':t.status==='in-progress'?'#ffc078':'var(--muted)';
   const meta=(lbl,val)=>val?`<div style="display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:12.5px;"><span style="color:var(--muted);">${lbl}</span><span style="font-weight:600;text-align:right;">${val}</span></div>`:'';
-  pane.innerHTML=`
+  return `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;gap:8px;">
       <div style="display:flex;gap:6px;flex-wrap:wrap;">${catB(t.category)}${eB(t)}${depthB(t.depth)}</div>
       <span style="font-size:11px;font-weight:700;color:${statusCol};white-space:nowrap;">${statusLabel}</span>
     </div>
     <h2 style="font-size:19px;line-height:1.35;margin-bottom:14px;${t.status==='done'?'text-decoration:line-through;opacity:.6;':''}">${esc(t.title)}</h2>
     <div style="display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px;">
-      <button class="btn bp sm" onclick="openEdit('${t.id}')">✎ Edit</button>
-      <button class="btn bg sm" onclick="cycleStatus('${t.id}');renderReadingPane('${t.id}')">${t.status==='done'?'↺ Reopen':'✓ Complete'}</button>
+      <button class="btn bp sm" onclick="closeTaskDrawer();openEdit('${t.id}')">✎ Edit</button>
+      <button class="btn bg sm" onclick="cycleStatus('${t.id}');_taskDetailRefresh('${t.id}')">${t.status==='done'?'↺ Reopen':'✓ Complete'}</button>
       <button class="btn bg sm" onclick="openSnooze('${t.id}')" title="Snooze until…">😴 Snooze</button>
       <button class="btn bd sm" onclick="delTask('${t.id}')" title="Delete (undo available)">🗑</button>
     </div>
@@ -8342,6 +8344,48 @@ function renderReadingPane(id){
     ${t.checklist?.length?`<div style="margin-top:16px;"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Checklist · ${t.checklist.filter(c=>c.done).length}/${t.checklist.length}</div>${t.checklist.map(c=>`<div style="display:flex;align-items:center;gap:8px;font-size:13px;padding:3px 0;"><span>${c.done?'✅':'⬜'}</span><span style="${c.done?'opacity:.55;text-decoration:line-through;':''}">${esc(c.text)}</span></div>`).join('')}</div>`:''}
     <div style="margin-top:18px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap;"><span><kbd>O</kbd> edit</span><span><kbd>X</kbd> done</span><span><kbd>1–5</kbd> move</span><span><kbd>⌫</kbd> delete</span></div>`;
 }
+function renderReadingPane(id){
+  const pane=document.getElementById('reading-pane'); if(!pane)return;
+  const t=id?S.tasks.find(x=>x.id===id):null;
+  if(!t){
+    pane.innerHTML=`<div style="text-align:center;color:var(--muted);padding:44px 12px;">
+      <div style="font-size:34px;margin-bottom:10px;opacity:.45;">📖</div>
+      <div style="font-weight:600;margin-bottom:6px;">No task selected</div>
+      <div style="font-size:12px;line-height:1.7;">Click a task, or press <kbd>J</kbd> <kbd>K</kbd> to browse.<br><kbd>O</kbd> edit · <kbd>X</kbd> complete · <kbd>1–5</kbd> move</div></div>`;
+    return;
+  }
+  pane.innerHTML=_taskDetailHTML(t);
+}
+// Universal task-detail drawer (slides in from the right; replaces the modal outside All Tasks)
+function openTaskDrawer(id){
+  const t=S.tasks.find(x=>x.id===id); if(!t)return;
+  let el=document.getElementById('task-drawer');
+  if(!el){
+    el=document.createElement('div');el.id='task-drawer';el.className='task-drawer';
+    el.innerHTML='<div class="td-scrim" onclick="closeTaskDrawer()"></div><div class="td-panel"></div>';
+    document.body.appendChild(el);
+  }
+  el.querySelector('.td-panel').innerHTML=`<button class="td-close" onclick="closeTaskDrawer()" aria-label="Close">×</button>`+_taskDetailHTML(t);
+  el.dataset.taskId=id;
+  requestAnimationFrame(()=>el.classList.add('open'));
+  document.body.classList.add('modal-open');
+}
+function closeTaskDrawer(){const el=document.getElementById('task-drawer');if(el){el.classList.remove('open');delete el.dataset.taskId;}document.body.classList.remove('modal-open');}
+function _taskDetailRefresh(id){
+  const dr=document.getElementById('task-drawer');
+  if(dr&&dr.classList.contains('open')){const t=S.tasks.find(x=>x.id===id);if(t)dr.querySelector('.td-panel').innerHTML=`<button class="td-close" onclick="closeTaskDrawer()" aria-label="Close">×</button>`+_taskDetailHTML(t);else closeTaskDrawer();}
+  if(document.getElementById('reading-pane')&&document.getElementById('v-all')?.classList.contains('active'))renderReadingPane(id);
+}
+// Click a task card outside All Tasks → open the drawer instead of the edit modal
+document.addEventListener('click',function(e){
+  if(document.getElementById('v-all')?.classList.contains('active'))return; // All Tasks uses its inline pane
+  const tc=e.target.closest('.tc[data-swipe-id]');
+  if(!tc)return;
+  if(e.target.closest('.ck')||e.target.closest('.tc-actions'))return;
+  if(e.target.closest('.mo,.modal-bg,.cmdk,#task-drawer,.proc-card'))return; // don't hijack inside modals/drawer/process
+  e.stopPropagation();e.preventDefault();
+  openTaskDrawer(tc.dataset.swipeId);
+},true);
 // Click a row in All Tasks (desktop) → open it in the reading pane instead of the modal
 document.addEventListener('click',function(e){
   if(!document.getElementById('v-all')?.classList.contains('active'))return;

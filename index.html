@@ -626,6 +626,13 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
 .td-close{position:absolute;top:12px;right:14px;background:none;border:none;color:var(--muted);font-size:22px;cursor:pointer;line-height:1;padding:4px 9px;border-radius:7px;transition:background .12s,color .12s;}
 .td-close:hover{color:var(--text);background:var(--hover);}
 @media(max-width:768px){.task-drawer .td-panel{width:100%;max-width:100%;border-left:none;}}
+/* Reply-to-act box */
+.task-reply{display:flex;gap:7px;margin-top:16px;padding-top:14px;border-top:1px solid var(--border);}
+.task-reply-input{flex:1;min-width:0;background:var(--surface2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;color:var(--text);font:inherit;font-size:13px;outline:none;transition:border-color .12s,box-shadow .12s;}
+.task-reply-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+.task-reply-input:disabled{opacity:.6;}
+.task-reply-send{background:var(--accent);color:#fff;border:none;border-radius:10px;padding:0 15px;font:inherit;font-size:13px;font-weight:600;cursor:pointer;flex:none;transition:filter .12s;}
+.task-reply-send:hover{filter:brightness(1.07);}
 /* ── OURA RING ───────────────────────────────────────────────────── */
 .oura-ring{position:relative;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
 .oura-ring svg{position:absolute;top:0;left:0;transform:rotate(-90deg);}
@@ -949,13 +956,11 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
   <div class="fb">
     <span style="font-size:11px;color:var(--muted);">Filter:</span>
     <button class="fp active" onclick="setF('all',this)">All</button>
-    <button class="fp" onclick="setF('givelink',this)">Givelink</button>
-    <button class="fp" onclick="setF('finance',this)">Finance</button>
-    <button class="fp" onclick="setF('automation',this)">Automation</button>
     <button class="fp" onclick="setF('health',this)">Health</button>
+    <button class="fp" onclick="setF('wealth',this)">Wealth</button>
+    <button class="fp" onclick="setF('wisdom',this)">Wisdom</button>
     <button class="fp" onclick="setF('relationships',this)">Relationships</button>
-    <button class="fp" onclick="setF('learning',this)">Learning</button>
-    <button class="fp" onclick="setF('brand',this)">Brand</button>
+    <button class="fp" onclick="setF('experience',this)">Experience</button>
   </div>
   <div class="all-two-pane">
     <div id="all-list"></div>
@@ -2156,6 +2161,15 @@ Read 50 books this year"></textarea>
 <script>
 // ── DATA ──────────────────────────────────────────────────────
 const CATS={givelink:{l:'Givelink',e:'🟣'},finance:{l:'Finance',e:'💰'},automation:{l:'Automation',e:'🤖'},health:{l:'Health',e:'🏋️'},relationships:{l:'Relationships',e:'🤝'},learning:{l:'Learning',e:'📚'},brand:{l:'Brand',e:'🌐'},other:{l:'Other',e:'📌'}};
+// Life areas — map existing categories into 5 domains for filtering
+const LIFE_AREAS={
+  health:{label:'Health',cats:['health']},
+  wealth:{label:'Wealth',cats:['finance','givelink','brand','automation']},
+  wisdom:{label:'Wisdom',cats:['learning']},
+  relationships:{label:'Relationships',cats:['relationships']},
+  experience:{label:'Experience',cats:['other']},
+};
+function _catArea(cat){for(const k in LIFE_AREAS){if(LIFE_AREAS[k].cats.includes(cat))return k;}return 'experience';}
 const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max:10},'this-month':{l:'This Month',e:'🟠',max:20},backlog:{l:'Backlog',e:'🟢'},someday:{l:'Someday',e:'🔵'}};
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
@@ -2924,7 +2938,7 @@ function renderAll(){
   if(!fCat||fCat==='all'){const saved=sessionStorage.getItem('taskos_fcat');if(saved&&saved!=='all'){fCat=saved;document.querySelectorAll('.fp').forEach(p=>{p.classList.toggle('active',p.getAttribute('onclick')?.includes("'"+fCat+"'"));});}}
   const q=document.getElementById('srch')?.value?.toLowerCase()||'';
   let tasks=[...S.tasks];
-  if(fCat!=='all')tasks=tasks.filter(t=>t.category===fCat);
+  if(fCat!=='all')tasks=tasks.filter(t=>LIFE_AREAS[fCat]?_catArea(t.category)===fCat:t.category===fCat);
   if(q)tasks=tasks.filter(t=>t.title.toLowerCase().includes(q)||(t.notes||'').toLowerCase().includes(q));
   const bo={inbox:0,'this-week':1,'this-month':2,backlog:3,someday:4};
   tasks.sort((a,b)=>{if(a.status==='done'&&b.status!=='done')return 1;if(a.status!=='done'&&b.status==='done')return -1;return(bo[a.bucket]||9)-(bo[b.bucket]||9);});
@@ -8314,6 +8328,82 @@ function _linkTaskGoal(id,goalId){
   const g=goalId?(S.goals||[]).find(x=>x.id===goalId):null;
   toast(g?('↳ Linked to '+esc(g.title)):'Unlinked from goal');
 }
+// ── REPLY TO ACT (Superhuman-style: type a command, AI does it) ──
+let _replyBusy=false;
+async function taskReply(id,text){
+  text=(text||'').trim(); if(!text||_replyBusy)return;
+  const t=S.tasks.find(x=>x.id===id); if(!t)return;
+  if(!S.claudeKey){return _taskReplyLocal(id,text);}
+  _replyBusy=true;
+  document.querySelectorAll('.task-reply-input').forEach(i=>{i.disabled=true;i.placeholder='Thinking…';});
+  try{
+    const goals=(S.goals||[]).map(g=>({id:g.id,title:g.title}));
+    const prompt=`You are a task assistant. The user is looking at ONE task and typed a command. Choose the single best action.
+
+TASK:
+title: ${t.title}
+status: ${t.status}
+bucket: ${t.bucket}
+due: ${t.dueDate||'none'}
+category: ${t.category}
+goal: ${t.goalId?(goals.find(g=>g.id===t.goalId)?.title||'linked'):'none'}
+notes: ${(t.notes||'none').slice(0,400)}
+checklist: ${(t.checklist||[]).map(c=>c.text).join('; ')||'none'}
+
+GOALS (for linking, use the id): ${JSON.stringify(goals)}
+TODAY: ${today}
+
+USER COMMAND: "${text}"
+
+Respond with ONLY one JSON object, no prose. Choose exactly one:
+{"action":"complete"}
+{"action":"snooze","date":"YYYY-MM-DD"}
+{"action":"move","bucket":"this-week|this-month|backlog|someday|inbox"}
+{"action":"due","date":"YYYY-MM-DD"}
+{"action":"subtasks","items":["step 1","step 2"]}
+{"action":"link_goal","goalId":"<id from GOALS>"}
+{"action":"rename","title":"new title"}
+{"action":"draft","text":"the actual drafted content to append to the task's notes"}
+{"action":"reply","message":"a short answer if no task change is needed"}
+For draft/write/generate requests, produce the real content in "text". Resolve relative dates against TODAY.`;
+    const raw=await callClaude(prompt,700);
+    if(raw){
+      let act=null;
+      try{act=JSON.parse((raw.match(/\{[\s\S]*\}/)||[])[0]);}catch(e){}
+      if(act)_applyTaskAction(id,act); else toast('Hmm — could not read that. Try rephrasing.');
+    }
+  }finally{
+    _replyBusy=false;
+    document.querySelectorAll('.task-reply-input').forEach(i=>{i.disabled=false;i.placeholder=_REPLY_PH;});
+  }
+}
+const _REPLY_PH="Reply to do it — “snooze till Friday”, “split into 3 steps”, “draft it”";
+function _applyTaskAction(id,act){
+  const t=S.tasks.find(x=>x.id===id); if(!t)return;
+  switch(act.action){
+    case 'complete': t.status='done'; t.completedAt=new Date().toISOString(); toast('✓ Completed'); break;
+    case 'snooze': if(act.date){snoozeTask(id,new Date(act.date+'T09:00'));return;} break;
+    case 'move': if(act.bucket){mvB(id,act.bucket);toast('Moved to '+(({'this-week':'This Week','this-month':'This Month',backlog:'Backlog',someday:'Someday',inbox:'Inbox'})[act.bucket]||act.bucket));return;} break;
+    case 'due': t.dueDate=act.date||''; toast(t.dueDate?('📅 Due '+fd(t.dueDate)):'Due date cleared'); break;
+    case 'subtasks': t.checklist=t.checklist||[]; (act.items||[]).forEach(x=>t.checklist.push({id:uid(),text:x,done:false})); toast('Added '+(act.items||[]).length+' steps'); break;
+    case 'link_goal': { t.goalId=act.goalId||null; const g=(S.goals||[]).find(x=>x.id===t.goalId); toast(g?('↳ Linked to '+g.title):'Unlinked'); break; }
+    case 'rename': if(act.title){t.title=act.title;toast('Renamed');} break;
+    case 'draft': t.notes=(t.notes?t.notes+'\n\n':'')+(act.text||''); toast('✍️ Draft added to notes'); break;
+    case 'reply': toast(act.message||'Done'); break;
+    default: toast("Not sure how to do that — try 'done', 'snooze tomorrow', or 'split into steps'.");
+  }
+  save();refresh();_taskDetailRefresh(id);
+}
+function _taskReplyLocal(id,text){
+  const low=text.toLowerCase();
+  if(/\b(done|complete|finished|did it)\b/.test(low))return _applyTaskAction(id,{action:'complete'});
+  if(/tomorrow/.test(low))return snoozeTask(id,_snoozeAt(1,9));
+  if(/next week/.test(low))return snoozeTask(id,_nextMondayD());
+  if(/weekend/.test(low))return snoozeTask(id,_nextWeekendD());
+  if(/this week/.test(low))return _applyTaskAction(id,{action:'move',bucket:'this-week'});
+  if(/someday|later/.test(low))return _applyTaskAction(id,{action:'move',bucket:'someday'});
+  toast('Add your Claude API key in Settings for full AI replies (understood: done / tomorrow / this week / someday).');
+}
 function _taskDetailHTML(t){
   const today=new Date().toISOString().slice(0,10);
   const overdue=t.dueDate&&t.dueDate<today&&t.status!=='done';
@@ -8342,7 +8432,11 @@ function _taskDetailHTML(t){
     ${t.ifThen?`<div style="margin-top:14px;font-size:12.5px;background:var(--surface2);border-radius:8px;padding:10px 12px;line-height:1.5;">📌 <strong>If-Then:</strong> ${esc(t.ifThen)}</div>`:''}
     ${t.notes?`<div style="margin-top:16px;"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">Notes</div><div style="font-size:13px;line-height:1.65;white-space:pre-wrap;">${esc(t.notes)}</div></div>`:''}
     ${t.checklist?.length?`<div style="margin-top:16px;"><div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;">Checklist · ${t.checklist.filter(c=>c.done).length}/${t.checklist.length}</div>${t.checklist.map(c=>`<div style="display:flex;align-items:center;gap:8px;font-size:13px;padding:3px 0;"><span>${c.done?'✅':'⬜'}</span><span style="${c.done?'opacity:.55;text-decoration:line-through;':''}">${esc(c.text)}</span></div>`).join('')}</div>`:''}
-    <div style="margin-top:18px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap;"><span><kbd>O</kbd> edit</span><span><kbd>X</kbd> done</span><span><kbd>1–5</kbd> move</span><span><kbd>⌫</kbd> delete</span></div>`;
+    <div style="margin-top:18px;padding-top:12px;border-top:1px solid var(--border);font-size:11px;color:var(--muted);display:flex;gap:12px;flex-wrap:wrap;"><span><kbd>O</kbd> edit</span><span><kbd>X</kbd> done</span><span><kbd>1–5</kbd> move</span><span><kbd>⌫</kbd> delete</span></div>
+    <div class="task-reply">
+      <input class="task-reply-input" placeholder="${_REPLY_PH}" onkeydown="if(event.key==='Enter'){event.preventDefault();event.stopPropagation();taskReply('${t.id}',this.value);this.value='';}">
+      <button class="task-reply-send" onclick="const i=this.previousElementSibling;taskReply('${t.id}',i.value);i.value='';" title="Send">Send</button>
+    </div>`;
 }
 function renderReadingPane(id){
   const pane=document.getElementById('reading-pane'); if(!pane)return;

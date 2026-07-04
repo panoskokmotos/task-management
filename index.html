@@ -3827,6 +3827,9 @@ function procMove(id,b){mvB(id,b);if(procMode)renderProcCard();}
 function procDelete(id){delTask(id);if(procMode)renderProcCard();}
 
 // ── KEYBOARD ──────────────────────────────────────────────────
+// Superhuman-style "go to" navigation: press G, then a letter.
+const G_NAV={d:'dashboard',i:'all',a:'all',b:'buckets',g:'goals',h:'habits',c:'capture',r:'review',f:'focus',w:'deepwork',e:'eod',o:'okrs',n:'weeklynotes',l:'wheel'};
+let _gPending=false,_gTimer=null;
 document.addEventListener('click',e=>{window._lastClickX=e.clientX;window._lastClickY=e.clientY;});
 document.addEventListener('keydown',e=>{
   if((e.metaKey||e.ctrlKey)&&e.key==='k'){e.preventDefault();openCmdK();return;}
@@ -3834,11 +3837,18 @@ document.addEventListener('keydown',e=>{
   if(e.key==='q'||e.key==='Q'){e.preventDefault();openQuickCapture();return;}
   const _inInput=document.activeElement&&['INPUT','TEXTAREA','SELECT'].includes(document.activeElement.tagName);
   if(!_inInput){
+    // G-then-key navigation (resolve a pending G first, then intercept a new G)
+    if(_gPending){_gPending=false;clearTimeout(_gTimer);const _v=G_NAV[e.key.toLowerCase()];if(_v){e.preventDefault();nav(_v);return;}}
+    if(e.key==='g'||e.key==='G'){e.preventDefault();_gPending=true;clearTimeout(_gTimer);_gTimer=setTimeout(()=>{_gPending=false;},1600);toast('Go to… d·dash  i·inbox  b·buckets  g·goals  h·habits  c·capture  f·focus  r·review  w·deep',1800);return;}
     // Keyboard task navigation
     if(e.key==='j'){e.preventDefault();_kbMove(1);return;}
     if(e.key==='k'){e.preventDefault();_kbMove(-1);return;}
     if(_selTaskId&&document.querySelector('.tc[data-swipe-id="'+_selTaskId+'"]')){
       if(e.key==='x'){e.preventDefault();cycleStatus(_selTaskId);setTimeout(()=>_paintKbSel(),50);return;}
+      if(e.key==='e'||e.key==='E'){e.preventDefault();const _t=S.tasks.find(x=>x.id===_selTaskId);if(_t&&_t.status!=='done'){_t.status='done';_t.completedAt=new Date().toISOString();save();refresh();toast('✓ Done');}else if(_t){_t.status='todo';_t.completedAt=null;save();refresh();}setTimeout(()=>_paintKbSel(),50);return;}
+      if(e.key==='h'||e.key==='H'){e.preventDefault();openSnooze(_selTaskId);return;}
+      if(e.key==='r'||e.key==='R'){e.preventDefault();openTaskDrawer(_selTaskId);setTimeout(()=>document.querySelector('#task-drawer .task-reply-input')?.focus(),260);return;}
+      if(e.key==='s'||e.key==='S'){e.preventDefault();addT3(_selTaskId);setTimeout(()=>_paintKbSel(),50);return;}
       if(e.key==='o'||e.key==='Enter'){e.preventDefault();openEdit(_selTaskId);return;}
       if(e.key==='i'){e.preventDefault();_inlineRename(_selTaskId);return;}
       if(['1','2','3','4','5'].includes(e.key)){e.preventDefault();const _bm={'1':'this-week','2':'this-month','3':'backlog','4':'someday','5':'inbox'};mvB(_selTaskId,_bm[e.key]);setTimeout(()=>_paintKbSel(),50);toast('Moved to '+_bm[e.key]);return;}
@@ -13315,22 +13325,25 @@ function _goalMomentum(goalId){
         <tr><td style="color:var(--muted);">?</td><td>Show this help</td></tr>
         <tr><td style="color:var(--muted);">N</td><td>New task</td></tr>
         <tr><td style="color:var(--muted);">Q</td><td>Quick capture</td></tr>
-        <tr><td colspan="2" style="color:var(--accent);font-weight:700;font-size:11px;padding-top:10px;">TASK LIST NAVIGATION</td></tr>
+        <tr><td colspan="2" style="color:var(--accent);font-weight:700;font-size:11px;padding-top:10px;">ON THE SELECTED TASK</td></tr>
         <tr><td style="color:var(--muted);">J / K</td><td>Select next / previous task</td></tr>
-        <tr><td style="color:var(--muted);">X</td><td>Complete / advance selected task</td></tr>
-        <tr><td style="color:var(--muted);">O / Enter</td><td>Open selected task</td></tr>
-        <tr><td style="color:var(--muted);">I</td><td>Rename selected task inline</td></tr>
-        <tr><td style="color:var(--muted);">1–5</td><td>Move selected → Week/Month/Backlog/Someday/Inbox</td></tr>
-        <tr><td style="color:var(--muted);">Backspace / #</td><td>Delete selected task</td></tr>
-        <tr><td colspan="2" style="color:var(--accent);font-weight:700;font-size:11px;padding-top:10px;">JUMP TO VIEW</td></tr>
-        <tr><td style="color:var(--muted);">D</td><td>Dashboard</td></tr>
-        <tr><td style="color:var(--muted);">H</td><td>Habits</td></tr>
-        <tr><td style="color:var(--muted);">W</td><td>Deep Work</td></tr>
-        <tr><td style="color:var(--muted);">E</td><td>End-of-Day</td></tr>
-        <tr><td style="color:var(--muted);">R</td><td>Weekly Review</td></tr>
-        <tr><td style="color:var(--muted);">F</td><td>Focus Now</td></tr>
-        <tr><td style="color:var(--muted);">C</td><td>Capture</td></tr>
-        <tr><td style="color:var(--muted);">Esc</td><td>Close modal / clear</td></tr>
+        <tr><td style="color:var(--muted);">E</td><td>Complete (mark done / archive)</td></tr>
+        <tr><td style="color:var(--muted);">H</td><td>Snooze until…</td></tr>
+        <tr><td style="color:var(--muted);">R</td><td>Reply to do it (open + focus reply)</td></tr>
+        <tr><td style="color:var(--muted);">S</td><td>Star → add to Top 3</td></tr>
+        <tr><td style="color:var(--muted);">X</td><td>Cycle status (todo → doing → done)</td></tr>
+        <tr><td style="color:var(--muted);">O / Enter</td><td>Open the full editor</td></tr>
+        <tr><td style="color:var(--muted);">I</td><td>Rename inline</td></tr>
+        <tr><td style="color:var(--muted);">1–5</td><td>Move → Week / Month / Backlog / Someday / Inbox</td></tr>
+        <tr><td style="color:var(--muted);">Backspace / #</td><td>Delete</td></tr>
+        <tr><td colspan="2" style="color:var(--accent);font-weight:700;font-size:11px;padding-top:10px;">GO TO — press G, then…</td></tr>
+        <tr><td style="color:var(--muted);">G D</td><td>Dashboard</td></tr>
+        <tr><td style="color:var(--muted);">G I</td><td>All Tasks (Inbox)</td></tr>
+        <tr><td style="color:var(--muted);">G B</td><td>Buckets</td></tr>
+        <tr><td style="color:var(--muted);">G G</td><td>Goals</td></tr>
+        <tr><td style="color:var(--muted);">G H · G C</td><td>Habits · Capture</td></tr>
+        <tr><td style="color:var(--muted);">G F · G R · G W</td><td>Focus · Weekly Review · Deep Work</td></tr>
+        <tr><td style="color:var(--muted);">Esc</td><td>Close drawer / modal</td></tr>
         </tbody>
       </table>
       <p style="font-size:11px;color:var(--muted);margin-top:12px;">Shortcuts work when not typing in an input field.</p>

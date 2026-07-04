@@ -949,13 +949,11 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
   <div class="fb">
     <span style="font-size:11px;color:var(--muted);">Filter:</span>
     <button class="fp active" onclick="setF('all',this)">All</button>
-    <button class="fp" onclick="setF('givelink',this)">Givelink</button>
-    <button class="fp" onclick="setF('finance',this)">Finance</button>
-    <button class="fp" onclick="setF('automation',this)">Automation</button>
     <button class="fp" onclick="setF('health',this)">Health</button>
+    <button class="fp" onclick="setF('wealth',this)">Wealth</button>
+    <button class="fp" onclick="setF('wisdom',this)">Wisdom</button>
     <button class="fp" onclick="setF('relationships',this)">Relationships</button>
-    <button class="fp" onclick="setF('learning',this)">Learning</button>
-    <button class="fp" onclick="setF('brand',this)">Brand</button>
+    <button class="fp" onclick="setF('experience',this)">Experience</button>
   </div>
   <div class="all-two-pane">
     <div id="all-list"></div>
@@ -2156,6 +2154,15 @@ Read 50 books this year"></textarea>
 <script>
 // ── DATA ──────────────────────────────────────────────────────
 const CATS={givelink:{l:'Givelink',e:'🟣'},finance:{l:'Finance',e:'💰'},automation:{l:'Automation',e:'🤖'},health:{l:'Health',e:'🏋️'},relationships:{l:'Relationships',e:'🤝'},learning:{l:'Learning',e:'📚'},brand:{l:'Brand',e:'🌐'},other:{l:'Other',e:'📌'}};
+// Life areas — map existing categories into 5 domains for filtering
+const LIFE_AREAS={
+  health:{label:'Health',cats:['health']},
+  wealth:{label:'Wealth',cats:['finance','givelink','brand','automation']},
+  wisdom:{label:'Wisdom',cats:['learning']},
+  relationships:{label:'Relationships',cats:['relationships']},
+  experience:{label:'Experience',cats:['other']},
+};
+function _catArea(cat){for(const k in LIFE_AREAS){if(LIFE_AREAS[k].cats.includes(cat))return k;}return 'experience';}
 const BKTS={inbox:{l:'Inbox',e:'📥'},  'this-week':{l:'This Week',e:'🔴',max:10},'this-month':{l:'This Month',e:'🟠',max:20},backlog:{l:'Backlog',e:'🟢'},someday:{l:'Someday',e:'🔵'}};
 const EQ={q1:{l:'DO FIRST',d:'Urgent + Important',a:'🔴 Do Now'},q2:{l:'SCHEDULE',d:'Not Urgent + Important',a:'🟢 Plan It'},q3:{l:'DELEGATE',d:'Urgent + Not Important',a:'🟡 Hand Off'},q4:{l:'ELIMINATE',d:'Not Urgent + Not Important',a:'⚫ Cut It'}};
 const BCOLORS={'this-week':'#ff6b6b','this-month':'#ffa94d','backlog':'#69db7c','someday':'#74c0fc','inbox':'#da77f2'};
@@ -2924,7 +2931,7 @@ function renderAll(){
   if(!fCat||fCat==='all'){const saved=sessionStorage.getItem('taskos_fcat');if(saved&&saved!=='all'){fCat=saved;document.querySelectorAll('.fp').forEach(p=>{p.classList.toggle('active',p.getAttribute('onclick')?.includes("'"+fCat+"'"));});}}
   const q=document.getElementById('srch')?.value?.toLowerCase()||'';
   let tasks=[...S.tasks];
-  if(fCat!=='all')tasks=tasks.filter(t=>t.category===fCat);
+  if(fCat!=='all')tasks=tasks.filter(t=>LIFE_AREAS[fCat]?_catArea(t.category)===fCat:t.category===fCat);
   if(q)tasks=tasks.filter(t=>t.title.toLowerCase().includes(q)||(t.notes||'').toLowerCase().includes(q));
   const bo={inbox:0,'this-week':1,'this-month':2,backlog:3,someday:4};
   tasks.sort((a,b)=>{if(a.status==='done'&&b.status!=='done')return 1;if(a.status!=='done'&&b.status==='done')return -1;return(bo[a.bucket]||9)-(bo[b.bucket]||9);});

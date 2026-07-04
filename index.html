@@ -103,6 +103,7 @@ hr{border:none;border-top:1px solid var(--border);margin:18px 0;}
 .tc-pri.hi{background:var(--q1);}
 .tc-meta{display:flex;align-items:center;gap:12px;flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;}
 .tc-cat{display:inline-flex;align-items:center;gap:5px;color:var(--muted);}
+.tc-goal{color:var(--accent);opacity:.82;font-weight:500;max-width:180px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;}
 .tc-cat .cdot{width:6px;height:6px;border-radius:50%;flex:none;opacity:.9;}
 .tc-due{color:var(--muted);}
 .tc-due.over{color:var(--q1);font-weight:600;}
@@ -3108,6 +3109,7 @@ function tcHTML(t,showT3btn=false){
   const overdue=t.dueDate&&t.dueDate<today&&t.status!=='done';
   const q=ei(t);
   const cat=CATS[t.category]||CATS.other;
+  const gl=t.goalId?(S.goals||[]).find(g=>g.id===t.goalId):null;
   const blocked=t.blockedBy?.length&&t.blockedBy.some(bid=>S.tasks.find(x=>x.id===bid&&x.status!=='done'));
   return`<div class="tc fi ${t.status==='done'?'done':''} ${t.isT3&&t.status!=='done'?'top3':''}" data-swipe-id="${t.id}" onclick="openEdit('${t.id}')">
     <div class="ck ${t.status==='done'?'on':t.status==='in-progress'?'ip':''}" onclick="event.stopPropagation();cycleStatus('${t.id}')" title="${t.status==='done'?'Done':t.status==='in-progress'?'In progress':'To do — click to start'}">${t.status==='done'?'<span style="color:#fff;font-size:10px;">✓</span>':t.status==='in-progress'?'<span style="font-size:9px;">▶</span>':''}</div>
@@ -3119,7 +3121,7 @@ function tcHTML(t,showT3btn=false){
     <span class="tc-meta">
       ${t.recurring?'<span class="tc-r" title="Recurring">↻</span>':''}
       ${t.dueDate?`<span class="tc-due ${overdue?'over':''}">${overdue?'Overdue · ':''}${fd(t.dueDate)}</span>`:''}
-      <span class="tc-cat"><span class="cdot" style="background:var(--c${t.category[0]})"></span>${cat.l}</span>
+      ${gl?`<span class="tc-goal" title="Advances goal: ${esc(gl.title)}">↳ ${esc(gl.title.length>20?gl.title.slice(0,20)+'…':gl.title)}</span>`:`<span class="tc-cat"><span class="cdot" style="background:var(--c${t.category[0]})"></span>${cat.l}</span>`}
     </span>
     <div class="tc-actions" onclick="event.stopPropagation();">
       ${t.status!=='done'?`<button class="tc-act" title="Snooze to Someday" onclick="event.stopPropagation();mvB('${t.id}','someday')">◔</button>`:''}
@@ -5353,6 +5355,9 @@ function _renderNorthStarStrip(){
         <span>${p.pct}%${p.ratePerWeek!=null&&p.status!=='hit'?` · ${p.ratePerWeek>0?'+':''}${_fmtNum(p.ratePerWeek)}/wk`:''}</span>
         <span>${_nsEtaText(p)}</span>
       </div>
+      ${(()=>{const open=S.tasks.filter(t=>t.goalId===g.id&&t.status!=='done');return open.length
+        ?`<div style="display:flex;align-items:center;gap:6px;font-size:11px;margin-top:7px;"><span style="color:var(--accent);">↳</span><span style="flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${esc(open[0].title)}</span><span style="color:var(--faint);white-space:nowrap;">${open.length} task${open.length>1?'s':''}</span></div>`
+        :`<div style="font-size:11px;margin-top:7px;color:var(--faint);">No tasks linked yet</div>`;})()}
     </div>`;
   }).join('');
   el.innerHTML=`<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;">

@@ -8,7 +8,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Task OS">
 <link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon.svg">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -16,6 +18,14 @@
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
+/* ── LAUNCH SPLASH ─────────────────────────────────────────────── */
+#app-splash{position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;background:#0a0a0f;transition:opacity .45s ease;}
+#app-splash.hide{opacity:0;pointer-events:none;}
+#app-splash .sl-mark{animation:splashPulse 1.6s ease-in-out infinite;filter:drop-shadow(0 0 22px rgba(139,124,255,.35));}
+#app-splash .sl-name{font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:18px;font-weight:800;letter-spacing:-.4px;color:#ecedf3;}
+#app-splash .sl-name span{background:linear-gradient(135deg,#8b7cff,#c08cff);-webkit-background-clip:text;background-clip:text;color:transparent;}
+@keyframes splashPulse{0%,100%{transform:scale(1);opacity:1;}50%{transform:scale(1.06);opacity:.82;}}
+@media(prefers-reduced-motion:reduce){#app-splash .sl-mark{animation:none;}}
 :root{
   --bg:#0a0a0f;--surface:#131319;--surface2:#1c1c25;--border:#262630;
   --text:#ecedf3;--muted:#8b8b9c;--accent:#8b7cff;--accent-soft:rgba(139,124,255,.15);--hover:rgba(255,255,255,.035);
@@ -651,14 +661,22 @@ body.theme-anim,body.theme-anim *{transition:background-color .35s ease,color .3
 </head>
 <body>
 
+<div id="app-splash" aria-hidden="true">
+  <svg class="sl-mark" viewBox="0 0 192 192" width="78" height="78">
+    <defs><linearGradient id="slg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b7cff"/><stop offset="1" stop-color="#c08cff"/></linearGradient></defs>
+    <circle cx="96" cy="96" r="52" fill="none" stroke="url(#slg)" stroke-width="10" stroke-linecap="round"/>
+    <polyline points="72,98 89,116 122,76" fill="none" stroke="#ffffff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+  <div class="sl-name">Task<span>OS</span></div>
+</div>
 <button class="ham-btn" onclick="toggleSB()" aria-label="Menu"><span></span><span></span><span></span></button>
 <button class="mob-search" onclick="openCmdK()" aria-label="Search and commands">🔍</button>
-<div id="mobile-brand"><svg class="logo-mark" viewBox="0 0 32 32"><defs><linearGradient id="lgm2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#58a6ff"/><stop offset="1" stop-color="#bc8cff"/></linearGradient></defs><circle cx="16" cy="16" r="12" stroke="url(#lgm2)" stroke-width="3" fill="none"/><path d="M10 16.5 L14.5 21 L22 12" stroke="url(#lgm2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><span class="logo-word">Task<span class="g">OS</span></span></div>
+<div id="mobile-brand"><svg class="logo-mark" viewBox="0 0 32 32"><defs><linearGradient id="lgm2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b7cff"/><stop offset="1" stop-color="#b681f5"/></linearGradient></defs><circle cx="16" cy="16" r="12" stroke="url(#lgm2)" stroke-width="3" fill="none"/><path d="M10 16.5 L14.5 21 L22 12" stroke="url(#lgm2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><span class="logo-word">Task<span class="g">OS</span></span></div>
 <span id="offline-pill" class="hidden" style="position:fixed;top:10px;right:14px;z-index:9999;background:#ef4444;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;display:none;">📡 Offline</span>
 <div class="s-ov" id="s-ov" onclick="toggleSB()"></div>
 
 <nav class="sidebar">
-  <div class="logo"><svg class="logo-mark" viewBox="0 0 32 32"><defs><linearGradient id="lgm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#58a6ff"/><stop offset="1" stop-color="#bc8cff"/></linearGradient></defs><circle cx="16" cy="16" r="12" stroke="url(#lgm)" stroke-width="3" fill="none"/><path d="M10 16.5 L14.5 21 L22 12" stroke="url(#lgm)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><span class="logo-word">Task<span class="g">OS</span></span></div>
+  <div class="logo"><svg class="logo-mark" viewBox="0 0 32 32"><defs><linearGradient id="lgm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b7cff"/><stop offset="1" stop-color="#b681f5"/></linearGradient></defs><circle cx="16" cy="16" r="12" stroke="url(#lgm)" stroke-width="3" fill="none"/><path d="M10 16.5 L14.5 21 L22 12" stroke="url(#lgm)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><span class="logo-word">Task<span class="g">OS</span></span></div>
   <!-- WORKSPACE SWITCHER -->
   <div style="padding:8px 10px 10px;border-bottom:1px solid var(--border);margin-bottom:4px;">
     <div style="display:flex;gap:5px;">
@@ -12269,6 +12287,12 @@ initChecklists();
 _initPullRefresh();
 _initSheetDismiss();
 _maybeOnboard();
+// Fade out the launch splash once the app has painted (with a safety fallback)
+(function(){
+  function _hideSplash(){const s=document.getElementById('app-splash');if(s&&!s.classList.contains('hide')){s.classList.add('hide');setTimeout(()=>s.remove(),500);}}
+  requestAnimationFrame(()=>requestAnimationFrame(()=>setTimeout(_hideSplash,120)));
+  setTimeout(_hideSplash,2500);
+})();
 </script>
 
 <!-- DECISION MODAL -->

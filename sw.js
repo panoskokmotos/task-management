@@ -1,9 +1,12 @@
-const CACHE = 'task-os-20260704';
+const CACHE = 'task-os-20260705';
 const STATIC = [
   './manifest.json',
   './manifest-givelink.json',
   './icon.svg',
-  './icon-gl.svg'
+  './icon-gl.svg',
+  './icon-192.png',
+  './icon-512.png',
+  './apple-touch-icon.png'
 ];
 const HTML = [
   './',

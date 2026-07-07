@@ -737,6 +737,22 @@ body.light .seg-btn.active{background:#fff;}
 .sv-row .sv-x{margin-left:auto;opacity:0;font-size:14px;color:var(--muted);}
 .sv-row:hover .sv-x{opacity:.7;}
 .sv-star{flex:none;color:var(--accent);font-size:11px;}
+/* ── SYNC PILL ──────────────────────────────────────────────────── */
+.sync-pill{display:flex;align-items:center;gap:8px;margin:8px 10px 4px;padding:6px 10px;border-radius:8px;background:var(--surface2);border:1px solid var(--border);font-size:11.5px;font-weight:600;color:var(--muted);cursor:pointer;transition:background .12s;-webkit-tap-highlight-color:transparent;}
+.sync-pill:hover{background:var(--hover);}
+.sync-dot{width:8px;height:8px;border-radius:50%;flex:none;background:var(--muted);transition:background .2s;}
+.sync-pill.ok .sync-dot{background:#7ee0a0;}
+.sync-pill.syncing .sync-dot{background:#ffc078;animation:syncPulse 1s ease-in-out infinite;}
+.sync-pill.err .sync-dot{background:#ef4444;}
+.sync-pill.offline .sync-dot{background:#ff8a8a;}
+@keyframes syncPulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+.sidebar-filter{margin:2px 10px 6px;width:calc(100% - 20px);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:6px 10px;color:var(--text);font:inherit;font-size:12.5px;outline:none;transition:border-color .12s;}
+.sidebar-filter:focus{border-color:var(--accent);}
+.ni.sf-hidden{display:none!important;}
+.ni-pin{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--muted);opacity:0;transition:opacity .12s,color .12s;cursor:pointer;padding:2px 4px;border-radius:4px;}
+.ni:hover .ni-pin{opacity:.55;}
+.ni-pin:hover{opacity:1!important;color:var(--accent);background:var(--hover);}
+.ni-pin.pinned{opacity:.85;color:var(--accent);}
 /* ── OURA RING ───────────────────────────────────────────────────── */
 .oura-ring{position:relative;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;}
 .oura-ring svg{position:absolute;top:0;left:0;transform:rotate(-90deg);}
@@ -758,6 +774,8 @@ body.light .seg-btn.active{background:#fff;}
 <button class="mob-search" onclick="openCmdK()" aria-label="Search and commands">🔍</button>
 <div id="mobile-brand"><svg class="logo-mark" viewBox="0 0 32 32"><defs><linearGradient id="lgm2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b7cff"/><stop offset="1" stop-color="#b681f5"/></linearGradient></defs><circle cx="16" cy="16" r="12" stroke="url(#lgm2)" stroke-width="3" fill="none"/><path d="M10 16.5 L14.5 21 L22 12" stroke="url(#lgm2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><span class="logo-word">Task<span class="g">OS</span></span></div>
 <span id="offline-pill" class="hidden" style="position:fixed;top:10px;right:14px;z-index:9999;background:#ef4444;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;display:none;">📡 Offline</span>
+<input type="file" id="import-file-hidden" accept=".json" style="display:none;" onchange="importData(event)">
+
 <div class="s-ov" id="s-ov" onclick="toggleSB()"></div>
 
 <nav class="sidebar">
@@ -772,6 +790,12 @@ body.light .seg-btn.active{background:#fff;}
   <div class="cmdk-chip" onclick="openCmdK()" title="Command palette — search, navigate, capture">
     <span style="font-size:13px;">🔍</span><span>Quick find…</span>
     <span class="ck-keys"><kbd>⌘</kbd><kbd>K</kbd></span>
+  </div>
+  <div id="sync-pill" class="sync-pill" onclick="_openSyncMenu(event)" title="Sync status — click for options"><span class="sync-dot"></span><span id="sync-pill-txt">Local only</span></div>
+  <input id="sidebar-filter" class="sidebar-filter" placeholder="Filter menu…" oninput="_filterSidebar(this.value)" aria-label="Filter navigation">
+  <div id="pinned-group" class="ns-group" data-ns="pinned" style="display:none;">
+  <span class="ns" style="cursor:default;">Pinned</span>
+  <div id="pinned-views"></div>
   </div>
   <div id="saved-views-group" class="ns-group" data-ns="views" style="display:none;">
   <span class="ns" onclick="_toggleNsGroup(this)">Views<span class="ns-arrow">▾</span></span>
@@ -856,6 +880,7 @@ body.light .seg-btn.active{background:#fff;}
         <span id="xp-label">0 XP</span>
       </div>
       <button class="btn bg sm" id="start-day-btn" onclick="openStartDay()" style="display:none;">☀️ Start Day</button>
+      <button class="btn bp sm" onclick="aiPlanDay()" title="AI drafts a focused, time-blocked plan for today">☀️ Plan my day</button>
       <button class="cmdk-chip-h" onclick="openCmdK()" title="Command palette — search, navigate, capture">🔍 <span>Search</span> <kbd>⌘K</kbd></button>
       <button class="btn bg sm dash-extra" onclick="openChecklist('daily')" id="checklist-btn" title="Daily / Weekly / Monthly Checklist">📋 <span id="checklist-badge" style="display:none;background:#ef4444;color:#fff;border-radius:8px;padding:0 5px;font-size:10px;font-weight:700;"></span></button>
       <button class="btn bg sm dash-extra" onclick="openReminderSettings()" title="Reminders" id="remind-btn">🔔</button>
@@ -2379,6 +2404,31 @@ function exportData(){
   a.click();URL.revokeObjectURL(a.href);
   toast('✅ Data exported!');
 }
+// Export dated tasks as an .ics file any calendar app can import (one-way;
+// true 2-way Google Calendar sync would require OAuth + a server component).
+function exportICS(){
+  const tasks=S.tasks.filter(t=>t.dueDate&&t.status!=='done');
+  if(!tasks.length){toast('No tasks with a due date to export yet');return;}
+  const dtstamp=new Date().toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
+  const ie=s=>String(s||'').replace(/([,;\\])/g,'\\$1').replace(/\r?\n/g,'\\n');
+  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//TaskOS//Personal OS//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:Task OS'];
+  tasks.forEach(t=>{
+    const start=t.dueDate.replace(/-/g,'');
+    const nd=new Date(t.dueDate+'T00:00');nd.setDate(nd.getDate()+1);
+    const end=nd.toISOString().slice(0,10).replace(/-/g,'');
+    const cat=CATS[t.category]?.l||'';
+    lines.push('BEGIN:VEVENT','UID:'+t.id+'@taskos','DTSTAMP:'+dtstamp,
+      'DTSTART;VALUE=DATE:'+start,'DTEND;VALUE=DATE:'+end,
+      'SUMMARY:'+ie((t.isT3?'★ ':'')+t.title),
+      'DESCRIPTION:'+ie((cat?('['+cat+'] '):'')+(t.notes||'')),
+      'END:VEVENT');
+  });
+  lines.push('END:VCALENDAR');
+  const blob=new Blob([lines.join('\r\n')],{type:'text/calendar'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);
+  a.download='taskos-'+new Date().toISOString().slice(0,10)+'.ics';a.click();URL.revokeObjectURL(a.href);
+  toast('🗓️ Exported '+tasks.length+' dated task'+(tasks.length===1?'':'s')+' — import the .ics into Google/Apple Calendar');
+}
 function importData(e){
   const file=e.target.files[0];if(!file)return;
   const reader=new FileReader();
@@ -3059,11 +3109,18 @@ function renderEisenhower(){
 }
 
 // ── ALL TASKS ─────────────────────────────────────────────────
-function setF(cat,el){fCat=cat;sessionStorage.setItem('taskos_fcat',fCat);document.querySelectorAll('.fp').forEach(p=>p.classList.remove('active'));el.classList.add('active');renderAll();}
+function setF(cat,el){fCat=cat;sessionStorage.setItem('taskos_fcat',fCat);_allWindow=60;document.querySelectorAll('.fp').forEach(p=>p.classList.remove('active'));el.classList.add('active');renderAll();}
 
 let _allMode=localStorage.getItem('taskos_allmode')||'list';
+let _allWindow=60,_allIO=null;
+function _observeAllSentinel(){
+  const s=document.getElementById('all-sentinel');if(!s)return;
+  if(_allIO)_allIO.disconnect();
+  _allIO=new IntersectionObserver(es=>{if(es.some(e=>e.isIntersecting)){_allWindow+=80;renderAll();}},{rootMargin:'400px'});
+  _allIO.observe(s);
+}
 function setAllMode(m){
-  _allMode=m;localStorage.setItem('taskos_allmode',m);
+  _allMode=m;localStorage.setItem('taskos_allmode',m);_allWindow=60;
   document.querySelectorAll('#all-seg .seg-btn').forEach(b=>b.classList.toggle('active',b.dataset.mode===m));
   const pane=document.querySelector('.all-two-pane');if(pane)pane.classList.toggle('single',m!=='list');
   _haptic(6);renderAll();
@@ -3102,6 +3159,52 @@ function _renderSavedViews(){
   group.style.display=vs.length?'':'none';
   wrap.innerHTML=vs.map(v=>`<div class="sv-row" onclick="_openSavedView('${v.id}')" title="${esc(v.name)}"><span class="sv-star">★</span><span style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${esc(v.name)}</span><span class="sv-x" onclick="_deleteSavedView('${v.id}',event)" title="Remove">×</span></div>`).join('');
 }
+// ── SIDEBAR: pinned views, live filter, pin/unpin (calm through subtraction) ──
+const _DEFAULT_PINS=['dashboard','all','capture','goals','focus','habits','review','calendar'];
+function _getPins(){return Array.isArray(S.pinnedViews)?S.pinnedViews:_DEFAULT_PINS;}
+function _niLabel(el){let s='';el.childNodes.forEach(n=>{if(n.nodeType===3)s+=n.textContent;});return s.trim();}
+function _niIcon(el){return el.querySelector('.ni-ic')?.textContent||'';}
+function _togglePin(v,ev){
+  ev&&ev.stopPropagation();
+  let p=[..._getPins()];
+  if(p.includes(v))p=p.filter(x=>x!==v);else p.push(v);
+  S.pinnedViews=p;save();_renderPinnedViews();_addPinStars();
+}
+function _renderPinnedViews(){
+  const wrap=document.getElementById('pinned-views'),group=document.getElementById('pinned-group');if(!wrap||!group)return;
+  const pins=_getPins();
+  const rows=pins.map(v=>{
+    const src=document.querySelector('.sidebar .ns-group:not([data-ns="pinned"]) .ni[data-v="'+v+'"]');
+    if(!src)return '';
+    return `<div class="ni" data-v="${v}" data-pinclone="1" onclick="nav('${v}')"><span class="ni-ic">${_niIcon(src)}</span>${esc(_niLabel(src))}<span class="ni-pin pinned" title="Unpin" onclick="_togglePin('${v}',event)">★</span></div>`;
+  }).filter(Boolean).join('');
+  group.style.display=rows?'':'none';
+  wrap.innerHTML=rows;
+  // reflect active state
+  const cur=localStorage.getItem('taskos_lastview');
+  wrap.querySelectorAll('.ni').forEach(el=>el.classList.toggle('active',el.dataset.v===cur));
+}
+function _addPinStars(){
+  const pins=_getPins();
+  document.querySelectorAll('.sidebar .ns-group:not([data-ns="pinned"]):not([data-ns="views"]) .ni[data-v]').forEach(el=>{
+    let star=el.querySelector('.ni-pin');
+    if(!star){star=document.createElement('span');star.className='ni-pin';el.appendChild(star);star.addEventListener('click',e=>_togglePin(el.dataset.v,e));}
+    const on=pins.includes(el.dataset.v);
+    star.textContent=on?'★':'☆';star.title=on?'Unpin':'Pin to top';star.classList.toggle('pinned',on);
+  });
+}
+function _filterSidebar(q){
+  q=(q||'').toLowerCase().trim();
+  if(q)document.querySelectorAll('.sidebar .ns-group').forEach(g=>{g.classList.remove('collapsed');const a=g.querySelector('.ns-arrow');if(a)a.textContent='▾';});
+  document.querySelectorAll('.sidebar .ns-group:not([data-ns="pinned"]) .ni[data-v]').forEach(el=>{
+    el.classList.toggle('sf-hidden',!!q&&!_niLabel(el).toLowerCase().includes(q));
+  });
+  // hide group headers whose items are all filtered out
+  document.querySelectorAll('.sidebar .ns-group:not([data-ns="pinned"]):not([data-ns="views"])').forEach(g=>{
+    const anyVisible=[...g.querySelectorAll('.ni[data-v]')].some(el=>!el.classList.contains('sf-hidden'));
+    g.style.display=(q&&!anyVisible)?'none':'';
+  });
+}
 function _allFilteredTasks(){
   const q=document.getElementById('srch')?.value?.toLowerCase()||'';
   let tasks=[...S.tasks];
@@ -3124,15 +3227,22 @@ function renderAll(){
   if(!tasks.length){document.getElementById('all-list').innerHTML=_empty('✅','No tasks here','Add your first task or adjust the filter above.','<button class="btn bp sm" onclick="openAdd()">+ Add Task</button>');_selTaskId=null;renderReadingPane(null);return;}
   const grouped={};
   tasks.forEach(t=>{const k=t.status==='done'?'done':t.bucket;(grouped[k]=grouped[k]||[]).push(t);});
-  let html='';
+  // Performance: only render up to _allWindow rows; a sentinel loads more on scroll.
+  let html='',rendered=0,truncated=false;
   ['inbox','this-week','this-month','backlog','someday','done'].forEach(k=>{
     if(!grouped[k]?.length)return;
+    if(rendered>=_allWindow){truncated=true;return;}
     const b=k==='done'?{l:'Completed',e:'✅'}:BKTS[k];
+    const slice=grouped[k].slice(0,_allWindow-rendered);
+    if(slice.length<grouped[k].length)truncated=true;
     html+=`<h3 style="margin:14px 0 7px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.4px;">${b.e} ${b.l} (${grouped[k].length})</h3>`;
-    html+=grouped[k].map(t=>tcHTML(t)).join('');
+    html+=slice.map(t=>tcHTML(t)).join('');
+    rendered+=slice.length;
   });
+  if(truncated)html+=`<div id="all-sentinel" style="text-align:center;padding:14px;color:var(--muted);font-size:12px;">Showing ${rendered} of ${tasks.length} — <a onclick="_allWindow+=200;renderAll()" style="color:var(--accent);cursor:pointer;">show all</a></div>`;
   document.getElementById('all-list').innerHTML=html;
   setTimeout(_attachSwipes,0);
+  if(truncated)_observeAllSentinel();
   // Two-pane reading view (desktop only): keep selection valid, default to first task, refresh pane.
   // On mobile the pane is hidden, so we must NOT auto-open (which would mark the top task read).
   if(document.getElementById('reading-pane')&&window.innerWidth>=1000){
@@ -3193,7 +3303,7 @@ function renderAllCalendar(tasks){
     dayList=`<div class="cal-daylist"><h4>Tap a day to see what's due</h4><div style="font-size:12px;color:var(--muted);line-height:1.6;">${undated} active task${undated===1?'':'s'} have no due date. Open one and set a date to place it on the calendar.</div></div>`;
   }
   document.getElementById('all-list').innerHTML=`<div class="cal-wrap">
-    <div class="cal-head"><div class="cal-title">${monthLabel}</div><div class="cal-nav"><button onclick="_calShift(-1)" aria-label="Previous month">‹</button><button onclick="_calShift(1)" aria-label="Next month">›</button></div></div>
+    <div class="cal-head"><div class="cal-title">${monthLabel}</div><div class="cal-nav"><button class="btn bg sm" style="width:auto;padding:0 12px;" onclick="exportICS()" title="Export dated tasks as a calendar file">🗓️ Export .ics</button><button onclick="_calShift(-1)" aria-label="Previous month">‹</button><button onclick="_calShift(1)" aria-label="Next month">›</button></div></div>
     <div class="cal-grid">${dows.map(d=>`<div class="cal-dow">${d}</div>`).join('')}${cells}</div>
     ${dayList}
   </div>`;
@@ -3520,7 +3630,7 @@ function saveTask(){
 }
 
 let _searchTimer=null;
-function _debouncedSearch(){clearTimeout(_searchTimer);_searchTimer=setTimeout(renderAll,150);}
+function _debouncedSearch(){clearTimeout(_searchTimer);_searchTimer=setTimeout(()=>{_allWindow=60;renderAll();},150);}
 let _undoTask=null,_undoTimer=null;
 function delTask(id){
   const t=S.tasks.find(x=>x.id===id);if(!t)return;
@@ -3878,6 +3988,7 @@ function _cmdkSearch(){
     const cmds=_cmdkCommands().filter(c=>c.label.toLowerCase().includes(q)).slice(0,8);
     const tasks=active().filter(t=>t.title.toLowerCase().includes(q)).slice(0,5).map(t=>({ic:'✅',label:t.title,sub:'Task',run:()=>{closeCmdK();openEdit(t.id);}}));
     items=[...cmds,...tasks];
+    if(q.length>=3)items.push({ic:'🤖',label:'Ask AI: “'+q+'”',sub:'AI',run:()=>_cmdkAI(document.getElementById('cmdk-i').value)});
   }
   _cmdkItems=items;_cmdkIdx=0;
   if(!items.length){box.innerHTML='<div class="cmdk-res-empty">No matches — press <kbd>Enter</kbd> to capture "'+esc(q)+'"</div>';return;}
@@ -3958,7 +4069,65 @@ function _handleCmdKNL(input){
     const t=S.tasks.find(x=>x.status!=='done'&&x.title.toLowerCase().includes(q));
     if(t&&bkt){mvB(t.id,bkt);closeCmdK();toast(`Moved "${t.title}" to ${bkt}`);return true;}
   }
+  // "snooze [task] [to] [when]"
+  const snz=lower.match(/^snooze\s+(.+?)\s+(?:to\s+|till\s+|until\s+)?([a-z0-9 -]+)$/);
+  if(snz){
+    const q=snz[1].trim();const d=_nlDateResolve(snz[2].trim());
+    const t=d&&S.tasks.find(x=>x.status!=='done'&&x.title.toLowerCase().includes(q));
+    if(t&&d){snoozeTask(t.id,d);closeCmdK();return true;}
+  }
+  // "[task] due [when]"
+  const dueM=lower.match(/^(.+?)\s+due\s+(.+)$/);
+  if(dueM){
+    const q=dueM[1].trim();const d=_nlDateResolve(dueM[2].trim());
+    const t=d&&S.tasks.find(x=>x.status!=='done'&&x.title.toLowerCase().includes(q));
+    if(t&&d){t.dueDate=d.toISOString().slice(0,10);if(t.bucket==='inbox')t.bucket='this-week';save();refresh();closeCmdK();toast('📅 '+t.title+' due '+fd(t.dueDate));return true;}
+  }
   return false;
+}
+// Resolve a natural-language date phrase → Date (used by ⌘K commands)
+function _nlDateResolve(s){
+  s=(s||'').toLowerCase().trim();
+  if(/^today$/.test(s))return _snoozeAt(0,9);
+  if(/^tonight$/.test(s))return _snoozeAt(0,21);
+  if(/^tomorrow$/.test(s))return _snoozeAt(1,9);
+  if(/weekend/.test(s))return _nextWeekendD();
+  if(/next week/.test(s))return _nextMondayD();
+  const inDays=s.match(/in (\d+) days?/);if(inDays)return _snoozeAt(parseInt(inDays[1]),9);
+  const days={sunday:0,monday:1,tuesday:2,wednesday:3,thursday:4,friday:5,saturday:6,sun:0,mon:1,tue:2,wed:3,thu:4,fri:5,sat:6};
+  for(const k in days){if(s===k||s==='next '+k){const d=new Date();let add=(days[k]-d.getDay()+7)%7;if(add===0)add=7;d.setDate(d.getDate()+add);d.setHours(9,0,0,0);return d;}}
+  const iso=s.match(/\d{4}-\d{2}-\d{2}/);if(iso){const d=new Date(iso[0]+'T09:00');if(!isNaN(d))return d;}
+  return null;
+}
+// AI-interpret a free-text ⌘K command into a single task action
+async function _cmdkAI(input){
+  closeCmdK();
+  input=(input||'').trim();if(!input)return;
+  if(!S.claudeKey){toast('Add your Claude API key in Settings to use AI commands');return;}
+  toast('🤖 Interpreting…');
+  const list=active().slice(0,60).map(t=>`${t.id} :: ${t.title}`).join('\n');
+  const goals=(S.goals||[]).map(g=>({id:g.id,title:g.title}));
+  const today=new Date().toISOString().slice(0,10);
+  const prompt=`Turn this command into ONE JSON action for a task app. Actions:
+{"action":"complete","id":"..."} {"action":"snooze","id":"...","date":"YYYY-MM-DD"} {"action":"move","id":"...","bucket":"this-week|this-month|backlog|someday|inbox"} {"action":"due","id":"...","date":"YYYY-MM-DD"} {"action":"rename","id":"...","title":"..."} {"action":"link_goal","id":"...","goalId":"..."} {"action":"open","id":"..."} {"action":"add","title":"..."}
+If it references an existing task, match by meaning and include its "id" from the list. For "add", omit id.
+TODAY: ${today}
+GOALS: ${JSON.stringify(goals)}
+TASKS (id :: title):
+${list}
+COMMAND: "${input}"
+Return ONLY the JSON, no prose.`;
+  const raw=await callClaude(prompt,300);
+  if(!raw)return;
+  let act;try{act=JSON.parse((raw.match(/\{[\s\S]*\}/)||[])[0]);}catch(e){toast('Could not interpret that command');return;}
+  if(act.action==='add'){
+    const title=(act.title||input).trim();
+    S.tasks.push({id:uid(),title,notes:'',bucket:'inbox',category:'other',urgency:'low',importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',read:false,createdAt:new Date().toISOString(),completedAt:null});
+    save();refresh();updIBadge();toast('➕ Added: '+title);return;
+  }
+  if(act.action==='open'){if(act.id&&S.tasks.find(x=>x.id===act.id))openTaskDrawer(act.id);else toast('No task matched');return;}
+  if(!act.id||!S.tasks.find(x=>x.id===act.id)){toast('Couldn’t match a task for that');return;}
+  _applyTaskAction(act.id,act);refresh();
 }
 
 // ── FOCUS NOW ─────────────────────────────────────────────────
@@ -4700,6 +4869,79 @@ function _applyTriage(){
   });
   save();refresh();updIBadge();closeM('triage-modal');_haptic(15);
   toast(`✨ Triaged ${n} task${n===1?'':'s'} out of your inbox`);
+}
+
+// ── PLAN MY DAY (AI drafts a focused, time-blocked today) ─────
+let _planDraft=null;
+async function aiPlanDay(){
+  if(!S.claudeKey){toast('Add your Claude API key in Settings to plan your day');return;}
+  const today=new Date().toISOString().slice(0,10);
+  const top3GoalIds=(S.goals||[]).filter(g=>g.isTop3).map(g=>g.id);
+  const scored=active().filter(t=>!_isSnoozed(t)).map(t=>{
+    let s=0;
+    if(t.dueDate&&t.dueDate<today)s+=100;
+    if(t.dueDate===today)s+=80;
+    if(t.isT3)s+=60;
+    if(t.goalId&&top3GoalIds.includes(t.goalId))s+=40;
+    if(t.bucket==='this-week')s+=20;
+    if(t.bucket==='inbox')s+=5;
+    if(t.importance==='high')s+=10;
+    return {t,s};
+  }).filter(x=>x.s>0).sort((a,b)=>b.s-a.s).slice(0,22).map(x=>x.t);
+  if(!scored.length){toast('Nothing pressing today — your inbox is calm ✨');return;}
+  if(!_aiLock('aiPlanDay'))return;
+  toast('☀️ Drafting your day…');
+  const hour=new Date().getHours();
+  const list=scored.map(t=>`${t.id} :: ${t.title}${t.dueDate?(' (due '+t.dueDate+')'):''}${t.goalId?' [goal]':''}`).join('\n');
+  const prompt=`You are a calm, sharp productivity coach. Plan a realistic, focused TODAY from these candidate tasks. It is about ${hour}:00 now.
+Pick the 3 highest-leverage as "top3". Then propose an ordered schedule of at most 6 items — protect focus, do NOT overload the day. Give each a rough time block (e.g. "9–11am").
+TASKS (id :: title):
+${list}
+Return ONLY JSON: {"top3":["id","id","id"],"plan":[{"id":"...","block":"9–11am","why":"one short reason"}],"note":"one calm sentence of guidance"}`;
+  const raw=await callClaude(prompt,900);
+  _aiUnlock('aiPlanDay');
+  if(!raw)return;
+  let plan;try{plan=JSON.parse((raw.match(/\{[\s\S]*\}/)||[])[0]);}catch(e){toast('Could not draft a plan — try again');return;}
+  if(!plan||!Array.isArray(plan.plan)||!plan.plan.length){toast('The plan came back empty — try again');return;}
+  _planDraft=plan;_renderPlanModal(plan);
+}
+function _renderPlanModal(plan){
+  let el=document.getElementById('plan-modal');
+  if(!el){el=document.createElement('div');el.className='mo hidden';el.id='plan-modal';el.addEventListener('click',e=>{if(e.target===el)closeM('plan-modal');});document.body.appendChild(el);}
+  const top3=new Set(plan.top3||[]);
+  const rows=plan.plan.map(p=>{
+    const t=S.tasks.find(x=>x.id===p.id);if(!t)return '';
+    const star=top3.has(p.id)?'<span style="color:var(--accent);">★</span> ':'';
+    return `<div style="display:flex;gap:12px;padding:10px 4px;border-bottom:1px solid var(--border);">
+      <span style="font-size:11.5px;font-weight:700;color:var(--accent);white-space:nowrap;min-width:74px;">${esc(p.block||'')}</span>
+      <div style="flex:1;min-width:0;"><div style="font-size:13.5px;font-weight:600;">${star}${esc(t.title)}</div>${p.why?`<div style="font-size:11.5px;color:var(--muted);margin-top:2px;">${esc(p.why)}</div>`:''}</div>
+    </div>`;
+  }).filter(Boolean).join('');
+  el.innerHTML=`<div class="md" style="width:520px;max-width:94vw;max-height:82vh;display:flex;flex-direction:column;">
+    <div class="mh"><h3>☀️ Your day</h3><button class="mc" onclick="closeM('plan-modal')">×</button></div>
+    ${plan.note?`<p style="font-size:12.5px;color:var(--muted);margin-bottom:8px;line-height:1.5;">${esc(plan.note)}</p>`:''}
+    <div style="overflow-y:auto;flex:1;margin:0 -4px;">${rows}</div>
+    <div class="mf" style="margin-top:12px;">
+      <button class="btn bg" onclick="closeM('plan-modal')">Dismiss</button>
+      <button class="btn bp" onclick="_applyPlan()">Set as my Top 3 →</button>
+    </div>
+  </div>`;
+  el.classList.remove('hidden');document.body.classList.add('modal-open');
+}
+function _applyPlan(){
+  const top3=(_planDraft&&_planDraft.top3)||[];
+  const today=new Date().toISOString().slice(0,10);
+  let n=0;
+  // clear existing Top 3 flags so the plan becomes the source of truth
+  S.tasks.forEach(t=>{if(t.isT3)t.isT3=false;});
+  top3.slice(0,3).forEach(id=>{
+    const t=S.tasks.find(x=>x.id===id);if(!t)return;
+    t.isT3=true;if(t.bucket==='inbox'||t.bucket==='backlog'||t.bucket==='someday')t.bucket='this-week';
+    if(!t.dueDate)t.dueDate=today;
+    n++;
+  });
+  save();refresh();closeM('plan-modal');_haptic(15);
+  toast(n?`☀️ ${n} task${n===1?'':'s'} set as today's Top 3`:'Plan dismissed');
 }
 
 // ── AI SEQUENCE SCORE (Eat That Frog) ─────────────────────────
@@ -9468,9 +9710,36 @@ const _SB={
   get uid(){return localStorage.getItem('taskos_sb_uid')||'';},
   get exp(){return parseInt(localStorage.getItem('taskos_sb_exp')||'0')||0;},
 };
-let _sbBusy=false,_sbApplying=false,_sbTimer=null,_sbStatus='';
+let _sbBusy=false,_sbApplying=false,_sbTimer=null,_sbStatus='',_sbPending=false;
 function _sbEnabled(){return !!(_SB.url&&_SB.anon&&_SB.refresh&&_SB.uid);}
-function _sbSetStatus(s){_sbStatus=s;_sbRenderStatus();}
+function _sbSetStatus(s){_sbStatus=s;_sbRenderStatus();_sbRenderPill();}
+// Persistent sync-status pill in the sidebar (the trust signal)
+function _sbRenderPill(){
+  const pill=document.getElementById('sync-pill'),txt=document.getElementById('sync-pill-txt');
+  if(!pill||!txt)return;
+  pill.classList.remove('ok','syncing','err','offline');
+  if(!navigator.onLine){pill.classList.add(_sbEnabled()?'offline':'');txt.textContent=_sbEnabled()?'Offline · changes saved':'Offline';return;}
+  if(!_SB.url||!_SB.anon){txt.textContent='Local only';return;}
+  if(!_sbEnabled()){txt.textContent='Sign in to sync';return;}
+  if(_sbBusy){pill.classList.add('syncing');txt.textContent='Syncing…';return;}
+  if(_sbStatus.startsWith('⚠')){pill.classList.add('err');txt.textContent='Sync error — retry';return;}
+  if(_sbPending){pill.classList.add('syncing');txt.textContent='Saving…';return;}
+  pill.classList.add('ok');
+  txt.textContent=_sbStatus&&_sbStatus.indexOf('Synced')>=0?_sbStatus.replace('Synced ⬆','Synced').replace('Synced ⬇','Synced ↓'):'Synced';
+}
+function _openSyncMenu(ev){
+  ev&&ev.stopPropagation();
+  const opts=[];
+  if(_sbEnabled())opts.push(['🔄 Sync now',"sbSyncNow(true)"]);
+  opts.push(['⬇ Download backup','exportData()']);
+  opts.push(['⬆ Restore from backup',"document.getElementById('import-file-hidden').click()"]);
+  opts.push(['☁ Sync settings','openSettings()']);
+  let el=document.getElementById('sync-menu');
+  if(!el){el=document.createElement('div');el.id='sync-menu';el.className='slash-menu';el.style.cssText='position:fixed;z-index:2000;min-width:210px;';document.body.appendChild(el);document.addEventListener('click',e=>{if(el&&!el.contains(e.target)&&e.target.id!=='sync-pill'&&!e.target.closest('#sync-pill'))el.style.display='none';});}
+  el.innerHTML=opts.map(([label,fn])=>`<div class="slash-item" onclick="event.stopPropagation();document.getElementById('sync-menu').style.display='none';${fn}"><span>${label}</span></div>`).join('');
+  const pill=document.getElementById('sync-pill').getBoundingClientRect();
+  el.style.left=Math.min(pill.left,window.innerWidth-230)+'px';el.style.top=(pill.bottom+6)+'px';el.style.display='block';
+}
 function _sbRenderStatus(){
   const el=document.getElementById('sb-status');if(!el)return;
   if(!_SB.url||!_SB.anon){el.textContent='Not configured — offline (localStorage only).';el.style.color='var(--muted)';return;}
@@ -9542,7 +9811,7 @@ async function sbPush(){
 }
 async function sbSyncNow(force){
   if(!_sbEnabled()){if(force)toast('Connect cloud sync first');return;}
-  if(_sbBusy)return;_sbBusy=true;
+  if(_sbBusy)return;_sbBusy=true;_sbRenderPill();
   try{
     const remote=await sbPull();
     const localMs=S._updatedAt||0;
@@ -9553,20 +9822,26 @@ async function sbSyncNow(force){
       save();
       _sbApplying=false;
       try{refresh();}catch(e){}
+      _sbPending=false;
       _sbSetStatus('Synced ⬇ '+new Date().toLocaleTimeString());
+      if(!force)toast('☁️ Updated from another device');
     } else {
       await sbPush();
+      _sbPending=false;
       _sbSetStatus('Synced ⬆ '+new Date().toLocaleTimeString());
     }
-  }catch(e){_sbSetStatus('⚠ '+e.message);}
-  finally{_sbBusy=false;}
+  }catch(e){_sbPending=true;_sbSetStatus('⚠ '+e.message);}
+  finally{_sbBusy=false;_sbRenderPill();}
 }
 function _sbScheduleSync(){
   if(!_sbEnabled()||_sbApplying)return;
+  _sbPending=true;_sbRenderPill();
+  if(!navigator.onLine)return; // stay queued; flushes on 'online'
   clearTimeout(_sbTimer);
   _sbTimer=setTimeout(()=>{
     if(!_sbEnabled())return;
-    sbPush().then(()=>_sbSetStatus('Synced ⬆ '+new Date().toLocaleTimeString())).catch(e=>_sbSetStatus('⚠ '+e.message));
+    if(!navigator.onLine){_sbRenderPill();return;}
+    sbPush().then(()=>{_sbPending=false;_sbSetStatus('Synced ⬆ '+new Date().toLocaleTimeString());}).catch(e=>{_sbPending=true;_sbSetStatus('⚠ '+e.message);});
   },2500);
 }
 // Auto-snapshot: capture a daily Givelink history point so the Pace Engine
@@ -9603,7 +9878,21 @@ function toggleSB(){
 // ── INIT ──────────────────────────────────────────────────────
 load();seed();seedGoals();resetRecurring();_genDailyQuests();_maybeShowWeeklyWrapped();_initSidebarSwipe();_autoSnapshot();
 setTimeout(()=>{if(_sbEnabled())sbSyncNow();},900);
-try{const _nc=JSON.parse(localStorage.getItem('taskos_nav_collapsed')||'{}');document.querySelectorAll('.ns-group').forEach(g=>{const collapsed=_nc[g.dataset.ns]??g.classList.contains('collapsed');if(collapsed)g.classList.add('collapsed');else g.classList.remove('collapsed');const arr=g.querySelector('.ns-arrow');if(arr)arr.textContent=collapsed?'▸':'▾';});}catch(e){}
+try{
+  const _raw=localStorage.getItem('taskos_nav_collapsed');
+  const _nc=JSON.parse(_raw||'{}');
+  const _firstRun=_raw===null; // calm-by-default: collapse everything except Pinned + Main on first run
+  const _keepOpen={pinned:1,views:1,main:1};
+  document.querySelectorAll('.ns-group').forEach(g=>{
+    const ns=g.dataset.ns;
+    let collapsed;
+    if(ns in _nc)collapsed=_nc[ns];
+    else if(_firstRun)collapsed=!_keepOpen[ns];
+    else collapsed=g.classList.contains('collapsed');
+    g.classList.toggle('collapsed',!!collapsed);
+    const arr=g.querySelector('.ns-arrow');if(arr)arr.textContent=collapsed?'▸':'▾';
+  });
+}catch(e){}
 document.title='Task OS — '+profileName;
 const _lastP=localStorage.getItem('taskos_lastview');
 if(_lastP&&_lastP!=='dashboard'){nav(_lastP);}else{renderDash();}
@@ -11505,9 +11794,10 @@ function confirmPasteImport(){
 function closeModal(id){document.getElementById(id)?.classList.add('hidden');}
 
 // ── OFFLINE INDICATOR ─────────────────────────────────────────
-window.addEventListener('online',()=>{const p=document.getElementById('offline-pill');if(p)p.style.display='none';});
-window.addEventListener('offline',()=>{const p=document.getElementById('offline-pill');if(p)p.style.display='';});
+window.addEventListener('online',()=>{const p=document.getElementById('offline-pill');if(p)p.style.display='none';_sbRenderPill();if(_sbEnabled()&&_sbPending)sbSyncNow();});
+window.addEventListener('offline',()=>{const p=document.getElementById('offline-pill');if(p)p.style.display='';_sbRenderPill();});
 if(!navigator.onLine){const p=document.getElementById('offline-pill');if(p)p.style.display='';}
+try{_sbRenderPill();}catch(e){}
 
 // ── CONTENT PIPELINE ──────────────────────────────────────────
 function renderContent(){
@@ -12685,7 +12975,7 @@ initChecklists();
 _initPullRefresh();
 _initSheetDismiss();
 _maybeOnboard();
-try{_renderSavedViews();_updateUnreadBadges();}catch(e){}
+try{_renderSavedViews();_updateUnreadBadges();_addPinStars();_renderPinnedViews();}catch(e){}
 // Fade out the launch splash once the app has painted (with a safety fallback)
 (function(){
   function _hideSplash(){const s=document.getElementById('app-splash');if(s&&!s.classList.contains('hide')){s.classList.add('hide');setTimeout(()=>s.remove(),500);}}

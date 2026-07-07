@@ -753,6 +753,21 @@ body.light .seg-btn.active{background:#fff;}
 .ni:hover .ni-pin{opacity:.55;}
 .ni-pin:hover{opacity:1!important;color:var(--accent);background:var(--hover);}
 .ni-pin.pinned{opacity:.85;color:var(--accent);}
+/* ── ACCOUNT CHIP ───────────────────────────────────────────────── */
+.acct-chip{display:flex;align-items:center;gap:9px;padding:7px 8px;margin:0 0 4px;border-radius:9px;cursor:pointer;transition:background .12s;-webkit-tap-highlight-color:transparent;}
+.acct-chip:hover{background:var(--hover);}
+.acct-av{width:28px;height:28px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;background:var(--brand-gradient);text-transform:uppercase;}
+.acct-meta{flex:1;min-width:0;line-height:1.25;}
+.acct-name{font-size:12.5px;font-weight:600;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.acct-mail{font-size:10.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.acct-caret{color:var(--muted);font-size:11px;flex:none;}
+.acct-menu{position:fixed;z-index:2000;min-width:230px;background:var(--surface);border:1px solid var(--border);border-radius:12px;box-shadow:0 16px 44px -14px rgba(0,0,0,.5);padding:6px;}
+.acct-menu-head{padding:8px 10px 9px;border-bottom:1px solid var(--border);margin-bottom:4px;}
+.acct-menu-head .amh-l{font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+.acct-menu-head .amh-m{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.acct-menu-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:8px;cursor:pointer;font-size:13px;color:var(--text);}
+.acct-menu-item:hover{background:var(--hover);}
+.acct-menu-item.danger{color:#ef4444;}
 /* ── AUTH GATE + HERO ───────────────────────────────────────────── */
 body.auth-locked{overflow:hidden;}
 .auth-gate{position:fixed;inset:0;z-index:100000;display:flex;align-items:center;justify-content:center;gap:56px;padding:40px 28px;background:radial-gradient(1200px 600px at 20% -10%,rgba(139,124,255,.16),transparent 60%),var(--bg);overflow-y:auto;flex-wrap:wrap;}
@@ -923,6 +938,7 @@ body.auth-locked{overflow:hidden;}
   <div class="ni" data-v="agi" onclick="nav('agi')"><span class="ni-ic">🌐</span>AGI Prep</div>
   </div>
   <div style="margin-top:auto;padding:10px 6px 4px;border-top:1px solid var(--border);">
+    <div id="account-chip" class="acct-chip" style="display:none;" onclick="_openAcctMenu(event)"></div>
     <div class="ni" onclick="openSettings()" style="margin:0;"><span class="ni-ic">⚙️</span>Settings</div>
   </div>
 </nav>
@@ -9958,8 +9974,43 @@ async function _afterAuth(){
   _phIdentify();
   try{await sbSyncNow(true);}catch(e){}
   try{refresh();}catch(e){}
-  _sbRenderPill();
+  _sbRenderPill();_renderAccountChip();
   toast('👋 Welcome to Task OS');
+}
+// Account chip (avatar + email) at the foot of the sidebar → clean who-am-I / rename / sign out.
+function _renderAccountChip(){
+  const chip=document.getElementById('account-chip');if(!chip)return;
+  if(!(_hostedMode()&&_sbEnabled())){chip.style.display='none';return;}
+  const email=_SB.email||'';
+  const saved=localStorage.getItem('taskos_name');
+  const fromEmail=email?email.split('@')[0].replace(/[._-]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase()):'';
+  const name=saved||fromEmail||'You';
+  const initial=((name||email||'?').trim().charAt(0))||'?';
+  chip.innerHTML=`<div class="acct-av">${esc(initial)}</div><div class="acct-meta"><div class="acct-name">${esc(name)}</div><div class="acct-mail">${esc(email)}</div></div><span class="acct-caret">▾</span>`;
+  chip.style.display='flex';
+}
+function _openAcctMenu(ev){
+  ev&&ev.stopPropagation();
+  let el=document.getElementById('acct-menu');
+  if(!el){el=document.createElement('div');el.id='acct-menu';el.className='acct-menu';document.body.appendChild(el);document.addEventListener('click',e=>{if(el&&!el.contains(e.target)&&!e.target.closest('#account-chip'))el.style.display='none';});}
+  el.innerHTML=`<div class="acct-menu-head"><div class="amh-l">Signed in as</div><div class="amh-m">${esc(_SB.email||'')}</div></div>
+    <div class="acct-menu-item" onclick="document.getElementById('acct-menu').style.display='none';_acctRename()"><span>✏️</span>Rename</div>
+    <div class="acct-menu-item" onclick="document.getElementById('acct-menu').style.display='none';exportData()"><span>⬇️</span>Download backup</div>
+    <div class="acct-menu-item danger" onclick="document.getElementById('acct-menu').style.display='none';authLogout()"><span>🚪</span>Sign out</div>`;
+  const r=document.getElementById('account-chip').getBoundingClientRect();
+  el.style.display='block';
+  const h=el.offsetHeight;
+  el.style.left=Math.min(r.left,window.innerWidth-244)+'px';
+  el.style.top=Math.max(8,r.top-h-6)+'px';
+}
+function _acctRename(){
+  showPrompt('Your name',n=>{
+    if(!n||!n.trim())return;
+    profileName=n.trim();localStorage.setItem('taskos_name',profileName);document.title='Task OS — '+profileName;save();
+    _renderAccountChip();
+    try{const g=document.getElementById('greeting');if(g){const h=new Date().getHours();g.textContent=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', '+profileName+' 👋';}}catch(e){}
+    toast('Updated');
+  },{value:profileName||'',okLabel:'Save'});
 }
 // Handle magic-link / OAuth redirect tokens in the URL hash, then show the gate if needed.
 async function _authBoot(){
@@ -13200,6 +13251,7 @@ _maybeOnboard();
 try{_renderSavedViews();_updateUnreadBadges();_addPinStars();_renderPinnedViews();}catch(e){}
 try{_initPostHog();}catch(e){}
 try{_authBoot();}catch(e){}
+try{_renderAccountChip();}catch(e){}
 // Fade out the launch splash once the app has painted (with a safety fallback)
 (function(){
   function _hideSplash(){const s=document.getElementById('app-splash');if(s&&!s.classList.contains('hide')){s.classList.add('hide');setTimeout(()=>s.remove(),500);}}

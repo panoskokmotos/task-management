@@ -9790,8 +9790,8 @@ function getAboutMe(){return localStorage.getItem('taskos_about')||'';}
    5. (Optional) Paste a PostHog project key to turn on product analytics.
    ════════════════════════════════════════════════════════════════════════ */
 const APP_CONFIG={
-  supabaseUrl : '',   // e.g. 'https://abcd1234.supabase.co'
-  supabaseAnon: '',   // e.g. 'eyJhbGciOi...'  (public anon key)
+  supabaseUrl : 'https://bgvddpkdsftgynxyhnoc.supabase.co',   // your Supabase Project URL
+  supabaseAnon: 'sb_publishable_VndetAqTYLRXr4UEsu8Uig_y2mtTv-M', // publishable (public) key — safe in the browser; RLS protects data
   aiProxy     : '',   // e.g. 'https://taskos.vercel.app/api/claude'
   posthogKey  : '',   // e.g. 'phc_xxxxxxxx'
   posthogHost : 'https://us.i.posthog.com',

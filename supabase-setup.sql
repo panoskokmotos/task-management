@@ -44,6 +44,12 @@ create policy "app_state update own"
 --      paste the URL + anon key, enter an email + password, click "Connect & Sync".
 --    The first connect signs up/in and creates your row; data then syncs across devices.
 --
+-- To let OTHERS sign up (hosted product mode) instead of pasting keys:
+--  • Authentication → Providers → enable Email and Google.
+--  • Authentication → URL Configuration → add your site URL to the redirect allow-list.
+--  • Paste the Project URL + anon key into APP_CONFIG at the top of index.html's
+--    script. Users then get the Sign up / Log in screen — no key pasting.
+--
 -- Notes:
 --  • The anon key is meant to be public; Row Level Security above ensures a user
 --    can only ever touch their own row.

@@ -9313,6 +9313,7 @@ function _onbRender(){
 function _onbNext(){if(_onbIdx<_ONB.length-1){_onbIdx++;_onbRender();}else _onbFinish();}
 function _onbFinish(){localStorage.setItem('taskos_onboarded','1');document.getElementById('onboarding-modal').classList.add('hidden');document.body.classList.remove('modal-open');}
 function _maybeOnboard(){
+  if(_hostedMode())return; // hosted accounts get the welcome-task starter instead of the modal
   if(localStorage.getItem('taskos_onboarded'))return;
   // Existing users (already have data) shouldn't be interrupted
   if((S.tasks&&S.tasks.length>3)||(S.xp||0)>0){localStorage.setItem('taskos_onboarded','1');return;}
@@ -10022,12 +10023,32 @@ async function sbSyncNow(force){
       _sbSetStatus('Synced ⬇ '+new Date().toLocaleTimeString());
       if(!force)toast('☁️ Updated from another device');
     } else {
+      // Brand-new hosted account with nothing in the cloud yet → friendly starter, not empty.
+      if(_hostedMode()&&!remote&&!S._welcomed&&(!S.tasks||S.tasks.length===0)){_welcomeSeed();}
       await sbPush();
       _sbPending=false;
       _sbSetStatus('Synced ⬆ '+new Date().toLocaleTimeString());
     }
   }catch(e){_sbPending=true;_sbSetStatus('⚠ '+e.message);}
   finally{_sbBusy=false;_sbRenderPill();}
+}
+// A small, generic starter set so a new account feels intentional (never the owner's data).
+function _welcomeSeed(){
+  S._welcomed=true;
+  // Personalize the greeting from the sign-in email (so it's never "Panos")
+  if(!localStorage.getItem('taskos_name')&&_SB.email){
+    const nm=_SB.email.split('@')[0].replace(/[._-]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    if(nm){profileName=nm;localStorage.setItem('taskos_name',nm);}
+  }
+  const mk=(title,bucket)=>({id:uid(),title,notes:'',bucket,category:'other',urgency:'low',importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',read:false,createdAt:new Date().toISOString(),completedAt:null});
+  S.tasks.push(
+    mk('👋 Welcome! Tap a task to open it — swipe left to complete','inbox'),
+    mk('Press ⌘K (or the search icon) to command anything','inbox'),
+    mk('Capture a few things you need to do','inbox'),
+    mk('Try “Plan my day” on the dashboard','this-week'),
+    mk('Set a goal in Goals, then link tasks to it','this-week')
+  );
+  save();try{refresh();}catch(e){}
 }
 function _sbScheduleSync(){
   if(!_sbEnabled()||_sbApplying)return;
@@ -10072,7 +10093,12 @@ function toggleSB(){
 }
 
 // ── INIT ──────────────────────────────────────────────────────
-load();seed();seedGoals();resetRecurring();_genDailyQuests();_maybeShowWeeklyWrapped();_initSidebarSwipe();_autoSnapshot();
+load();
+// In hosted (multi-user) mode we must NOT seed the owner's personal demo data —
+// new accounts start clean and get a small welcome starter after they sign in;
+// the owner's own data arrives from their synced cloud row on login.
+if(!_hostedMode()){seed();seedGoals();}
+resetRecurring();_genDailyQuests();_maybeShowWeeklyWrapped();_initSidebarSwipe();_autoSnapshot();
 setTimeout(()=>{if(_sbEnabled())sbSyncNow();},900);
 try{
   const _raw=localStorage.getItem('taskos_nav_collapsed');

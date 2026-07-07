@@ -213,20 +213,37 @@ if (req.method === 'OPTIONS') { res.status(204).end(); return; }
 
 ---
 
-### 12. `_addGivelinkTask()` hardcodes `this-week` bucket and `high/high/high` priority
+### 12. `givelink.html` NP modal buttons are frozen to first-open mode for entire session
 
-**What**: The quick-add task field in the Givelink Today dashboard card always creates tasks with `bucket:'this-week'`, `urgency:'high'`, `importance:'high'`, `energy:'high'` regardless of what the task actually is.
+**What**: `_showNPModal()` creates the modal DOM once (`if(!m)`) and caches it. Footer buttons ("Delete", "Log Activity", "→ Next Stage") are conditionally rendered at creation time based on `editNpId`. If `openAddNP()` is called first (`editNpId=null`), those buttons never appear for the rest of the session — even in edit mode. If edit is opened first, Delete appears on new-org forms too.
 
-**Where**: `index.html:11420-11424`
+**Where**: `givelink.html:1358-1401` (`_showNPModal`, conditional button template inside `if(!m)` block)
 
-**Why it matters**: Users build a backlog of "high urgency" tasks they can't realistically do this week, which degrades trust in the task system over time. The Eisenhower matrix and bucket views become noise.
+**Why it matters**: Any user who adds a new nonprofit before editing one will find the CRM's edit mode permanently missing its action buttons until they hard-refresh. This breaks the core CRM workflow.
 
 **Effort**: S
 
 **Suggested fix**:
-- Default `bucket` to `'inbox'` so tasks get triaged (consistent with the `capture` flow and AI triage feature)
-- Or add a small dropdown next to the quick-add for bucket selection
-- Remove hardcoded urgency/importance defaults — use `'low'/'medium'` as safer defaults or omit them
+- Move the conditional footer buttons out of the cached `if(!m)` template into `_showNPModal`'s body, updating them each time the modal opens: `footer.innerHTML = editNpId ? '...' : ''`
+- Alternatively, always include the buttons but show/hide via `style.display` toggled on each open
+
+---
+
+### 13. `givelink.html` entire color system uses Tailwind blue, not brand purple
+
+**What**: The brand palette is purple `#6B3FA0`/`#5718CA` and pink `#C2185B`/`#E353B6`. In `givelink.html`, `--accent` is `#3b82f6` (Tailwind blue-500). This drives every interactive element: buttons, links, active nav, form focus rings, progress bars, the FAB, the sprint bar. Zero brand colors appear anywhere in the file.
+
+**Where**: `givelink.html:17` (`--accent:#3b82f6`), `givelink.html:6` (meta `theme-color:#3b82f6`), and ~30 hardcoded inline color values throughout
+
+**Why it matters**: Givelink is a separate product brand. The entire app feels like a generic blue dashboard, not a Givelink product. This is the highest-leverage single CSS change for brand alignment.
+
+**Effort**: M
+
+**Suggested fix**:
+- Change `--accent` to `#7b5cff` (a purple that pairs with the brand gradient)
+- Update `theme-color` meta to `#7b5cff`
+- Replace pillar colors with brand-adjacent hues: product pillar → brand pink, growth → brand purple light
+- Sweep for hardcoded hex values in inline styles and route them through CSS variables
 
 ---
 
@@ -234,7 +251,7 @@ if (req.method === 'OPTIONS') { res.status(204).end(); return; }
 
 ---
 
-### 13. `index.html` is 14,401 lines of monolithic inline code — no modules, no build step
+### 14. `index.html` is 14,401 lines of monolithic inline code — no modules, no build step
 
 **What**: The entire application — all CSS, HTML, and 665+ JS functions — lives in one file. There is no package.json, no bundler, no linting, no type checking.
 
@@ -251,7 +268,7 @@ if (req.method === 'OPTIONS') { res.status(204).end(); return; }
 
 ---
 
-### 14. `renderGivelinkDash()` is 107 lines of innerHTML string concatenation
+### 15. `renderGivelinkDash()` is 107 lines of innerHTML string concatenation
 
 **What**: The main Givelink dashboard renderer at line 8479-8585 assembles complex nested HTML via template literals and scattered `element.innerHTML` assignments with no structure.
 
@@ -267,7 +284,7 @@ if (req.method === 'OPTIONS') { res.status(204).end(); return; }
 
 ---
 
-### 15. Personal owner data hardcoded in `seed()` / AI prompt fallbacks
+### 16. Personal owner data hardcoded in `seed()` / AI prompt fallbacks
 
 **What**: The `seed()` function (called only in non-hosted mode, line 10151) includes 60+ personal Givelink tasks referencing specific companies and strategies. Six AI prompt builders fall back to `'Panos — Greek founder building Givelink...'` (see P0 item #4 above).
 
@@ -283,7 +300,7 @@ if (req.method === 'OPTIONS') { res.status(204).end(); return; }
 
 ---
 
-### 16. Service worker cache name is a hardcoded date string
+### 17. Service worker cache name is a hardcoded date string
 
 **What**: `sw.js:1`: `const CACHE = 'task-os-20260711'`. This must be manually updated on every deploy to bust stale caches. Forgetting to update it means users run old JS indefinitely.
 
@@ -299,7 +316,7 @@ if (req.method === 'OPTIONS') { res.status(204).end(); return; }
 
 ---
 
-### 17. No `.env.example` — proxy environment variables are documented only in code comments
+### 18. No `.env.example` — proxy environment variables are documented only in code comments
 
 **What**: The three required environment variables (`ANTHROPIC_API_KEY`, `SUPABASE_URL`, `SUPABASE_ANON_KEY`) are documented only in comments at the top of `api/claude.js`. There is no `.env.example` file.
 
@@ -324,50 +341,40 @@ if (req.method === 'OPTIONS') { res.status(204).end(); return; }
 
 ---
 
-### 18. `calcImpactModel()` mutates `S` and calls `save()` on every keypress
+### 19. `givelink.html` toast uses raw `innerHTML` — XSS if sprint name contains HTML
 
-**What**: Every keystroke in the 1M People Model number inputs fires `calcImpactModel()` which writes to `S.givelinkMetrics.impactModel` and calls `save()`, debouncing localStorage writes at keystroke frequency.
+**What**: The `toast()` function at `givelink.html:452` uses `t.innerHTML=msg`. Multiple callers pass unsanitized user-controlled content: `archive.name` (line 847) and `profile.name` (line 1250) are stored raw and injected directly into the toast HTML.
 
-**Where**: `index.html:12859-12871`
+**Where**: `givelink.html:452` (toast function), `givelink.html:847, 1250` (callers)
 
-**Why it matters**: Minor performance issue; localStorage writes are synchronous and can stutter on slow devices. Not a bug but unnecessary I/O.
-
-**Effort**: S
-
-**Suggested fix**:
-- Debounce `save()` by 800ms; update the display immediately but delay persisting
-
----
-
-### 19. `givelink-today-card` on the dashboard shows no loading state on first render
-
-**What**: `_renderGivelinkToday()` at line 11397 runs synchronously and populates instantly, but the containing div is empty in the HTML (`<div id="givelink-today-card"></div>`). On a slow device, there's a layout flash before content appears.
-
-**Where**: `index.html:1063`, `index.html:11397-11419`
-
-**Why it matters**: Minor visual polish. No data is lost, but the card flashes blank on initial load.
+**Why it matters**: While this is self-XSS in a single-user context, it's a hygiene issue and a footgun for any multi-user expansion. A sprint named `<img src=x onerror="...">` would execute code in the toast.
 
 **Effort**: S
 
 **Suggested fix**:
-- Add a skeleton placeholder in the static HTML: a grey rounded box of the right height so the layout doesn't shift
+- Add an `esc()` wrapper in every caller: `toast(\`"${esc(archive.name)}" archived\`)`
+- Or switch the toast function itself to use `textContent` (with a second parameter for trusted HTML if needed)
 
 ---
 
-### 20. README.md describes a project structure that no longer exists
+### 20. `givelink.html` CRM activity log uses `window.prompt()` — broken on iOS PWA
 
-**What**: `README.md` lists `style.css` and `script.js` as separate files. The actual project is a single `index.html` with all CSS and JS inline.
+**What**: "Log Activity" in the NP modal calls `window.prompt('Log activity...')` at `givelink.html:1431`. `window.prompt` is suppressed in PWA standalone mode on iOS and in some Android WebViews.
 
-**Where**: `README.md`
+**Where**: `givelink.html:1431` (`logActivityNP` function)
 
-**Why it matters**: Any contributor reading the README will be confused before they open a single file. Adds friction to contributions or self-hosting.
+**Why it matters**: Any user with the Givelink PWA installed on iOS cannot log CRM activity notes — the prompt silently returns `null` and nothing is saved.
 
 **Effort**: S
 
 **Suggested fix**:
-- Update README to accurately describe the actual file structure
-- Add a note about the monolithic architecture and the long-term plan to modularize
+- Replace `window.prompt()` with a small inline modal (or reuse the existing modal infrastructure) that contains a `<textarea>` and Save/Cancel buttons
+- This is also an accessibility improvement — `window.prompt` cannot be styled or made accessible
 
 ---
 
-*Total: 20 items. P0: 5 | P1: 7 | P2: 5 | P3: 3*
+*Total: 20 items. P0: 6 | P1: 7 | P2: 5 | P3: 2*
+
+---
+
+*Sources: `index.html` (14,401 lines), `givelink.html` (1,755 lines), `api/claude.js`, `sw.js`, `vercel.json`, `supabase-setup.sql`*

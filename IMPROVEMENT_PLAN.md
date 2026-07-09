@@ -42,7 +42,19 @@ _Generated 2026-07-09_
 
 ## ⚡ P1 — High ROI (UX friction blocking conversion)
 
-### 4. New hosted-mode users see AI features that silently do nothing
+### 4. Claude API key (`S.claudeKey`) synced to Supabase — private key stored in the database
+- **What**: `S.claudeKey` is part of the main state blob `S`. `sbPush()` serialises all of `S` and upserts it to Supabase on every save — including the user's Anthropic API key in plaintext.
+- **Where**: `index.html:2404` (`S` definition, `claudeKey:''`), `index.html:10053–10058` (`sbPush`), `index.html:4878` (key used in request header)
+- **Why it matters**: Any Supabase admin, a future RLS misconfiguration, or a read of the `data` column exfiltrates a live API key. The key also appears in every `/rest/v1/app_state` pull response visible in DevTools.
+- **Effort**: S
+- **Suggested fix**:
+  - Store the key only in a dedicated `localStorage` entry (`taskos_ck`) that is never part of `S`.
+  - Strip it before sync: `const payload = {...S}; delete payload.claudeKey;` in `sbPush`.
+  - Update all `callClaude()` reads to use `localStorage.getItem('taskos_ck') || ''`.
+
+---
+
+### 5. New hosted-mode users see AI features that silently do nothing
 - **What**: `APP_CONFIG.aiProxy` is an empty string; `aiPlanDay()` and all AI flows fall through to `S.claudeKey` (also empty in hosted mode), then call `toast('Add your Claude API key…')` — an irrelevant instruction for hosted users who were never shown a key setup step.
 - **Where**: `index.html:9812` (config), `index.html:4967` (aiPlanDay guard)
 - **Why it matters**: "Plan my day", the AI daily briefing, and the AI-reply-to-task features are prominent CTAs on the dashboard. Clicking them and getting an error about an API key is confusing and kills the "wow" moment for new signups.
@@ -54,7 +66,7 @@ _Generated 2026-07-09_
 
 ---
 
-### 5. `givelink.html` prompts for API key with `window.prompt()` — jarring on mobile
+### 6. `givelink.html` prompts for API key with `window.prompt()` — jarring on mobile
 - **What**: `callClaudeGL()` calls the Anthropic API directly from the browser and falls back to `window.prompt('Enter Anthropic API key:')` if no key is in localStorage. The AI sprint planner and outreach generator both use this path.
 - **Where**: `givelink.html:1261`
 - **Why it matters**: `window.prompt()` is a system dialog — it breaks the visual design, is blocked in some mobile browsers, and leaks the raw API key via the URL bar on some implementations. Users new to the Givelink tab hit this with no context.
@@ -66,7 +78,7 @@ _Generated 2026-07-09_
 
 ---
 
-### 6. No per-user rate limiting on the Claude proxy — a single account can exhaust the API budget
+### 7. No per-user rate limiting on the Claude proxy — a single account can exhaust the API budget
 - **What**: The serverless proxy at `api/claude.js` authenticates the Supabase session but enforces no per-user request cap. The code comment itself says "for production add per-user rate limiting".
 - **Where**: `api/claude.js:13` (the TODO comment), lines 17–46 (entire handler)
 - **Why it matters**: Any signed-in user can loop requests to drain the Anthropic bill. With "Plan my day" + AI briefings + reply-to-act all hitting the same proxy, a single power user or a malicious account could generate hundreds of requests per hour.
@@ -78,7 +90,7 @@ _Generated 2026-07-09_
 
 ---
 
-### 7. Auth error messaging is misleading — login failures blame the wrong thing
+### 8. Auth error messaging is misleading — login failures blame the wrong thing
 - **What**: Both wrong-password and unconfirmed-email login failures show the same string: "Wrong email or password — or confirm your email first." The catch block at `index.html:9946` merges two distinct failure modes into one message.
 - **Where**: `index.html:9945–9947`
 - **Why it matters**: Users who haven't confirmed their email will try re-entering passwords repeatedly instead of checking their inbox. This is a conversion killer for the signup flow.
@@ -92,7 +104,43 @@ _Generated 2026-07-09_
 
 ## 🛠 P2 — Code health (tech debt slowing velocity)
 
-### 8. 14,401-line monolithic `index.html` — the entire app in one file
+### 9. `toast()` uses `innerHTML` — XSS vector if any call-site interpolates user data
+- **What**: `toast(msg)` sets `el.innerHTML = msg`. Any call that interpolates a task title, API snippet, or filename without `esc()` would execute arbitrary HTML/JS in the user's browser.
+- **Where**: `index.html:2666` (`toast` function); call-sites like `toast('Task "' + t.title + '" moved')` throughout
+- **Why it matters**: Task titles and AI-generated content are already interpolated into toasts in several places. A task named `<img src=x onerror=alert(1)>` would execute immediately on completion.
+- **Effort**: S
+- **Suggested fix**:
+  - Change `el.innerHTML = msg` to `el.textContent = msg` for all plain-text toasts.
+  - Where rich formatting is genuinely needed (emoji, bold), use a whitelist sanitiser or build the DOM nodes explicitly rather than HTML strings.
+  - Grep all `toast()` call-sites that interpolate variables and verify each passes through `esc()`.
+
+---
+
+### 10. `profileName` defaults to `'Panos'` — every new user is greeted as the wrong person
+- **What**: The default state at `index.html:2404` includes `profileName:'Panos'` (inferred from the `S` blob) and `DEFAULT_REMINDERS` at `index.html:10734` include "Good morning Panos!" as the push notification body. 20+ AI prompts also hard-code "for Panos" with Greece-specific and Givelink-specific context.
+- **Where**: `index.html:2404`, `index.html:10734–10735`, and ~20 `callClaude` prompt strings
+- **Why it matters**: Every new hosted signup sees the wrong name in their greeting, receives push notifications addressed to "Panos", and gets AI analyses about Givelink's nonprofit pipeline rather than their own life. This undermines the personalisation premise of the product.
+- **Effort**: M
+- **Suggested fix**:
+  - Default `profileName` to `''` and substitute `profileName || 'there'` in greeting strings.
+  - Replace hard-coded persona in AI prompts with `getAboutMe()` (the function exists — it just isn't used consistently).
+  - Change `DEFAULT_REMINDERS` notification bodies to generic templates using the profile name variable.
+
+---
+
+### 11. AI features persist `null` to state and award XP on API failure
+- **What**: Functions like `aiMaslow`, `aiEudaimonia`, `aiLifeFrameworks`, and `aiTreasureChestFinder` call `callClaude()` then unconditionally push `{aiAnalysis: result}` and call `save()` — even when `callClaude` returns `null` (network failure, missing key, rate limit). `awardXP()` fires regardless.
+- **Where**: `index.html:13097–13099`, `13107–13109`, `13116–13118`, `13127–13129`, `13017–13019`
+- **Why it matters**: On failure, a `null` entry is persisted to Supabase and rendered as the literal text "null" on the next open. Users also accumulate XP for failed AI calls, inflating gamification scores.
+- **Effort**: S
+- **Suggested fix**:
+  - After each `callClaude()`, guard with `if (!result) return;` before any state mutation.
+  - Move `awardXP()` and `toast()` inside the guard so they only fire on real success.
+  - Add `if (!text) return;` at the top of `showAiOut()` so it never opens showing the string "null".
+
+---
+
+### 12. 14,401-line monolithic `index.html` — the entire app in one file
 - **What**: All HTML, CSS (≈3,000 lines), JavaScript (≈11,000 lines), and inline data are in a single file with no module boundaries.
 - **Where**: `index.html` (entire file)
 - **Why it matters**: A simple bug fix requires searching through 14k lines. GitHub diffs are impossible to review; merge conflicts span hundreds of lines. Build tooling (tree-shaking, code splitting, testing) is completely out of reach.
@@ -104,7 +152,7 @@ _Generated 2026-07-09_
 
 ---
 
-### 9. 29 empty `catch(e){}` blocks swallow errors in production
+### 13. 29 empty `catch(e){}` blocks swallow errors in production
 - **What**: Across `index.html`, there are 29 catch clauses with an empty body (`catch(e){}`). Errors in sync, auth, rendering, and AI flows disappear silently.
 - **Where**: `index.html` (multiple: e.g., lines 9975–9976, 10072, 10102, 13251–13254)
 - **Why it matters**: When a user reports "it just stopped working", there is no trail. The `_authBoot`, `sbSyncNow`, and `refresh` calls are all wrapped in silent catches — the three most important flows in the app.
@@ -116,7 +164,7 @@ _Generated 2026-07-09_
 
 ---
 
-### 10. Supabase URL and anon key hardcoded in the HTML — committed to source
+### 14. Supabase URL and anon key hardcoded in the HTML — committed to source
 - **What**: `APP_CONFIG.supabaseUrl` and `APP_CONFIG.supabaseAnon` at `index.html:9810–9811` are committed as plaintext. The anon key format (`sb_publishable_...`) is non-standard and doesn't match the expected `eyJ...` JWT.
 - **Where**: `index.html:9810–9811`
 - **Why it matters**: Anyone with repo access can make authenticated requests to this Supabase project. The non-standard key format may indicate a misconfiguration or staging key accidentally committed. In future, adding any private config to `APP_CONFIG` near these lines risks committing secrets.
@@ -128,7 +176,7 @@ _Generated 2026-07-09_
 
 ---
 
-### 11. `_hostedMode()` always returns `true` — `seed()` and `seedGoals()` never run locally
+### 15. `_hostedMode()` always returns `true` — `seed()` and `seedGoals()` never run locally
 - **What**: `_hostedMode()` returns `true` whenever `APP_CONFIG.supabaseUrl` and `supabaseAnon` are truthy. Since both are hardcoded, cloning the repo and opening `index.html` locally always triggers hosted mode, showing the auth gate and skipping the 389-task demo seeding that makes local development useful.
 - **Where**: `index.html:9816`, `index.html:10151`
 - **Why it matters**: Developers or contributors can't run the app locally without first signing in or blanking the config — a hidden onboarding barrier.
@@ -139,7 +187,7 @@ _Generated 2026-07-09_
 
 ---
 
-### 12. `window.location.href = 'givelink.html'` in keyboard shortcut breaks on subpaths
+### 16. `window.location.href = 'givelink.html'` in keyboard shortcut breaks on subpaths
 - **What**: The `Cmd+2` shortcut at `index.html:10137` navigates to `'givelink.html'` as a relative string — it will produce the wrong URL if the app is ever served under a path prefix (e.g., `/app/`).
 - **Where**: `index.html:10137`
 - **Why it matters**: Low risk today, but if the app is ever moved to a subpath (common in multi-tenant deployments), Cmd+2 will 404.
@@ -151,7 +199,7 @@ _Generated 2026-07-09_
 
 ## 💡 P3 — Nice to have
 
-### 13. Brand divergence: `givelink.html` uses blue (#3b82f6), `index.html` uses violet (#8b7cff)
+### 17. Brand divergence: `givelink.html` uses blue (#3b82f6), `index.html` uses violet (#8b7cff)
 - **What**: The two apps share the same product family but use entirely different accent palettes — blue for Givelink, violet for Task OS.
 - **Where**: `givelink.html:17` (`:root` CSS variables)
 - **Why it matters**: Users who open both via Cmd+1/Cmd+2 experience a visual discontinuity that undermines the "unified OS" positioning.
@@ -162,7 +210,7 @@ _Generated 2026-07-09_
 
 ---
 
-### 14. PostHog analytics key not configured — flying blind on user behavior
+### 18. PostHog analytics key not configured — flying blind on user behavior
 - **What**: `APP_CONFIG.posthogKey` is an empty string; `_initPostHog()` no-ops entirely. No events are captured from production.
 - **Where**: `index.html:9813`
 - **Why it matters**: There's no visibility into which features are used, where users drop off in auth/onboarding, or whether the "Plan my day" CTA is ever clicked. Conversion optimization is guesswork.
@@ -173,7 +221,7 @@ _Generated 2026-07-09_
 
 ---
 
-### 15. `'unsafe-inline'` in `script-src` weakens XSS protection
+### 19. `'unsafe-inline'` in `script-src` weakens XSS protection
 - **What**: The CSP uses `script-src 'self' 'unsafe-inline'`, which allows inline `<script>` blocks — the primary XSS vector. While the app has no user-generated HTML rendered as markup today, this leaves a wide attack surface if that ever changes.
 - **Where**: `vercel.json` (CSP header)
 - **Why it matters**: If any future feature renders user-controlled content (task notes as HTML, webhook payloads, etc.) without escaping, the existing CSP won't mitigate script injection.

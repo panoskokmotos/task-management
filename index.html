@@ -855,13 +855,6 @@ body.auth-locked{overflow:hidden;}
 
 <nav class="sidebar">
   <div class="logo"><svg class="logo-mark" viewBox="0 0 32 32"><defs><linearGradient id="lgm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b7cff"/><stop offset="1" stop-color="#b681f5"/></linearGradient></defs><circle cx="16" cy="16" r="12" stroke="url(#lgm)" stroke-width="3" fill="none"/><path d="M10 16.5 L14.5 21 L22 12" stroke="url(#lgm)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><span class="logo-word">Task<span class="g">OS</span></span></div>
-  <!-- WORKSPACE SWITCHER -->
-  <div style="padding:8px 10px 10px;border-bottom:1px solid var(--border);margin-bottom:4px;">
-    <div style="display:flex;gap:5px;">
-      <button style="flex:1;padding:7px 6px;border-radius:8px;border:none;cursor:pointer;font-size:11px;font-weight:700;background:var(--accent);color:#fff;letter-spacing:.2px;">🏠 Personal</button>
-      <a href="givelink.html" style="flex:1;padding:7px 6px;border-radius:8px;border:1px solid rgba(167,139,250,.4);cursor:pointer;font-size:11px;font-weight:700;background:rgba(167,139,250,.1);color:#a78bfa;text-decoration:none;text-align:center;display:flex;align-items:center;justify-content:center;gap:4px;letter-spacing:.2px;" title="Switch to Givelink Sprint Board (⌘2)">🟣 Givelink</a>
-    </div>
-  </div>
   <div class="cmdk-chip" onclick="openCmdK()" title="Command palette — search, navigate, capture">
     <span style="font-size:13px;">🔍</span><span>Quick find…</span>
     <span class="ck-keys"><kbd>⌘</kbd><kbd>K</kbd></span>
@@ -924,7 +917,6 @@ body.auth-locked{overflow:hidden;}
   </div>
   <div class="ns-group" data-ns="work">
   <span class="ns" onclick="_toggleNsGroup(this)">Work<span class="ns-arrow">▾</span></span>
-  <div class="ni" data-v="givelink-dash" onclick="nav('givelink-dash')"><span class="ni-ic">🟣</span>Givelink OS</div>
   <div class="ni" data-v="content" onclick="nav('content')"><span class="ni-ic">✍️</span>Content Pipeline</div>
   <div class="ni" data-v="projects" onclick="nav('projects')"><span class="ni-ic">🚀</span>Projects</div>
   <div class="ni" data-v="ailab" onclick="nav('ailab')"><span class="ni-ic">🤖</span>AI Lab</div>
@@ -1059,8 +1051,6 @@ body.auth-locked{overflow:hidden;}
           <div id="daily-picks-ai-result" style="margin-top:10px;font-size:12px;"></div>
         </div>
       </div>
-      <!-- GIVELINK TODAY -->
-      <div id="givelink-today-card"></div>
       <!-- DAILY FLOW CARD -->
       <div id="daily-flow-card"></div>
       <!-- TOP 3 -->
@@ -1113,8 +1103,7 @@ body.auth-locked{overflow:hidden;}
     <div class="row" style="margin-top:9px;">
       <select class="fc" id="capcat" style="width:auto;padding:5px 9px;font-size:12px;">
         <option value="other">📌 Category</option>
-        <option value="givelink">🟣 Givelink</option>
-        <option value="finance">💰 Finance</option>
+                <option value="finance">💰 Finance</option>
         <option value="automation">🤖 Automation</option>
         <option value="health">🏋️ Health</option>
         <option value="relationships">🤝 Relationships</option>
@@ -1695,8 +1684,7 @@ Read 50 books this year"></textarea>
     <div class="cmdk-results" id="cmdk-results"></div>
     <div class="cmdk-opts">
       <select class="fc" id="cmdk-cat" style="width:auto;padding:4px 8px;font-size:12px;">
-        <option value="other">📌 Other</option><option value="givelink">🟣 Givelink</option>
-        <option value="finance">💰 Finance</option><option value="automation">🤖 Auto</option>
+        <option value="other">📌 Other</option>        <option value="finance">💰 Finance</option><option value="automation">🤖 Auto</option>
         <option value="health">🏋️ Health</option><option value="relationships">🤝 Relations</option>
         <option value="learning">📚 Learning</option><option value="brand">🌐 Brand</option>
       </select>
@@ -1718,7 +1706,7 @@ Read 50 books this year"></textarea>
     <div class="fr">
       <div class="fg"><label>Category</label>
         <select class="fc" id="t-cat">
-          <option value="givelink">🟣 Givelink</option><option value="finance">💰 Finance</option>
+          <option value="finance">💰 Finance</option>
           <option value="automation">🤖 Automation</option><option value="health">🏋️ Health</option>
           <option value="relationships">🤝 Relationships</option><option value="learning">📚 Learning</option>
           <option value="brand">🌐 Brand</option><option value="other">📌 Other</option>
@@ -1817,7 +1805,7 @@ Read 50 books this year"></textarea>
 <div class="mo hidden" id="gm">
   <div class="md" style="width:460px;">
     <div class="mh"><h3 id="gm-title">Add Goal</h3><button class="mc" aria-label="Close" onclick="closeM('gm')">×</button></div>
-    <div class="fg"><label>Goal Title *</label><input class="fc" id="g-title" placeholder="e.g. Scale Givelink to 100 nonprofits"></div>
+    <div class="fg"><label>Goal Title *</label><input class="fc" id="g-title" placeholder="e.g. Run a half-marathon by June"></div>
     <div class="fg"><label>Why it matters</label><textarea class="fc" id="g-desc" placeholder="Why is this important to you?"></textarea></div>
     <div class="fr">
       <div class="fg"><label>Target Value (optional)</label><input class="fc" id="g-target" type="number" placeholder="e.g. 100" min="0"></div>
@@ -1827,7 +1815,7 @@ Read 50 books this year"></textarea>
     <div class="fr">
       <div class="fg"><label>Category</label>
         <select class="fc" id="g-cat">
-          <option value="givelink">🟣 Givelink</option><option value="finance">💰 Finance</option>
+          <option value="finance">💰 Finance</option>
           <option value="health">🏋️ Health</option><option value="relationships">🤝 Relationships</option>
           <option value="learning">📚 Learning</option><option value="brand">🌐 Brand</option>
           <option value="other">📌 Other</option>
@@ -2080,7 +2068,6 @@ Read 50 books this year"></textarea>
     <button class="fp" onclick="setAilabF('built',this)">🔨 Built</button>
     <button class="fp" onclick="setAilabF('running',this)">▶️ Running</button>
     <button class="fp" onclick="setAilabF('personal',this)">🙋 Personal</button>
-    <button class="fp" onclick="setAilabF('givelink',this)">🟣 Givelink</button>
     <button class="fp" onclick="setAilabF('content',this)">📝 Content</button>
   </div>
   <div id="ailab-list"></div>
@@ -2230,7 +2217,7 @@ Read 50 books this year"></textarea>
       </div>
       <div class="fg"><label>Amount (€)</label><input class="fc" id="f-amount" type="number" step="0.01" placeholder="0.00"></div>
     </div>
-    <div class="fg"><label>Description</label><input class="fc" id="f-desc" placeholder="e.g. Givelink subscription, Consulting"></div>
+    <div class="fg"><label>Description</label><input class="fc" id="f-desc" placeholder="e.g. Salary, Consulting, Side project"></div>
     <div class="mf">
       <button class="btn bg" onclick="closeM('finance-modal')">Cancel</button>
       <button class="btn bp" onclick="saveFinanceEntry()">Save</button>
@@ -2265,8 +2252,7 @@ Read 50 books this year"></textarea>
       <div class="fg"><label>Category</label>
         <select class="fc" id="al-cat">
           <option value="personal">🙋 Personal</option>
-          <option value="givelink">🟣 Givelink</option>
-          <option value="content">📝 Content</option>
+                    <option value="content">📝 Content</option>
           <option value="finance">💰 Finance</option>
         </select>
       </div>
@@ -2903,7 +2889,6 @@ function renderDash(){
   renderTop3();
   renderDailyPicks();
   _renderNorthStarStrip();
-  _renderGivelinkToday();
   _renderUpcoming();
   // Review draft resume banner
   try{const _wd=JSON.parse(localStorage.getItem('taskos_wiz_draft')||'null');const _rdEl=document.getElementById('review-draft-banner');if(_rdEl){if(_wd&&_wd.date===new Date().toISOString().slice(0,10)){const _wdStep=(_wd.step||0)+1;_rdEl.innerHTML=`<div style="background:rgba(88,166,255,.08);border:1px solid rgba(88,166,255,.25);border-radius:10px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;font-size:13px;"><span>📅 Weekly Review in progress — Step ${_wdStep}/6</span><button class="btn bp sm" onclick="nav('review')">Resume →</button></div>`;_rdEl.style.display='';}else{_rdEl.innerHTML='';_rdEl.style.display='none';}}}catch(e){}
@@ -3028,7 +3013,7 @@ function renderDash(){
 
 function renderTop3(){
   const top=S.tasks.filter(t=>t.isT3&&t.status!=='done').sort((a,b)=>a.t3s-b.t3s);
-  const labels=['🟣 Givelink Focus','📚 Growth Focus','⚡ Wildcard'];
+  const labels=['🎯 Deep Focus','📚 Growth Focus','⚡ Wildcard'];
   document.getElementById('top3').innerHTML=[1,2,3].map(s=>{
     const t=top.find(x=>x.t3s===s);
     return`<div class="t3s s${s}">
@@ -3616,7 +3601,7 @@ function openAdd(bucket='inbox',goalId=null){
   editT=null;
   document.getElementById('tm-title').textContent='Add Task';
   ['t-title','t-notes'].forEach(i=>document.getElementById(i).value='');
-  document.getElementById('t-cat').value='givelink';
+  document.getElementById('t-cat').value='other';
   document.getElementById('t-bucket').value=bucket;
   document.getElementById('t-urg').value='low';
   document.getElementById('t-imp').value='high';
@@ -3921,7 +3906,7 @@ function openAddGoal(){
   editG=null;
   document.getElementById('gm-title').textContent='Add Goal';
   ['g-title','g-desc','g-target','g-current','g-unit'].forEach(i=>document.getElementById(i).value='');
-  document.getElementById('g-cat').value='givelink';
+  document.getElementById('g-cat').value='other';
   document.getElementById('g-top').value='false';
   document.getElementById('g-health-metric').value='';
   document.getElementById('g-finance-type').value='';
@@ -5297,7 +5282,7 @@ async function aiSuggestAutomations(){
   _showAiLoader('✨ Generating automation ideas…');
   const existing=(S.automations||[]).map(a=>a.name).join(', ')||'none yet';
   const tasks=S.tasks.filter(t=>t.status!=='done').slice(0,10).map(t=>t.title).join(', ');
-  const about=getAboutMe()||'Panos — Greek founder building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';
+  const about=getAboutMe()||'A focused individual organizing their work, goals, and habits in Task OS.';
   const prompt=`Context: ${about}\n\nI'm building 100 AI automations. I already have: ${existing}.\nMy current active tasks: ${tasks}.\nSuggest 5 NEW automation ideas I haven't built yet. Format: numbered list, each with name + one-line description. Focus on personal productivity, Givelink B2B SaaS for nonprofits, and content creation. Be specific to my situation as a founder.`;
   const result=await callClaude(prompt,600);
   if(result)showAiOut('✨ Automation Ideas',result);else closeM('ai-out-modal');
@@ -5307,7 +5292,7 @@ async function aiSuggestAutomations(){
 // ── AI WORKFLOWS HUB ───────────────────────────────────────────
 // One-click reusable AI actions that run on the user's own data.
 // Each one kept ("Log as automation") counts toward the 100-automation North Star.
-function _wfAbout(){return getAboutMe()||'Panos — Greek founder building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';}
+function _wfAbout(){return getAboutMe()||'A focused individual organizing their work, goals, and habits in Task OS.';}
 const _AI_WORKFLOWS=[
   {id:'plan-week',icon:'🗓️',title:'Plan my week',desc:'Turn your North Stars + open tasks into a focused weekly plan',tasky:true,build:(ctx)=>{
     const stars=(S.goals||[]).filter(g=>g.isTop3);
@@ -5328,13 +5313,9 @@ const _AI_WORKFLOWS=[
     const wins=(S.wins||[]).filter(w=>new Date(w.date).getTime()>wAgo).map(w=>w.text);
     return `${_wfAbout()}\n\nThis week I completed: ${done.join('; ')||'not much logged'}\nWins: ${wins.join('; ')||'none logged'}\n\nWrite a tight weekly review: (1) a 2-sentence progress summary, (2) what to double down on, (3) the single most important focus for next week. Be direct and specific.`;
   }},
-  {id:'givelink-outreach',icon:'🟣',title:'Givelink outreach',desc:'Draft a warm cold-outreach email + subject lines',build:()=>{
-    const m=S.givelinkMetrics||{};
-    return `${_wfAbout()}\n\nGivelink is a B2B SaaS that helps nonprofits with fundraising. Current traction: ${m.nonprofits||0} nonprofits onboarded, pipeline ${m.pipeline||0}.\n\nWrite a concise, warm cold-outreach email to a nonprofit director introducing Givelink and asking for a 15-minute call. Give 3 subject-line options first, then the email (under 120 words, specific, non-salesy).`;
-  }},
   {id:'win-to-post',icon:'✍️',title:'Win → post',desc:'Turn a recent win into an X + LinkedIn post',build:()=>{
     const win=(S.wins||[]).slice(-1)[0];
-    return `${_wfAbout()}\n\nA recent win: "${win?.text||'shipped meaningful progress on Givelink'}"\n\nWrite 2 short, authentic social posts about it: one for X/Twitter (≤280 chars) and one for LinkedIn (≤120 words). Founder voice, specific, not braggy — share the lesson.`;
+    return `${_wfAbout()}\n\nA recent win: "${win?.text||'shipped meaningful progress this week'}"\n\nWrite 2 short, authentic social posts about it: one for X/Twitter (≤280 chars) and one for LinkedIn (≤120 words). Specific, not braggy — share the lesson.`;
   }},
 ];
 let _wfLast=null;
@@ -5503,7 +5484,7 @@ async function aiRelNudge(){
   _showAiLoader('🤝 Finding who to reach out to…');
   const people=S.people||[];
   const list=people.map(p=>`${p.name} (${p.type}, ${daysSinceDate(p.lastContact)}d since contact, interval: ${p.interval||30}d${p.isTop?' TOP':''})${p.notes?', '+p.notes:''}`).join('\n');
-  const about=getAboutMe()||'Panos — Greek founder building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';
+  const about=getAboutMe()||'A focused individual organizing their work, goals, and habits in Task OS.';
   const prompt=`${about?`Context: ${about}\n\n`:''}Here are my relationships:\n${list||'No people logged yet.'}\n\nToday is ${new Date().toLocaleDateString()}. Who should Panos reach out to this week and why? Consider his Givelink fundraising platform and startup journey. Suggest 3 people with specific reason and a concrete conversation starter.`;
   const result=await callClaude(prompt,500);
   if(result)showAiOut('🤝 Who to Reach Out To',result);else closeM('ai-out-modal');
@@ -5774,7 +5755,7 @@ function deleteDiscomfort(id){
 async function aiDiscomfortInsight(){
   const logs=(S.discomfortLogs||[]).slice(-20);
   if(!logs.length){toast('Log some challenges first!');return;}
-  const about=getAboutMe()||'Panos — Greek founder building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';
+  const about=getAboutMe()||'A focused individual organizing their work, goals, and habits in Task OS.';
   const summary=logs.map(l=>`${l.date}: ${l.type} — ${l.desc} (difficulty ${l.difficulty}/5)`).join('\n');
   const streak=_discomfortStreak();
   const prompt=`Context: ${about}\n\nVoluntary discomfort log (most recent 20):\n${summary}\n\nCurrent streak: ${streak} days.\n\nAs a performance coach, give Panos:\n1. A 2-sentence pattern analysis of his discomfort practice\n2. One specific escalation recommendation for his next challenge\n3. How this practice is building the resilience he needs for the SF move and Givelink growth\n\nBe concise and founder-specific.`;
@@ -6349,7 +6330,7 @@ function completeChallenge(){
 function openAddChallenge(){
   document.getElementById('dc-title').value='';
   document.getElementById('dc-why').value='';
-  document.getElementById('dc-cat').value='givelink';
+  document.getElementById('dc-cat').value='growth';
   document.getElementById('dc-diff').value='2';
   document.getElementById('dc-modal').classList.remove('hidden');
 }
@@ -7002,7 +6983,7 @@ async function aiWheelInsight(entryId,scores,cadence){
   const goals=(S.goals||[]).slice(0,5).map(g=>g.title).join(', ');
   const vals=(S.values||[]).join(', ');
   const scoreStr=WHEEL_AREAS.map(a=>`${a.label}: ${scores[a.id]}/10`).join(', ');
-  const about=getAboutMe()||'Panos — 20s founder building Givelink (B2B SaaS for nonprofits), targeting financial freedom and an SF move.';
+  const about=getAboutMe()||'A focused individual organizing their work, goals, and habits in Task OS.';
   const prompt=`${about}
 
 ${profileName} rated their life balance (${cadence} assessment):
@@ -7418,7 +7399,7 @@ async function aiDailyPicks(){
   const tasks=(S.tasks||[]).filter(t=>t.status!=='done'&&['this-week','this-month','inbox'].includes(t.bucket)).slice(0,10).map(t=>`- ${t.title} [${t.importance||'med'} importance, ${t.bucket}${t.goalId?' → goal':''  }]`).join('\n');
   const lastEnergy=((S.energyLog||[]).slice(-1)[0]||{}).level||'unknown';
   const dow=new Date().toLocaleDateString('en',{weekday:'long'});
-  const about=getAboutMe()||'Panos — 20s founder building Givelink (B2B SaaS for nonprofits), targeting financial freedom and an SF move.';
+  const about=getAboutMe()||'A focused individual organizing their work, goals, and habits in Task OS.';
   const activeOKRs=(S.okrs||[]).filter(o=>o.status==='active').map(o=>{const krs=o.keyResults||[];const avgPct=krs.length?Math.round(krs.reduce((a,k)=>a+(k.target?Math.min(100,Math.round((k.current||0)/(k.target)*100)):0),0)/krs.length):0;return`${o.title} (KR progress: ${avgPct}%)`;}).join('\n');
   const todayDate=new Date().toISOString().slice(0,10);
   const prompt=`You are a productivity coach for ${profileName}. ${about}
@@ -10139,10 +10120,6 @@ function _autoSnapshot(){
 }
 
 // ── KEYBOARD ──────────────────────────────────────────────────
-document.addEventListener('keydown',e=>{
-  // Cmd/Ctrl+2 → switch to Givelink
-  if((e.metaKey||e.ctrlKey)&&e.key==='2'){e.preventDefault();window.location.href='givelink.html';}
-});
 
 // ── MOBILE ────────────────────────────────────────────────────
 function toggleSB(){
@@ -10657,7 +10634,7 @@ const CHECKLISTS={
     {id:'m3',emoji:'🤝',label:'Relationship audit — anyone 30+ days overdue?',action:()=>nav('relationships')},
     {id:'m4',emoji:'📋',label:'Someday audit — promote, schedule, or delete',action:()=>{closeM('checklist-modal');openSomedayAudit();}},
     {id:'m5',emoji:'🤖',label:'Review AI automations — how many built vs 100?',action:()=>nav('ailab')},
-    {id:'m6',emoji:'🏢',label:'Givelink pipeline review — deals and stages',action:()=>window.open('givelink.html','_blank')},
+    {id:'m6',emoji:'🚀',label:'Review your projects — progress and blockers',action:()=>nav('projects')},
     {id:'m7',emoji:'🎯',label:'Set monthly theme and one big commitment',action:()=>nav('review')},
     {id:'m8',emoji:'📸',label:'Log a progress photo',action:()=>nav('health')},
     {id:'m9',emoji:'📚',label:'Summarize books finished this month',action:()=>nav('books')},
@@ -12417,7 +12394,7 @@ function saveSleep(){
 async function aiSleepInsight(){
   const logs=(S.sleepLogs||[]).slice(-14);
   if(!logs.length){toast('Log some sleep data first!');return;}
-  const about=getAboutMe()||'Panos — Greek founder building Givelink (nonprofit fundraising SaaS), targeting financial freedom and a move to San Francisco.';
+  const about=getAboutMe()||'A focused individual organizing their work, goals, and habits in Task OS.';
   const dwSessions=S.deepWorkSessions||[];
   const summary=logs.map(l=>{
     const dwH=(dwSessions.filter(s=>s.date===l.date).reduce((a,s)=>a+s.duration,0)/3600).toFixed(1);
@@ -13361,8 +13338,7 @@ try{_renderAccountChip();}catch(e){}
     <div class="fr">
       <div class="fg"><label>Category</label>
         <select class="fc" id="dc-cat">
-          <option value="givelink">🟣 Givelink</option>
-          <option value="health">💪 Health</option>
+                    <option value="health">💪 Health</option>
           <option value="discipline">🔥 Discipline</option>
           <option value="relationships">🤝 Relationships</option>
           <option value="growth">📈 Growth</option>

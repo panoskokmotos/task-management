@@ -9964,10 +9964,17 @@ function authGoogle(){
   location.href=`${_SB.url}/auth/v1/authorize?provider=google&redirect_to=${redirect}`;
 }
 function authLogout(){
-  ['access','refresh','exp','uid'].forEach(k=>localStorage.removeItem('taskos_sb_'+k));
   track('auth_logout',{});
   try{if(window.posthog&&posthog.reset)posthog.reset();}catch(e){}
-  if(_hostedMode())location.reload();else toast('Signed out (local data kept)');
+  ['access','refresh','exp','uid','email'].forEach(k=>localStorage.removeItem('taskos_sb_'+k));
+  if(_hostedMode()){
+    // Clear this account's local cache so the next login starts from THEIR cloud data,
+    // never the previous account's (safe: hosted data lives in the synced cloud row).
+    try{localStorage.removeItem('taskos');localStorage.removeItem('taskos_name');}catch(e){}
+    location.replace(location.origin+location.pathname); // clean URL + fresh boot → shows the gate
+  } else {
+    toast('Signed out (local data kept)');
+  }
 }
 async function _afterAuth(){
   _hideAuthGate();

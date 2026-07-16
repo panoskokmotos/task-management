@@ -9980,7 +9980,7 @@ async function _afterAuth(){
   _hideAuthGate();
   _phIdentify();
   try{await sbSyncNow(true);}catch(e){}
-  try{refresh();}catch(e){}
+  try{nav('dashboard');}catch(e){try{refresh();}catch(_){}} // always land on Today after login, not a stale last view
   _sbRenderPill();_renderAccountChip();
   toast('👋 Welcome to Task OS');
 }

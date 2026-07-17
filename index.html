@@ -43,8 +43,8 @@
 @media(prefers-reduced-motion:reduce){#app-splash .sl-mark{animation:none;}}
 :root{
   --bg:#0a0a0f;--surface:#131319;--surface2:#1c1c25;--border:#262630;
-  --text:#ecedf3;--muted:#8b8b9c;--accent:#8b7cff;--accent-soft:rgba(139,124,255,.15);--hover:rgba(255,255,255,.035);
-  --brand:#8b7cff;--brand2:#c08cff;--brand-gradient:linear-gradient(135deg,#7b8cff,#c08cff);
+  --text:#ecedf3;--muted:#8b8b9c;--accent:#8272f2;--accent-soft:rgba(130,114,242,.16);--hover:rgba(255,255,255,.035);
+  --brand:#8272f2;--brand2:#a385ee;--brand-gradient:linear-gradient(135deg,#6a58ee,#9878ea);
   --bw:#ff8a8a;--bm:#ffc078;--bb:#7ee0a0;--bs:#8ec5ff;--bi:#d99cf5;
   --q1:#ff8a8a;--q2:#7ee0a0;--q3:#ffc078;--q4:#9098a5;
   --cg:#d59cf5;--cf:#ffc078;--ca:#5fd3e6;--ch:#ff8a8a;--cr:#7ee0a0;--cl:#8ec5ff;--cb:#f79ac0;--co:#9098a5;
@@ -52,7 +52,7 @@
 body.light{
   --bg:#f7f6f3;--surface:#ffffff;--surface2:#f3f2ee;--border:#e9e7e1;
   --text:#32302c;--muted:#8a857b;--accent:#5a49e0;--accent-soft:rgba(90,73,224,.09);--hover:rgba(0,0,0,.035);
-  --brand:#5a49e0;--brand2:#9a5bd0;--brand-gradient:linear-gradient(135deg,#5a49e0,#9a5bd0);
+  --brand:#5a49e0;--brand2:#8b5ce6;--brand-gradient:linear-gradient(135deg,#5a49e0,#8b5ce6);
   --bw:#e0645c;--bm:#cf8a3c;--bb:#3fa66a;--bs:#3f7ad0;--bi:#8a4bc4;
   --q1:#e0645c;--q2:#3fa66a;--q3:#cf8a3c;--q4:#8a857b;
   --cg:#8a4bc4;--cf:#cf8a3c;--ca:#0e91a8;--ch:#e0645c;--cr:#3fa66a;--cl:#3f7ad0;--cb:#d1568f;--co:#8a857b;
@@ -3211,7 +3211,7 @@ function doCapture(){
 function renderCapture(){
   const inbox=active().filter(t=>t.bucket==='inbox');
   document.getElementById('icl').textContent='('+inbox.length+')';
-  document.getElementById('inbox-list').innerHTML=inbox.length?inbox.map(t=>inboxHTML(t)).join(''):_empty('📥','Inbox zero!','Nothing to process. Capture a thought with ⌘K or the + button.','');
+  document.getElementById('inbox-list').innerHTML=inbox.length?inbox.map(t=>inboxHTML(t)).join(''):_empty('📥','Inbox zero!','Nothing to process right now. Capture the next thing on your mind.','<button class="btn bp sm" onclick="openAdd(\'inbox\')">+ Capture a thought</button>');
   updIBadge();
   setTimeout(_attachSwipes,0);
 }
@@ -3246,7 +3246,8 @@ const _EMPTY_STATES={
 };
 function _emptyState(bucket){
   const [icon,h,sub]=_EMPTY_STATES[bucket]||['📋','Nothing here','Add a task to get started.'];
-  return`<div style="text-align:center;padding:32px 16px 24px;color:var(--muted);"><div style="font-size:36px;margin-bottom:10px;">${icon}</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:5px;">${h}</div><div style="font-size:12px;line-height:1.5;">${sub}</div></div>`;
+  const b=bucket||'inbox';
+  return`<div style="text-align:center;padding:30px 16px 26px;color:var(--muted);"><div style="font-size:36px;margin-bottom:10px;">${icon}</div><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:5px;">${h}</div><div style="font-size:12px;line-height:1.5;margin-bottom:14px;">${sub}</div><button class="btn bp sm" onclick="openAdd('${b}')">+ Add a task</button></div>`;
 }
 
 function renderBuckets(){
@@ -3462,7 +3463,7 @@ function renderAllBoard(tasks){
   const html=`<div class="board">${cols.map(c=>`
     <div class="board-col">
       <div class="board-head"><span class="board-dot" data-a="${c.k}"></span>${c.l}<span class="board-ct">${c.items.length}</span></div>
-      <div class="board-body">${c.items.length?c.items.map(t=>tcHTML(t,false,true)).join(''):'<div class="board-empty">Nothing here</div>'}</div>
+      <div class="board-body">${c.items.length?c.items.map(t=>tcHTML(t,false,true)).join(''):'<div class="board-empty">Empty · <a onclick="openAdd(\'this-week\')" style="color:var(--accent);cursor:pointer;">add a task</a></div>'}</div>
     </div>`).join('')}</div>`;
   document.getElementById('all-list').innerHTML=html;
   setTimeout(_attachSwipes,0);

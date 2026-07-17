@@ -4307,7 +4307,7 @@ function renderProcCard(){
   const inbox=active().filter(t=>t.bucket==='inbox');
   const pa=document.getElementById('proc-area');
   if(!inbox.length){
-    pa.innerHTML=`<div class="proc-done"><div class="pd-check">✓</div><div class="pd-title">Inbox Zero</div><div class="pd-sub">Every thought has a home. Nice work.</div><button class="btn bp sm" onclick="toggleProc()" style="margin-top:18px;">Done</button></div>`;
+    pa.innerHTML=`<div class="proc-done"><div class="pd-check">✓</div><div class="pd-title">Inbox Zero</div><div class="pd-sub">Every thought has a home. Nice work.</div><div style="display:flex;gap:8px;justify-content:center;margin-top:18px;flex-wrap:wrap;"><button class="btn bp sm" onclick="shareWin('inbox_zero')">🎉 Share the win</button><button class="btn bg sm" onclick="toggleProc()">Done</button></div></div>`;
     if(!window._procCelebrated){window._procCelebrated=true;try{_fireConfetti('deep');}catch(e){}}
     return;
   }
@@ -7701,7 +7701,7 @@ function _checkQuestCompletion(){
   if(newlyDone&&S.dailyQuests.every(q=>q.done)&&S._allQuestsBonusDate!==today){
     S._allQuestsBonusDate=today;
     save();
-    setTimeout(()=>{toast('🎉 All quests complete! +50 XP bonus',4000);awardXP(50,'all quests complete');_fireConfetti('deep');},400);
+    setTimeout(()=>{toast('🎉 All quests complete! +50 XP · <span style="cursor:pointer;font-weight:700;color:var(--accent);" onclick="shareWin(\'quests\')">Share the win</span>',5000);awardXP(50,'all quests complete');_fireConfetti('deep');},400);
   }
 }
 
@@ -10034,16 +10034,36 @@ function _openAcctMenu(ev){
   el.style.top=Math.max(8,r.top-h-6)+'px';
 }
 // Invite-a-friend growth loop: native share sheet on mobile, copy-link fallback elsewhere.
-async function shareInvite(){
-  const url='https://task-management-beige-eight.vercel.app/';
-  const text='I run my whole life in Task OS — calm, keyboard-fast, and the AI plans my day. Try it (free):';
-  track('invite_shared',{});
+const _APP_URL='https://task-management-beige-eight.vercel.app/';
+// Referral-attributed link: carries who invited them so growth is measurable.
+function _refUrl(){const r=(_SB&&_SB.uid)?('?ref='+encodeURIComponent(_SB.uid)):'';return _APP_URL+r;}
+// One share primitive: native sheet on mobile, copy-link fallback elsewhere.
+async function _share(text,ev){
+  const url=_refUrl();track('share',{ctx:ev||'invite'});
   if(navigator.share){
     try{await navigator.share({title:'Task OS',text,url});return;}
     catch(e){if(e&&e.name==='AbortError')return;}
   }
-  try{await navigator.clipboard.writeText(text+' '+url);toast('🔗 Invite copied — paste it anywhere');}
-  catch(e){window.prompt('Share this link with a friend:',url);}
+  try{await navigator.clipboard.writeText(text+' '+url);toast('🔗 Copied — paste it anywhere');}
+  catch(e){window.prompt('Share this link:',url);}
+}
+function shareInvite(){return _share('I run my whole life in Task OS — calm, keyboard-fast, and the AI plans my day. Try it (free):','invite');}
+// Capture a ?ref=<uid> on arrival so we can attribute (and later reward) invites.
+function _captureRef(){
+  try{
+    const u=new URL(location.href);const ref=u.searchParams.get('ref');
+    if(ref){localStorage.setItem('taskos_ref',ref);track('referred_arrival',{ref});
+      u.searchParams.delete('ref');history.replaceState(null,'',u.pathname+(u.search||'')+(u.hash||''));}
+  }catch(e){}
+}
+// Share a delight moment (Inbox Zero, cleared Top 3, etc.) — turns wins into distribution.
+function shareWin(context){
+  const lines={
+    inbox_zero:'Just hit Inbox Zero 📥→0 in Task OS. Everything captured, everything has a home. Try it (free):',
+    top3:'Cleared my Top 3 for the day ✅✅✅ in Task OS. Calm, keyboard-fast, and the AI plans my day. Try it:',
+    quests:'Finished all my daily quests in Task OS 🎯 — the calmest to-do app I’ve used. Try it (free):'
+  };
+  return _share(lines[context]||lines.inbox_zero,context);
 }
 function _acctRename(){
   showPrompt('Your name',n=>{
@@ -10128,6 +10148,7 @@ async function sbSyncNow(force){
 // A small, generic starter set so a new account feels intentional (never the owner's data).
 function _welcomeSeed(){
   S._welcomed=true;window._justWelcomed=true; // triggers the onboarding tour after this login
+  try{track('signup',{ref:localStorage.getItem('taskos_ref')||''});}catch(e){}
   // Personalize the greeting from the sign-in email (so it's never "Panos")
   if(!localStorage.getItem('taskos_name')&&_SB.email){
     const nm=_SB.email.split('@')[0].replace(/[._-]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
@@ -13288,6 +13309,7 @@ _initSheetDismiss();
 _maybeOnboard();
 try{_renderSavedViews();_updateUnreadBadges();_addPinStars();_renderPinnedViews();}catch(e){}
 try{_initPostHog();}catch(e){}
+try{_captureRef();}catch(e){}
 try{_authBoot();}catch(e){}
 try{_renderAccountChip();}catch(e){}
 // Fade out the launch splash once the app has painted (with a safety fallback)

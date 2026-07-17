@@ -912,6 +912,8 @@ body.auth-locked{overflow:hidden;}
   <div class="ni" data-v="all" onclick="nav('all')"><span class="ni-ic">📥</span>All Tasks</div>
   <div class="ni" data-v="buckets" onclick="nav('buckets')"><span class="ni-ic">📦</span>Buckets</div>
   <div class="ni" data-v="eisenhower" onclick="nav('eisenhower')"><span class="ni-ic">🎯</span>Eisenhower</div>
+  <div class="ni" onclick="openTemplates()"><span class="ni-ic">🧩</span>Templates</div>
+  <div class="ni" onclick="openImport()"><span class="ni-ic">📥</span>Import</div>
   </div>
   <div class="ns-group" data-ns="plan">
   <span class="ns" onclick="_toggleNsGroup(this)">Plan<span class="ns-arrow">▾</span></span>
@@ -4084,6 +4086,8 @@ function _cmdkCommands(){
   cmds.push({ic:'➕',label:'New Task',sub:'Action',run:()=>{closeCmdK();openAdd();}});
   cmds.push({ic:'⚡',label:'Quick Capture',sub:'Action',run:()=>{closeCmdK();openQuickCapture();}});
   cmds.push({ic:'🌓',label:'Toggle Theme',sub:'Action',run:()=>{toggleTheme();}});
+  cmds.push({ic:'🧩',label:'Browse Templates',sub:'Action',run:()=>{closeCmdK();openTemplates();}});
+  cmds.push({ic:'📥',label:'Import tasks',sub:'Action',run:()=>{closeCmdK();openImport();}});
   cmds.push({ic:'⌨️',label:'Keyboard Shortcuts',sub:'Action',run:()=>{closeCmdK();openM('shortcuts-modal');}});
   return cmds;
 }
@@ -10018,6 +10022,7 @@ async function _afterAuth(){
   try{await sbSyncNow(true);}catch(e){}
   try{nav('dashboard');}catch(e){try{refresh();}catch(_){}} // always land on Today after login, not a stale last view
   _sbRenderPill();_renderAccountChip();
+  try{_applyPendingTemplate();}catch(e){}
   // Brand-new account (just got the welcome starter) → run the onboarding tour.
   if(window._justWelcomed&&!localStorage.getItem('taskos_onboarded')){
     window._justWelcomed=false;
@@ -10141,6 +10146,85 @@ function shareGoal(id){
   const s=goalStats(id);
   return _share(`I'm working on "${g.title}"${s.total?` (${s.pct}% there)`:''} in Task OS. Cheer me on 👊 / join me:`,'goal');
 }
+// ══ TEMPLATES GALLERY (Notion's #1 growth loop — "copy this template") ══
+const TEMPLATES=[
+  {id:'weekly-reset',ic:'🗓️',name:'Weekly Reset',desc:'The Sunday ritual that sets up a calm, focused week.',tasks:[['Review last week — what worked, what didn’t','this-week'],['Clear your inbox to zero','this-week'],['Pick your Top 3 for the week','this-week'],['Time-block your calendar for deep work','this-week'],['Set one meaningful goal for the week','this-week']]},
+  {id:'launch-project',ic:'🚀',name:'Launch a Side Project',desc:'From idea to shipped in a focused sprint.',goals:['Ship my side project'],tasks:[['Write a one-line pitch','this-week'],['Define the smallest v1 (MVP)','this-week'],['Build the core feature','this-week'],['Get 5 people to try it','this-month'],['Launch on Product Hunt / socials','this-month']]},
+  {id:'get-fit',ic:'💪',name:'Get Fit',desc:'Build the habits, not just the motivation.',goals:['Get consistently fit'],tasks:[['Schedule 3 workouts this week','this-week'],['Plan your meals for the week','this-week'],['Track sleep for 7 nights','this-week'],['Book a health check-up','this-month']]},
+  {id:'job-search',ic:'🎯',name:'Job Search Sprint',desc:'A system to land the next role.',goals:['Land a great new role'],tasks:[['Update your CV and LinkedIn','this-week'],['List 10 target companies','this-week'],['Reach out to 5 people this week','this-week'],['Apply to 5 roles','this-week'],['Prep answers for 3 common questions','this-month']]},
+  {id:'declutter',ic:'🧹',name:'Digital Declutter',desc:'Reclaim your attention in a week.',tasks:[['Unsubscribe from 10 email lists','this-week'],['Turn off non-essential notifications','this-week'],['Clean up your phone home screen','this-week'],['Archive or clear your inbox','this-week']]},
+  {id:'deep-work',ic:'🧠',name:'Deep Work Week',desc:'Protect your focus and ship what matters.',tasks:[['Block 2 hours of deep work daily','this-week'],['Silence notifications 9–12','this-week'],['Pick ONE big thing to finish','this-week'],['Review your focus at end of each day','this-week']]},
+];
+function _applyTemplate(id,silent){
+  const t=TEMPLATES.find(x=>x.id===id);if(!t)return;
+  const mk=(title,bucket)=>({id:uid(),title,notes:'',bucket:bucket||'this-week',category:'other',urgency:'low',importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',read:false,createdAt:new Date().toISOString(),completedAt:null});
+  let goalId=null;
+  if(t.goals&&t.goals.length){const g={id:uid(),title:t.goals[0],description:'',category:'other',isTop3:false,createdAt:new Date().toISOString()};S.goals=S.goals||[];S.goals.push(g);goalId=g.id;}
+  (t.tasks||[]).forEach(([title,bucket])=>{const task=mk(title,bucket);if(goalId)task.goalId=goalId;S.tasks.push(task);});
+  save();try{refresh();updIBadge();}catch(e){}
+  track('template_applied',{id});
+  if(!silent){closeM('templates-modal');toast('🧩 Added the “'+t.name+'” template');}
+}
+function _shareTemplate(id){
+  const t=TEMPLATES.find(x=>x.id===id);if(!t)return;
+  const url=_APP_URL+'?template='+id+((_SB&&_SB.uid)?('&ref='+encodeURIComponent(_SB.uid)):'');
+  track('share',{ctx:'template',id});
+  const text=`My “${t.name}” template in Task OS — copy it into your own in one tap:`;
+  if(navigator.share){navigator.share({title:'Task OS · '+t.name,text,url}).catch(()=>{});return;}
+  navigator.clipboard.writeText(text+' '+url).then(()=>toast('🔗 Template link copied — anyone can copy it')).catch(()=>window.prompt('Share this template:',url));
+}
+function openTemplates(){
+  let el=document.getElementById('templates-modal');
+  if(!el){el=document.createElement('div');el.className='mo hidden';el.id='templates-modal';el.addEventListener('click',e=>{if(e.target===el)closeM('templates-modal');});document.body.appendChild(el);}
+  const cards=TEMPLATES.map(t=>`<div style="border:1px solid var(--border);border-radius:14px;padding:14px;background:var(--surface2);display:flex;flex-direction:column;">
+    <div style="font-size:15px;font-weight:700;margin-bottom:3px;">${t.ic} ${esc(t.name)}</div>
+    <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:8px;flex:1;">${esc(t.desc)}</div>
+    <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">${(t.tasks||[]).length} tasks${t.goals?' · 1 goal':''}</div>
+    <div style="display:flex;gap:6px;"><button class="btn bp sm" onclick="_applyTemplate('${t.id}')">Use template</button><button class="btn bg sm" onclick="_shareTemplate('${t.id}')" title="Share — friends copy it into their own Task OS">🔗</button></div>
+  </div>`).join('');
+  el.innerHTML=`<div class="md" style="width:660px;max-width:94vw;max-height:84vh;display:flex;flex-direction:column;">
+    <div class="mh"><h3>🧩 Templates</h3><button class="mc" onclick="closeM('templates-modal')">×</button></div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Start a proven system in one tap. Share any template — friends copy it straight into their own Task OS.</p>
+    <div style="overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;">${cards}</div>
+  </div>`;
+  el.classList.remove('hidden');document.body.classList.add('modal-open');track('templates_opened',{});
+}
+// Arrival via a shared ?template=<id> link → the acquisition hook
+let _pendingTemplate=null;
+function _captureTemplate(){
+  try{const u=new URL(location.href);const tid=u.searchParams.get('template');
+    if(tid&&TEMPLATES.find(x=>x.id===tid)){_pendingTemplate=tid;track('template_arrival',{id:tid});u.searchParams.delete('template');history.replaceState(null,'',u.pathname+(u.search||'')+(u.hash||''));}
+  }catch(e){}
+}
+function _applyPendingTemplate(){
+  if(!_pendingTemplate)return;const id=_pendingTemplate;_pendingTemplate=null;
+  const t=TEMPLATES.find(x=>x.id===id);if(!t)return;
+  setTimeout(()=>{_applyTemplate(id,true);toast('🧩 Loaded the “'+t.name+'” template — welcome!',4000);try{nav('all');}catch(e){}},700);
+}
+// ══ IMPORT (kill switching cost — paste a list from any app) ══
+function openImport(){
+  let el=document.getElementById('import-modal');
+  if(!el){el=document.createElement('div');el.className='mo hidden';el.id='import-modal';el.addEventListener('click',e=>{if(e.target===el)closeM('import-modal');});document.body.appendChild(el);}
+  el.innerHTML=`<div class="md" style="width:480px;max-width:94vw;">
+    <div class="mh"><h3>📥 Import your tasks</h3><button class="mc" onclick="closeM('import-modal')">×</button></div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:8px;">Coming from Todoist, Apple Reminders, Notion, or a notes app? Copy your list and paste it here — one task per line. Dates like “tomorrow” and <kbd>/week</kbd> are parsed automatically.</p>
+    <textarea id="import-input" class="fc" style="min-height:160px;resize:vertical;" placeholder="Buy groceries&#10;Call the dentist tomorrow&#10;Finish the report /week"></textarea>
+    <div class="mf" style="margin-top:12px;"><button class="btn bg" onclick="closeM('import-modal')">Cancel</button><button class="btn bp" onclick="doImport()">Import</button></div>
+  </div>`;
+  el.classList.remove('hidden');document.body.classList.add('modal-open');track('import_opened',{});
+}
+function doImport(){
+  const lines=(document.getElementById('import-input').value||'').split('\n').map(l=>l.trim()).filter(Boolean);
+  if(!lines.length){closeM('import-modal');return;}
+  let n=0;
+  lines.forEach(raw=>{
+    const sl=(typeof _parseSlash==='function')?_parseSlash(raw):{title:raw,bucket:'inbox',category:'other',dueDate:''};
+    const gp=(typeof _parseGoalTag==='function')?_parseGoalTag(sl.title):{title:sl.title,goalId:null};
+    S.tasks.push({id:uid(),title:gp.title,notes:'',bucket:sl.bucket||'inbox',category:sl.category||'other',urgency:'low',importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:sl.dueDate||'',goalId:gp.goalId||null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',read:false,createdAt:new Date().toISOString(),completedAt:null});
+    n++;
+  });
+  save();try{refresh();updIBadge();}catch(e){}closeM('import-modal');track('import_done',{count:n});toast('📥 Imported '+n+' task'+(n===1?'':'s'));
+}
 // Capture a ?ref=<uid> on arrival so we can attribute (and later reward) invites.
 function _captureRef(){
   try{
@@ -10185,8 +10269,8 @@ async function _authBoot(){
       return;
     }
   }
-  if(_sbEnabled()){_hideAuthGate();try{sbSyncNow();}catch(e){}}
-  else if(_isGuest()){_hideAuthGate();_renderAccountChip();} // returning guest keeps browsing locally
+  if(_sbEnabled()){_hideAuthGate();try{sbSyncNow();}catch(e){}try{_applyPendingTemplate();}catch(e){}}
+  else if(_isGuest()){_hideAuthGate();_renderAccountChip();try{_applyPendingTemplate();}catch(e){}} // returning guest keeps browsing locally
   else{_showAuthGate();}
 }
 // ══ PRODUCT ANALYTICS (PostHog) — no-ops entirely unless a key is configured ══
@@ -10269,9 +10353,11 @@ function _enterGuest(){
   track('guest_started',{ref:localStorage.getItem('taskos_ref')||''});
   _hideAuthGate();
   const fresh=!S.tasks||S.tasks.length===0;
-  if(fresh){_seedStarter();window._justWelcomed=true;}
+  // If they arrived via a shared template link, that's their starter — skip the generic one.
+  if(fresh&&!_pendingTemplate){_seedStarter();window._justWelcomed=true;}
   try{nav('dashboard');}catch(e){}
   _sbRenderPill();_renderAccountChip();
+  try{_applyPendingTemplate();}catch(e){}
   if(window._justWelcomed){window._justWelcomed=false;setTimeout(()=>{try{_startOnboarding();}catch(e){}},650);}
 }
 // Re-open the gate from guest mode (the "Sign up to save" CTAs)
@@ -13434,6 +13520,7 @@ _maybeOnboard();
 try{_renderSavedViews();_updateUnreadBadges();_addPinStars();_renderPinnedViews();}catch(e){}
 try{_initPostHog();}catch(e){}
 try{_captureRef();}catch(e){}
+try{_captureTemplate();}catch(e){}
 try{_authBoot();}catch(e){}
 try{_renderAccountChip();}catch(e){}
 // Fade out the launch splash once the app has painted (with a safety fallback)
@@ -13815,7 +13902,8 @@ try{_renderAccountChip();}catch(e){}
       <textarea id="qa-input" class="fc" style="min-height:120px;resize:vertical;" placeholder="Buy groceries&#10;Call dentist /tomorrow&#10;Ship onboarding fix /wealth #givelink" oninput="_qaSlash(this,event)" onkeydown="_qaSlashKey(this,event)"></textarea>
       <div id="qa-slash" class="slash-menu" style="display:none;"></div>
     </div>
-    <div class="mf" style="margin-top:12px;">
+    <div class="mf" style="margin-top:12px;align-items:center;">
+      <a onclick="closeM('quick-add-modal');openImport()" style="margin-right:auto;font-size:12px;color:var(--accent);cursor:pointer;">📥 Import a list</a>
       <button class="btn bg" onclick="closeM('quick-add-modal')">Cancel</button>
       <button class="btn bp" onclick="doQuickAdd()">Add to Inbox</button>
     </div>

@@ -3481,7 +3481,7 @@ function goalHTML(g){
     ${s.total?`<div style="margin-top:8px;"><div class="gp" style="margin-bottom:3px;"><div class="gp-fill" style="width:${s.pct}%"></div></div><div style="font-size:10px;color:var(--muted);">${s.done}/${s.total} tasks · ${s.pct}%</div></div>`:''}
     ${metricHTML}${habitHTML}${finHTML}
     ${linked.length?`<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:7px;">${linked.map(t=>`<div style="font-size:11px;color:var(--muted);padding:2px 0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">• ${esc(t.title.slice(0,35))}${t.title.length>35?'…':''}</div>`).join('')}</div>`:''}
-    <div style="margin-top:8px;" onclick="event.stopPropagation();"><button class="btn bg sm" onclick="openAdd('this-week','${g.id}')">+ Task</button></div>
+    <div style="margin-top:8px;display:flex;gap:6px;" onclick="event.stopPropagation();"><button class="btn bg sm" onclick="openAdd('this-week','${g.id}')">+ Task</button><button class="btn bg sm" onclick="shareGoal('${g.id}')" title="Invite someone to cheer you on">🤝 Share</button></div>
   </div>`;
 }
 
@@ -10051,6 +10051,7 @@ function _openAcctMenu(ev){
   if(!el){el=document.createElement('div');el.id='acct-menu';el.className='acct-menu';document.body.appendChild(el);document.addEventListener('click',e=>{if(el&&!el.contains(e.target)&&!e.target.closest('#account-chip'))el.style.display='none';});}
   el.innerHTML=`<div class="acct-menu-head"><div class="amh-l">Signed in as</div><div class="amh-m">${esc(_SB.email||'')}</div></div>
     <div class="acct-menu-item" onclick="document.getElementById('acct-menu').style.display='none';_startOnboarding()"><span>🎓</span>Take the tour</div>
+    <div class="acct-menu-item" onclick="document.getElementById('acct-menu').style.display='none';shareStats()"><span>📸</span>Share my progress</div>
     <div class="acct-menu-item" onclick="document.getElementById('acct-menu').style.display='none';shareInvite()"><span>👋</span>Invite a friend</div>
     <div class="acct-menu-item" onclick="document.getElementById('acct-menu').style.display='none';_acctRename()"><span>✏️</span>Rename</div>
     <div class="acct-menu-item" onclick="document.getElementById('acct-menu').style.display='none';exportData()"><span>⬇️</span>Download backup</div>
@@ -10076,6 +10077,70 @@ async function _share(text,ev){
   catch(e){window.prompt('Share this link:',url);}
 }
 function shareInvite(){return _share('I run my whole life in Task OS — calm, keyboard-fast, and the AI plans my day. Try it (free):','invite');}
+// ══ SHAREABLE PROGRESS CARD (usage → branded impressions) ══
+function _shareStats(){
+  const now=new Date(),wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
+  const done=(S.tasks||[]).filter(t=>t.status==='done').length;
+  const week=(S.tasks||[]).filter(t=>t.completedAt&&new Date(t.completedAt)>wAgo).length;
+  const lvl=S.level||1;
+  let topGoal='',topPct=-1;
+  (S.goals||[]).forEach(g=>{const s=goalStats(g.id);if(s.total&&s.pct>topPct){topPct=s.pct;topGoal=g.title;}});
+  return {done,week,lvl,topGoal,topPct:Math.max(0,topPct)};
+}
+function _drawStatsCard(){
+  const W=1080,H=1350,c=document.createElement('canvas');c.width=W;c.height=H;const x=c.getContext('2d');
+  const s=_shareStats();
+  x.fillStyle='#0a0a0f';x.fillRect(0,0,W,H);
+  let g=x.createRadialGradient(240,120,0,240,120,1000);g.addColorStop(0,'rgba(139,124,255,.38)');g.addColorStop(.6,'rgba(139,124,255,0)');x.fillStyle=g;x.fillRect(0,0,W,H);
+  g=x.createRadialGradient(W,H,0,W,H,760);g.addColorStop(0,'rgba(182,129,245,.22)');g.addColorStop(.6,'rgba(182,129,245,0)');x.fillStyle=g;x.fillRect(0,0,W,H);
+  // logo mark
+  x.save();x.translate(96,96);x.strokeStyle='#8b7cff';x.lineWidth=7;x.lineCap='round';x.lineJoin='round';
+  x.beginPath();x.arc(28,28,24,0,Math.PI*2);x.stroke();
+  x.beginPath();x.moveTo(17,29);x.lineTo(25,37);x.lineTo(40,20);x.stroke();x.restore();
+  x.fillStyle='#fff';x.font='800 46px Inter, sans-serif';x.textBaseline='middle';x.fillText('Task',170,124);
+  const tw=x.measureText('Task').width;x.fillStyle='#a99bff';x.fillText('OS',170+tw,124);
+  // headline
+  x.fillStyle='#b9b9c6';x.font='600 40px Inter, sans-serif';x.fillText('My progress',96,300);
+  // hero stat
+  x.fillStyle='#fff';x.font='800 220px Inter, sans-serif';x.fillText(String(s.done),90,470);
+  x.fillStyle='#b9b9c6';x.font='600 46px Inter, sans-serif';x.fillText('tasks completed',96,640);
+  // sub-stat chips
+  const chips=[['This week',String(s.week)],['Level',String(s.lvl)]];
+  if(s.topGoal)chips.push([s.topGoal.length>18?s.topGoal.slice(0,18)+'…':s.topGoal,s.topPct+'%']);
+  let cy=780;chips.forEach(([label,val])=>{
+    x.fillStyle='rgba(255,255,255,.06)';_roundRect(x,96,cy,888,150,24);x.fill();
+    x.strokeStyle='rgba(255,255,255,.12)';x.lineWidth=2;_roundRect(x,96,cy,888,150,24);x.stroke();
+    x.fillStyle='#d9d9e3';x.font='600 42px Inter, sans-serif';x.textAlign='left';x.fillText(label,140,cy+75);
+    x.fillStyle='#a99bff';x.font='800 60px Inter, sans-serif';x.textAlign='right';x.fillText(val,940,cy+75);
+    x.textAlign='left';cy+=176;
+  });
+  // footer
+  x.fillStyle='#8a8a97';x.font='600 30px Inter, sans-serif';x.fillText('Made with Task OS · task-management-beige-eight.vercel.app',96,H-70);
+  return c;
+}
+function _roundRect(x,rx,ry,w,h,r){x.beginPath();x.moveTo(rx+r,ry);x.arcTo(rx+w,ry,rx+w,ry+h,r);x.arcTo(rx+w,ry+h,rx,ry+h,r);x.arcTo(rx,ry+h,rx,ry,r);x.arcTo(rx,ry,rx+w,ry,r);x.closePath();}
+async function shareStats(){
+  track('share_stats',{});
+  let canvas;try{canvas=_drawStatsCard();}catch(e){toast('Could not build the card');return;}
+  const text='My progress in Task OS 📈 — calm, keyboard-fast, and the AI plans my day. Try it (free):';
+  const url=_refUrl();
+  canvas.toBlob(async(blob)=>{
+    if(!blob){toast('Could not build the card');return;}
+    const file=new File([blob],'taskos-progress.png',{type:'image/png'});
+    if(navigator.canShare&&navigator.canShare({files:[file]})){
+      try{await navigator.share({files:[file],text,url});return;}catch(e){if(e&&e.name==='AbortError')return;}
+    }
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='taskos-progress.png';a.click();URL.revokeObjectURL(a.href);
+    try{await navigator.clipboard.writeText(text+' '+url);toast('📸 Card downloaded · link copied — post them together!');}
+    catch(e){toast('📸 Progress card downloaded');}
+  },'image/png');
+}
+// ══ GOAL ACCOUNTABILITY INVITE (invite-with-a-reason) ══
+function shareGoal(id){
+  const g=(S.goals||[]).find(x=>x.id===id);if(!g)return;
+  const s=goalStats(id);
+  return _share(`I'm working on "${g.title}"${s.total?` (${s.pct}% there)`:''} in Task OS. Cheer me on 👊 / join me:`,'goal');
+}
 // Capture a ?ref=<uid> on arrival so we can attribute (and later reward) invites.
 function _captureRef(){
   try{

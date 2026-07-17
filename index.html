@@ -809,8 +809,13 @@ body.auth-locked{overflow:hidden;}
 .ag-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
 .ag-err{color:#ef4444;font-size:12.5px;margin:2px 0 10px;line-height:1.4;}
 .ag-btn{width:100%;border:none;border-radius:10px;padding:12px;font:inherit;font-size:14.5px;font-weight:700;cursor:pointer;margin-top:4px;transition:filter .12s,background .12s;}
-.ag-primary{background:var(--brand-gradient);color:#fff;box-shadow:0 6px 18px -6px var(--accent);}
-.ag-primary:hover{filter:brightness(1.06);}
+.ag-try{background:var(--brand-gradient);color:#fff;box-shadow:0 8px 22px -6px var(--accent);font-size:15.5px;padding:14px;margin-top:0;}
+.ag-try:hover{filter:brightness(1.06);}
+.ag-try-sub{text-align:center;font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.4;}
+.ag-divider{display:flex;align-items:center;gap:12px;margin:16px 0 8px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.4px;}
+.ag-divider::before,.ag-divider::after{content:"";flex:1;height:1px;background:var(--border);}
+.ag-primary{background:var(--surface2);color:var(--text);border:1px solid var(--border);}
+.ag-primary:hover{background:var(--hover);}
 .ag-primary:disabled{opacity:.6;cursor:default;}
 .ag-google{background:var(--surface2);color:var(--text);border:1px solid var(--border);margin-top:8px;}
 .ag-google:hover{background:var(--hover);}
@@ -865,7 +870,10 @@ body.auth-locked{overflow:hidden;}
     <div class="ag-trust"><span>✓ Free to start</span><span>✓ No credit card</span><span>✓ Your data, exportable</span><span>✓ Works offline</span></div>
   </div>
   <div class="ag-card">
-    <div class="ag-card-title" id="ag-title">Welcome back</div>
+    <button class="ag-btn ag-try" onclick="_enterGuest()">⚡ Start now — free, no account</button>
+    <div class="ag-try-sub">Jump straight in. Create an account later to sync across devices.</div>
+    <div class="ag-divider"><span>or sign in to save &amp; sync</span></div>
+    <div class="ag-card-title" id="ag-title" style="font-size:15px;">Welcome back</div>
     <div class="ag-card-sub" id="ag-subtitle">Log in to pick up where you left off.</div>
     <input id="ag-email" class="ag-input" type="email" autocomplete="email" placeholder="you@email.com" onkeydown="if(event.key==='Enter')document.getElementById('ag-pass').focus()">
     <input id="ag-pass" class="ag-input" type="password" autocomplete="current-password" placeholder="Password" onkeydown="if(event.key==='Enter')authSubmit()">
@@ -874,6 +882,7 @@ body.auth-locked{overflow:hidden;}
     <button class="ag-btn ag-google" onclick="authGoogle()"><span style="font-weight:700;">G</span>&nbsp;Continue with Google</button>
     <button class="ag-textlink" onclick="authMagic()">Email me a magic link instead</button>
     <div class="ag-toggle">New to Task OS? <a onclick="_agToggleMode()"><span id="ag-mode-link">Create an account</span></a></div>
+    <button id="ag-guest-back" class="ag-textlink" style="display:none;margin-top:14px;" onclick="_backToGuest()">← Keep browsing without an account</button>
     <div class="ag-foot">🔒 Your data is private (row-level secured) and yours to export anytime.</div>
   </div>
 </div>
@@ -2484,6 +2493,16 @@ function save(){
     }
   }
   if(!_sbApplying&&typeof _sbScheduleSync==='function')_sbScheduleSync();
+  if(localStorage.getItem('taskos_guest')==='1'&&!localStorage.getItem('taskos_guest_nudged')){try{_maybeGuestNudge();}catch(e){}}
+}
+// Once a guest has invested a few real tasks, nudge them to create an account (protect their work).
+function _maybeGuestNudge(){
+  if(!_isGuest())return;
+  const active=(S.tasks||[]).filter(t=>t.status!=='done').length;
+  if(active<9)return; // 5 starter + ~4 of their own
+  localStorage.setItem('taskos_guest_nudged','1');
+  track('guest_nudge_shown',{});
+  setTimeout(()=>toast('💾 Loving it? <span style="cursor:pointer;font-weight:700;color:var(--accent);" onclick="openAuthGate()">Create a free account</span> so you never lose your tasks — syncs everywhere.',7000),400);
 }
 function load(){const d=localStorage.getItem('taskos');if(d)try{S={...S,...JSON.parse(d)};}catch(e){console.warn('Corrupt localStorage, using defaults',e);}}
 function exportData(){
@@ -9846,7 +9865,7 @@ function _sbRenderPill(){
   const pill=document.getElementById('sync-pill'),txt=document.getElementById('sync-pill-txt');
   if(!pill||!txt)return;
   pill.classList.remove('ok','syncing','err','offline');
-  if(!navigator.onLine){pill.classList.add(_sbEnabled()?'offline':'');txt.textContent=_sbEnabled()?'Offline · changes saved':'Offline';return;}
+  if(!navigator.onLine){if(_sbEnabled())pill.classList.add('offline');txt.textContent=_sbEnabled()?'Offline · changes saved':'Offline';return;}
   if(!_SB.url||!_SB.anon){txt.textContent='Local only';return;}
   if(!_sbEnabled()){txt.textContent='Sign in to sync';return;}
   if(_sbBusy){pill.classList.add('syncing');txt.textContent='Syncing…';return;}
@@ -9985,7 +10004,7 @@ function authLogout(){
   if(_hostedMode()){
     // Clear this account's local cache so the next login starts from THEIR cloud data,
     // never the previous account's (safe: hosted data lives in the synced cloud row).
-    try{localStorage.removeItem('taskos');localStorage.removeItem('taskos_name');}catch(e){}
+    try{['taskos','taskos_name','taskos_guest','taskos_guest_nudged'].forEach(k=>localStorage.removeItem(k));}catch(e){}
     location.replace(location.origin+location.pathname); // clean URL + fresh boot → shows the gate
   } else {
     toast('Signed out (local data kept)');
@@ -9993,6 +10012,8 @@ function authLogout(){
 }
 async function _afterAuth(){
   _hideAuthGate();
+  const wasGuest=localStorage.getItem('taskos_guest')==='1';
+  if(wasGuest){localStorage.removeItem('taskos_guest');track('guest_to_signup',{});} // converted → their local tasks migrate to the cloud on sync
   _phIdentify();
   try{await sbSyncNow(true);}catch(e){}
   try{nav('dashboard');}catch(e){try{refresh();}catch(_){}} // always land on Today after login, not a stale last view
@@ -10008,6 +10029,13 @@ async function _afterAuth(){
 // Account chip (avatar + email) at the foot of the sidebar → clean who-am-I / rename / sign out.
 function _renderAccountChip(){
   const chip=document.getElementById('account-chip');if(!chip)return;
+  if(_hostedMode()&&_isGuest()){
+    // Guest mode → a prominent "save your work" CTA instead of an account.
+    chip.innerHTML=`<div class="acct-av" style="background:var(--surface2);color:var(--accent);border:1px solid var(--border);">☁️</div><div class="acct-meta"><div class="acct-name" style="color:var(--accent);">Save your work</div><div class="acct-mail">Guest · tap to sign up & sync</div></div>`;
+    chip.style.display='flex';chip.onclick=(e)=>{e.stopPropagation();openAuthGate();};
+    return;
+  }
+  chip.onclick=(e)=>{_openAcctMenu(e);};
   if(!(_hostedMode()&&_sbEnabled())){chip.style.display='none';return;}
   const email=_SB.email||'';
   const saved=localStorage.getItem('taskos_name');
@@ -10093,6 +10121,7 @@ async function _authBoot(){
     }
   }
   if(_sbEnabled()){_hideAuthGate();try{sbSyncNow();}catch(e){}}
+  else if(_isGuest()){_hideAuthGate();_renderAccountChip();} // returning guest keeps browsing locally
   else{_showAuthGate();}
 }
 // ══ PRODUCT ANALYTICS (PostHog) — no-ops entirely unless a key is configured ══
@@ -10145,15 +10174,9 @@ async function sbSyncNow(force){
   }catch(e){_sbPending=true;_sbSetStatus('⚠ '+e.message);}
   finally{_sbBusy=false;_sbRenderPill();}
 }
-// A small, generic starter set so a new account feels intentional (never the owner's data).
-function _welcomeSeed(){
-  S._welcomed=true;window._justWelcomed=true; // triggers the onboarding tour after this login
-  try{track('signup',{ref:localStorage.getItem('taskos_ref')||''});}catch(e){}
-  // Personalize the greeting from the sign-in email (so it's never "Panos")
-  if(!localStorage.getItem('taskos_name')&&_SB.email){
-    const nm=_SB.email.split('@')[0].replace(/[._-]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
-    if(nm){profileName=nm;localStorage.setItem('taskos_name',nm);}
-  }
+// A small, generic starter set so a new account/guest feels intentional (never the owner's data).
+function _seedStarter(){
+  if(S.tasks&&S.tasks.length)return;
   const mk=(title,bucket)=>({id:uid(),title,notes:'',bucket,category:'other',urgency:'low',importance:'high',energy:'high',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:'',goalId:null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',read:false,createdAt:new Date().toISOString(),completedAt:null});
   S.tasks.push(
     mk('👋 Welcome! Tap a task to open it — swipe left to complete','inbox'),
@@ -10164,6 +10187,42 @@ function _welcomeSeed(){
   );
   save();try{refresh();}catch(e){}
 }
+function _welcomeSeed(){
+  S._welcomed=true;window._justWelcomed=true; // triggers the onboarding tour after this login
+  try{track('signup',{ref:localStorage.getItem('taskos_ref')||'',from_guest:localStorage.getItem('taskos_guest')==='1'});}catch(e){}
+  // Personalize the greeting from the sign-in email (so it's never "Panos")
+  if(!localStorage.getItem('taskos_name')&&_SB.email){
+    const nm=_SB.email.split('@')[0].replace(/[._-]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());
+    if(nm){profileName=nm;localStorage.setItem('taskos_name',nm);}
+  }
+  _seedStarter();
+}
+// ══ INSTANT TRY — no-account "guest" mode (kills the signup-wall bounce) ══
+function _isGuest(){return localStorage.getItem('taskos_guest')==='1'&&!_sbEnabled();}
+function _enterGuest(){
+  localStorage.setItem('taskos_guest','1');
+  track('guest_started',{ref:localStorage.getItem('taskos_ref')||''});
+  _hideAuthGate();
+  const fresh=!S.tasks||S.tasks.length===0;
+  if(fresh){_seedStarter();window._justWelcomed=true;}
+  try{nav('dashboard');}catch(e){}
+  _sbRenderPill();_renderAccountChip();
+  if(window._justWelcomed){window._justWelcomed=false;setTimeout(()=>{try{_startOnboarding();}catch(e){}},650);}
+}
+// Re-open the gate from guest mode (the "Sign up to save" CTAs)
+function openAuthGate(){
+  _agMode='signup';
+  const login=false;
+  try{
+    document.getElementById('ag-title').textContent='Save your work';
+    document.getElementById('ag-subtitle').textContent='Create a free account to sync across all your devices.';
+    document.querySelector('#auth-gate .ag-primary').textContent='Sign up';
+    document.getElementById('ag-mode-link').textContent='I already have an account';
+    document.getElementById('ag-guest-back').style.display=_isGuest()?'block':'none';
+  }catch(e){}
+  _showAuthGate();track('signup_prompt_opened',{});
+}
+function _backToGuest(){_hideAuthGate();}
 function _sbScheduleSync(){
   if(!_sbEnabled()||_sbApplying)return;
   _sbPending=true;_sbRenderPill();

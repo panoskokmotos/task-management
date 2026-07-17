@@ -886,6 +886,63 @@ body.auth-locked{overflow:hidden;}
   </div>
 </div>
 
+<!-- ══ FIRST-RUN MAGIC MOMENT — brain-dump → organized day (guest first screen) ══ -->
+<style>
+.firstrun{position:fixed;inset:0;z-index:1000;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:24px;overflow-y:auto;}
+.fr-card{width:100%;max-width:560px;margin:auto;}
+.fr-brand{display:flex;align-items:center;gap:9px;justify-content:center;font-weight:800;font-size:19px;letter-spacing:-.5px;color:var(--text);margin-bottom:24px;}
+.fr-brand svg{width:26px;height:26px;}
+.fr-h{font-size:clamp(28px,5vw,40px);line-height:1.08;font-weight:800;letter-spacing:-1.2px;text-align:center;color:var(--text);margin-bottom:12px;}
+.fr-sub{text-align:center;color:var(--muted);font-size:16px;line-height:1.5;max-width:46ch;margin:0 auto 22px;}
+.fr-ta{width:100%;min-height:186px;resize:vertical;border:1px solid var(--border);border-radius:16px;background:var(--surface);color:var(--text);font-size:16px;line-height:1.7;padding:18px 20px;font-family:inherit;outline:none;transition:border-color .15s,box-shadow .15s;}
+.fr-ta:focus{border-color:var(--accent);box-shadow:0 0 0 4px var(--accent-soft);}
+.fr-ta::placeholder{color:var(--muted);opacity:.55;}
+.fr-btn{width:100%;border:none;border-radius:14px;font-size:16.5px;font-weight:700;padding:16px;cursor:pointer;margin-top:16px;transition:transform .12s,filter .2s;}
+.fr-btn:active{transform:translateY(1px);}
+.fr-primary{background:linear-gradient(118deg,var(--accent),#7c5ce6);color:#fff;box-shadow:0 8px 24px -8px rgba(90,73,224,.55);}
+.fr-primary:hover{filter:brightness(1.05);}
+.fr-alt{text-align:center;margin-top:16px;font-size:13.5px;color:var(--muted);}
+.fr-alt a{color:var(--accent);cursor:pointer;}
+.fr-alt a:hover{text-decoration:underline;}
+.fr-shake{animation:frShake .4s;}
+@keyframes frShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+#fr-step-reveal{text-align:center;}
+.fr-in{animation:frIn .5s cubic-bezier(.2,.7,.3,1);}
+@keyframes frIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.fr-reveal-illus{font-size:42px;margin-bottom:6px;}
+.fr-stats{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:18px 0 20px;}
+.fr-stat{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:13px 18px;min-width:92px;}
+.fr-stat b{display:block;font-size:25px;font-weight:800;color:var(--accent);letter-spacing:-.5px;}
+.fr-stat span{font-size:11.5px;color:var(--muted);}
+.fr-top3{text-align:left;background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:15px 18px;margin-bottom:4px;}
+.fr-t3-label{font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.fr-t3-item{display:flex;align-items:center;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);opacity:0;animation:frIn .45s forwards;}
+.fr-t3-item:last-child{border-bottom:none;}
+.fr-t3-n{width:24px;height:24px;flex:none;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:800;font-size:12px;display:grid;place-items:center;}
+.fr-t3-t{flex:1;font-size:15px;font-weight:600;color:var(--text);}
+.fr-t3-d{font-size:12px;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:20px;white-space:nowrap;}
+@media(max-width:520px){.fr-stat{min-width:74px;padding:11px 13px;}}
+</style>
+<div id="firstrun" class="firstrun" style="display:none;">
+  <div class="fr-card">
+    <div class="fr-brand"><svg viewBox="0 0 32 32"><defs><linearGradient id="frlg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5a49e0"/><stop offset="1" stop-color="#9268e6"/></linearGradient></defs><path d="M8.3 23.7 L16 9 L23.7 23.7" fill="none" stroke="url(#frlg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.2 17.7 L19.8 17.7" fill="none" stroke="url(#frlg)" stroke-width="3" stroke-linecap="round"/></svg> Arete</div>
+    <div id="fr-step-dump">
+      <h1 class="fr-h">What's on your mind?</h1>
+      <p class="fr-sub">Dump everything you need to do, one per line. Arete turns it into a calm, organized day. Dates like “tomorrow” or “Friday” just work.</p>
+      <textarea id="fr-dump" class="fr-ta" placeholder="Finish the Q3 deck&#10;Call the dentist tomorrow&#10;Reply to Sam&#10;Gym Friday&#10;Book flights for the trip"></textarea>
+      <button class="fr-btn fr-primary" onclick="_frOrganize()">Organize my day ✨</button>
+      <div class="fr-alt"><a onclick="_frSkipTo('template')">or start from a template</a> &nbsp;·&nbsp; <a onclick="_frSkip()">skip for now</a></div>
+    </div>
+    <div id="fr-step-reveal" style="display:none;">
+      <div class="fr-reveal-illus">✨</div>
+      <h1 class="fr-h">Here's your day.</h1>
+      <div class="fr-stats" id="fr-stats"></div>
+      <div class="fr-top3" id="fr-top3"></div>
+      <button class="fr-btn fr-primary" onclick="_frEnter()">Enter Arete →</button>
+    </div>
+  </div>
+</div>
+
 <div class="s-ov" id="s-ov" onclick="toggleSB()"></div>
 
 <nav class="sidebar">
@@ -10351,13 +10408,80 @@ function _enterGuest(){
   localStorage.setItem('taskos_guest','1');
   track('guest_started',{ref:localStorage.getItem('taskos_ref')||''});
   _hideAuthGate();
-  const fresh=!S.tasks||S.tasks.length===0;
-  // If they arrived via a shared template link, that's their starter — skip the generic one.
-  if(fresh&&!_pendingTemplate){_seedStarter();window._justWelcomed=true;}
-  try{nav('dashboard');}catch(e){}
   _sbRenderPill();_renderAccountChip();
+  const fresh=!S.tasks||S.tasks.length===0;
+  // Brand-new guest → the brain-dump first run (the magic moment).
+  // Template arrivals bring their own starter; returning guests already have tasks.
+  if(fresh&&!_pendingTemplate){_startFirstRun();return;}
+  try{nav('dashboard');}catch(e){}
   try{_applyPendingTemplate();}catch(e){}
-  if(window._justWelcomed){window._justWelcomed=false;setTimeout(()=>{try{_startOnboarding();}catch(e){}},650);}
+}
+// ══ FIRST-RUN: brain-dump → organized day ══════════════════════════════════
+function _startFirstRun(){
+  const el=document.getElementById('firstrun');if(!el){if(!S.tasks||!S.tasks.length)_seedStarter();try{nav('dashboard');}catch(e){}return;}
+  document.getElementById('fr-step-dump').style.display='';
+  document.getElementById('fr-step-reveal').style.display='none';
+  el.style.display='flex';document.body.classList.add('modal-open');
+  setTimeout(()=>{const ta=document.getElementById('fr-dump');if(ta)ta.focus();},220);
+  try{track('firstrun_started',{});}catch(e){}
+}
+function _frCloseOverlay(){const el=document.getElementById('firstrun');if(el)el.style.display='none';document.body.classList.remove('modal-open');}
+function _frSkip(){
+  _frCloseOverlay();
+  if(!S.tasks||!S.tasks.length)_seedStarter();
+  try{nav('dashboard');}catch(e){}
+  try{track('firstrun_skipped',{to:'app'});}catch(e){}
+}
+function _frSkipTo(what){
+  _frCloseOverlay();
+  try{nav('dashboard');}catch(e){}
+  if(what==='template'){try{openTemplates();}catch(e){}}
+  try{track('firstrun_skipped',{to:what});}catch(e){}
+}
+function _frOrganize(){
+  const ta=document.getElementById('fr-dump');
+  const lines=((ta&&ta.value)||'').split('\n').map(s=>s.trim()).filter(Boolean);
+  if(!lines.length){if(ta){ta.focus();ta.classList.add('fr-shake');setTimeout(()=>ta.classList.remove('fr-shake'),450);}return;}
+  const today=new Date();today.setHours(0,0,0,0);
+  const todayStr=today.toISOString().slice(0,10);
+  const tmr=new Date(today);tmr.setDate(tmr.getDate()+1);const tmrStr=tmr.toISOString().slice(0,10);
+  const created=lines.slice(0,40).map(line=>{
+    let title=line,dueStr='';
+    try{const p=_parseNLDate(line);title=p.title||line;if(p.dueDate)dueStr=new Date(p.dueDate).toISOString().slice(0,10);}catch(e){}
+    let bucket='this-week';
+    if(dueStr){const days=Math.round((new Date(dueStr)-today)/86400000);bucket=days<=7?'this-week':days<=31?'this-month':'backlog';}
+    return {id:uid(),title,notes:'',bucket,category:'other',urgency:'medium',importance:'high',energy:'medium',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:dueStr,goalId:null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',read:false,createdAt:new Date().toISOString(),completedAt:null};
+  });
+  // Top 3 for today: soonest-due first, then first typed
+  const soon=created.filter(t=>t.dueDate&&t.dueDate<=tmrStr);
+  const rest=created.filter(t=>!(t.dueDate&&t.dueDate<=tmrStr));
+  const picks=[...soon,...rest].slice(0,3);
+  const ests=[25,45,30];
+  picks.forEach((t,i)=>{t.isT3=true;t.t3s=i+1;t.dueDate=t.dueDate||todayStr;t.timeBlock=ests[i]||30;t.bucket='this-week';});
+  S.tasks=(S.tasks||[]).concat(created);
+  S._welcomed=true;save();
+  try{track('firstrun_organized',{count:created.length,top3:picks.length,dated:created.filter(t=>t.dueDate).length});}catch(e){}
+  _frReveal(created,picks);
+}
+function _frReveal(created,picks){
+  const week=created.filter(t=>t.bucket==='this-week').length;
+  const month=created.filter(t=>t.bucket==='this-month').length;
+  const later=created.filter(t=>t.bucket==='backlog').length;
+  const stat=(n,l)=>`<div class="fr-stat"><b>${n}</b><span>${l}</span></div>`;
+  document.getElementById('fr-stats').innerHTML=
+    stat(created.length,'captured')+stat(picks.length,'to focus today')+stat(week,'this week')+
+    (month?stat(month,'this month'):'')+(later?stat(later,'later'):'');
+  document.getElementById('fr-top3').innerHTML='<div class="fr-t3-label">Your Top 3 for today</div>'+
+    picks.map((t,i)=>`<div class="fr-t3-item" style="animation-delay:${120+i*100}ms"><span class="fr-t3-n">${i+1}</span><span class="fr-t3-t">${esc(t.title)}</span>${t.dueDate&&fd(t.dueDate)?`<span class="fr-t3-d">${fd(t.dueDate)}</span>`:''}</div>`).join('');
+  document.getElementById('fr-step-dump').style.display='none';
+  const rv=document.getElementById('fr-step-reveal');rv.style.display='';rv.classList.remove('fr-in');void rv.offsetWidth;rv.classList.add('fr-in');
+}
+function _frEnter(){
+  _frCloseOverlay();
+  try{nav('dashboard');}catch(e){try{refresh();}catch(_){}}
+  try{refresh();}catch(e){}
+  setTimeout(()=>{try{toast('✨ Your day is organized. Tap a task to open it, or swipe to complete.');}catch(e){}},400);
+  try{track('firstrun_entered',{});}catch(e){}
 }
 // Re-open the gate from guest mode (the "Sign up to save" CTAs)
 function openAuthGate(){

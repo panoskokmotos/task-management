@@ -14,7 +14,22 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<title>Task OS — Panos</title>
+<title>Task OS — the calm, keyboard-fast home for everything you have to do</title>
+<meta name="description" content="Superhuman speed for your tasks. Notion depth for your life. AI that clears your inbox, plans your day, and keeps every task pointed at a goal. Free to start, syncs everywhere, works offline.">
+<!-- Social share preview (Open Graph + Twitter) -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Task OS">
+<meta property="og:title" content="Task OS — the calm, keyboard-fast home for everything you have to do">
+<meta property="og:description" content="Superhuman speed for your tasks. Notion depth for your life. AI that clears your inbox and plans your day.">
+<meta property="og:url" content="https://task-management-beige-eight.vercel.app/">
+<meta property="og:image" content="https://task-management-beige-eight.vercel.app/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Task OS — the calm, keyboard-fast home for everything you have to do">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Task OS — the calm, keyboard-fast home for everything you have to do">
+<meta name="twitter:description" content="Superhuman speed for your tasks. Notion depth for your life. AI that clears your inbox and plans your day.">
+<meta name="twitter:image" content="https://task-management-beige-eight.vercel.app/og-image.png">
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:4px;}
@@ -781,6 +796,12 @@ body.auth-locked{overflow:hidden;}
 .ag-bullets li{font-size:13.5px;line-height:1.5;color:var(--text);padding-left:24px;position:relative;}
 .ag-bullets li::before{content:"✓";position:absolute;left:0;top:0;color:var(--accent);font-weight:800;}
 .ag-bullets b{font-weight:700;}
+.ag-how{display:flex;flex-direction:column;gap:9px;margin-top:24px;padding-top:20px;border-top:1px solid var(--border);}
+.ag-how-step{display:flex;align-items:center;gap:11px;font-size:13.5px;color:var(--text);}
+.ag-how-n{flex:none;width:22px;height:22px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;}
+.ag-trust{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:20px;font-size:12px;color:var(--muted);font-weight:600;}
+.ag-trust span{white-space:nowrap;}
+@media(max-width:820px){.ag-how,.ag-trust{max-width:340px;margin-left:auto;margin-right:auto;}.ag-trust{justify-content:center;}}
 .ag-card{flex:0 0 360px;max-width:360px;width:100%;background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:28px 26px;box-shadow:0 20px 60px -20px rgba(0,0,0,.4);}
 .ag-card-title{font-size:20px;font-weight:800;margin-bottom:4px;}
 .ag-card-sub{font-size:13px;color:var(--muted);margin-bottom:18px;}
@@ -836,6 +857,12 @@ body.auth-locked{overflow:hidden;}
       <li><b>It grows with you.</b> Goals, habits, weekly reviews and Oura-style rings — not just a list.</li>
       <li><b>Yours, everywhere.</b> Syncs desktop ↔ mobile, works offline, export anytime.</li>
     </ul>
+    <div class="ag-how">
+      <div class="ag-how-step"><span class="ag-how-n">1</span> Capture anything — type, ⌘K, or share to it</div>
+      <div class="ag-how-step"><span class="ag-how-n">2</span> AI triages your inbox &amp; plans your day</div>
+      <div class="ag-how-step"><span class="ag-how-n">3</span> Ship — swipe to done, watch goals move</div>
+    </div>
+    <div class="ag-trust"><span>✓ Free to start</span><span>✓ No credit card</span><span>✓ Your data, exportable</span><span>✓ Works offline</span></div>
   </div>
   <div class="ag-card">
     <div class="ag-card-title" id="ag-title">Welcome back</div>
@@ -9982,6 +10009,7 @@ function _openAcctMenu(ev){
   let el=document.getElementById('acct-menu');
   if(!el){el=document.createElement('div');el.id='acct-menu';el.className='acct-menu';document.body.appendChild(el);document.addEventListener('click',e=>{if(el&&!el.contains(e.target)&&!e.target.closest('#account-chip'))el.style.display='none';});}
   el.innerHTML=`<div class="acct-menu-head"><div class="amh-l">Signed in as</div><div class="amh-m">${esc(_SB.email||'')}</div></div>
+    <div class="acct-menu-item" onclick="document.getElementById('acct-menu').style.display='none';shareInvite()"><span>👋</span>Invite a friend</div>
     <div class="acct-menu-item" onclick="document.getElementById('acct-menu').style.display='none';_acctRename()"><span>✏️</span>Rename</div>
     <div class="acct-menu-item" onclick="document.getElementById('acct-menu').style.display='none';exportData()"><span>⬇️</span>Download backup</div>
     <div class="acct-menu-item danger" onclick="document.getElementById('acct-menu').style.display='none';authLogout()"><span>🚪</span>Sign out</div>`;
@@ -9990,6 +10018,18 @@ function _openAcctMenu(ev){
   const h=el.offsetHeight;
   el.style.left=Math.min(r.left,window.innerWidth-244)+'px';
   el.style.top=Math.max(8,r.top-h-6)+'px';
+}
+// Invite-a-friend growth loop: native share sheet on mobile, copy-link fallback elsewhere.
+async function shareInvite(){
+  const url='https://task-management-beige-eight.vercel.app/';
+  const text='I run my whole life in Task OS — calm, keyboard-fast, and the AI plans my day. Try it (free):';
+  track('invite_shared',{});
+  if(navigator.share){
+    try{await navigator.share({title:'Task OS',text,url});return;}
+    catch(e){if(e&&e.name==='AbortError')return;}
+  }
+  try{await navigator.clipboard.writeText(text+' '+url);toast('🔗 Invite copied — paste it anywhere');}
+  catch(e){window.prompt('Share this link with a friend:',url);}
 }
 function _acctRename(){
   showPrompt('Your name',n=>{

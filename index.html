@@ -9321,10 +9321,17 @@ function _empty(icon,title,sub,cta){
 }
 // P5 — First-run onboarding
 const _ONB=[
-  {ic:'⚡',t:'Capture everything',b:'Brain-dump tasks the instant they appear — press ⌘K or the + button. Type "call mom tomorrow" and the date sets itself.'},
-  {ic:'🗂️',t:'Organize with intent',b:'Sort into This Week / Month / Backlog, link tasks to goals, and let the Eisenhower matrix surface what truly matters.'},
-  {ic:'🚀',t:'Execute & grow',b:'Run deep-work sessions, complete your daily protocol, earn XP, and review weekly. Build the compounding life.'}
+  {ic:'👋',t:'Welcome to Task OS',b:'Your calm, keyboard-fast home for everything you have to do. Here’s the 20-second tour — then it’s all yours.'},
+  {ic:'⚡',t:'Capture in a second',b:'Tap the + button, or press ⌘K anywhere. Type "call mom tomorrow" and the date sets itself. On mobile, swipe a task left to complete, right to snooze.'},
+  {ic:'🤖',t:'Let AI do the heavy lifting',b:'Hit "Plan my day" and AI drafts a focused, time-blocked today. "Triage Inbox" sorts everything in one tap. Reply to any task to make changes in plain English.'},
+  {ic:'🎯',t:'Aim at something bigger',b:'Set goals, build habits, and review weekly — every task can point at a North Star. Task OS grows from a to-do list into your whole life OS.'}
 ];
+// Force-start the tour (used on a brand-new account's first login)
+function _startOnboarding(){
+  const el=document.getElementById('onboarding-modal');if(!el)return;
+  _onbIdx=0;_onbRender();el.classList.remove('hidden');document.body.classList.add('modal-open');
+  if(typeof track==='function')track('onboarding_started',{});
+}
 let _onbIdx=0;
 function _onbRender(){
   const s=_ONB[_onbIdx];
@@ -9335,7 +9342,7 @@ function _onbRender(){
   document.getElementById('onb-next').textContent=_onbIdx<_ONB.length-1?'Next →':'Get started 🚀';
 }
 function _onbNext(){if(_onbIdx<_ONB.length-1){_onbIdx++;_onbRender();}else _onbFinish();}
-function _onbFinish(){localStorage.setItem('taskos_onboarded','1');document.getElementById('onboarding-modal').classList.add('hidden');document.body.classList.remove('modal-open');}
+function _onbFinish(){localStorage.setItem('taskos_onboarded','1');document.getElementById('onboarding-modal').classList.add('hidden');document.body.classList.remove('modal-open');if(typeof track==='function')track('onboarding_completed',{step:_onbIdx+1});}
 function _maybeOnboard(){
   if(_hostedMode())return; // hosted accounts get the welcome-task starter instead of the modal
   if(localStorage.getItem('taskos_onboarded'))return;
@@ -9990,7 +9997,13 @@ async function _afterAuth(){
   try{await sbSyncNow(true);}catch(e){}
   try{nav('dashboard');}catch(e){try{refresh();}catch(_){}} // always land on Today after login, not a stale last view
   _sbRenderPill();_renderAccountChip();
-  toast('👋 Welcome to Task OS');
+  // Brand-new account (just got the welcome starter) → run the onboarding tour.
+  if(window._justWelcomed&&!localStorage.getItem('taskos_onboarded')){
+    window._justWelcomed=false;
+    setTimeout(()=>{try{_startOnboarding();}catch(e){}},650);
+  } else {
+    toast('👋 Welcome back');
+  }
 }
 // Account chip (avatar + email) at the foot of the sidebar → clean who-am-I / rename / sign out.
 function _renderAccountChip(){
@@ -10009,6 +10022,7 @@ function _openAcctMenu(ev){
   let el=document.getElementById('acct-menu');
   if(!el){el=document.createElement('div');el.id='acct-menu';el.className='acct-menu';document.body.appendChild(el);document.addEventListener('click',e=>{if(el&&!el.contains(e.target)&&!e.target.closest('#account-chip'))el.style.display='none';});}
   el.innerHTML=`<div class="acct-menu-head"><div class="amh-l">Signed in as</div><div class="amh-m">${esc(_SB.email||'')}</div></div>
+    <div class="acct-menu-item" onclick="document.getElementById('acct-menu').style.display='none';_startOnboarding()"><span>🎓</span>Take the tour</div>
     <div class="acct-menu-item" onclick="document.getElementById('acct-menu').style.display='none';shareInvite()"><span>👋</span>Invite a friend</div>
     <div class="acct-menu-item" onclick="document.getElementById('acct-menu').style.display='none';_acctRename()"><span>✏️</span>Rename</div>
     <div class="acct-menu-item" onclick="document.getElementById('acct-menu').style.display='none';exportData()"><span>⬇️</span>Download backup</div>
@@ -10113,7 +10127,7 @@ async function sbSyncNow(force){
 }
 // A small, generic starter set so a new account feels intentional (never the owner's data).
 function _welcomeSeed(){
-  S._welcomed=true;
+  S._welcomed=true;window._justWelcomed=true; // triggers the onboarding tour after this login
   // Personalize the greeting from the sign-in email (so it's never "Panos")
   if(!localStorage.getItem('taskos_name')&&_SB.email){
     const nm=_SB.email.split('@')[0].replace(/[._-]+/g,' ').replace(/\b\w/g,c=>c.toUpperCase());

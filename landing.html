@@ -3,21 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Task OS · Command your day. Quiet your mind.</title>
-<meta name="description" content="Superhuman speed for your tasks. Notion depth for your life. AI that clears your inbox and plans your day. Free to start, no account needed, your data stays yours.">
-<meta name="theme-color" content="#08080d">
+<title>Halcyon · Command your day. Quiet your mind.</title>
+<meta name="description" content="The calm, keyboard-fast home for everything you have to do. Superhuman speed for your tasks, Notion depth for your goals, and an AI that plans your day. Free to start, no account needed, your data stays yours.">
+<meta name="theme-color" content="#f7f6f3">
 <link rel="icon" href="/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="canonical" href="https://task-management-beige-eight.vercel.app/">
 <!-- Open Graph / Twitter -->
 <meta property="og:type" content="website">
-<meta property="og:title" content="Task OS · Command your day. Quiet your mind.">
-<meta property="og:description" content="Superhuman speed for your tasks. Notion depth for your life. AI that clears your inbox and plans your day.">
+<meta property="og:title" content="Halcyon · Command your day. Quiet your mind.">
+<meta property="og:description" content="The calm, keyboard-fast home for everything you have to do. Superhuman speed for your tasks, Notion depth for your goals, and an AI that plans your day.">
 <meta property="og:image" content="https://task-management-beige-eight.vercel.app/og-image.png">
 <meta property="og:url" content="https://task-management-beige-eight.vercel.app/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Task OS · Command your day. Quiet your mind.">
-<meta name="twitter:description" content="Superhuman speed for your tasks. Notion depth for your life. AI that plans your day.">
+<meta name="twitter:title" content="Halcyon · Command your day. Quiet your mind.">
+<meta name="twitter:description" content="The calm, keyboard-fast home for everything you have to do.">
 <meta name="twitter:image" content="https://task-management-beige-eight.vercel.app/og-image.png">
 <script>
 /* Front-door router: returning users and auth callbacks never see the pitch. */
@@ -38,10 +38,10 @@
 <style>
   *{margin:0;padding:0;box-sizing:border-box}
   :root{
-    --bg:#08080d;--surface:#14141c;--surface2:#1d1d28;--border:#282834;
-    --text:#eef0f6;--muted:#a2a2b6;--faint:#71718a;
-    --accent:#9385ff;--accent2:#c48ff7;--accent-soft:rgba(147,133,255,.13);
-    --ring:rgba(147,133,255,.4);
+    --bg:#f7f6f3;--surface:#ffffff;--surface2:#f3f2ee;--border:#e9e6df;
+    --text:#2a2823;--muted:#6b665c;--faint:#9b9488;
+    --accent:#5a49e0;--accent2:#7c5ce6;--accent-soft:rgba(90,73,224,.08);
+    --warm:#e0a04a;
   }
   html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
   body{
@@ -51,25 +51,25 @@
   }
   a{color:inherit;text-decoration:none}
   .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
-  .grad{background:linear-gradient(115deg,#b3a8ff 8%,#d5a4f8 92%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+  .grad{background:linear-gradient(115deg,#5a49e0 5%,#9268e6 95%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 
   /* ── Nav ── */
   nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);
-    background:rgba(8,8,13,.72);border-bottom:1px solid rgba(255,255,255,.055)}
+    background:rgba(247,246,243,.8);border-bottom:1px solid var(--border)}
   .nav-in{display:flex;align-items:center;justify-content:space-between;height:62px}
-  .brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:19px;letter-spacing:-.5px}
-  .brand svg{width:28px;height:28px}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:20px;letter-spacing:-.6px;color:var(--text)}
+  .brand svg{width:27px;height:27px}
   .nav-links{display:flex;align-items:center;gap:28px}
   .nav-links a{color:var(--muted);font-size:14.5px;font-weight:500;transition:color .15s}
   .nav-links a:hover{color:var(--text)}
   .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:650;
     border-radius:11px;cursor:pointer;border:1px solid transparent;transition:transform .12s,box-shadow .2s,background .2s;font-size:15px}
   .btn:active{transform:translateY(1px)}
-  .btn-primary{background:linear-gradient(118deg,#8b7cff,#b478ef);color:#fff;padding:12px 22px;
-    box-shadow:0 6px 24px -6px rgba(147,124,255,.65)}
-  .btn-primary:hover{box-shadow:0 12px 34px -6px rgba(147,124,255,.8)}
-  .btn-ghost{background:rgba(255,255,255,.045);border-color:rgba(255,255,255,.11);color:var(--text);padding:12px 20px}
-  .btn-ghost:hover{background:rgba(255,255,255,.09)}
+  .btn-primary{background:linear-gradient(118deg,#5a49e0,#6f54e8);color:#fff;padding:12px 22px;
+    box-shadow:0 6px 20px -6px rgba(90,73,224,.5)}
+  .btn-primary:hover{box-shadow:0 12px 30px -6px rgba(90,73,224,.62)}
+  .btn-ghost{background:var(--surface);border-color:var(--border);color:var(--text);padding:12px 20px}
+  .btn-ghost:hover{background:var(--surface2)}
   .btn-sm{padding:9px 17px;font-size:14px}
   .nav-cta{display:flex;gap:10px;align-items:center}
 
@@ -77,104 +77,103 @@
   .hero{position:relative;padding:88px 0 40px;text-align:center;overflow:hidden}
   .hero::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;
     background:
-      radial-gradient(760px 440px at 50% -12%,rgba(147,133,255,.34),transparent 60%),
-      radial-gradient(560px 380px at 6% 10%,rgba(196,143,247,.18),transparent 58%),
-      radial-gradient(560px 380px at 94% 4%,rgba(96,148,255,.17),transparent 58%),
-      radial-gradient(420px 300px at 72% 34%,rgba(232,140,214,.09),transparent 62%)}
+      radial-gradient(720px 420px at 50% -12%,rgba(90,73,224,.11),transparent 62%),
+      radial-gradient(540px 360px at 8% 6%,rgba(224,160,74,.10),transparent 60%),
+      radial-gradient(540px 360px at 92% 2%,rgba(124,92,230,.09),transparent 60%)}
   .hero>*{position:relative;z-index:1}
-  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#cec8ff;
-    background:var(--accent-soft);border:1px solid rgba(147,133,255,.26);border-radius:100px;padding:6px 14px;margin-bottom:26px}
-  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:#9385ff;box-shadow:0 0 0 4px rgba(147,133,255,.25)}
-  h1{font-size:clamp(40px,7vw,72px);line-height:1.05;font-weight:820;letter-spacing:-2px;max-width:20ch;margin:0 auto}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--accent);
+    background:var(--accent-soft);border:1px solid rgba(90,73,224,.2);border-radius:100px;padding:6px 14px;margin-bottom:26px}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(90,73,224,.15)}
+  h1{font-size:clamp(40px,7vw,72px);line-height:1.05;font-weight:820;letter-spacing:-2px;max-width:20ch;margin:0 auto;color:#211f1a}
   .sub{font-size:clamp(17px,2.3vw,21px);color:var(--muted);max-width:60ch;margin:24px auto 0;line-height:1.5}
   .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:36px}
   .cta-row .btn{padding:15px 30px;font-size:16.5px}
   .trust-line{margin-top:22px;font-size:13.5px;color:var(--faint);display:flex;gap:8px 20px;justify-content:center;flex-wrap:wrap}
   .trust-line b{color:var(--muted);font-weight:600}
-  .trust-line .sep{color:#3d3d4e}
+  .trust-line .sep{color:#d8d3ca}
 
   /* ── Screenshot ── */
   .shot-wrap{margin:56px auto 0;max-width:1000px;position:relative}
-  .shot-glow{position:absolute;inset:-6% 6% auto;height:70%;z-index:0;
-    background:radial-gradient(closest-side,rgba(147,133,255,.42),transparent);filter:blur(64px)}
+  .shot-glow{position:absolute;inset:-5% 8% auto;height:70%;z-index:0;
+    background:radial-gradient(closest-side,rgba(90,73,224,.22),transparent);filter:blur(60px)}
   .shot{position:relative;z-index:1;width:100%;border-radius:16px;display:block;
-    border:1px solid rgba(255,255,255,.09);box-shadow:0 40px 90px -30px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.02)}
+    border:1px solid var(--border);box-shadow:0 40px 80px -34px rgba(42,38,32,.4),0 8px 24px -12px rgba(42,38,32,.12)}
 
   /* ── Section scaffolding ── */
   section{position:relative}
   .band{padding:84px 0}
-  .kicker{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;
-    background:linear-gradient(90deg,#9d8fff,#c99bf5);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  .kicker{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
     margin-bottom:14px;text-align:center}
-  h2{font-size:clamp(28px,4vw,42px);line-height:1.1;font-weight:780;letter-spacing:-1px;text-align:center;max-width:20ch;margin:0 auto}
+  h2{font-size:clamp(28px,4vw,42px);line-height:1.1;font-weight:780;letter-spacing:-1px;text-align:center;max-width:20ch;margin:0 auto;color:#211f1a}
   .lead{text-align:center;color:var(--muted);font-size:18px;max-width:56ch;margin:18px auto 0}
 
   /* ── Feature grid ── */
   .feat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:56px}
-  .card{background:linear-gradient(180deg,rgba(255,255,255,.032),rgba(255,255,255,.008));
-    border:1px solid var(--border);border-radius:18px;padding:30px 28px;transition:border-color .2s,transform .2s,box-shadow .2s}
-  .card:hover{border-color:rgba(147,133,255,.38);transform:translateY(-3px);box-shadow:0 18px 40px -24px rgba(147,133,255,.5)}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:30px 28px;
+    box-shadow:0 1px 2px rgba(42,38,32,.03);transition:border-color .2s,transform .2s,box-shadow .2s}
+  .card:hover{border-color:rgba(90,73,224,.35);transform:translateY(-3px);box-shadow:0 20px 40px -24px rgba(90,73,224,.32)}
   .card .ic{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-size:22px;
-    background:var(--accent-soft);border:1px solid rgba(147,133,255,.24);margin-bottom:18px}
-  .card h3{font-size:20px;font-weight:700;letter-spacing:-.4px;margin-bottom:8px}
+    background:var(--accent-soft);border:1px solid rgba(90,73,224,.16);margin-bottom:18px}
+  .card h3{font-size:20px;font-weight:700;letter-spacing:-.4px;margin-bottom:8px;color:#211f1a}
   .card p{color:var(--muted);font-size:15.5px}
   .card .kbd{display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;
-    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:2px 7px;color:#d3cef0;margin-top:2px}
+    background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px 7px;color:#514c43;margin-top:2px}
 
   /* ── How it works ── */
   .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:52px}
   .step{text-align:center;padding:8px}
   .step .n{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;margin:0 auto 16px;
-    font-weight:800;font-size:18px;color:#fff;background:linear-gradient(118deg,#8b7cff,#b478ef);
-    box-shadow:0 8px 26px -8px rgba(147,124,255,.75)}
-  .step h3{font-size:18px;font-weight:700;margin-bottom:6px}
+    font-weight:800;font-size:18px;color:#fff;background:linear-gradient(118deg,#5a49e0,#6f54e8);
+    box-shadow:0 8px 22px -8px rgba(90,73,224,.55)}
+  .step h3{font-size:18px;font-weight:700;margin-bottom:6px;color:#211f1a}
   .step p{color:var(--muted);font-size:15px;max-width:32ch;margin:0 auto}
 
   /* ── Trust / data section ── */
-  .trust-band{background:
-      radial-gradient(760px 320px at 50% 0%,rgba(147,133,255,.12),transparent 70%);
-    border-top:1px solid rgba(255,255,255,.055);border-bottom:1px solid rgba(255,255,255,.055)}
+  .trust-band{background:var(--surface2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
   .trust-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:48px}
-  .tcard{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 22px;text-align:left}
+  .tcard{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 22px;text-align:left;
+    box-shadow:0 1px 2px rgba(42,38,32,.03)}
   .tcard .ic{font-size:24px;margin-bottom:14px;display:block}
-  .tcard h3{font-size:16.5px;font-weight:700;margin-bottom:7px}
+  .tcard h3{font-size:16.5px;font-weight:700;margin-bottom:7px;color:#211f1a}
   .tcard p{color:var(--muted);font-size:14px;line-height:1.55}
 
   /* ── Founder note ── */
-  .founder{max-width:720px;margin:0 auto;background:linear-gradient(180deg,#16151f,#111019);
-    border:1px solid var(--border);border-radius:22px;padding:40px 44px;position:relative}
-  .founder .q{font-size:19px;line-height:1.6;color:#e4e4f0;font-weight:450}
-  .founder .q b{color:#fff;font-weight:650}
+  .founder{max-width:720px;margin:0 auto;background:var(--surface);
+    border:1px solid var(--border);border-radius:22px;padding:40px 44px;position:relative;
+    box-shadow:0 20px 50px -34px rgba(42,38,32,.28)}
+  .founder .q{font-size:19px;line-height:1.6;color:#3a362f;font-weight:450}
+  .founder .q b{color:#211f1a;font-weight:650}
   .founder .who{display:flex;align-items:center;gap:13px;margin-top:26px}
-  .founder .av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#8b7cff,#c48ff7);
+  .founder .av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#5a49e0,#9268e6);
     display:grid;place-items:center;font-weight:800;color:#fff;font-size:17px}
-  .founder .nm{font-weight:700;font-size:15px}
+  .founder .nm{font-weight:700;font-size:15px;color:var(--text)}
   .founder .rl{color:var(--faint);font-size:13.5px}
 
   /* ── FAQ ── */
   .faq{max-width:760px;margin:52px auto 0}
   details{border-bottom:1px solid var(--border);padding:6px 0}
-  summary{list-style:none;cursor:pointer;padding:20px 4px;font-size:17px;font-weight:650;
+  summary{list-style:none;cursor:pointer;padding:20px 4px;font-size:17px;font-weight:650;color:var(--text);
     display:flex;justify-content:space-between;align-items:center;gap:16px;transition:color .15s}
   summary::-webkit-details-marker{display:none}
-  summary:hover{color:#fff}
-  summary .chev{color:var(--accent2);font-size:20px;transition:transform .2s;flex-shrink:0}
+  summary:hover{color:var(--accent)}
+  summary .chev{color:var(--accent);font-size:20px;transition:transform .2s;flex-shrink:0}
   details[open] summary .chev{transform:rotate(45deg)}
   details p{color:var(--muted);font-size:15.5px;padding:0 4px 20px;max-width:64ch}
-  details a{color:var(--accent2);text-decoration:underline;text-underline-offset:2px}
+  details a{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
 
   /* ── Final CTA ── */
   .final{text-align:center;position:relative;overflow:hidden;border-radius:28px;
     margin:0 24px;padding:72px 24px;
     background:
-      radial-gradient(640px 320px at 50% 0%,rgba(147,133,255,.32),transparent 65%),
-      linear-gradient(180deg,#17141f,#0d0c14);
-    border:1px solid rgba(147,133,255,.22)}
+      radial-gradient(620px 320px at 50% 0%,rgba(90,73,224,.14),transparent 66%),
+      radial-gradient(420px 260px at 82% 110%,rgba(224,160,74,.10),transparent 62%),
+      linear-gradient(180deg,#ffffff,#f5f3fb);
+    border:1px solid rgba(90,73,224,.18);box-shadow:0 24px 60px -36px rgba(90,73,224,.4)}
   .final h2{max-width:22ch}
   .final .sub{color:var(--muted);margin-top:16px;font-size:17px}
 
   /* ── Footer ── */
-  footer{border-top:1px solid rgba(255,255,255,.055);margin-top:90px;padding:40px 0 56px}
+  footer{border-top:1px solid var(--border);margin-top:90px;padding:40px 0 56px}
   .foot-in{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
   .foot-links{display:flex;gap:22px;flex-wrap:wrap}
   .foot-links a{color:var(--muted);font-size:14px}
@@ -198,8 +197,8 @@
 <nav>
   <div class="wrap nav-in">
     <a class="brand" href="/">
-      <svg viewBox="0 0 32 32"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b7cff"/><stop offset="1" stop-color="#c48ff7"/></linearGradient></defs><circle cx="16" cy="16" r="12" stroke="url(#lg)" stroke-width="3" fill="none"/><path d="M10 16.5 L14.5 21 L22 12" stroke="url(#lg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-      Task<span class="grad">OS</span>
+      <svg viewBox="0 0 32 32"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5a49e0"/><stop offset="1" stop-color="#9268e6"/></linearGradient></defs><circle cx="16" cy="16" r="12" stroke="url(#lg)" stroke-width="3" fill="none"/><path d="M10 16.5 L14.5 21 L22 12" stroke="url(#lg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      Halcyon
     </a>
     <div class="nav-links">
       <a href="#features">Features</a>
@@ -217,7 +216,7 @@
   <div class="wrap">
     <span class="eyebrow"><span class="dot"></span> Free to start · No account needed</span>
     <h1>Command your day.<br><span class="grad">Quiet your mind.</span></h1>
-    <p class="sub">The calm, keyboard-fast home for everything you have to do. Superhuman speed for your tasks, Notion depth for your goals, and an AI that clears your inbox and plans your day.</p>
+    <p class="sub">Halcyon is the calm, keyboard-fast home for everything you have to do. Superhuman speed for your tasks, Notion depth for your goals, and an AI that clears your inbox and plans your day.</p>
     <div class="cta-row">
       <a class="btn btn-primary app-link" href="/index.html">⚡ Start now for free</a>
       <a class="btn btn-ghost" href="#how">See how it works</a>
@@ -230,7 +229,7 @@
     </div>
     <div class="shot-wrap">
       <div class="shot-glow"></div>
-      <img class="shot" src="/shot-app.png" width="1280" height="820" alt="Task OS showing a clean task list with goals, priorities and an AI plan-my-day panel" loading="eager">
+      <img class="shot" src="/shot-app.png" width="1280" height="820" alt="Halcyon showing a clean task list with goals, priorities and an AI plan-my-day panel" loading="eager">
     </div>
   </div>
 </header>
@@ -239,7 +238,7 @@
   <div class="wrap">
     <div class="kicker">Why it's different</div>
     <h2>Fast enough to trust with everything</h2>
-    <p class="lead">Most task apps are either too shallow to hold your life, or too heavy to keep up with. Task OS is the middle ground: the speed of Superhuman with the depth of Notion.</p>
+    <p class="lead">Most task apps are either too shallow to hold your life, or too heavy to keep up with. Halcyon is the middle ground: the speed of Superhuman with the depth of Notion.</p>
     <div class="feat-grid">
       <div class="card">
         <div class="ic">⌘</div>
@@ -296,7 +295,7 @@
   <div class="wrap">
     <div class="kicker">Trust &amp; privacy</div>
     <h2>Your data is yours. Full stop.</h2>
-    <p class="lead">A task app sees your whole life. That only works if you can trust it, so Task OS keeps your data private, portable and firmly in your hands.</p>
+    <p class="lead">A task app sees your whole life. That only works if you can trust it, so Halcyon keeps your data private, portable and firmly in your hands.</p>
     <div class="trust-grid">
       <div class="tcard">
         <span class="ic">🔒</span>
@@ -329,7 +328,7 @@
       <div class="who">
         <div class="av">P</div>
         <div>
-          <div class="nm">Panos, maker of Task OS</div>
+          <div class="nm">Panos, maker of Halcyon</div>
           <div class="rl">Building it in the open, one release at a time</div>
         </div>
       </div>
@@ -344,7 +343,7 @@
     <div class="faq">
       <details open>
         <summary>Is it really free? <span class="chev">+</span></summary>
-        <p>Yes. You can use Task OS free, starting with no account at all. It’s an independent product built by one maker, with no venture pressure to nickel-and-dime you. If paid plans ever arrive, the core of what you use today stays free.</p>
+        <p>Yes. You can use Halcyon free, starting with no account at all. It’s an independent product built by one maker, with no venture pressure to nickel-and-dime you. If paid plans ever arrive, the core of what you use today stays free.</p>
       </details>
       <details>
         <summary>Do I have to sign up to try it? <span class="chev">+</span></summary>
@@ -364,7 +363,7 @@
       </details>
       <details>
         <summary>Can I get my data out if I leave? <span class="chev">+</span></summary>
-        <p>Always. Export your tasks and goals to a file whenever you like. No lock-in. If Task OS isn’t for you, you leave with everything.</p>
+        <p>Always. Export your tasks and goals to a file whenever you like. No lock-in. If Halcyon isn’t for you, you leave with everything.</p>
       </details>
     </div>
   </div>
@@ -384,9 +383,9 @@
 
 <footer>
   <div class="wrap foot-in">
-    <a class="brand" href="/" style="font-size:16px">
+    <a class="brand" href="/" style="font-size:17px">
       <svg viewBox="0 0 32 32" style="width:22px;height:22px"><circle cx="16" cy="16" r="12" stroke="url(#lg)" stroke-width="3" fill="none"/><path d="M10 16.5 L14.5 21 L22 12" stroke="url(#lg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-      Task<span class="grad">OS</span>
+      Halcyon
     </a>
     <div class="foot-links">
       <a href="#features">Features</a>
@@ -394,7 +393,7 @@
       <a href="#faq">FAQ</a>
       <a class="app-link" href="/index.html">Open the app</a>
     </div>
-    <div class="foot-copy">© 2026 Task OS · Made with care</div>
+    <div class="foot-copy">© 2026 Halcyon · Made with care</div>
   </div>
 </footer>
 

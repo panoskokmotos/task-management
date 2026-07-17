@@ -1,4 +1,4 @@
-const CACHE = 'task-os-20260720';
+const CACHE = 'arete-20260723';
 const STATIC = [
   './manifest.json',
   './manifest-givelink.json',
@@ -7,17 +7,21 @@ const STATIC = [
   './icon-192.png',
   './icon-512.png',
   './apple-touch-icon.png',
-  './og-image.png'
+  './og-image.png',
+  './shot-app.png'
 ];
 const HTML = [
   './',
   './index.html',
-  './givelink.html'
+  './givelink.html',
+  './landing.html'
 ];
 
 self.addEventListener('install', e => {
+  // Non-atomic: one missing/failed asset must not fail the whole install (which would
+  // strand clients on a stale service worker and could look like "the app won't load").
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll([...HTML, ...STATIC]))
+    caches.open(CACHE).then(c => Promise.allSettled([...HTML, ...STATIC].map(u => c.add(u))))
   );
   self.skipWaiting();
 });
@@ -34,7 +38,7 @@ self.addEventListener('activate', e => {
 self.addEventListener('push', e => {
   let data={};
   try{data=e.data?.json()||{};}catch(_){data={message:e.data?.text()||''};}
-  const title=data.title||'Life OS';
+  const title=data.title||'Arete';
   const body=data.message||data.body||'';
   e.waitUntil(
     self.registration.showNotification(title,{

@@ -1,0 +1,503 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Arete · Command your day. Quiet your mind.</title>
+<meta name="description" content="The calm, keyboard-fast home for everything you have to do. Superhuman speed for your tasks, Notion depth for your goals, and an AI that plans your day. Free to start, no account needed, your data stays yours.">
+<meta name="theme-color" content="#f7f6f3">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="canonical" href="https://task-management-beige-eight.vercel.app/">
+<!-- Open Graph / Twitter -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Arete · Command your day. Quiet your mind.">
+<meta property="og:description" content="The calm, keyboard-fast home for everything you have to do. Superhuman speed for your tasks, Notion depth for your goals, and an AI that plans your day.">
+<meta property="og:image" content="https://task-management-beige-eight.vercel.app/og-image.png">
+<meta property="og:url" content="https://task-management-beige-eight.vercel.app/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Arete · Command your day. Quiet your mind.">
+<meta name="twitter:description" content="The calm, keyboard-fast home for everything you have to do.">
+<meta name="twitter:image" content="https://task-management-beige-eight.vercel.app/og-image.png">
+<script>
+/* Front-door router: returning users and auth callbacks never see the pitch. */
+(function(){
+  try{
+    var h = location.hash || '', s = location.search || '';
+    // Supabase magic-link / email-confirm / recovery land on the site root. Hand off to the app, hash intact.
+    if(h.indexOf('access_token=')>-1 || h.indexOf('error=')>-1 || h.indexOf('type=recovery')>-1 || h.indexOf('type=signup')>-1){
+      location.replace('/index.html'+s+h); return;
+    }
+    // Anyone with an existing session (signed in or guest) skips straight into the app.
+    if(localStorage.getItem('taskos_sb_refresh') || localStorage.getItem('taskos_guest')==='1'){
+      location.replace('/index.html'+s+h); return;
+    }
+  }catch(e){}
+})();
+</script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#f7f6f3;--surface:#ffffff;--surface2:#f3f2ee;--border:#e9e6df;
+    --text:#2a2823;--muted:#6b665c;--faint:#9b9488;
+    --accent:#5a49e0;--accent2:#7c5ce6;--accent-soft:rgba(90,73,224,.08);
+    --warm:#e0a04a;
+  }
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.6;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  .grad{background:linear-gradient(115deg,#5a49e0 5%,#9268e6 95%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+
+  /* ── Nav ── */
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);
+    background:rgba(247,246,243,.8);border-bottom:1px solid var(--border)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:20px;letter-spacing:-.6px;color:var(--text)}
+  .brand svg{width:27px;height:27px}
+  .nav-links{display:flex;align-items:center;gap:28px}
+  .nav-links a{color:var(--muted);font-size:14.5px;font-weight:500;transition:color .15s}
+  .nav-links a:hover{color:var(--text)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:650;
+    border-radius:11px;cursor:pointer;border:1px solid transparent;transition:transform .12s,box-shadow .2s,background .2s;font-size:15px}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:linear-gradient(118deg,#5a49e0,#6f54e8);color:#fff;padding:12px 22px;
+    box-shadow:0 6px 20px -6px rgba(90,73,224,.5)}
+  .btn-primary:hover{box-shadow:0 12px 30px -6px rgba(90,73,224,.62)}
+  .btn-ghost{background:var(--surface);border-color:var(--border);color:var(--text);padding:12px 20px}
+  .btn-ghost:hover{background:var(--surface2)}
+  .btn-sm{padding:9px 17px;font-size:14px}
+  .nav-cta{display:flex;gap:10px;align-items:center}
+
+  /* ── Hero ── */
+  .hero{position:relative;padding:88px 0 40px;text-align:center;overflow:hidden}
+  .hero::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(720px 420px at 50% -12%,rgba(90,73,224,.11),transparent 62%),
+      radial-gradient(540px 360px at 8% 6%,rgba(224,160,74,.10),transparent 60%),
+      radial-gradient(540px 360px at 92% 2%,rgba(124,92,230,.09),transparent 60%)}
+  .hero>*{position:relative;z-index:1}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--accent);
+    background:var(--accent-soft);border:1px solid rgba(90,73,224,.2);border-radius:100px;padding:6px 14px;margin-bottom:26px}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(90,73,224,.15)}
+  h1{font-size:clamp(40px,7vw,72px);line-height:1.05;font-weight:820;letter-spacing:-2px;max-width:20ch;margin:0 auto;color:#211f1a}
+  .sub{font-size:clamp(17px,2.3vw,21px);color:var(--muted);max-width:60ch;margin:24px auto 0;line-height:1.5}
+  .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:36px}
+  .cta-row .btn{padding:15px 30px;font-size:16.5px}
+  .trust-line{margin-top:22px;font-size:13.5px;color:var(--faint);display:flex;gap:8px 20px;justify-content:center;flex-wrap:wrap}
+  .trust-line b{color:var(--muted);font-weight:600}
+  .trust-line .sep{color:#d8d3ca}
+
+  /* ── Screenshot ── */
+  .shot-wrap{margin:56px auto 0;max-width:1000px;position:relative}
+  .shot-glow{position:absolute;inset:-5% 8% auto;height:70%;z-index:0;
+    background:radial-gradient(closest-side,rgba(90,73,224,.22),transparent);filter:blur(60px)}
+  .shot{position:relative;z-index:1;width:100%;border-radius:16px;display:block;
+    border:1px solid var(--border);box-shadow:0 40px 80px -34px rgba(42,38,32,.4),0 8px 24px -12px rgba(42,38,32,.12)}
+
+  /* ── Section scaffolding ── */
+  section{position:relative}
+  .band{padding:84px 0}
+  .kicker{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);
+    margin-bottom:14px;text-align:center}
+  h2{font-size:clamp(28px,4vw,42px);line-height:1.1;font-weight:780;letter-spacing:-1px;text-align:center;max-width:20ch;margin:0 auto;color:#211f1a}
+  .lead{text-align:center;color:var(--muted);font-size:18px;max-width:56ch;margin:18px auto 0}
+
+  /* ── Feature grid ── */
+  .feat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:56px}
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:30px 28px;
+    box-shadow:0 1px 2px rgba(42,38,32,.03);transition:border-color .2s,transform .2s,box-shadow .2s}
+  .card:hover{border-color:rgba(90,73,224,.35);transform:translateY(-3px);box-shadow:0 20px 40px -24px rgba(90,73,224,.32)}
+  .card .ic{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-size:22px;
+    background:var(--accent-soft);border:1px solid rgba(90,73,224,.16);margin-bottom:18px}
+  .card h3{font-size:20px;font-weight:700;letter-spacing:-.4px;margin-bottom:8px;color:#211f1a}
+  .card p{color:var(--muted);font-size:15.5px}
+  .card .kbd{display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;
+    background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:2px 7px;color:#514c43;margin-top:2px}
+
+  /* ── How it works ── */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:52px}
+  .step{text-align:center;padding:8px}
+  .step .n{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;margin:0 auto 16px;
+    font-weight:800;font-size:18px;color:#fff;background:linear-gradient(118deg,#5a49e0,#6f54e8);
+    box-shadow:0 8px 22px -8px rgba(90,73,224,.55)}
+  .step h3{font-size:18px;font-weight:700;margin-bottom:6px;color:#211f1a}
+  .step p{color:var(--muted);font-size:15px;max-width:32ch;margin:0 auto}
+
+  /* ── Trust / data section ── */
+  .trust-band{background:var(--surface2);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+  .trust-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:48px}
+  .tcard{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 22px;text-align:left;
+    box-shadow:0 1px 2px rgba(42,38,32,.03)}
+  .tcard .ic{font-size:24px;margin-bottom:14px;display:block}
+  .tcard h3{font-size:16.5px;font-weight:700;margin-bottom:7px;color:#211f1a}
+  .tcard p{color:var(--muted);font-size:14px;line-height:1.55}
+
+  /* ── Founder note ── */
+  .founder{max-width:720px;margin:0 auto;background:var(--surface);
+    border:1px solid var(--border);border-radius:22px;padding:40px 44px;position:relative;
+    box-shadow:0 20px 50px -34px rgba(42,38,32,.28)}
+  .founder .q{font-size:19px;line-height:1.6;color:#3a362f;font-weight:450}
+  .founder .q b{color:#211f1a;font-weight:650}
+  .founder .who{display:flex;align-items:center;gap:13px;margin-top:26px}
+  .founder .av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#5a49e0,#9268e6);
+    display:grid;place-items:center;font-weight:800;color:#fff;font-size:17px}
+  .founder .nm{font-weight:700;font-size:15px;color:var(--text)}
+  .founder .rl{color:var(--faint);font-size:13.5px}
+
+  /* ── FAQ ── */
+  .faq{max-width:760px;margin:52px auto 0}
+  details{border-bottom:1px solid var(--border);padding:6px 0}
+  summary{list-style:none;cursor:pointer;padding:20px 4px;font-size:17px;font-weight:650;color:var(--text);
+    display:flex;justify-content:space-between;align-items:center;gap:16px;transition:color .15s}
+  summary::-webkit-details-marker{display:none}
+  summary:hover{color:var(--accent)}
+  summary .chev{color:var(--accent);font-size:20px;transition:transform .2s;flex-shrink:0}
+  details[open] summary .chev{transform:rotate(45deg)}
+  details p{color:var(--muted);font-size:15.5px;padding:0 4px 20px;max-width:64ch}
+  details a{color:var(--accent);text-decoration:underline;text-underline-offset:2px}
+
+  /* ── Final CTA ── */
+  .final{text-align:center;position:relative;overflow:hidden;border-radius:28px;
+    margin:0 24px;padding:72px 24px;
+    background:
+      radial-gradient(620px 320px at 50% 0%,rgba(90,73,224,.14),transparent 66%),
+      radial-gradient(420px 260px at 82% 110%,rgba(224,160,74,.10),transparent 62%),
+      linear-gradient(180deg,#ffffff,#f5f3fb);
+    border:1px solid rgba(90,73,224,.18);box-shadow:0 24px 60px -36px rgba(90,73,224,.4)}
+  .final h2{max-width:22ch}
+  .final .sub{color:var(--muted);margin-top:16px;font-size:17px}
+
+  /* ── Footer ── */
+  footer{border-top:1px solid var(--border);margin-top:90px;padding:40px 0 56px}
+  .foot-in{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+  .foot-links{display:flex;gap:22px;flex-wrap:wrap}
+  .foot-links a{color:var(--muted);font-size:14px}
+  .foot-links a:hover{color:var(--text)}
+  .foot-copy{color:var(--faint);font-size:13px}
+
+  /* ── Hero demo (auto-playing magic moment) ── */
+  .demo-wrap{margin:56px auto 0;max-width:860px;position:relative}
+  .demo-frame{position:relative;z-index:1;background:var(--surface);border:1px solid var(--border);border-radius:18px;overflow:hidden;
+    box-shadow:0 40px 80px -34px rgba(42,38,32,.4),0 8px 24px -12px rgba(42,38,32,.1)}
+  .demo-bar{display:flex;align-items:center;gap:7px;padding:13px 16px;border-bottom:1px solid var(--border);background:var(--surface2)}
+  .demo-bar i{width:11px;height:11px;border-radius:50%;background:#dcd8cf}
+  .demo-bar b{margin-left:10px;font-size:12.5px;font-weight:700;color:var(--muted);letter-spacing:-.2px}
+  .demo-screen{position:relative;height:440px}
+  .demo-pane{position:absolute;inset:0;padding:34px 40px;display:flex;flex-direction:column;transition:opacity .55s ease,transform .55s ease}
+  .demo-org{opacity:0;transform:translateY(12px);pointer-events:none}
+  .demo-wrap.show-org .demo-dump{opacity:0;transform:translateY(-12px);pointer-events:none}
+  .demo-wrap.show-org .demo-org{opacity:1;transform:none}
+  .demo-q,.demo-org-h{font-size:22px;font-weight:800;letter-spacing:-.6px;color:var(--text);margin-bottom:18px}
+  .demo-lines{flex:1;display:flex;flex-direction:column;gap:13px}
+  .demo-line{font-size:16px;color:var(--text);opacity:0;transform:translateX(-8px);transition:opacity .35s,transform .35s;display:flex;align-items:center;gap:11px}
+  .demo-line.in{opacity:1;transform:none}
+  .demo-line::before{content:'';width:16px;height:16px;border-radius:5px;border:1.5px solid var(--border);flex:none}
+  .demo-cta{align-self:flex-start;margin-top:12px;background:linear-gradient(118deg,var(--accent),#7c5ce6);color:#fff;font-weight:700;font-size:15px;padding:12px 22px;border-radius:12px;box-shadow:0 8px 22px -8px rgba(90,73,224,.5)}
+  .demo-cta.pulse{animation:demoPulse .6s}
+  @keyframes demoPulse{0%{transform:scale(1)}40%{transform:scale(.94)}70%{transform:scale(1.03)}100%{transform:scale(1)}}
+  .demo-chips{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+  .demo-chip{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-size:13px;color:var(--muted)}
+  .demo-chip b{color:var(--accent);font-size:17px;font-weight:800;margin-right:5px}
+  .demo-t3{background:var(--surface2);border:1px solid var(--border);border-radius:14px;padding:4px 16px}
+  .demo-t3-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);opacity:0;transform:translateY(6px);transition:opacity .4s,transform .4s}
+  .demo-t3-item:last-child{border-bottom:none}
+  .demo-wrap.show-org .demo-t3-item{opacity:1;transform:none}
+  .demo-t3-n{width:22px;height:22px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font-weight:800;font-size:12px;display:grid;place-items:center;flex:none}
+  .demo-t3-t{flex:1;font-size:15px;font-weight:600;color:var(--text)}
+  .demo-t3-d{font-size:12px;color:var(--accent);background:var(--accent-soft);padding:2px 9px;border-radius:20px;white-space:nowrap}
+  .demo-cap{text-align:center;color:var(--faint);font-size:13.5px;margin-top:18px}
+
+  @media(max-width:600px){.demo-screen{height:406px}.demo-pane{padding:24px 22px}.demo-q,.demo-org-h{font-size:19px}.demo-line{font-size:14.5px}}
+
+  @media(max-width:760px){
+    .nav-links{display:none}
+    .hero{padding:56px 0 30px}
+    .band{padding:60px 0}
+    .feat-grid,.trust-grid{grid-template-columns:1fr}
+    .steps{grid-template-columns:1fr;gap:32px}
+    .founder{padding:30px 24px}
+    .final{padding:54px 20px;margin:0 16px}
+    .shot-wrap{margin-top:40px}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-in">
+    <a class="brand" href="/">
+      <svg viewBox="0 0 32 32"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5a49e0"/><stop offset="1" stop-color="#9268e6"/></linearGradient></defs><path d="M8.3 23.7 L16 9 L23.7 23.7" fill="none" stroke="url(#lg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.2 17.7 L19.8 17.7" fill="none" stroke="url(#lg)" stroke-width="3" stroke-linecap="round"/></svg>
+      Arete
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#trust">Your data</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="nav-cta">
+      <a class="btn btn-primary btn-sm app-link" href="/index.html">Start free →</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow"><span class="dot"></span> Free to start · No account needed</span>
+    <h1>Command your day.<br><span class="grad">Quiet your mind.</span></h1>
+    <p class="sub">Arete is the calm, keyboard-fast home for everything you have to do. Superhuman speed for your tasks, Notion depth for your goals, and an AI that clears your inbox and plans your day.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary app-link" href="/index.html">⚡ Start now for free</a>
+      <a class="btn btn-ghost" href="#how">See how it works</a>
+    </div>
+    <div class="trust-line">
+      <span><b>✓ No credit card</b></span><span class="sep">·</span>
+      <span><b>✓ Works offline</b></span><span class="sep">·</span>
+      <span><b>✓ Export anytime</b></span><span class="sep">·</span>
+      <span><b>✓ Your data stays private</b></span>
+    </div>
+    <div class="demo-wrap">
+      <div class="shot-glow"></div>
+      <div class="demo-frame" aria-hidden="true">
+        <div class="demo-bar"><i></i><i></i><i></i><b>Arete</b></div>
+        <div class="demo-screen">
+          <div class="demo-pane demo-dump">
+            <div class="demo-q">What's on your mind?</div>
+            <div class="demo-lines" id="demoLines"></div>
+            <div class="demo-cta" id="demoCta">Organize my day ✨</div>
+          </div>
+          <div class="demo-pane demo-org">
+            <div class="demo-org-h">✨ Here's your day.</div>
+            <div class="demo-chips">
+              <span class="demo-chip"><b>5</b> captured</span>
+              <span class="demo-chip"><b>3</b> today</span>
+              <span class="demo-chip"><b>2</b> this week</span>
+            </div>
+            <div class="demo-t3" id="demoT3"></div>
+          </div>
+        </div>
+      </div>
+      <div class="demo-cap">A 30-second first run. Your real tasks, organized into a calm day.</div>
+    </div>
+  </div>
+</header>
+
+<section class="band" id="features">
+  <div class="wrap">
+    <div class="kicker">Why it's different</div>
+    <h2>Fast enough to trust with everything</h2>
+    <p class="lead">Most task apps are either too shallow to hold your life, or too heavy to keep up with. Arete is the middle ground: the speed of Superhuman with the depth of Notion.</p>
+    <div class="feat-grid">
+      <div class="card">
+        <div class="ic">⌘</div>
+        <h3>Capture at the speed of thought</h3>
+        <p>Hit <span class="kbd">⌘K</span> from anywhere to add, find or jump. Type a task in plain English like “call mum friday 5pm #family” and it fills in the date, tag and priority for you.</p>
+      </div>
+      <div class="card">
+        <div class="ic">🎯</div>
+        <h3>Every task points at a goal</h3>
+        <p>Link tasks to goals, habits and a Wheel of Life balance so your list never feels pointless. Notion-deep structure, none of the upkeep.</p>
+      </div>
+      <div class="card">
+        <div class="ic">✨</div>
+        <h3>AI that clears the noise</h3>
+        <p>One tap sorts your whole inbox into priorities. Ask it to plan a time-blocked day and it drafts one around your real commitments. You always stay in control.</p>
+      </div>
+      <div class="card">
+        <div class="ic">📱</div>
+        <h3>Everywhere, even offline</h3>
+        <p>Installs like a native app on phone and desktop, syncs across devices, and keeps working with no connection. Board, calendar and list views included.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="how">
+  <div class="wrap">
+    <div class="kicker">Get going in under a minute</div>
+    <h2>No setup. No account wall. Just start.</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="n">1</div>
+        <h3>Open it and start</h3>
+        <p>Click start and you’re in instantly with a ready-made starter board. No signup, no credit card, nothing to configure.</p>
+      </div>
+      <div class="step">
+        <div class="n">2</div>
+        <h3>Capture your world</h3>
+        <p>Add every task, goal and habit. Let the AI triage and plan it. Feel your head empty out into something calm and organised.</p>
+      </div>
+      <div class="step">
+        <div class="n">3</div>
+        <h3>Sync when you’re ready</h3>
+        <p>Like it? Create a free account in one tap to sync across devices. Your guest work comes with you, nothing is lost.</p>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:48px">
+      <a class="btn btn-primary app-link" href="/index.html" style="padding:15px 30px;font-size:16.5px">Start free →</a>
+    </div>
+  </div>
+</section>
+
+<section class="band trust-band" id="trust">
+  <div class="wrap">
+    <div class="kicker">Trust &amp; privacy</div>
+    <h2>Your data is yours. Full stop.</h2>
+    <p class="lead">A task app sees your whole life. That only works if you can trust it, so Arete keeps your data private, portable and firmly in your hands.</p>
+    <div class="trust-grid">
+      <div class="tcard">
+        <span class="ic">🔒</span>
+        <h3>Private by default</h3>
+        <p>Every account is isolated at the database level. Only you can read or write your data, enforced by row-level security rather than a promise.</p>
+      </div>
+      <div class="tcard">
+        <span class="ic">📤</span>
+        <h3>Export anytime</h3>
+        <p>Your tasks and goals are yours to take. Export to a file whenever you want. No lock-in, no “contact us to leave.”</p>
+      </div>
+      <div class="tcard">
+        <span class="ic">💾</span>
+        <h3>Offline-first</h3>
+        <p>Your data lives on your device first, then syncs to the cloud. Lose signal and the app keeps working, with nothing to wait on.</p>
+      </div>
+      <div class="tcard">
+        <span class="ic">🚫</span>
+        <h3>No ads, no reselling</h3>
+        <p>This isn’t an attention-harvesting app. There are no ads and your data is never sold. It exists to make your days calmer.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="founder">
+      <p class="q">“I tried every to-do app out there. Each one was either a flat list I outgrew, or a Notion I stopped maintaining. So I built the one I actually wanted every day: <b>calm, keyboard-fast, and smart enough to plan my day for me.</b> I named it Arete (ar-eh-TAY), the Greek idea of living to your fullest potential, because the goal was never a shorter list. It was <b>eudaimonia</b>: a life that flourishes. I use it every morning, and it’s free because I want it in more hands. I’d genuinely love your feedback on what’s missing.”</p>
+      <div class="who">
+        <div class="av">P</div>
+        <div>
+          <div class="nm">Panos, maker of Arete</div>
+          <div class="rl">Building it in the open, one release at a time</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="faq">
+  <div class="wrap">
+    <div class="kicker">Questions</div>
+    <h2>Everything you’re wondering</h2>
+    <div class="faq">
+      <details open>
+        <summary>Is it really free? <span class="chev">+</span></summary>
+        <p>Yes. You can use Arete free, starting with no account at all. It’s an independent product built by one maker, with no venture pressure to nickel-and-dime you. If paid plans ever arrive, the core of what you use today stays free.</p>
+      </details>
+      <details>
+        <summary>Do I have to sign up to try it? <span class="chev">+</span></summary>
+        <p>No. Click “Start now” and you’re in immediately as a guest, with a starter board ready to go. Create a free account later, in one tap, only when you want to sync across devices. Your guest work carries over.</p>
+      </details>
+      <details>
+        <summary>Who can see my tasks? <span class="chev">+</span></summary>
+        <p>Only you. Each account’s data is isolated at the database level with row-level security, and offline copies live on your own device. There are no ads and your data is never sold.</p>
+      </details>
+      <details>
+        <summary>Does it work on my phone? <span class="chev">+</span></summary>
+        <p>Yes. It’s a progressive web app that installs to your home screen on iPhone and Android and runs full-screen like a native app. It works on desktop the same way, and syncs between them.</p>
+      </details>
+      <details>
+        <summary>What does the AI actually do, and is it safe? <span class="chev">+</span></summary>
+        <p>The AI triages your inbox into priorities and drafts a time-blocked day on request. It only acts when you ask it to, and you approve the result. It’s an assistant, not an autopilot.</p>
+      </details>
+      <details>
+        <summary>Can I get my data out if I leave? <span class="chev">+</span></summary>
+        <p>Always. Export your tasks and goals to a file whenever you like. No lock-in. If Arete isn’t for you, you leave with everything.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="final">
+      <h2 style="margin:0 auto">Give your day a calmer home.</h2>
+      <p class="sub">Start free in seconds. No account, no credit card. Bring your whole life into one fast, quiet place.</p>
+      <div class="cta-row" style="margin-top:30px">
+        <a class="btn btn-primary app-link" href="/index.html" style="padding:16px 34px;font-size:17px">⚡ Start now for free</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-in">
+    <a class="brand" href="/" style="font-size:17px">
+      <svg viewBox="0 0 32 32" style="width:22px;height:22px"><path d="M8.3 23.7 L16 9 L23.7 23.7" fill="none" stroke="url(#lg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.2 17.7 L19.8 17.7" fill="none" stroke="url(#lg)" stroke-width="3" stroke-linecap="round"/></svg>
+      Arete
+    </a>
+    <div class="foot-links">
+      <a href="#features">Features</a>
+      <a href="#trust">Privacy</a>
+      <a href="#faq">FAQ</a>
+      <a class="app-link" href="/index.html">Open the app</a>
+    </div>
+    <div class="foot-copy">© 2026 Arete · Made with care</div>
+  </div>
+</footer>
+
+<script>
+/* Carry referral / template params through to the app so shared links keep attribution. */
+(function(){
+  var s = location.search || '';
+  if(!s) return;
+  document.querySelectorAll('a.app-link').forEach(function(a){
+    a.setAttribute('href','/index.html'+s);
+  });
+})();
+</script>
+<script>
+/* Auto-playing hero demo of the brain-dump -> organized-day magic moment. */
+(function(){
+  var wrap = document.querySelector('.demo-wrap');
+  if(!wrap) return;
+  var linesEl = document.getElementById('demoLines');
+  var t3El = document.getElementById('demoT3');
+  var cta = document.getElementById('demoCta');
+  if(!linesEl || !t3El || !cta) return;
+  var LINES = ['Finish the Q3 deck','Call the dentist tomorrow','Reply to Sam','Gym Friday','Book flights for the trip'];
+  var TOP3 = [['Call the dentist','Tue'],['Finish the Q3 deck','Today'],['Reply to Sam','Today']];
+  linesEl.innerHTML = LINES.map(function(l){ return '<div class="demo-line">'+l+'</div>'; }).join('');
+  t3El.innerHTML = TOP3.map(function(t,i){ return '<div class="demo-t3-item"><span class="demo-t3-n">'+(i+1)+'</span><span class="demo-t3-t">'+t[0]+'</span><span class="demo-t3-d">'+t[1]+'</span></div>'; }).join('');
+  var lineEls = [].slice.call(linesEl.querySelectorAll('.demo-line'));
+  var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduce){ wrap.classList.add('show-org'); lineEls.forEach(function(el){ el.classList.add('in'); }); return; }
+  var timers = [];
+  function at(ms, fn){ timers.push(setTimeout(fn, ms)); }
+  function loop(){
+    timers.forEach(clearTimeout); timers = [];
+    wrap.classList.remove('show-org');
+    lineEls.forEach(function(el){ el.classList.remove('in'); });
+    cta.classList.remove('pulse');
+    lineEls.forEach(function(el,i){ at(500 + i*360, function(){ el.classList.add('in'); }); });
+    var after = 500 + lineEls.length*360 + 450;
+    at(after, function(){ cta.classList.add('pulse'); });
+    at(after + 680, function(){ wrap.classList.add('show-org'); });
+    at(after + 680 + 3600, loop);
+  }
+  // Start when the demo scrolls into view (saves work if never seen).
+  if('IntersectionObserver' in window){
+    var seen = false;
+    var io = new IntersectionObserver(function(en){
+      en.forEach(function(e){ if(e.isIntersecting && !seen){ seen = true; loop(); } });
+    }, {threshold:0.3});
+    io.observe(wrap);
+  } else { loop(); }
+})();
+</script>
+</body>
+</html>

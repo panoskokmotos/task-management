@@ -10522,14 +10522,15 @@ function _frOrganize(){
   setTimeout(function(){ if(btn){btn.disabled=false;btn.classList.remove('fr-organizing');} _frDoOrganize(lines); },640);
 }
 function _frDoOrganize(lines){
-  const today=new Date();today.setHours(0,0,0,0);
-  const todayStr=today.toISOString().slice(0,10);
-  const tmr=new Date(today);tmr.setDate(tmr.getDate()+1);const tmrStr=tmr.toISOString().slice(0,10);
+  // Use the app's date convention (UTC-sliced) so Top-3 dates line up with the rest of the app across timezones.
+  const todayStr=new Date().toISOString().slice(0,10);
+  const tmrStr=new Date(Date.now()+864e5).toISOString().slice(0,10);
+  const todayMs=Date.parse(todayStr);
   const created=lines.slice(0,40).map(line=>{
     let title=line,dueStr='';
     try{const p=_parseNLDate(line);title=p.title||line;if(p.dueDate)dueStr=new Date(p.dueDate).toISOString().slice(0,10);}catch(e){}
     let bucket='this-week';
-    if(dueStr){const days=Math.round((new Date(dueStr)-today)/86400000);bucket=days<=7?'this-week':days<=31?'this-month':'backlog';}
+    if(dueStr){const days=Math.round((Date.parse(dueStr)-todayMs)/864e5);bucket=days<=7?'this-week':days<=31?'this-month':'backlog';}
     return {id:uid(),title,notes:'',bucket,category:'other',urgency:'medium',importance:'high',energy:'medium',depth:'medium',status:'todo',isT3:false,t3s:null,timeBlock:null,dueDate:dueStr,goalId:null,recurring:'',checklist:[],blockedBy:[],linkedPeople:[],ifThen:'',bundledWith:'',read:false,createdAt:new Date().toISOString(),completedAt:null};
   });
   // Top 3 for today: soonest-due first, then first typed
@@ -10542,7 +10543,9 @@ function _frDoOrganize(lines){
   let goalNote='';
   if(_frArea){
     const T={health:'Invest in my health',wealth:'Grow my wealth',wisdom:'Keep learning & growing',relationships:'Nurture my relationships',experience:'Live life more fully'};
-    const g={id:uid(),title:T[_frArea]||'My focus',description:'',category:_frArea,isTop3:false,createdAt:new Date().toISOString()};
+    // Map the life-area chip to a real goal category (Goals use finance/health/relationships/learning/brand/other).
+    const CATMAP={health:'health',wealth:'finance',wisdom:'learning',relationships:'relationships',experience:'other'};
+    const g={id:uid(),title:T[_frArea]||'My focus',description:'',category:CATMAP[_frArea]||'other',isTop3:false,createdAt:new Date().toISOString()};
     S.goals=S.goals||[];S.goals.push(g);
     if(picks[0])picks[0].goalId=g.id;
     goalNote=g.title;

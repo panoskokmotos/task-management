@@ -10379,7 +10379,10 @@ async function _authBoot(){
     }
   }
   if(_sbEnabled()){_hideAuthGate();try{sbSyncNow();}catch(e){}try{_applyPendingTemplate();}catch(e){}}
-  else if(_isGuest()){_hideAuthGate();_renderAccountChip();try{_applyPendingTemplate();}catch(e){}} // returning guest keeps browsing locally
+  else if(_isGuest()){_hideAuthGate();_renderAccountChip();try{_applyPendingTemplate();}catch(e){} // returning guest keeps browsing locally
+    // Guest who reloaded before finishing the first run (and has no tasks yet) → re-show it.
+    if((!S.tasks||!S.tasks.length)&&!_pendingTemplate&&!localStorage.getItem('arete_fr_done')){setTimeout(()=>{try{_startFirstRun();}catch(e){}},300);}
+  }
   else{_showAuthGate();}
 }
 // ══ PRODUCT ANALYTICS (PostHog) — no-ops entirely unless a key is configured ══
@@ -10424,7 +10427,11 @@ async function sbSyncNow(force){
       if(!force)toast('☁️ Updated from another device');
     } else {
       // Brand-new hosted account with nothing in the cloud yet → friendly starter, not empty.
-      if(_hostedMode()&&!remote&&!S._welcomed&&(!S.tasks||S.tasks.length===0)){_welcomeSeed();}
+      // Brand-new account (or one that reloaded before finishing the first run) → show the brain-dump.
+      if(_hostedMode()&&!remote&&(!S.tasks||S.tasks.length===0)&&!localStorage.getItem('arete_fr_done')){
+        if(!S._welcomed){_welcomeSeed();}
+        else{setTimeout(()=>{try{_startFirstRun();}catch(e){}},450);}
+      }
       await sbPush();
       _sbPending=false;
       _sbSetStatus('Synced ⬆ '+new Date().toLocaleTimeString());
@@ -10486,7 +10493,7 @@ function _startFirstRun(){
   setTimeout(()=>{const ta=document.getElementById('fr-dump');if(ta)ta.focus();},220);
   try{track('firstrun_started',{});}catch(e){}
 }
-function _frCloseOverlay(){const el=document.getElementById('firstrun');if(el)el.style.display='none';document.body.classList.remove('modal-open');document.removeEventListener('keydown',_frKeydown);}
+function _frCloseOverlay(){const el=document.getElementById('firstrun');if(el)el.style.display='none';document.body.classList.remove('modal-open');document.removeEventListener('keydown',_frKeydown);try{localStorage.setItem('arete_fr_done','1');}catch(e){}}
 function _frSkip(){
   _frCloseOverlay();
   if(!S.tasks||!S.tasks.length)_seedStarter();

@@ -6,7 +6,7 @@
 <meta name="theme-color" content="#8b7cff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="Task OS">
+<meta name="apple-mobile-web-app-title" content="Arete">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <link rel="icon" type="image/svg+xml" href="icon.svg">
@@ -14,20 +14,20 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<title>Task OS — the calm, keyboard-fast home for everything you have to do</title>
+<title>Arete · Command your day. Quiet your mind.</title>
 <meta name="description" content="Superhuman speed for your tasks. Notion depth for your life. AI that clears your inbox, plans your day, and keeps every task pointed at a goal. Free to start, syncs everywhere, works offline.">
 <!-- Social share preview (Open Graph + Twitter) -->
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="Task OS">
-<meta property="og:title" content="Task OS — the calm, keyboard-fast home for everything you have to do">
+<meta property="og:site_name" content="Arete">
+<meta property="og:title" content="Arete · Command your day. Quiet your mind.">
 <meta property="og:description" content="Superhuman speed for your tasks. Notion depth for your life. AI that clears your inbox and plans your day.">
 <meta property="og:url" content="https://task-management-beige-eight.vercel.app/">
 <meta property="og:image" content="https://task-management-beige-eight.vercel.app/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Task OS — the calm, keyboard-fast home for everything you have to do">
+<meta property="og:image:alt" content="Arete · Command your day. Quiet your mind.">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Task OS — the calm, keyboard-fast home for everything you have to do">
+<meta name="twitter:title" content="Arete · Command your day. Quiet your mind.">
 <meta name="twitter:description" content="Superhuman speed for your tasks. Notion depth for your life. AI that clears your inbox and plans your day.">
 <meta name="twitter:image" content="https://task-management-beige-eight.vercel.app/og-image.png">
 <style>
@@ -836,15 +836,14 @@ body.auth-locked{overflow:hidden;}
 
 <div id="app-splash" aria-hidden="true">
   <svg class="sl-mark" viewBox="0 0 192 192" width="78" height="78">
-    <defs><linearGradient id="slg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b7cff"/><stop offset="1" stop-color="#c08cff"/></linearGradient></defs>
-    <circle cx="96" cy="96" r="52" fill="none" stroke="url(#slg)" stroke-width="10" stroke-linecap="round"/>
-    <polyline points="72,98 89,116 122,76" fill="none" stroke="#ffffff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+    <defs><linearGradient id="slg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5a49e0"/><stop offset="1" stop-color="#9268e6"/></linearGradient></defs>
+    <path d="M50 142 L96 54 L142 142" fill="none" stroke="url(#slg)" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/><path d="M73 106 L119 106" fill="none" stroke="url(#slg)" stroke-width="14" stroke-linecap="round"/>
   </svg>
-  <div class="sl-name">Task<span>OS</span></div>
+  <div class="sl-name">Arete</div>
 </div>
 <button class="ham-btn" onclick="toggleSB()" aria-label="Menu"><span></span><span></span><span></span></button>
 <button class="mob-search" onclick="openCmdK()" aria-label="Search and commands">🔍</button>
-<div id="mobile-brand"><svg class="logo-mark" viewBox="0 0 32 32"><defs><linearGradient id="lgm2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b7cff"/><stop offset="1" stop-color="#b681f5"/></linearGradient></defs><circle cx="16" cy="16" r="12" stroke="url(#lgm2)" stroke-width="3" fill="none"/><path d="M10 16.5 L14.5 21 L22 12" stroke="url(#lgm2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><span class="logo-word">Task<span class="g">OS</span></span></div>
+<div id="mobile-brand"><svg class="logo-mark" viewBox="0 0 32 32"><defs><linearGradient id="lgm2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5a49e0"/><stop offset="1" stop-color="#9268e6"/></linearGradient></defs><path d="M8.3 23.7 L16 9 L23.7 23.7" fill="none" stroke="url(#lgm2)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.2 17.7 L19.8 17.7" fill="none" stroke="url(#lgm2)" stroke-width="3" stroke-linecap="round"/></svg><span class="logo-word">Arete</span></div>
 <span id="offline-pill" class="hidden" style="position:fixed;top:10px;right:14px;z-index:9999;background:#ef4444;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;display:none;">📡 Offline</span>
 <input type="file" id="import-file-hidden" accept=".json" style="display:none;" onchange="importData(event)">
 
@@ -852,10 +851,10 @@ body.auth-locked{overflow:hidden;}
 <div id="auth-gate" class="auth-gate" style="display:none;">
   <div class="ag-hero-col">
     <div class="ag-brand">
-      <svg class="logo-mark" viewBox="0 0 32 32" width="30" height="30"><defs><linearGradient id="agl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b7cff"/><stop offset="1" stop-color="#b681f5"/></linearGradient></defs><circle cx="16" cy="16" r="12" stroke="url(#agl)" stroke-width="3" fill="none"/><path d="M10 16.5 L14.5 21 L22 12" stroke="url(#agl)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
-      <span class="ag-word">Task<span class="g">OS</span></span>
+      <svg class="logo-mark" viewBox="0 0 32 32" width="30" height="30"><defs><linearGradient id="agl" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5a49e0"/><stop offset="1" stop-color="#9268e6"/></linearGradient></defs><path d="M8.3 23.7 L16 9 L23.7 23.7" fill="none" stroke="url(#agl)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.2 17.7 L19.8 17.7" fill="none" stroke="url(#agl)" stroke-width="3" stroke-linecap="round"/></svg>
+      <span class="ag-word">Arete</span>
     </div>
-    <h1 class="ag-hero">The calm, keyboard-fast home for everything you have to do.</h1>
+    <h1 class="ag-hero">Command your day. Quiet your mind.</h1>
     <p class="ag-sub">Superhuman speed for your tasks. Notion depth for your life. AI that clears your inbox, plans your day, and keeps every task pointed at a goal.</p>
     <ul class="ag-bullets">
       <li><b>⌘K everything.</b> Reply to a task to do it. Triage your whole inbox with one tap.</li>
@@ -881,7 +880,7 @@ body.auth-locked{overflow:hidden;}
     <button class="ag-btn ag-primary" onclick="authSubmit()">Log in</button>
     <button class="ag-btn ag-google" onclick="authGoogle()"><span style="font-weight:700;">G</span>&nbsp;Continue with Google</button>
     <button class="ag-textlink" onclick="authMagic()">Email me a magic link instead</button>
-    <div class="ag-toggle">New to Task OS? <a onclick="_agToggleMode()"><span id="ag-mode-link">Create an account</span></a></div>
+    <div class="ag-toggle">New to Arete? <a onclick="_agToggleMode()"><span id="ag-mode-link">Create an account</span></a></div>
     <button id="ag-guest-back" class="ag-textlink" style="display:none;margin-top:14px;" onclick="_backToGuest()">← Keep browsing without an account</button>
     <div class="ag-foot">🔒 Your data is private (row-level secured) and yours to export anytime.</div>
   </div>
@@ -890,7 +889,7 @@ body.auth-locked{overflow:hidden;}
 <div class="s-ov" id="s-ov" onclick="toggleSB()"></div>
 
 <nav class="sidebar">
-  <div class="logo"><svg class="logo-mark" viewBox="0 0 32 32"><defs><linearGradient id="lgm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b7cff"/><stop offset="1" stop-color="#b681f5"/></linearGradient></defs><circle cx="16" cy="16" r="12" stroke="url(#lgm)" stroke-width="3" fill="none"/><path d="M10 16.5 L14.5 21 L22 12" stroke="url(#lgm)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg><span class="logo-word">Task<span class="g">OS</span></span></div>
+  <div class="logo"><svg class="logo-mark" viewBox="0 0 32 32"><defs><linearGradient id="lgm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5a49e0"/><stop offset="1" stop-color="#9268e6"/></linearGradient></defs><path d="M8.3 23.7 L16 9 L23.7 23.7" fill="none" stroke="url(#lgm)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.2 17.7 L19.8 17.7" fill="none" stroke="url(#lgm)" stroke-width="3" stroke-linecap="round"/></svg><span class="logo-word">Arete</span></div>
   <div class="cmdk-chip" onclick="openCmdK()" title="Command palette — search, navigate, capture">
     <span style="font-size:13px;">🔍</span><span>Quick find…</span>
     <span class="ck-keys"><kbd>⌘</kbd><kbd>K</kbd></span>
@@ -1631,7 +1630,7 @@ Read 50 books this year"></textarea>
 <div id="proj-modal" class="mo hidden">
   <div class="md" style="max-width:520px;">
     <div class="mh"><span style="font-size:16px;font-weight:700;" id="proj-modal-title">🚀 Add Project</span><button class="mc" aria-label="Close" onclick="closeModal('proj-modal')">×</button></div>
-    <div class="fg"><label>Project Name *</label><input class="fc" id="proj-title" placeholder="e.g. Task OS"></div>
+    <div class="fg"><label>Project Name *</label><input class="fc" id="proj-title" placeholder="e.g. Arete"></div>
     <div class="fg"><label>Description</label><textarea class="fc" id="proj-desc" rows="2" placeholder="What does it do / what's the idea?"></textarea></div>
     <div class="fr">
       <div class="fg"><label>Status</label>
@@ -2521,7 +2520,7 @@ function exportICS(){
   if(!tasks.length){toast('No tasks with a due date to export yet');return;}
   const dtstamp=new Date().toISOString().replace(/[-:]/g,'').split('.')[0]+'Z';
   const ie=s=>String(s||'').replace(/([,;\\])/g,'\\$1').replace(/\r?\n/g,'\\n');
-  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//TaskOS//Personal OS//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:Task OS'];
+  const lines=['BEGIN:VCALENDAR','VERSION:2.0','PRODID:-//Arete//Personal OS//EN','CALSCALE:GREGORIAN','METHOD:PUBLISH','X-WR-CALNAME:Arete'];
   tasks.forEach(t=>{
     const start=t.dueDate.replace(/-/g,'');
     const nd=new Date(t.dueDate+'T00:00');nd.setDate(nd.getDate()+1);
@@ -2566,7 +2565,7 @@ function exportCSV(){
 }
 function exportMarkdown(){
   const buckets={inbox:'📥 Inbox','this-week':'🔴 This Week','this-month':'🟠 This Month',backlog:'🟢 Backlog',someday:'🔵 Someday'};
-  let md='# Task OS Export — '+new Date().toLocaleDateString()+'\n\n';
+  let md='# Arete Export — '+new Date().toLocaleDateString()+'\n\n';
   Object.entries(buckets).forEach(([key,label])=>{
     const tasks=S.tasks.filter(t=>t.bucket===key&&t.status!=='done');
     if(!tasks.length)return;
@@ -5332,7 +5331,7 @@ async function aiSuggestAutomations(){
   _showAiLoader('✨ Generating automation ideas…');
   const existing=(S.automations||[]).map(a=>a.name).join(', ')||'none yet';
   const tasks=S.tasks.filter(t=>t.status!=='done').slice(0,10).map(t=>t.title).join(', ');
-  const about=getAboutMe()||'A focused individual organizing their work, goals, and habits in Task OS.';
+  const about=getAboutMe()||'A focused individual organizing their work, goals, and habits in Arete.';
   const prompt=`Context: ${about}\n\nI'm building 100 AI automations. I already have: ${existing}.\nMy current active tasks: ${tasks}.\nSuggest 5 NEW automation ideas I haven't built yet. Format: numbered list, each with name + one-line description. Focus on personal productivity, Givelink B2B SaaS for nonprofits, and content creation. Be specific to my situation as a founder.`;
   const result=await callClaude(prompt,600);
   if(result)showAiOut('✨ Automation Ideas',result);else closeM('ai-out-modal');
@@ -5342,7 +5341,7 @@ async function aiSuggestAutomations(){
 // ── AI WORKFLOWS HUB ───────────────────────────────────────────
 // One-click reusable AI actions that run on the user's own data.
 // Each one kept ("Log as automation") counts toward the 100-automation North Star.
-function _wfAbout(){return getAboutMe()||'A focused individual organizing their work, goals, and habits in Task OS.';}
+function _wfAbout(){return getAboutMe()||'A focused individual organizing their work, goals, and habits in Arete.';}
 const _AI_WORKFLOWS=[
   {id:'plan-week',icon:'🗓️',title:'Plan my week',desc:'Turn your North Stars + open tasks into a focused weekly plan',tasky:true,build:(ctx)=>{
     const stars=(S.goals||[]).filter(g=>g.isTop3);
@@ -5534,7 +5533,7 @@ async function aiRelNudge(){
   _showAiLoader('🤝 Finding who to reach out to…');
   const people=S.people||[];
   const list=people.map(p=>`${p.name} (${p.type}, ${daysSinceDate(p.lastContact)}d since contact, interval: ${p.interval||30}d${p.isTop?' TOP':''})${p.notes?', '+p.notes:''}`).join('\n');
-  const about=getAboutMe()||'A focused individual organizing their work, goals, and habits in Task OS.';
+  const about=getAboutMe()||'A focused individual organizing their work, goals, and habits in Arete.';
   const prompt=`${about?`Context: ${about}\n\n`:''}Here are my relationships:\n${list||'No people logged yet.'}\n\nToday is ${new Date().toLocaleDateString()}. Who should Panos reach out to this week and why? Consider his Givelink fundraising platform and startup journey. Suggest 3 people with specific reason and a concrete conversation starter.`;
   const result=await callClaude(prompt,500);
   if(result)showAiOut('🤝 Who to Reach Out To',result);else closeM('ai-out-modal');
@@ -5805,7 +5804,7 @@ function deleteDiscomfort(id){
 async function aiDiscomfortInsight(){
   const logs=(S.discomfortLogs||[]).slice(-20);
   if(!logs.length){toast('Log some challenges first!');return;}
-  const about=getAboutMe()||'A focused individual organizing their work, goals, and habits in Task OS.';
+  const about=getAboutMe()||'A focused individual organizing their work, goals, and habits in Arete.';
   const summary=logs.map(l=>`${l.date}: ${l.type} — ${l.desc} (difficulty ${l.difficulty}/5)`).join('\n');
   const streak=_discomfortStreak();
   const prompt=`Context: ${about}\n\nVoluntary discomfort log (most recent 20):\n${summary}\n\nCurrent streak: ${streak} days.\n\nAs a performance coach, give Panos:\n1. A 2-sentence pattern analysis of his discomfort practice\n2. One specific escalation recommendation for his next challenge\n3. How this practice is building the resilience he needs for the SF move and Givelink growth\n\nBe concise and founder-specific.`;
@@ -7033,7 +7032,7 @@ async function aiWheelInsight(entryId,scores,cadence){
   const goals=(S.goals||[]).slice(0,5).map(g=>g.title).join(', ');
   const vals=(S.values||[]).join(', ');
   const scoreStr=WHEEL_AREAS.map(a=>`${a.label}: ${scores[a.id]}/10`).join(', ');
-  const about=getAboutMe()||'A focused individual organizing their work, goals, and habits in Task OS.';
+  const about=getAboutMe()||'A focused individual organizing their work, goals, and habits in Arete.';
   const prompt=`${about}
 
 ${profileName} rated their life balance (${cadence} assessment):
@@ -7449,7 +7448,7 @@ async function aiDailyPicks(){
   const tasks=(S.tasks||[]).filter(t=>t.status!=='done'&&['this-week','this-month','inbox'].includes(t.bucket)).slice(0,10).map(t=>`- ${t.title} [${t.importance||'med'} importance, ${t.bucket}${t.goalId?' → goal':''  }]`).join('\n');
   const lastEnergy=((S.energyLog||[]).slice(-1)[0]||{}).level||'unknown';
   const dow=new Date().toLocaleDateString('en',{weekday:'long'});
-  const about=getAboutMe()||'A focused individual organizing their work, goals, and habits in Task OS.';
+  const about=getAboutMe()||'A focused individual organizing their work, goals, and habits in Arete.';
   const activeOKRs=(S.okrs||[]).filter(o=>o.status==='active').map(o=>{const krs=o.keyResults||[];const avgPct=krs.length?Math.round(krs.reduce((a,k)=>a+(k.target?Math.min(100,Math.round((k.current||0)/(k.target)*100)):0),0)/krs.length):0;return`${o.title} (KR progress: ${avgPct}%)`;}).join('\n');
   const todayDate=new Date().toISOString().slice(0,10);
   const prompt=`You are a productivity coach for ${profileName}. ${about}
@@ -9344,10 +9343,10 @@ function _empty(icon,title,sub,cta){
 }
 // P5 — First-run onboarding
 const _ONB=[
-  {ic:'👋',t:'Welcome to Task OS',b:'Your calm, keyboard-fast home for everything you have to do. Here’s the 20-second tour — then it’s all yours.'},
+  {ic:'👋',t:'Welcome to Arete',b:'Your calm, keyboard-fast home for everything you have to do. Here’s the 20-second tour — then it’s all yours.'},
   {ic:'⚡',t:'Capture in a second',b:'Tap the + button, or press ⌘K anywhere. Type "call mom tomorrow" and the date sets itself. On mobile, swipe a task left to complete, right to snooze.'},
   {ic:'🤖',t:'Let AI do the heavy lifting',b:'Hit "Plan my day" and AI drafts a focused, time-blocked today. "Triage Inbox" sorts everything in one tap. Reply to any task to make changes in plain English.'},
-  {ic:'🎯',t:'Aim at something bigger',b:'Set goals, build habits, and review weekly — every task can point at a North Star. Task OS grows from a to-do list into your whole life OS.'}
+  {ic:'🎯',t:'Aim at something bigger',b:'Set goals, build habits, and review weekly — every task can point at a North Star. Arete grows from a to-do list into your whole life OS.'}
 ];
 // Force-start the tour (used on a brand-new account's first login)
 function _startOnboarding(){
@@ -9803,7 +9802,7 @@ function openSettings(){
 }
 function saveSettings(){
   const n=document.getElementById('set-name').value.trim();
-  if(n){profileName=n;localStorage.setItem('taskos_name',n);document.title='Task OS — '+n;}
+  if(n){profileName=n;localStorage.setItem('taskos_name',n);document.title='Arete — '+n;}
   const k=document.getElementById('set-claude-key').value.trim();
   S.claudeKey=k;
   S.hellYesFilter=document.getElementById('set-hell-yes').value==='true';
@@ -9831,7 +9830,7 @@ function getAboutMe(){return localStorage.getItem('taskos_about')||'';}
 // syncs to Supabase. Last-write-wins by S._updatedAt. Sync config lives in
 // localStorage (never inside the synced blob).
 /* ════════════════════════════════════════════════════════════════════════
-   APP CONFIG — fill these in ONCE to turn Task OS into a real product that
+   APP CONFIG — fill these in ONCE to turn Arete into a real product that
    anyone can sign up for. Leave them blank to keep the current behaviour
    (local-only / bring-your-own-Supabase, nothing changes).
 
@@ -10075,13 +10074,13 @@ function _refUrl(){const r=(_SB&&_SB.uid)?('?ref='+encodeURIComponent(_SB.uid)):
 async function _share(text,ev){
   const url=_refUrl();track('share',{ctx:ev||'invite'});
   if(navigator.share){
-    try{await navigator.share({title:'Task OS',text,url});return;}
+    try{await navigator.share({title:'Arete',text,url});return;}
     catch(e){if(e&&e.name==='AbortError')return;}
   }
   try{await navigator.clipboard.writeText(text+' '+url);toast('🔗 Copied — paste it anywhere');}
   catch(e){window.prompt('Share this link:',url);}
 }
-function shareInvite(){return _share('I run my whole life in Task OS — calm, keyboard-fast, and the AI plans my day. Try it (free):','invite');}
+function shareInvite(){return _share('I run my whole life in Arete — calm, keyboard-fast, and the AI plans my day. Try it (free):','invite');}
 // ══ SHAREABLE PROGRESS CARD (usage → branded impressions) ══
 function _shareStats(){
   const now=new Date(),wAgo=new Date();wAgo.setDate(wAgo.getDate()-7);
@@ -10120,14 +10119,14 @@ function _drawStatsCard(){
     x.textAlign='left';cy+=176;
   });
   // footer
-  x.fillStyle='#8a8a97';x.font='600 30px Inter, sans-serif';x.fillText('Made with Task OS · task-management-beige-eight.vercel.app',96,H-70);
+  x.fillStyle='#8a8a97';x.font='600 30px Inter, sans-serif';x.fillText('Made with Arete · task-management-beige-eight.vercel.app',96,H-70);
   return c;
 }
 function _roundRect(x,rx,ry,w,h,r){x.beginPath();x.moveTo(rx+r,ry);x.arcTo(rx+w,ry,rx+w,ry+h,r);x.arcTo(rx+w,ry+h,rx,ry+h,r);x.arcTo(rx,ry+h,rx,ry,r);x.arcTo(rx,ry,rx+w,ry,r);x.closePath();}
 async function shareStats(){
   track('share_stats',{});
   let canvas;try{canvas=_drawStatsCard();}catch(e){toast('Could not build the card');return;}
-  const text='My progress in Task OS 📈 — calm, keyboard-fast, and the AI plans my day. Try it (free):';
+  const text='My progress in Arete 📈 — calm, keyboard-fast, and the AI plans my day. Try it (free):';
   const url=_refUrl();
   canvas.toBlob(async(blob)=>{
     if(!blob){toast('Could not build the card');return;}
@@ -10144,7 +10143,7 @@ async function shareStats(){
 function shareGoal(id){
   const g=(S.goals||[]).find(x=>x.id===id);if(!g)return;
   const s=goalStats(id);
-  return _share(`I'm working on "${g.title}"${s.total?` (${s.pct}% there)`:''} in Task OS. Cheer me on 👊 / join me:`,'goal');
+  return _share(`I'm working on "${g.title}"${s.total?` (${s.pct}% there)`:''} in Arete. Cheer me on 👊 / join me:`,'goal');
 }
 // ══ TEMPLATES GALLERY (Notion's #1 growth loop — "copy this template") ══
 const TEMPLATES=[
@@ -10169,8 +10168,8 @@ function _shareTemplate(id){
   const t=TEMPLATES.find(x=>x.id===id);if(!t)return;
   const url=_APP_URL+'?template='+id+((_SB&&_SB.uid)?('&ref='+encodeURIComponent(_SB.uid)):'');
   track('share',{ctx:'template',id});
-  const text=`My “${t.name}” template in Task OS — copy it into your own in one tap:`;
-  if(navigator.share){navigator.share({title:'Task OS · '+t.name,text,url}).catch(()=>{});return;}
+  const text=`My “${t.name}” template in Arete — copy it into your own in one tap:`;
+  if(navigator.share){navigator.share({title:'Arete · '+t.name,text,url}).catch(()=>{});return;}
   navigator.clipboard.writeText(text+' '+url).then(()=>toast('🔗 Template link copied — anyone can copy it')).catch(()=>window.prompt('Share this template:',url));
 }
 function openTemplates(){
@@ -10180,11 +10179,11 @@ function openTemplates(){
     <div style="font-size:15px;font-weight:700;margin-bottom:3px;">${t.ic} ${esc(t.name)}</div>
     <div style="font-size:12px;color:var(--muted);line-height:1.5;margin-bottom:8px;flex:1;">${esc(t.desc)}</div>
     <div style="font-size:11px;color:var(--muted);margin-bottom:10px;">${(t.tasks||[]).length} tasks${t.goals?' · 1 goal':''}</div>
-    <div style="display:flex;gap:6px;"><button class="btn bp sm" onclick="_applyTemplate('${t.id}')">Use template</button><button class="btn bg sm" onclick="_shareTemplate('${t.id}')" title="Share — friends copy it into their own Task OS">🔗</button></div>
+    <div style="display:flex;gap:6px;"><button class="btn bp sm" onclick="_applyTemplate('${t.id}')">Use template</button><button class="btn bg sm" onclick="_shareTemplate('${t.id}')" title="Share — friends copy it into their own Arete">🔗</button></div>
   </div>`).join('');
   el.innerHTML=`<div class="md" style="width:660px;max-width:94vw;max-height:84vh;display:flex;flex-direction:column;">
     <div class="mh"><h3>🧩 Templates</h3><button class="mc" onclick="closeM('templates-modal')">×</button></div>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Start a proven system in one tap. Share any template — friends copy it straight into their own Task OS.</p>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Start a proven system in one tap. Share any template — friends copy it straight into their own Arete.</p>
     <div style="overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;">${cards}</div>
   </div>`;
   el.classList.remove('hidden');document.body.classList.add('modal-open');track('templates_opened',{});
@@ -10236,16 +10235,16 @@ function _captureRef(){
 // Share a delight moment (Inbox Zero, cleared Top 3, etc.) — turns wins into distribution.
 function shareWin(context){
   const lines={
-    inbox_zero:'Just hit Inbox Zero 📥→0 in Task OS. Everything captured, everything has a home. Try it (free):',
-    top3:'Cleared my Top 3 for the day ✅✅✅ in Task OS. Calm, keyboard-fast, and the AI plans my day. Try it:',
-    quests:'Finished all my daily quests in Task OS 🎯 — the calmest to-do app I’ve used. Try it (free):'
+    inbox_zero:'Just hit Inbox Zero 📥→0 in Arete. Everything captured, everything has a home. Try it (free):',
+    top3:'Cleared my Top 3 for the day ✅✅✅ in Arete. Calm, keyboard-fast, and the AI plans my day. Try it:',
+    quests:'Finished all my daily quests in Arete 🎯 — the calmest to-do app I’ve used. Try it (free):'
   };
   return _share(lines[context]||lines.inbox_zero,context);
 }
 function _acctRename(){
   showPrompt('Your name',n=>{
     if(!n||!n.trim())return;
-    profileName=n.trim();localStorage.setItem('taskos_name',profileName);document.title='Task OS — '+profileName;save();
+    profileName=n.trim();localStorage.setItem('taskos_name',profileName);document.title='Arete — '+profileName;save();
     _renderAccountChip();
     try{const g=document.getElementById('greeting');if(g){const h=new Date().getHours();g.textContent=(h<12?'Good morning':h<17?'Good afternoon':'Good evening')+', '+profileName+' 👋';}}catch(e){}
     toast('Updated');
@@ -10435,7 +10434,7 @@ try{
     const arr=g.querySelector('.ns-arrow');if(arr)arr.textContent=collapsed?'▸':'▾';
   });
 }catch(e){}
-document.title='Task OS — '+profileName;
+document.title='Arete — '+profileName;
 const _lastP=localStorage.getItem('taskos_lastview');
 if(_lastP&&_lastP!=='dashboard'){nav(_lastP);}else{renderDash();}
 if('serviceWorker' in navigator){
@@ -12679,7 +12678,7 @@ function saveSleep(){
 async function aiSleepInsight(){
   const logs=(S.sleepLogs||[]).slice(-14);
   if(!logs.length){toast('Log some sleep data first!');return;}
-  const about=getAboutMe()||'A focused individual organizing their work, goals, and habits in Task OS.';
+  const about=getAboutMe()||'A focused individual organizing their work, goals, and habits in Arete.';
   const dwSessions=S.deepWorkSessions||[];
   const summary=logs.map(l=>{
     const dwH=(dwSessions.filter(s=>s.date===l.date).reduce((a,s)=>a+s.duration,0)/3600).toFixed(1);
@@ -13398,7 +13397,7 @@ async function aiLeverageFinder(){
 }
 async function aiAgentAudit(){
   const about=typeof getAboutMe==='function'?getAboutMe():'Panos, Givelink founder, Greece→SF, financial freedom';
-  const prompt=`${about}\n\nThis person uses an AI-powered personal OS (Task OS) with the following AI features: daily task picks, wheel of life assessment, social brand audit, goal breakdown, task improvement, priority audit, decision journal AI, biomarker longevity analysis, know-thyself pattern recognition, sleep insight, relationship nudges, weekly newsletter generation, content ideas, and more.\n\nAs an AI meta-agent: audit how they could be using AI BETTER:\n1. Which 3 AI features are most underutilized given their goals?\n2. What AI workflows are missing that would have the highest impact?\n3. What prompts could be improved to give more actionable output?\n4. What data are they tracking that Claude isn't using yet?\n5. Suggest one new AI automation they should set up this week.\n\nBe specific to a Givelink founder pursuing financial freedom.`;
+  const prompt=`${about}\n\nThis person uses an AI-powered personal OS (Arete) with the following AI features: daily task picks, wheel of life assessment, social brand audit, goal breakdown, task improvement, priority audit, decision journal AI, biomarker longevity analysis, know-thyself pattern recognition, sleep insight, relationship nudges, weekly newsletter generation, content ideas, and more.\n\nAs an AI meta-agent: audit how they could be using AI BETTER:\n1. Which 3 AI features are most underutilized given their goals?\n2. What AI workflows are missing that would have the highest impact?\n3. What prompts could be improved to give more actionable output?\n4. What data are they tracking that Claude isn't using yet?\n5. Suggest one new AI automation they should set up this week.\n\nBe specific to a Givelink founder pursuing financial freedom.`;
   const result=await callClaude(prompt,600);
   save();showAiOut('🤖 AI Agent Audit',result);awardXP(10,'AI agent audit');
 }

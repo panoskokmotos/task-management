@@ -1,4 +1,4 @@
-const CACHE = 'task-os-20260721';
+const CACHE = 'arete-20260722';
 const STATIC = [
   './manifest.json',
   './manifest-givelink.json',
@@ -36,7 +36,7 @@ self.addEventListener('activate', e => {
 self.addEventListener('push', e => {
   let data={};
   try{data=e.data?.json()||{};}catch(_){data={message:e.data?.text()||''};}
-  const title=data.title||'Life OS';
+  const title=data.title||'Arete';
   const body=data.message||data.body||'';
   e.waitUntil(
     self.registration.showNotification(title,{

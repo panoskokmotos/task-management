@@ -1,18 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#8b7cff"/>
-      <stop offset="1" stop-color="#b681f5"/>
+      <stop offset="0" stop-color="#5a49e0"/>
+      <stop offset="1" stop-color="#7c5ce6"/>
     </linearGradient>
     <linearGradient id="sheen" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#ffffff" stop-opacity="0.20"/>
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.18"/>
       <stop offset="0.55" stop-color="#ffffff" stop-opacity="0"/>
     </linearGradient>
   </defs>
-  <!-- Full-bleed violet brand background (safe for maskable icons) -->
+  <!-- Full-bleed indigo tile (safe for maskable icons) -->
   <rect width="192" height="192" rx="44" fill="url(#bg)"/>
   <rect width="192" height="192" rx="44" fill="url(#sheen)"/>
-  <!-- Done-badge mark, centered well inside the maskable safe zone -->
-  <circle cx="96" cy="96" r="50" fill="none" stroke="#ffffff" stroke-width="10" stroke-linecap="round" opacity="0.96"/>
-  <polyline points="72,98 89,116 122,76" fill="none" stroke="#ffffff" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Arete: the ascent to your peak — an 'A' that is also a summit -->
+  <path d="M50 142 L96 54 L142 142" fill="none" stroke="#ffffff" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M73 106 L119 106" fill="none" stroke="#ffffff" stroke-width="15" stroke-linecap="round"/>
 </svg>

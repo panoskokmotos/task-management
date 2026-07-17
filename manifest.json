@@ -1,7 +1,7 @@
 {
-  "name": "Task OS",
-  "short_name": "Task OS",
-  "description": "Personal task management — goals, sprints, reflections, AI coaching",
+  "name": "Arete",
+  "short_name": "Arete",
+  "description": "The calm, keyboard-fast home for everything you have to do.",
   "start_url": "./index.html",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],

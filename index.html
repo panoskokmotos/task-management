@@ -10632,13 +10632,28 @@ function toggleSB(){
 }
 
 // ── INIT ──────────────────────────────────────────────────────
-load();
+// Boot safety net: if any uncaught error fires before the app paints, make sure
+// we still hide the splash and render something (never a blank screen).
+window.addEventListener('error',function(){
+  setTimeout(function(){
+    try{
+      if(window.__areteRendered)return;
+      const s=document.getElementById('app-splash');if(s)s.classList.add('hide');
+      if(typeof renderDash==='function'){renderDash();window.__areteRendered=1;}
+    }catch(_){}
+  },60);
+});
+try{load();}catch(e){console.warn('load',e);}
 // In hosted (multi-user) mode we must NOT seed the owner's personal demo data —
 // new accounts start clean and get a small welcome starter after they sign in;
 // the owner's own data arrives from their synced cloud row on login.
-if(!_hostedMode()){seed();seedGoals();}
-resetRecurring();_genDailyQuests();_maybeShowWeeklyWrapped();_initSidebarSwipe();_autoSnapshot();
-setTimeout(()=>{if(_sbEnabled())sbSyncNow();},900);
+try{if(!_hostedMode()){seed();seedGoals();}}catch(e){console.warn('seed',e);}
+try{resetRecurring();}catch(e){console.warn('resetRecurring',e);}
+try{_genDailyQuests();}catch(e){console.warn('quests',e);}
+try{_maybeShowWeeklyWrapped();}catch(e){console.warn('wrapped',e);}
+try{_initSidebarSwipe();}catch(e){console.warn('sidebarSwipe',e);}
+try{_autoSnapshot();}catch(e){console.warn('autoSnapshot',e);}
+setTimeout(()=>{try{if(_sbEnabled())sbSyncNow();}catch(e){}},900);
 try{
   const _raw=localStorage.getItem('taskos_nav_collapsed');
   const _nc=JSON.parse(_raw||'{}');
@@ -10654,9 +10669,16 @@ try{
     const arr=g.querySelector('.ns-arrow');if(arr)arr.textContent=collapsed?'▸':'▾';
   });
 }catch(e){}
-document.title='Arete — '+profileName;
-const _lastP=localStorage.getItem('taskos_lastview');
-if(_lastP&&_lastP!=='dashboard'){nav(_lastP);}else{renderDash();}
+try{document.title='Arete — '+profileName;}catch(e){}
+// The initial render MUST run even if a saved view fails — fall back to the dashboard.
+try{
+  const _lastP=localStorage.getItem('taskos_lastview');
+  if(_lastP&&_lastP!=='dashboard'){nav(_lastP);}else{renderDash();}
+  window.__areteRendered=1;
+}catch(e){
+  console.error('initial render failed; falling back to dashboard',e);
+  try{renderDash();window.__areteRendered=1;}catch(_){ try{localStorage.removeItem('taskos_lastview');renderDash();window.__areteRendered=1;}catch(__){} }
+}
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('./sw.js').then(reg=>{
     reg.addEventListener('updatefound',()=>{
@@ -13729,13 +13751,13 @@ function _goalMomentum(goalId){
 }
 
 // ── STARTUP (runs last, after every top-level const is initialized) ──
-initQuickCapture();
-initPWA();
-initReminders();
-initChecklists();
-_initPullRefresh();
-_initSheetDismiss();
-_maybeOnboard();
+try{initQuickCapture();}catch(e){console.warn(e);}
+try{initPWA();}catch(e){console.warn(e);}
+try{initReminders();}catch(e){console.warn(e);}
+try{initChecklists();}catch(e){console.warn(e);}
+try{_initPullRefresh();}catch(e){console.warn(e);}
+try{_initSheetDismiss();}catch(e){console.warn(e);}
+try{_maybeOnboard();}catch(e){console.warn(e);}
 try{_renderSavedViews();_updateUnreadBadges();_addPinStars();_renderPinnedViews();}catch(e){}
 try{_initPostHog();}catch(e){}
 try{_captureRef();}catch(e){}

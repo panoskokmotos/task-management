@@ -1,4 +1,4 @@
-const CACHE = 'arete-20260722';
+const CACHE = 'arete-20260723';
 const STATIC = [
   './manifest.json',
   './manifest-givelink.json',
@@ -18,8 +18,10 @@ const HTML = [
 ];
 
 self.addEventListener('install', e => {
+  // Non-atomic: one missing/failed asset must not fail the whole install (which would
+  // strand clients on a stale service worker and could look like "the app won't load").
   e.waitUntil(
-    caches.open(CACHE).then(c => c.addAll([...HTML, ...STATIC]))
+    caches.open(CACHE).then(c => Promise.allSettled([...HTML, ...STATIC].map(u => c.add(u))))
   );
   self.skipWaiting();
 });

@@ -1,4 +1,4 @@
-const CACHE = 'task-os-20260720';
+const CACHE = 'task-os-20260721';
 const STATIC = [
   './manifest.json',
   './manifest-givelink.json',
@@ -7,12 +7,14 @@ const STATIC = [
   './icon-192.png',
   './icon-512.png',
   './apple-touch-icon.png',
-  './og-image.png'
+  './og-image.png',
+  './shot-app.png'
 ];
 const HTML = [
   './',
   './index.html',
-  './givelink.html'
+  './givelink.html',
+  './landing.html'
 ];
 
 self.addEventListener('install', e => {

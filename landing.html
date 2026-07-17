@@ -1,0 +1,410 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Task OS — the calm, keyboard-fast home for everything you have to do</title>
+<meta name="description" content="Superhuman speed for your tasks. Notion depth for your life. AI that clears your inbox and plans your day. Free to start, no account needed, your data stays yours.">
+<meta name="theme-color" content="#0a0a0f">
+<link rel="icon" href="/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="canonical" href="https://task-management-beige-eight.vercel.app/">
+<!-- Open Graph / Twitter -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Task OS — the calm, keyboard-fast home for everything you have to do">
+<meta property="og:description" content="Superhuman speed for your tasks. Notion depth for your life. AI that clears your inbox and plans your day.">
+<meta property="og:image" content="https://task-management-beige-eight.vercel.app/og-image.png">
+<meta property="og:url" content="https://task-management-beige-eight.vercel.app/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Task OS — the calm, keyboard-fast home for everything you have to do">
+<meta name="twitter:description" content="Superhuman speed for your tasks. Notion depth for your life. AI that plans your day.">
+<meta name="twitter:image" content="https://task-management-beige-eight.vercel.app/og-image.png">
+<script>
+/* Front-door router: returning users and auth callbacks never see the pitch. */
+(function(){
+  try{
+    var h = location.hash || '', s = location.search || '';
+    // Supabase magic-link / email-confirm / recovery land on the site root — hand off to the app, hash intact.
+    if(h.indexOf('access_token=')>-1 || h.indexOf('error=')>-1 || h.indexOf('type=recovery')>-1 || h.indexOf('type=signup')>-1){
+      location.replace('/index.html'+s+h); return;
+    }
+    // Anyone with an existing session (signed in or guest) skips straight into the app.
+    if(localStorage.getItem('taskos_sb_refresh') || localStorage.getItem('taskos_guest')==='1'){
+      location.replace('/index.html'+s+h); return;
+    }
+  }catch(e){}
+})();
+</script>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  :root{
+    --bg:#0a0a0f;--surface:#131319;--surface2:#1c1c25;--border:#262630;
+    --text:#ecedf3;--muted:#9494a6;--faint:#6b6b7d;
+    --accent:#8b7cff;--accent2:#b681f5;--accent-soft:rgba(139,124,255,.14);
+    --ring:rgba(139,124,255,.35);
+  }
+  html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+  body{
+    font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);color:var(--text);line-height:1.6;
+    -webkit-font-smoothing:antialiased;overflow-x:hidden;
+  }
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+  .accent{color:var(--accent2)}
+  .grad{background:linear-gradient(120deg,#a99bff,#c79bf5);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+
+  /* ── Nav ── */
+  nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(14px);
+    background:rgba(10,10,15,.72);border-bottom:1px solid rgba(255,255,255,.05)}
+  .nav-in{display:flex;align-items:center;justify-content:space-between;height:62px}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:19px;letter-spacing:-.4px}
+  .brand svg{width:28px;height:28px}
+  .nav-links{display:flex;align-items:center;gap:28px}
+  .nav-links a{color:var(--muted);font-size:14.5px;font-weight:500;transition:color .15s}
+  .nav-links a:hover{color:var(--text)}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-weight:650;
+    border-radius:11px;cursor:pointer;border:1px solid transparent;transition:transform .12s,box-shadow .2s,background .2s;font-size:15px}
+  .btn:active{transform:translateY(1px)}
+  .btn-primary{background:linear-gradient(120deg,#8b7cff,#a678f0);color:#fff;padding:12px 22px;
+    box-shadow:0 6px 22px -6px rgba(139,124,255,.6)}
+  .btn-primary:hover{box-shadow:0 10px 30px -6px rgba(139,124,255,.75)}
+  .btn-ghost{background:rgba(255,255,255,.04);border-color:rgba(255,255,255,.1);color:var(--text);padding:12px 20px}
+  .btn-ghost:hover{background:rgba(255,255,255,.08)}
+  .btn-sm{padding:9px 17px;font-size:14px}
+  .nav-cta{display:flex;gap:10px;align-items:center}
+
+  /* ── Hero ── */
+  .hero{position:relative;padding:88px 0 40px;text-align:center;overflow:hidden}
+  .hero::before{content:'';position:absolute;inset:0;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(680px 380px at 50% -8%,rgba(139,124,255,.28),transparent 62%),
+      radial-gradient(520px 340px at 12% 8%,rgba(182,129,245,.14),transparent 60%),
+      radial-gradient(520px 340px at 88% 4%,rgba(120,140,255,.12),transparent 60%)}
+  .hero>*{position:relative;z-index:1}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#c9c2ff;
+    background:var(--accent-soft);border:1px solid rgba(139,124,255,.25);border-radius:100px;padding:6px 14px;margin-bottom:26px}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:#8b7cff;box-shadow:0 0 0 4px rgba(139,124,255,.25)}
+  h1{font-size:clamp(38px,6.4vw,68px);line-height:1.04;font-weight:820;letter-spacing:-1.8px;max-width:14ch;margin:0 auto}
+  .sub{font-size:clamp(17px,2.3vw,21px);color:var(--muted);max-width:60ch;margin:24px auto 0;line-height:1.5}
+  .cta-row{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-top:36px}
+  .cta-row .btn{padding:15px 30px;font-size:16.5px}
+  .trust-line{margin-top:22px;font-size:13.5px;color:var(--faint);display:flex;gap:8px 20px;justify-content:center;flex-wrap:wrap}
+  .trust-line b{color:var(--muted);font-weight:600}
+  .trust-line .sep{color:#39394a}
+
+  /* ── Screenshot ── */
+  .shot-wrap{margin:56px auto 0;max-width:1000px;position:relative}
+  .shot-glow{position:absolute;inset:-6% 6% auto;height:70%;z-index:0;
+    background:radial-gradient(closest-side,rgba(139,124,255,.4),transparent);filter:blur(60px)}
+  .shot{position:relative;z-index:1;width:100%;border-radius:16px;display:block;
+    border:1px solid rgba(255,255,255,.09);box-shadow:0 40px 90px -30px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.02)}
+
+  /* ── Section scaffolding ── */
+  section{position:relative}
+  .band{padding:84px 0}
+  .kicker{font-size:13px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:14px;text-align:center}
+  h2{font-size:clamp(28px,4vw,42px);line-height:1.1;font-weight:780;letter-spacing:-1px;text-align:center;max-width:20ch;margin:0 auto}
+  .lead{text-align:center;color:var(--muted);font-size:18px;max-width:56ch;margin:18px auto 0}
+
+  /* ── Feature grid ── */
+  .feat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px;margin-top:56px}
+  .card{background:linear-gradient(180deg,rgba(255,255,255,.028),rgba(255,255,255,.008));
+    border:1px solid var(--border);border-radius:18px;padding:30px 28px;transition:border-color .2s,transform .2s}
+  .card:hover{border-color:rgba(139,124,255,.35);transform:translateY(-2px)}
+  .card .ic{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;font-size:22px;
+    background:var(--accent-soft);border:1px solid rgba(139,124,255,.22);margin-bottom:18px}
+  .card h3{font-size:20px;font-weight:700;letter-spacing:-.4px;margin-bottom:8px}
+  .card p{color:var(--muted);font-size:15.5px}
+  .card .kbd{display:inline-block;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;
+    background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:6px;padding:2px 7px;color:#cfcadf;margin-top:2px}
+
+  /* ── How it works ── */
+  .steps{display:grid;grid-template-columns:repeat(3,1fr);gap:22px;margin-top:52px}
+  .step{text-align:center;padding:8px}
+  .step .n{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;margin:0 auto 16px;
+    font-weight:800;font-size:18px;color:#fff;background:linear-gradient(120deg,#8b7cff,#a678f0);
+    box-shadow:0 8px 24px -8px rgba(139,124,255,.7)}
+  .step h3{font-size:18px;font-weight:700;margin-bottom:6px}
+  .step p{color:var(--muted);font-size:15px;max-width:32ch;margin:0 auto}
+
+  /* ── Trust / data section ── */
+  .trust-band{background:
+      radial-gradient(700px 300px at 50% 0%,rgba(139,124,255,.1),transparent 70%);
+    border-top:1px solid rgba(255,255,255,.05);border-bottom:1px solid rgba(255,255,255,.05)}
+  .trust-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:48px}
+  .tcard{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:24px 22px;text-align:left}
+  .tcard .ic{font-size:24px;margin-bottom:14px;display:block}
+  .tcard h3{font-size:16.5px;font-weight:700;margin-bottom:7px}
+  .tcard p{color:var(--muted);font-size:14px;line-height:1.55}
+
+  /* ── Founder note ── */
+  .founder{max-width:720px;margin:0 auto;background:var(--surface);border:1px solid var(--border);
+    border-radius:22px;padding:40px 44px;position:relative}
+  .founder .q{font-size:19px;line-height:1.6;color:#e2e2ee;font-weight:450}
+  .founder .q b{color:#fff;font-weight:650}
+  .founder .who{display:flex;align-items:center;gap:13px;margin-top:26px}
+  .founder .av{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#8b7cff,#b681f5);
+    display:grid;place-items:center;font-weight:800;color:#fff;font-size:17px}
+  .founder .nm{font-weight:700;font-size:15px}
+  .founder .rl{color:var(--faint);font-size:13.5px}
+
+  /* ── FAQ ── */
+  .faq{max-width:760px;margin:52px auto 0}
+  details{border-bottom:1px solid var(--border);padding:6px 0}
+  summary{list-style:none;cursor:pointer;padding:20px 4px;font-size:17px;font-weight:650;
+    display:flex;justify-content:space-between;align-items:center;gap:16px;transition:color .15s}
+  summary::-webkit-details-marker{display:none}
+  summary:hover{color:#fff}
+  summary .chev{color:var(--accent);font-size:20px;transition:transform .2s;flex-shrink:0}
+  details[open] summary .chev{transform:rotate(45deg)}
+  details p{color:var(--muted);font-size:15.5px;padding:0 4px 20px;max-width:64ch}
+  details a{color:var(--accent2);text-decoration:underline;text-underline-offset:2px}
+
+  /* ── Final CTA ── */
+  .final{text-align:center;position:relative;overflow:hidden;border-radius:28px;
+    margin:0 24px;padding:72px 24px;
+    background:
+      radial-gradient(600px 300px at 50% 0%,rgba(139,124,255,.3),transparent 65%),
+      linear-gradient(180deg,#15131f,#0d0c14);
+    border:1px solid rgba(139,124,255,.2)}
+  .final h2{max-width:22ch}
+  .final .sub{color:var(--muted);margin-top:16px;font-size:17px}
+
+  /* ── Footer ── */
+  footer{border-top:1px solid rgba(255,255,255,.05);margin-top:90px;padding:40px 0 56px}
+  .foot-in{display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+  .foot-links{display:flex;gap:22px;flex-wrap:wrap}
+  .foot-links a{color:var(--muted);font-size:14px}
+  .foot-links a:hover{color:var(--text)}
+  .foot-copy{color:var(--faint);font-size:13px}
+
+  @media(max-width:760px){
+    .nav-links{display:none}
+    .hero{padding:56px 0 30px}
+    .band{padding:60px 0}
+    .feat-grid,.trust-grid{grid-template-columns:1fr}
+    .steps{grid-template-columns:1fr;gap:32px}
+    .founder{padding:30px 24px}
+    .final{padding:54px 20px;margin:0 16px}
+    .shot-wrap{margin-top:40px}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="wrap nav-in">
+    <a class="brand" href="/">
+      <svg viewBox="0 0 32 32"><defs><linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8b7cff"/><stop offset="1" stop-color="#b681f5"/></linearGradient></defs><circle cx="16" cy="16" r="12" stroke="url(#lg)" stroke-width="3" fill="none"/><path d="M10 16.5 L14.5 21 L22 12" stroke="url(#lg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      Task<span class="grad">OS</span>
+    </a>
+    <div class="nav-links">
+      <a href="#features">Features</a>
+      <a href="#how">How it works</a>
+      <a href="#trust">Your data</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="nav-cta">
+      <a class="btn btn-primary btn-sm app-link" href="/index.html">Start free →</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <span class="eyebrow"><span class="dot"></span> Free to start · No account needed</span>
+    <h1>The calm, keyboard-fast home for <span class="grad">everything you have to do</span></h1>
+    <p class="sub">Superhuman speed for your tasks. Notion depth for your goals, habits and reviews. And an AI that clears your inbox and plans your day — so the list finally feels lighter, not heavier.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary app-link" href="/index.html">⚡ Start now — it's free</a>
+      <a class="btn btn-ghost" href="#how">See how it works</a>
+    </div>
+    <div class="trust-line">
+      <span><b>✓ No credit card</b></span><span class="sep">·</span>
+      <span><b>✓ Works offline</b></span><span class="sep">·</span>
+      <span><b>✓ Export anytime</b></span><span class="sep">·</span>
+      <span><b>✓ Your data stays private</b></span>
+    </div>
+    <div class="shot-wrap">
+      <div class="shot-glow"></div>
+      <img class="shot" src="/shot-app.png" width="1280" height="820" alt="Task OS — a clean task list with goals, priorities and an AI plan-my-day panel" loading="eager">
+    </div>
+  </div>
+</header>
+
+<section class="band" id="features">
+  <div class="wrap">
+    <div class="kicker">Why it's different</div>
+    <h2>Fast enough to trust with everything</h2>
+    <p class="lead">Most task apps are either too shallow to hold your life, or too heavy to keep up. Task OS is the middle — the speed of Superhuman with the depth of Notion.</p>
+    <div class="feat-grid">
+      <div class="card">
+        <div class="ic">⌘</div>
+        <h3>Capture at the speed of thought</h3>
+        <p>Hit <span class="kbd">⌘K</span> from anywhere to add, find or jump. Type a task in plain English — “call mum friday 5pm #family” — and it parses the date, tag and priority for you.</p>
+      </div>
+      <div class="card">
+        <div class="ic">🎯</div>
+        <h3>Every task points at a goal</h3>
+        <p>Link tasks to goals, habits and a Wheel-of-Life balance so your list never feels pointless. Notion-deep structure without the maintenance tax.</p>
+      </div>
+      <div class="card">
+        <div class="ic">✨</div>
+        <h3>AI that clears the noise</h3>
+        <p>One tap triages your whole inbox into priorities. Ask it to plan a time-blocked day and it drafts one around your real commitments — you stay in control.</p>
+      </div>
+      <div class="card">
+        <div class="ic">📱</div>
+        <h3>Everywhere, even offline</h3>
+        <p>Installs like a native app on phone and desktop, syncs across devices, and keeps working with no connection. Board, calendar and list views included.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="how">
+  <div class="wrap">
+    <div class="kicker">Get going in under a minute</div>
+    <h2>No setup. No account wall. Just start.</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="n">1</div>
+        <h3>Open it and start</h3>
+        <p>Click start — you're in instantly with a ready-made starter board. No signup, no credit card, nothing to configure.</p>
+      </div>
+      <div class="step">
+        <div class="n">2</div>
+        <h3>Capture your world</h3>
+        <p>Dump every task, goal and habit. Let the AI triage and plan it. Feel your head empty out into something calm and organised.</p>
+      </div>
+      <div class="step">
+        <div class="n">3</div>
+        <h3>Sync when you're ready</h3>
+        <p>Like it? Create a free account in one tap to sync across devices. Your guest work comes with you — nothing is lost.</p>
+      </div>
+    </div>
+    <div style="text-align:center;margin-top:48px">
+      <a class="btn btn-primary app-link" href="/index.html" style="padding:15px 30px;font-size:16.5px">Start now — free →</a>
+    </div>
+  </div>
+</section>
+
+<section class="band trust-band" id="trust">
+  <div class="wrap">
+    <div class="kicker">Trust &amp; privacy</div>
+    <h2>Your data is yours. Full stop.</h2>
+    <p class="lead">A task app sees your whole life. That only works if you can trust it — so Task OS is built to keep your data private, portable and in your hands.</p>
+    <div class="trust-grid">
+      <div class="tcard">
+        <span class="ic">🔒</span>
+        <h3>Private by default</h3>
+        <p>Every account is isolated at the database level. Only you can read or write your data — enforced by row-level security, not a promise.</p>
+      </div>
+      <div class="tcard">
+        <span class="ic">📤</span>
+        <h3>Export anytime</h3>
+        <p>Your tasks and goals are yours to take. Export to a file whenever you want — no lock-in, no “contact us to leave.”</p>
+      </div>
+      <div class="tcard">
+        <span class="ic">💾</span>
+        <h3>Offline-first</h3>
+        <p>Your data lives on your device first and syncs to the cloud. Lose signal and the app keeps working — nothing to wait on.</p>
+      </div>
+      <div class="tcard">
+        <span class="ic">🚫</span>
+        <h3>No ads, no reselling</h3>
+        <p>This isn't an attention-harvesting app. There are no ads and your data is never sold. It exists to make your days calmer.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="founder">
+      <p class="q">“I tried every to-do app out there. Each one was either a flat list I outgrew, or a Notion I stopped maintaining. So I built the one I actually wanted every day: <b>calm, keyboard-fast, and smart enough to plan my day for me.</b> I use it every morning. It's free because I want it in more hands — I'd genuinely love your feedback on what's missing.”</p>
+      <div class="who">
+        <div class="av">P</div>
+        <div>
+          <div class="nm">Panos — maker of Task OS</div>
+          <div class="rl">Building it in the open, one release at a time</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="faq">
+  <div class="wrap">
+    <div class="kicker">Questions</div>
+    <h2>Everything you're wondering</h2>
+    <div class="faq">
+      <details open>
+        <summary>Is it really free? <span class="chev">+</span></summary>
+        <p>Yes. You can use Task OS free, starting with no account at all. It's an independent product built by one maker — no venture pressure to nickel-and-dime you. If paid plans ever arrive, the core of what you use today stays free.</p>
+      </details>
+      <details>
+        <summary>Do I have to sign up to try it? <span class="chev">+</span></summary>
+        <p>No. Click “Start now” and you're in immediately as a guest, with a starter board ready to go. Create a free account later — in one tap — only when you want to sync across devices. Your guest work carries over.</p>
+      </details>
+      <details>
+        <summary>Who can see my tasks? <span class="chev">+</span></summary>
+        <p>Only you. Each account's data is isolated at the database level with row-level security, and offline copies live on your own device. There are no ads and your data is never sold.</p>
+      </details>
+      <details>
+        <summary>Does it work on my phone? <span class="chev">+</span></summary>
+        <p>Yes — it's a progressive web app that installs to your home screen on iPhone and Android and runs full-screen like a native app. It works on desktop the same way, and syncs between them.</p>
+      </details>
+      <details>
+        <summary>What does the AI actually do — and is it safe? <span class="chev">+</span></summary>
+        <p>The AI triages your inbox into priorities and drafts a time-blocked day on request. It only acts when you ask it to, and you approve the result. It's an assistant, not an autopilot.</p>
+      </details>
+      <details>
+        <summary>Can I get my data out if I leave? <span class="chev">+</span></summary>
+        <p>Always. Export your tasks and goals to a file whenever you like. No lock-in — if Task OS isn't for you, you leave with everything.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="final">
+      <h2 style="margin:0 auto">Give your day a calmer home.</h2>
+      <p class="sub">Start free in seconds — no account, no credit card. Bring your whole life into one fast, quiet place.</p>
+      <div class="cta-row" style="margin-top:30px">
+        <a class="btn btn-primary app-link" href="/index.html" style="padding:16px 34px;font-size:17px">⚡ Start now — it's free</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap foot-in">
+    <a class="brand" href="/" style="font-size:16px">
+      <svg viewBox="0 0 32 32" style="width:22px;height:22px"><circle cx="16" cy="16" r="12" stroke="url(#lg)" stroke-width="3" fill="none"/><path d="M10 16.5 L14.5 21 L22 12" stroke="url(#lg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>
+      Task<span class="grad">OS</span>
+    </a>
+    <div class="foot-links">
+      <a href="#features">Features</a>
+      <a href="#trust">Privacy</a>
+      <a href="#faq">FAQ</a>
+      <a class="app-link" href="/index.html">Open the app</a>
+    </div>
+    <div class="foot-copy">© 2026 Task OS · Made with care</div>
+  </div>
+</footer>
+
+<script>
+/* Carry referral / template params through to the app so shared links keep attribution. */
+(function(){
+  var s = location.search || '';
+  if(!s) return;
+  document.querySelectorAll('a.app-link').forEach(function(a){
+    a.setAttribute('href','/index.html'+s);
+  });
+})();
+</script>
+</body>
+</html>

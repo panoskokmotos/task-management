@@ -912,6 +912,22 @@ body.auth-locked{overflow:hidden;}
 .fr-chip.sel{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);}
 .fr-goal-note{margin-top:14px;font-size:13.5px;color:var(--muted);text-align:center;}
 .fr-goal-note b{color:var(--accent);}
+.fr-btn.fr-organizing{opacity:.9;animation:frOrgPulse 1s ease-in-out infinite;cursor:default;}
+@keyframes frOrgPulse{0%,100%{opacity:.9}50%{opacity:.62}}
+.fr-hint{text-align:center;margin-top:12px;font-size:11.5px;color:var(--faint);letter-spacing:.02em;}
+.fr-hint kbd{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:10.5px;background:var(--surface2);border:1px solid var(--border);border-radius:5px;padding:1px 5px;color:var(--muted);margin:0 1px;}
+@media(max-width:520px){.fr-hint{display:none;}}
+/* First-win: a single centered celebration (not a toast pile) */
+#firstwin-pop{position:fixed;left:50%;top:42%;transform:translate(-50%,-50%) scale(.86);z-index:9200;
+  background:var(--surface);border:1px solid var(--border);border-radius:22px;padding:28px 34px;text-align:center;
+  box-shadow:0 34px 80px -26px rgba(0,0,0,.4);opacity:0;pointer-events:none;max-width:340px;
+  transition:opacity .32s ease,transform .46s cubic-bezier(.2,.85,.3,1);}
+#firstwin-pop.show{opacity:1;transform:translate(-50%,-50%) scale(1);pointer-events:auto;cursor:pointer;}
+#firstwin-pop .fw-emoji{font-size:54px;line-height:1;margin-bottom:12px;}
+#firstwin-pop.show .fw-emoji{animation:fwPop .6s cubic-bezier(.2,.8,.3,1);}
+@keyframes fwPop{0%{transform:scale(0) rotate(-18deg)}60%{transform:scale(1.25) rotate(8deg)}100%{transform:scale(1) rotate(0)}}
+#firstwin-pop .fw-title{font-size:22px;font-weight:800;letter-spacing:-.5px;color:var(--text);margin-bottom:7px;}
+#firstwin-pop .fw-sub{font-size:14px;color:var(--muted);line-height:1.5;}
 .fr-shake{animation:frShake .4s;}
 @keyframes frShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
 #fr-step-reveal{text-align:center;}
@@ -931,13 +947,13 @@ body.auth-locked{overflow:hidden;}
 .fr-t3-d{font-size:12px;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:20px;white-space:nowrap;}
 @media(max-width:520px){.fr-stat{min-width:74px;padding:11px 13px;}}
 </style>
-<div id="firstrun" class="firstrun" style="display:none;">
+<div id="firstrun" class="firstrun" role="dialog" aria-modal="true" aria-label="Set up your day" style="display:none;">
   <div class="fr-card">
     <div class="fr-brand"><svg viewBox="0 0 32 32"><defs><linearGradient id="frlg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5a49e0"/><stop offset="1" stop-color="#9268e6"/></linearGradient></defs><path d="M8.3 23.7 L16 9 L23.7 23.7" fill="none" stroke="url(#frlg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/><path d="M12.2 17.7 L19.8 17.7" fill="none" stroke="url(#frlg)" stroke-width="3" stroke-linecap="round"/></svg> Arete</div>
     <div id="fr-step-dump">
       <h1 class="fr-h">What's on your mind?</h1>
       <p class="fr-sub">Dump everything you need to do, one per line. Arete turns it into a calm, organized day. Dates like “tomorrow” or “Friday” just work.</p>
-      <textarea id="fr-dump" class="fr-ta" placeholder="Finish the Q3 deck&#10;Call the dentist tomorrow&#10;Reply to Sam&#10;Gym Friday&#10;Book flights for the trip"></textarea>
+      <textarea id="fr-dump" class="fr-ta" aria-label="Brain dump, one task per line" oninput="try{_frCount()}catch(e){}" onkeydown="if((event.metaKey||event.ctrlKey)&&event.key==='Enter'){event.preventDefault();_frOrganize();}" placeholder="Finish the Q3 deck&#10;Call the dentist tomorrow&#10;Reply to Sam&#10;Gym Friday&#10;Book flights for the trip"></textarea>
       <div class="fr-area-q">What matters most right now? <span>optional, we'll set a goal for it</span></div>
       <div class="fr-areas" id="frAreas">
         <button type="button" class="fr-chip" data-area="health" onclick="_frPickArea(this)">🌱 Health</button>
@@ -946,7 +962,8 @@ body.auth-locked{overflow:hidden;}
         <button type="button" class="fr-chip" data-area="relationships" onclick="_frPickArea(this)">❤️ Relationships</button>
         <button type="button" class="fr-chip" data-area="experience" onclick="_frPickArea(this)">✨ Experience</button>
       </div>
-      <button class="fr-btn fr-primary" onclick="_frOrganize()">Organize my day ✨</button>
+      <button id="fr-organize-btn" class="fr-btn fr-primary" onclick="_frOrganize()">Organize my day ✨</button>
+      <div class="fr-hint"><kbd>⌘</kbd><kbd>↵</kbd> to organize · <kbd>esc</kbd> to skip</div>
       <div class="fr-alt"><a onclick="_frSkipTo('template')">or start from a template</a> &nbsp;·&nbsp; <a onclick="_frSkip()">skip for now</a></div>
     </div>
     <div id="fr-step-reveal" style="display:none;">
@@ -3957,9 +3974,16 @@ function _firstWin(){
   localStorage.setItem('arete_firstwin','1');
   const done=(S.tasks||[]).filter(x=>x.status==='done').length;
   if(done>2)return; // existing user with history — mark seen, skip the fanfare
-  setTimeout(()=>{try{_fireConfetti('deep');}catch(e){}},220);
   try{_haptic([18,55,18,55,90]);}catch(e){}
-  setTimeout(()=>{try{toast('🎉 Your first win. That\'s the feeling. Keep the momentum going.',4200);}catch(e){}},340);
+  setTimeout(()=>{try{_fireConfetti('deep');}catch(e){}},200);
+  // One centered celebration instead of a stack of toasts.
+  const el=document.getElementById('firstwin-pop');
+  if(el){
+    el.classList.add('show');
+    const hide=()=>{el.classList.remove('show');el.onclick=null;};
+    el.onclick=hide;
+    setTimeout(hide,2800);
+  }
   try{track('first_win',{});}catch(e){}
 }
 function _fireConfetti(depth){
@@ -10453,13 +10477,15 @@ function _startFirstRun(){
   if(el.style.display==='flex')return; // already showing (guest + signup + reload can each call this)
   _frArea='';try{document.querySelectorAll('#frAreas .fr-chip').forEach(c=>c.classList.remove('sel'));}catch(e){}
   const _ta=document.getElementById('fr-dump');if(_ta)_ta.value='';
+  const _b=document.getElementById('fr-organize-btn');if(_b){_b.textContent='Organize my day ✨';_b.disabled=false;_b.classList.remove('fr-organizing');}
   document.getElementById('fr-step-dump').style.display='';
   document.getElementById('fr-step-reveal').style.display='none';
   el.style.display='flex';document.body.classList.add('modal-open');
+  document.addEventListener('keydown',_frKeydown);
   setTimeout(()=>{const ta=document.getElementById('fr-dump');if(ta)ta.focus();},220);
   try{track('firstrun_started',{});}catch(e){}
 }
-function _frCloseOverlay(){const el=document.getElementById('firstrun');if(el)el.style.display='none';document.body.classList.remove('modal-open');}
+function _frCloseOverlay(){const el=document.getElementById('firstrun');if(el)el.style.display='none';document.body.classList.remove('modal-open');document.removeEventListener('keydown',_frKeydown);}
 function _frSkip(){
   _frCloseOverlay();
   if(!S.tasks||!S.tasks.length)_seedStarter();
@@ -10472,10 +10498,29 @@ function _frSkipTo(what){
   if(what==='template'){try{openTemplates();}catch(e){}}
   try{track('firstrun_skipped',{to:what});}catch(e){}
 }
+function _frCount(){
+  const ta=document.getElementById('fr-dump'),btn=document.getElementById('fr-organize-btn');if(!ta||!btn)return;
+  const n=(ta.value||'').split('\n').map(s=>s.trim()).filter(Boolean).length;
+  btn.textContent=n?('Organize '+n+' task'+(n>1?'s':'')+' ✨'):'Organize my day ✨';
+}
+function _frKeydown(e){
+  if(e.key==='Escape'){const d=document.getElementById('fr-step-dump');if(d&&d.style.display!=='none'){e.preventDefault();_frSkip();}}
+}
+function _countUp(el,to,dur){
+  if(!el)return;const start=performance.now();to=to||0;
+  (function step(t){const p=Math.min(1,(t-start)/dur);el.textContent=Math.round(p*to);if(p<1)requestAnimationFrame(step);})(start);
+}
 function _frOrganize(){
   const ta=document.getElementById('fr-dump');
   const lines=((ta&&ta.value)||'').split('\n').map(s=>s.trim()).filter(Boolean);
   if(!lines.length){if(ta){ta.focus();ta.classList.add('fr-shake');setTimeout(()=>ta.classList.remove('fr-shake'),450);}return;}
+  const btn=document.getElementById('fr-organize-btn');
+  if(btn){btn.disabled=true;btn.classList.add('fr-organizing');btn.textContent='Organizing your day…';}
+  try{_haptic(12);}catch(e){}
+  // A short, deliberate beat so the transformation feels earned, not instant.
+  setTimeout(function(){ if(btn){btn.disabled=false;btn.classList.remove('fr-organizing');} _frDoOrganize(lines); },640);
+}
+function _frDoOrganize(lines){
   const today=new Date();today.setHours(0,0,0,0);
   const todayStr=today.toISOString().slice(0,10);
   const tmr=new Date(today);tmr.setDate(tmr.getDate()+1);const tmrStr=tmr.toISOString().slice(0,10);
@@ -10516,10 +10561,10 @@ function _frReveal(created,picks,goalNote){
   const week=created.filter(t=>t.bucket==='this-week').length;
   const month=created.filter(t=>t.bucket==='this-month').length;
   const later=created.filter(t=>t.bucket==='backlog').length;
-  const stat=(n,l)=>`<div class="fr-stat"><b>${n}</b><span>${l}</span></div>`;
-  document.getElementById('fr-stats').innerHTML=
-    stat(created.length,'captured')+stat(picks.length,'to focus today')+stat(week,'this week')+
-    (month?stat(month,'this month'):'')+(later?stat(later,'later'):'');
+  const sd=[[created.length,'captured'],[picks.length,'to focus today'],[week,'this week']];
+  if(month)sd.push([month,'this month']); if(later)sd.push([later,'later']);
+  document.getElementById('fr-stats').innerHTML=sd.map(([n,l])=>`<div class="fr-stat"><b data-n="${n}">0</b><span>${l}</span></div>`).join('');
+  setTimeout(()=>{document.querySelectorAll('#fr-stats .fr-stat b').forEach(el=>_countUp(el,parseInt(el.getAttribute('data-n'))||0,680));},140);
   document.getElementById('fr-top3').innerHTML='<div class="fr-t3-label">Your Top 3 for today</div>'+
     picks.map((t,i)=>`<div class="fr-t3-item" style="animation-delay:${120+i*100}ms"><span class="fr-t3-n">${i+1}</span><span class="fr-t3-t">${esc(t.title)}</span>${t.dueDate&&fd(t.dueDate)?`<span class="fr-t3-d">${fd(t.dueDate)}</span>`:''}</div>`).join('')+
     (goalNote?`<div class="fr-goal-note">🎯 New goal: <b>${esc(goalNote)}</b>. Your #1 task now points at it.</div>`:'');
@@ -14711,6 +14756,7 @@ try{_renderAccountChip();}catch(e){}
 <div id="streak-milestone"></div>
 <!-- CONFETTI CANVAS -->
 <canvas id="confetti-canvas"></canvas>
+<div id="firstwin-pop"><div class="fw-emoji">🎉</div><div class="fw-title">Your first win</div><div class="fw-sub">That's the feeling. This is what Arete is for.</div></div>
 
 <!-- CONFIRM MODAL -->
 <div class="mo hidden" id="confirm-modal" onclick="if(event.target===this){closeM('confirm-modal');_confirmCb&&_confirmCb(false);}">

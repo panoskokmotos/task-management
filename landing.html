@@ -214,8 +214,71 @@
 
   @media(max-width:600px){.demo-screen{height:406px}.demo-pane{padding:24px 22px}.demo-q,.demo-org-h{font-size:19px}.demo-line{font-size:14.5px}}
 
+  /* ── Positioning / credibility bar ── */
+  .posbar{border-top:1px solid var(--border);border-bottom:1px solid var(--border);background:var(--surface2)}
+  .posbar-in{display:grid;grid-template-columns:repeat(3,1fr)}
+  .posbar-col{padding:34px 26px;border-right:1px solid var(--border)}
+  .posbar-col:last-child{border-right:none}
+  .posbar-col .t{font-size:12.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);margin-bottom:9px}
+  .posbar-col .d{font-size:15.5px;color:var(--muted);line-height:1.5}
+  .posbar-col .d b{color:var(--text);font-weight:700}
+
+  /* ── Middle-ground comparison ── */
+  .compare{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:52px}
+  .ccard{border:1px solid var(--border);border-radius:18px;padding:28px 26px;background:var(--surface)}
+  .ccard.mid{border-color:rgba(90,73,224,.4);box-shadow:0 24px 55px -30px rgba(90,73,224,.45);transform:translateY(-6px)}
+  .ccard .lbl{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--faint);margin-bottom:12px}
+  .ccard.mid .lbl{color:var(--accent)}
+  .ccard h3{font-size:19px;font-weight:750;letter-spacing:-.4px;margin-bottom:10px;color:#211f1a}
+  .ccard p{font-size:14.5px;color:var(--muted);line-height:1.55}
+
+  /* ── Feature deep-dive split ── */
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center;margin-top:8px}
+  .split.rev .split-copy{order:2}
+  .split-copy .k{font-size:13px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+  .split-copy h2{text-align:left;max-width:none;font-size:clamp(26px,3.4vw,36px);margin:0 0 14px}
+  .split-copy p{font-size:16.5px;color:var(--muted);line-height:1.6;max-width:46ch}
+  .split-copy ul{list-style:none;margin-top:18px;display:flex;flex-direction:column;gap:11px}
+  .split-copy li{font-size:15px;color:var(--text);display:flex;gap:11px;align-items:flex-start;line-height:1.45}
+  .split-copy li::before{content:'✓';color:var(--accent);font-weight:800;flex:none}
+  .mockup{background:var(--surface);border:1px solid var(--border);border-radius:18px;padding:22px;box-shadow:0 34px 64px -36px rgba(42,38,32,.4)}
+  .mtask{border:1px solid var(--border);border-radius:12px;padding:14px 16px;background:var(--surface2)}
+  .mtask .mt-t{font-weight:650;font-size:15px;margin-bottom:6px;color:#211f1a}
+  .mtask .mt-m{font-size:12px;color:var(--muted)}
+  .mreply{margin-top:12px;display:flex;gap:8px;align-items:center;border:1px solid rgba(90,73,224,.3);border-radius:12px;padding:9px 10px 9px 14px;background:var(--surface);box-shadow:0 0 0 4px var(--accent-soft)}
+  .mreply .mr-i{flex:1;font-size:14px;color:var(--text)}
+  .mreply .mr-b{background:var(--accent);color:#fff;border-radius:8px;font-size:12px;font-weight:700;padding:6px 14px;white-space:nowrap}
+  .mres{margin-top:13px;font-size:13px;color:var(--muted);display:flex;gap:7px;align-items:center}
+  .mres b{color:var(--accent)}
+  .mgoal .mg-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:13px}
+  .mgoal .mg-t{font-weight:750;font-size:16px;color:#211f1a}
+  .mgoal .mg-pct{font-size:13px;color:var(--accent);font-weight:800}
+  .mgbar{height:8px;background:var(--surface2);border-radius:5px;overflow:hidden;margin-bottom:16px}
+  .mgbar>i{display:block;height:100%;width:64%;background:linear-gradient(90deg,#5a49e0,#8b5ce6);border-radius:5px}
+  .mgtask{display:flex;align-items:center;gap:11px;padding:11px 0;border-top:1px solid var(--border);font-size:14px;color:var(--text)}
+  .mgtask .box{width:17px;height:17px;border-radius:5px;border:1.5px solid var(--border);flex:none;display:grid;place-items:center;font-size:11px;color:#fff}
+  .mgtask.done .box{background:var(--accent);border-color:var(--accent)}
+  .mgtask.done .t{color:var(--faint);text-decoration:line-through}
+
+  /* ── Templates showcase ── */
+  .tpl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:48px}
+  .tpl{border:1px solid var(--border);border-radius:16px;padding:22px;background:var(--surface);transition:transform .2s,box-shadow .2s,border-color .2s}
+  .tpl:hover{transform:translateY(-3px);box-shadow:0 20px 40px -26px rgba(90,73,224,.3);border-color:rgba(90,73,224,.3)}
+  .tpl .e{font-size:26px;margin-bottom:12px}
+  .tpl h3{font-size:16px;font-weight:700;margin-bottom:5px;color:#211f1a}
+  .tpl p{font-size:13.5px;color:var(--muted);line-height:1.5}
+
   @media(max-width:760px){
     .nav-links{display:none}
+    .posbar-in,.compare,.tpl-grid{grid-template-columns:1fr}
+    .posbar-col{border-right:none;border-bottom:1px solid var(--border)}
+    .posbar-col:last-child{border-bottom:none}
+    .ccard.mid{transform:none}
+    .split{grid-template-columns:1fr;gap:30px}
+    .split.rev .split-copy{order:0}
+    .split-copy h2{text-align:center}
+    .split-copy p{margin-left:auto;margin-right:auto}
+    .split-copy ul{max-width:360px;margin-left:auto;margin-right:auto}
     .hero{padding:56px 0 30px}
     .band{padding:60px 0}
     .feat-grid,.trust-grid{grid-template-columns:1fr}
@@ -237,6 +300,7 @@
     <div class="nav-links">
       <a href="#features">Features</a>
       <a href="#how">How it works</a>
+      <a href="#templates">Templates</a>
       <a href="#trust">Your data</a>
       <a href="#faq">FAQ</a>
     </div>
@@ -287,11 +351,32 @@
   </div>
 </header>
 
+<section class="posbar">
+  <div class="wrap posbar-in">
+    <div class="posbar-col"><div class="t">Superhuman-fast</div><div class="d"><b>⌘K everything.</b> Capture, find and act in a keystroke. No mouse, no lag.</div></div>
+    <div class="posbar-col"><div class="t">Notion-deep</div><div class="d"><b>Goals, habits, reviews.</b> Real structure for your life, not just a flat list.</div></div>
+    <div class="posbar-col"><div class="t">Calmer than both</div><div class="d"><b>AI does the sorting.</b> You get a quiet, planned day instead of a backlog.</div></div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="kicker">The middle ground</div>
+    <h2>Too shallow. Too heavy. Just right.</h2>
+    <p class="lead">Every tool made you choose: a flat checklist you outgrow, or a workspace you stop maintaining. Arete is the third option.</p>
+    <div class="compare">
+      <div class="ccard"><div class="lbl">Flat to-do apps</div><h3>Too shallow</h3><p>Fast to add, but a graveyard by Friday. No goals, no context, no reason the list matters.</p></div>
+      <div class="ccard mid"><div class="lbl">✦ Arete</div><h3>Calm and deep</h3><p>Superhuman speed with Notion depth, plus an AI that keeps it organized so it never becomes a chore.</p></div>
+      <div class="ccard"><div class="lbl">All-in-one workspaces</div><h3>Too heavy</h3><p>Endlessly flexible, endlessly fiddly. You spend more time maintaining the system than living your life.</p></div>
+    </div>
+  </div>
+</section>
+
 <section class="band" id="features">
   <div class="wrap">
-    <div class="kicker">Why it's different</div>
+    <div class="kicker">What you get</div>
     <h2>Fast enough to trust with everything</h2>
-    <p class="lead">Most task apps are either too shallow to hold your life, or too heavy to keep up with. Arete is the middle ground: the speed of Superhuman with the depth of Notion.</p>
+    <p class="lead">Four things, done properly, so your whole life fits in one calm, quick place you actually keep using.</p>
     <div class="feat-grid">
       <div class="card">
         <div class="ic">⌘</div>
@@ -312,6 +397,55 @@
         <div class="ic">📱</div>
         <h3>Everywhere, even offline</h3>
         <p>Installs like a native app on phone and desktop, syncs across devices, and keeps working with no connection. Board, calendar and list views included.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="split">
+      <div class="split-copy">
+        <div class="k">Reply-to-act</div>
+        <h2>Talk to your tasks like they're email</h2>
+        <p>No forms, no menus, no dragging things around. Reply to any task in plain English and Arete just does it.</p>
+        <ul>
+          <li>“push to Friday” → rescheduled</li>
+          <li>“split into 3 steps” → a checklist appears</li>
+          <li>“done, remind me to follow up Monday” → both happen</li>
+        </ul>
+      </div>
+      <div class="mockup">
+        <div class="mtask">
+          <div class="mt-t">Send the investor update</div>
+          <div class="mt-m">🔴 This week · ⏱ 30m · 🎯 Fundraising</div>
+        </div>
+        <div class="mreply"><span class="mr-i">push to Friday and split into 3 steps</span><span class="mr-b">Reply</span></div>
+        <div class="mres"><b>✓</b> moved to Fri · 3 subtasks added · you stayed in flow</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="band">
+  <div class="wrap">
+    <div class="split rev">
+      <div class="split-copy">
+        <div class="k">Goals, not just lists</div>
+        <h2>Every task points at something bigger</h2>
+        <p>Link tasks to goals, habits and a Wheel-of-Life balance. Progress moves as you check things off, so the list always feels like it's for something.</p>
+        <ul>
+          <li>Goals with real progress, not vibes</li>
+          <li>Habits and weekly reviews built in</li>
+          <li>See which life areas you're neglecting</li>
+        </ul>
+      </div>
+      <div class="mockup mgoal">
+        <div class="mg-h"><span class="mg-t">🎯 Grow my wealth</span><span class="mg-pct">64%</span></div>
+        <div class="mgbar"><i></i></div>
+        <div class="mgtask done"><span class="box">✓</span><span class="t">Open a brokerage account</span></div>
+        <div class="mgtask done"><span class="box">✓</span><span class="t">Automate a monthly transfer</span></div>
+        <div class="mgtask"><span class="box"></span><span class="t">Review portfolio allocation</span></div>
       </div>
     </div>
   </div>
@@ -340,6 +474,25 @@
     </div>
     <div style="text-align:center;margin-top:48px">
       <a class="btn btn-primary app-link" href="/index.html" style="padding:15px 30px;font-size:16.5px">Start free →</a>
+    </div>
+  </div>
+</section>
+
+<section class="band" id="templates">
+  <div class="wrap">
+    <div class="kicker">Start in one tap</div>
+    <h2>Proven systems, ready to copy</h2>
+    <p class="lead">Don't start from a blank page. Drop in a complete system, then make it yours. Share any board and a friend copies it in one tap.</p>
+    <div class="tpl-grid">
+      <div class="tpl"><div class="e">🔄</div><h3>Weekly Reset</h3><p>A calm Sunday ritual to clear your head and plan the week ahead.</p></div>
+      <div class="tpl"><div class="e">🚀</div><h3>Launch a Project</h3><p>From idea to shipped, broken into the steps that actually move it.</p></div>
+      <div class="tpl"><div class="e">💪</div><h3>Get Fit</h3><p>Habits, workouts and a goal that keeps you honest week to week.</p></div>
+      <div class="tpl"><div class="e">🔍</div><h3>Job Search</h3><p>Track applications, follow-ups and prep, all in one calm place.</p></div>
+      <div class="tpl"><div class="e">🧹</div><h3>Declutter Your Life</h3><p>Area by area, task by task, until the noise is finally gone.</p></div>
+      <div class="tpl"><div class="e">🧠</div><h3>Deep Work</h3><p>Protect your focus blocks and log the sessions that compound.</p></div>
+    </div>
+    <div style="text-align:center;margin-top:40px">
+      <a class="btn btn-primary app-link" href="/index.html" style="padding:14px 28px;font-size:16px">Browse templates →</a>
     </div>
   </div>
 </section>

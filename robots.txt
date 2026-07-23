@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://task-management-beige-eight.vercel.app/sitemap.xml

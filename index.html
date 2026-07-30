@@ -3531,21 +3531,26 @@ function renderAllCalendar(tasks){
 // Three-layer model: Areas (permanent, no %) · Year outcomes (binary) · Active quarter goals (tasks + %).
 const _AREA_DEFS=[['health','Health','🏋️'],['finance','Wealth','💰'],['learning','Wisdom','🧠'],['relationships','Relationships','🤝'],['givelink','Impact','🌍'],['other','Experience','✨']];
 function _goalArea(g){const c=g.category||'other';if(c==='brand')return'givelink';if(c==='automation')return'learning';return _AREA_DEFS.some(a=>a[0]===c)?c:'other';}
+let _goalAreaFilter='';
+function _setGoalAreaFilter(a){_goalAreaFilter=(_goalAreaFilter===a?'':a);renderGoals();}
+function _goalPriority(g){return g.isTop3?0:({green:1,yellow:2,red:0}[_goalMomentum(g.id)]??1);} // ⭐ and stalled float up
 function renderGoals(){
   try{_goalMigrateV2();}catch(e){console.warn('goal migrate',e);}
   const gs=(S.goals||[]).filter(g=>!g.archived);
-  const gd=document.getElementById('goal-dash'); if(gd)gd.innerHTML='';
+  const f=_goalAreaFilter, inF=g=>!f||_goalArea(g)===f;
+  const gd=document.getElementById('goal-dash'); if(gd)gd.innerHTML=_goalDashboardHTML(gs);
   const primary=gs.find(g=>g.primary);
   const top3El=document.getElementById('g-top3');
   if(top3El)top3El.innerHTML = primary ? _goalPrimaryCard(primary)
     : '<div class="empty" style="padding:20px;text-align:center;"><div style="font-size:26px;">🎯</div><div style="font-weight:700;margin:4px 0;">Pick your one thing this quarter</div><div style="font-size:12px;color:var(--muted);margin-bottom:10px;">One primary goal that earns your first working hour.</div><button class="btn bp sm" onclick="openAddGoal()">+ Set your primary</button></div>';
   const grid=inner=>'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;">'+inner+'</div>';
-  const activeQ=gs.filter(g=>g.layer!=='area'&&g.layer!=='year'&&g.active&&!g.primary);
-  const activeY=gs.filter(g=>g.layer==='year'&&g.active&&!g.primary);
-  const later=gs.filter(g=>g.layer!=='area'&&!g.active&&!g.primary);
-  const areaGoals=gs.filter(g=>g.layer==='area');
-  let html='';
-  html+=_goalSection('🎯 Active this quarter <span style="font-weight:400;color:var(--muted);font-size:12px;">· the only layer with % and tasks</span>', activeQ.length?grid(activeQ.map(_goalCardQuarter).join('')):'<div class="empty" style="padding:14px;">Nothing active. Activate one from Later, or add a goal with its first task.</div>');
+  const byPrio=(a,b)=>_goalPriority(a)-_goalPriority(b);
+  const activeQ=gs.filter(g=>g.layer!=='area'&&g.layer!=='year'&&g.active&&!g.primary&&inF(g)).sort(byPrio);
+  const activeY=gs.filter(g=>g.layer==='year'&&g.active&&!g.primary&&inF(g));
+  const later=gs.filter(g=>g.layer!=='area'&&!g.active&&!g.primary&&inF(g));
+  const areaGoals=gs.filter(g=>g.layer==='area'&&inF(g));
+  let html=_goalFilterBarHTML(gs);
+  html+=_goalSection('🎯 Active this quarter <span style="font-weight:400;color:var(--muted);font-size:12px;">· the only layer with % and tasks · ⭐ priority first</span>', activeQ.length?grid(activeQ.map(_goalCardQuarter).join('')):'<div class="empty" style="padding:14px;">'+(f?'Nothing active in this area.':'Nothing active. Activate one from Later, or add a goal with its first task.')+'</div>');
   if(activeY.length) html+=_goalSection('📅 This year <span style="font-weight:400;color:var(--muted);font-size:12px;">· yes/no by Dec 31</span>', grid(activeY.map(_goalCardYear).join('')));
   html+=_goalSection('🧭 Life areas <span style="font-weight:400;color:var(--muted);font-size:12px;">· directions, never “done”</span>', _goalAreasHTML(areaGoals));
   html+=_goalSection('🗄️ Later', '<div id="goal-later" style="display:none;margin-top:4px;">'+(later.length?later.map(_goalLaterRow).join(''):'<div class="empty" style="padding:10px;">Nothing parked.</div>')+'</div><button class="btn bg sm" onclick="var e=document.getElementById(\'goal-later\');var o=e.style.display===\'none\';e.style.display=o?\'block\':\'none\';this.textContent=o?\'Hide later\':\'Show \'+'+later.length+'+\' later goals\';">Show '+later.length+' later goals</button>');
@@ -3588,6 +3593,40 @@ function _goalMigrateV2(){
   S._goalsMigratedV2=true; save();
 }
 function _goalSection(title,inner){return '<div style="margin-bottom:26px;"><h3 style="font-size:14px;font-weight:800;letter-spacing:-.2px;margin:0 0 12px;">'+title+'</h3>'+inner+'</div>';}
+// ── Progress dashboard: one-glance overview of how this quarter/year is tracking ──
+function _goalDashboardHTML(gs){
+  const activeQ=gs.filter(g=>(g.layer==='quarter'||(!g.layer&&g.active))&&g.active);
+  const yearG=gs.filter(g=>g.layer==='year'&&g.active);
+  const yearDone=yearG.filter(g=>g.achieved).length;
+  let pctSum=0,pctN=0; activeQ.forEach(g=>{const s=goalStats(g.id);if(s.total){pctSum+=s.pct;pctN++;}});
+  const qPct=pctN?Math.round(pctSum/pctN):0;
+  const stalled=activeQ.filter(g=>_goalMomentum(g.id)==='red');
+  const onTrack=activeQ.filter(g=>_goalMomentum(g.id)==='green').length;
+  const last=S.lastGoalReview, days=last?Math.floor((Date.now()-last)/864e5):null, due=days===null||days>=7;
+  const tile=(v,l,sub,extra)=>'<div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:13px 15px;'+(extra||'')+'"><div style="font-size:22px;font-weight:800;letter-spacing:-.5px;line-height:1;">'+v+'</div><div style="font-size:12px;font-weight:600;margin-top:5px;">'+l+'</div>'+(sub?'<div style="font-size:11px;color:var(--muted);margin-top:2px;">'+sub+'</div>':'')+'</div>';
+  const reviewTile='<div onclick="_goalReview()" title="Run your review" style="cursor:pointer;background:'+(due?'linear-gradient(135deg,var(--accent),var(--accent2,#9268e6))':'var(--surface)')+';color:'+(due?'#fff':'inherit')+';border:1px solid '+(due?'transparent':'var(--border)')+';border-radius:14px;padding:13px 15px;">'
+    +'<div style="font-size:22px;font-weight:800;line-height:1;">'+(days===null?'—':days+'d')+'</div>'
+    +'<div style="font-size:12px;font-weight:700;margin-top:5px;">'+(due?'Review due →':'Last review')+'</div>'
+    +'<div style="font-size:11px;'+(due?'opacity:.85;':'color:var(--muted);')+'margin-top:2px;">'+(days===null?'Run your first review':due?'Reflect & re-prioritize':'You\'re on cadence')+'</div></div>';
+  return '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;">'
+    +tile(qPct+'%','Quarter focus',pctN+' active goal'+(pctN===1?'':'s')+' w/ tasks')
+    +tile(yearDone+'/'+yearG.length,'Year outcomes','achieved by Dec 31')
+    +tile(onTrack+' <span style="font-size:14px;color:var(--muted);">/ '+stalled.length+'</span>','On track / stalled',stalled.length?'🔴 '+stalled.map(g=>esc(g.title.slice(0,18))).join(', '):'all moving 🟢')
+    +reviewTile
+    +'</div>';
+}
+// ── Area filter: focus the whole page on one life area (Health, Wealth, …) ──
+function _goalFilterBarHTML(gs){
+  const counts={}; _AREA_DEFS.forEach(a=>counts[a[0]]=0);
+  gs.forEach(g=>{const k=_goalArea(g);if(counts[k]!==undefined)counts[k]++;});
+  const chip=(key,label,emoji,active)=>'<button onclick="_setGoalAreaFilter(\''+key+'\')" style="border:1px solid '+(active?'var(--accent)':'var(--border)')+';background:'+(active?'var(--accent)':'var(--surface)')+';color:'+(active?'#fff':'inherit')+';border-radius:20px;padding:5px 13px;font-size:12.5px;font-weight:600;cursor:pointer;white-space:nowrap;">'+emoji+' '+label+'</button>';
+  return '<div style="display:flex;gap:7px;overflow-x:auto;padding:2px 0 12px;margin-bottom:4px;-webkit-overflow-scrolling:touch;">'
+    +chip('','All','🗂️',!_goalAreaFilter)
+    +_AREA_DEFS.map(a=>chip(a[0],a[1],a[2],_goalAreaFilter===a[0])).join('')
+    +'</div>';
+}
+// ── Review: stamp cadence + open the weekly review (Goals step included) ──
+function _goalReview(){S.lastGoalReview=Date.now();save();try{nav('review');}catch(e){try{renderGoals();}catch(_){}}}
 function _goalPrimaryCard(g){
   const s=goalStats(g.id);
   return '<div class="gc top" style="border-color:var(--accent);box-shadow:0 12px 34px -18px var(--accent);cursor:pointer;" onclick="openEditGoal(\''+g.id+'\')">'
@@ -3599,8 +3638,10 @@ function _goalPrimaryCard(g){
 }
 function _goalCardQuarter(g){
   const s=goalStats(g.id);
+  const dot={green:'🟢',yellow:'🟡',red:'🔴'}[_goalMomentum(g.id)]||'⚪';
+  const tip={green:'Task done this week',yellow:'Task done this month',red:'No task in 30 days — stalled'}[_goalMomentum(g.id)]||'';
   return '<div class="gc" style="cursor:pointer;" onclick="openEditGoal(\''+g.id+'\')">'
-    +'<div style="font-weight:650;margin-bottom:4px;">'+esc(g.title)+'</div>'
+    +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;"><span style="font-weight:650;flex:1;">'+(g.isTop3?'⭐ ':'')+esc(g.title)+'</span><span title="'+tip+'" style="font-size:11px;">'+dot+'</span></div>'
     +(g.nextAction?'<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">▶ '+esc(g.nextAction)+'</div>':'<div style="font-size:12px;color:#e0645c;margin-bottom:6px;">⚠ no next action</div>')
     +(s.total?'<div class="gp" style="margin-bottom:3px;"><div class="gp-fill" style="width:'+s.pct+'%"></div></div><div style="font-size:10px;color:var(--muted);">'+s.done+'/'+s.total+' tasks · '+s.pct+'%</div>':'<div style="font-size:10px;color:var(--muted);">No tasks yet</div>')
     +'<div style="margin-top:8px;" onclick="event.stopPropagation();"><button class="btn bg sm" onclick="openAdd(\'this-week\',\''+g.id+'\')">+ Task</button></div></div>';

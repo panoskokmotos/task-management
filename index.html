@@ -1935,6 +1935,23 @@ Read 50 books this year"></textarea>
     <div class="fg"><label>Goal Title *</label><input class="fc" id="g-title" placeholder="e.g. Run a half-marathon by June"></div>
     <div class="fg"><label>Why it matters</label><textarea class="fc" id="g-desc" placeholder="Why is this important to you?"></textarea></div>
     <div class="fr">
+      <div class="fg"><label>Horizon</label>
+        <select class="fc" id="g-layer" onchange="_gmLayerChange()">
+          <option value="quarter">🎯 This quarter — tasks + %</option>
+          <option value="year">📅 This year — yes/no by Dec 31</option>
+          <option value="area">🧭 Life area — a direction, never “done”</option>
+        </select>
+      </div>
+      <div class="fg" id="g-active-wrap"><label>Focus</label>
+        <select class="fc" id="g-active">
+          <option value="true">🔥 Active now</option>
+          <option value="false">🗄️ Later (review monthly)</option>
+        </select>
+      </div>
+    </div>
+    <div class="fg" id="g-next-wrap"><label id="g-next-label">Next action + slot *</label><input class="fc" id="g-next" placeholder="e.g. Tuesday 7am — 8K easy run"><div style="font-size:11px;color:var(--muted);margin-top:3px;">One physical step and when you'll do it. An active goal without one is a wish.</div></div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;margin:-4px 0 12px;cursor:pointer;"><input type="checkbox" id="g-primary" style="width:auto;"> <span>⭐ <b>Primary</b> — your one thing this quarter (earns your first working hour). Setting this unsets any other primary.</span></label>
+    <div class="fr">
       <div class="fg"><label>Target Value (optional)</label><input class="fc" id="g-target" type="number" placeholder="e.g. 100" min="0"></div>
       <div class="fg"><label>Current Value</label><input class="fc" id="g-current" type="number" placeholder="e.g. 23" min="0"></div>
       <div class="fg"><label>Unit</label><input class="fc" id="g-unit" placeholder="e.g. nonprofits, kg, €/mo"></div>
@@ -3511,29 +3528,115 @@ function renderAllCalendar(tasks){
 }
 
 // ── GOALS ─────────────────────────────────────────────────────
+// Three-layer model: Areas (permanent, no %) · Year outcomes (binary) · Active quarter goals (tasks + %).
+const _AREA_DEFS=[['health','Health','🏋️'],['finance','Wealth','💰'],['learning','Wisdom','🧠'],['relationships','Relationships','🤝'],['givelink','Impact','🌍'],['other','Experience','✨']];
+function _goalArea(g){const c=g.category||'other';if(c==='brand')return'givelink';if(c==='automation')return'learning';return _AREA_DEFS.some(a=>a[0]===c)?c:'other';}
 function renderGoals(){
-  const gd=document.getElementById('goal-dash');
-  if(gd)gd.innerHTML=S.goals.map(g=>{
-    const s=goalStats(g.id);const c=CATS[g.category]||CATS.other;
-    return`<div class="gdc" onclick="openEditGoal('${g.id}')">
-      <div class="gdc-title">${g.isTop3?'⭐ ':''}${g.title}</div>
-      <div class="gdc-row"><span class="badge c${g.category[0]}">${c.e}</span><span style="font-size:11px;color:var(--muted);">${s.pct}%</span></div>
-      <div class="gp"><div class="gp-fill" style="width:${s.pct}%"></div></div>
-      <div style="font-size:10px;color:var(--muted);margin-top:4px;">${s.done}/${s.total} tasks</div>
-    </div>`;
-  }).join('')||'<div class="empty">Add goals to track progress</div>';
-  const top3=S.goals.filter(g=>g.isTop3),rest=S.goals.filter(g=>!g.isTop3);
-  // North Star hero cards with live pace projection
-  const heroHTML=top3.map(_northStarCard).join('');
+  try{_goalMigrateV2();}catch(e){console.warn('goal migrate',e);}
+  const gs=(S.goals||[]).filter(g=>!g.archived);
+  const gd=document.getElementById('goal-dash'); if(gd)gd.innerHTML='';
+  const primary=gs.find(g=>g.primary);
   const top3El=document.getElementById('g-top3');
-  if(top3El)top3El.innerHTML=top3.length?heroHTML:'<div class="empty" style="padding:20px;text-align:center;"><div style="font-size:28px;margin-bottom:6px;">⭐</div><div style="font-weight:600;margin-bottom:4px;">Set your North Stars</div><div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Your top 3 goals deserve the spotlight</div><button class="btn bp sm" onclick="openAddGoal()">+ Add a Top Goal</button></div>';
-  document.getElementById('g-all').innerHTML=rest.length?rest.map(goalHTML).join(''):'<div class="empty" style="padding:20px;text-align:center;"><div style="font-size:28px;margin-bottom:6px;">🏆</div><div style="font-weight:600;margin-bottom:4px;">No goals yet</div><div style="font-size:12px;color:var(--muted);margin-bottom:10px;">Every task should serve a goal</div><button class="btn bp sm" onclick="openAddGoal()">+ Create First Goal</button></div>';
+  if(top3El)top3El.innerHTML = primary ? _goalPrimaryCard(primary)
+    : '<div class="empty" style="padding:20px;text-align:center;"><div style="font-size:26px;">🎯</div><div style="font-weight:700;margin:4px 0;">Pick your one thing this quarter</div><div style="font-size:12px;color:var(--muted);margin-bottom:10px;">One primary goal that earns your first working hour.</div><button class="btn bp sm" onclick="openAddGoal()">+ Set your primary</button></div>';
+  const grid=inner=>'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;">'+inner+'</div>';
+  const activeQ=gs.filter(g=>g.layer!=='area'&&g.layer!=='year'&&g.active&&!g.primary);
+  const activeY=gs.filter(g=>g.layer==='year'&&g.active&&!g.primary);
+  const later=gs.filter(g=>g.layer!=='area'&&!g.active&&!g.primary);
+  const areaGoals=gs.filter(g=>g.layer==='area');
+  let html='';
+  html+=_goalSection('🎯 Active this quarter <span style="font-weight:400;color:var(--muted);font-size:12px;">· the only layer with % and tasks</span>', activeQ.length?grid(activeQ.map(_goalCardQuarter).join('')):'<div class="empty" style="padding:14px;">Nothing active. Activate one from Later, or add a goal with its first task.</div>');
+  if(activeY.length) html+=_goalSection('📅 This year <span style="font-weight:400;color:var(--muted);font-size:12px;">· yes/no by Dec 31</span>', grid(activeY.map(_goalCardYear).join('')));
+  html+=_goalSection('🧭 Life areas <span style="font-weight:400;color:var(--muted);font-size:12px;">· directions, never “done”</span>', _goalAreasHTML(areaGoals));
+  html+=_goalSection('🗄️ Later', '<div id="goal-later" style="display:none;margin-top:4px;">'+(later.length?later.map(_goalLaterRow).join(''):'<div class="empty" style="padding:10px;">Nothing parked.</div>')+'</div><button class="btn bg sm" onclick="var e=document.getElementById(\'goal-later\');var o=e.style.display===\'none\';e.style.display=o?\'block\':\'none\';this.textContent=o?\'Hide later\':\'Show \'+'+later.length+'+\' later goals\';">Show '+later.length+' later goals</button>');
+  document.getElementById('g-all').innerHTML=html;
   document.getElementById('vals').innerHTML=S.values.length?`<div style="display:flex;flex-wrap:wrap;gap:7px;margin-bottom:8px;">${S.values.map(v=>`<span class="badge co" style="font-size:12px;padding:5px 12px;cursor:pointer;" onclick="editVals()" title="Click to edit values">💎 ${v}</span>`).join('')}</div><p style="font-size:11px;color:var(--muted);margin:0;">Tap any value to edit · Values guide which goals matter</p>`:'<p style="color:var(--muted);">No values set — <a onclick="editVals()" style="color:var(--accent);cursor:pointer;">add your core values</a> to guide goal decisions.</p>';
   fillGoalDrop();
   renderSFTimeline();
   _renderAntiGoalsSection();
 }
 
+// ── Three-layer migration (runs once, non-destructive: archives, never deletes) ──
+function _goalMigrateV2(){
+  if(!Array.isArray(S.goals)||S._goalsMigratedV2)return;
+  // Empty account (fresh signup) — nothing to restructure, don't fabricate goals.
+  if(!S.goals.length){ S._goalsMigratedV2=true; return; }
+  const HABITS=['sleep score','mental health','follow routine'];
+  const DIRECTIONS=['love goals','know thyself','attain wisdom','self-actualization','day-to-day satisfaction','minimize bad things','give back','positively impact','voluntary discomfort','new activities','increase health span','health & injury','invest in top relationships','mentor 5 areas','most interesting people','accountability partner','agi preparation','antifragile','maximize leverage','quantifiable & quality','board member','weekly / 11+','impossible people','learn new key skills'];
+  const FIN_MERGE=['25,000','12+ investments','300€','3+ assets','financial management system'];
+  S.goals.forEach(g=>{
+    if(g.layer)return; // respect goals already on the new model
+    g.nextAction=g.nextAction||''; g.primary=false; g.active=false; g.layer='quarter';
+    const t=(g.title||'').toLowerCase();
+    if(HABITS.some(h=>t.includes(h))){ S.habits=S.habits||[]; const nm=(g.title.split('—')[0].split('/')[0]).trim(); if(nm&&!S.habits.includes(nm))S.habits.push(nm); g.archived=true; return; }
+    if(FIN_MERGE.some(k=>t.includes(k))){ g.archived=true; return; } // folds into the FI year goal
+    if(DIRECTIONS.some(d=>t.includes(d))){ g.layer='area'; return; }
+  });
+  // Wealth year outcome = the Financial-Independence north star, with the finance cluster as key results
+  let fi=S.goals.find(g=>!g.archived&&/independ/i.test(g.title||''));
+  if(!fi){ fi={id:uid(),title:'Financial Independence',description:'',category:'finance'}; S.goals.push(fi); }
+  fi.layer='year'; fi.active=true; fi.achieved=false; fi.category='finance';
+  fi.keyResults=fi.keyResults||[{text:'Define the FI number + write the money map',done:false},{text:'25,000€ annual income',done:false},{text:'300€/mo passive income',done:false},{text:'12+ investments',done:false},{text:'3+ appreciating assets',done:false}];
+  // Other headline outcomes → year/quarter, active
+  S.goals.forEach(g=>{ if(g.archived)return; const t=(g.title||'').toLowerCase();
+    if(t.includes('aesthetics body')){ g.layer='year'; g.active=true; g.achieved=false; g.keyResults=g.keyResults||[{text:'Reach 10–14% body fat',done:false}]; }
+    else if(t.includes('ai workflows')){ g.layer='quarter'; g.active=true; }
+  });
+  // One primary for the quarter (the Givelink/FI north star — change anytime)
+  const prim=S.goals.find(g=>!g.archived&&/givelink/i.test(g.title||'')&&/independ/i.test(g.title||''))||fi;
+  if(prim){ prim.primary=true; prim.active=true; }
+  S._goalsMigratedV2=true; save();
+}
+function _goalSection(title,inner){return '<div style="margin-bottom:26px;"><h3 style="font-size:14px;font-weight:800;letter-spacing:-.2px;margin:0 0 12px;">'+title+'</h3>'+inner+'</div>';}
+function _goalPrimaryCard(g){
+  const s=goalStats(g.id);
+  return '<div class="gc top" style="border-color:var(--accent);box-shadow:0 12px 34px -18px var(--accent);cursor:pointer;" onclick="openEditGoal(\''+g.id+'\')">'
+    +'<div style="font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;">🎯 Your one thing · first working hour</div>'
+    +'<div style="font-weight:750;font-size:17px;margin-bottom:6px;">'+esc(g.title)+'</div>'
+    +(g.nextAction?'<div style="font-size:13px;margin-bottom:8px;">▶ Next: <b>'+esc(g.nextAction)+'</b></div>':'<div style="font-size:12px;color:#e0645c;margin-bottom:8px;">⚠ No next action — define one physical step + a time slot.</div>')
+    +(g.layer==='year'?_krHTML(g):(s.total?'<div class="gp" style="margin-bottom:3px;"><div class="gp-fill" style="width:'+s.pct+'%"></div></div><div style="font-size:11px;color:var(--muted);">'+s.done+'/'+s.total+' tasks · '+s.pct+'%</div>':''))
+    +'<div style="margin-top:10px;display:flex;gap:6px;" onclick="event.stopPropagation();"><button class="btn bp sm" onclick="openAdd(\'this-week\',\''+g.id+'\')">+ Task</button></div></div>';
+}
+function _goalCardQuarter(g){
+  const s=goalStats(g.id);
+  return '<div class="gc" style="cursor:pointer;" onclick="openEditGoal(\''+g.id+'\')">'
+    +'<div style="font-weight:650;margin-bottom:4px;">'+esc(g.title)+'</div>'
+    +(g.nextAction?'<div style="font-size:12px;color:var(--muted);margin-bottom:6px;">▶ '+esc(g.nextAction)+'</div>':'<div style="font-size:12px;color:#e0645c;margin-bottom:6px;">⚠ no next action</div>')
+    +(s.total?'<div class="gp" style="margin-bottom:3px;"><div class="gp-fill" style="width:'+s.pct+'%"></div></div><div style="font-size:10px;color:var(--muted);">'+s.done+'/'+s.total+' tasks · '+s.pct+'%</div>':'<div style="font-size:10px;color:var(--muted);">No tasks yet</div>')
+    +'<div style="margin-top:8px;" onclick="event.stopPropagation();"><button class="btn bg sm" onclick="openAdd(\'this-week\',\''+g.id+'\')">+ Task</button></div></div>';
+}
+function _goalCardYear(g){
+  return '<div class="gc" style="cursor:pointer;" onclick="openEditGoal(\''+g.id+'\')">'
+    +'<div style="display:flex;align-items:flex-start;gap:9px;">'
+    +'<span onclick="event.stopPropagation();_goalToggleAchieved(\''+g.id+'\')" title="Mark achieved" style="width:20px;height:20px;border-radius:6px;border:2px solid '+(g.achieved?'var(--accent)':'var(--border)')+';background:'+(g.achieved?'var(--accent)':'transparent')+';color:#fff;display:grid;place-items:center;flex:none;cursor:pointer;font-size:12px;">'+(g.achieved?'✓':'')+'</span>'
+    +'<div style="flex:1;"><div style="font-weight:650;'+(g.achieved?'text-decoration:line-through;color:var(--muted);':'')+'">'+esc(g.title)+'</div>'
+    +'<div style="font-size:11px;color:var(--muted);margin-top:2px;">Binary · by Dec 31</div></div></div>'
+    +_krHTML(g)+'</div>';
+}
+function _krHTML(g){
+  const krs=g.keyResults||[]; if(!krs.length)return'';
+  const done=krs.filter(k=>k.done).length;
+  return '<div style="margin-top:9px;border-top:1px solid var(--border);padding-top:8px;">'
+    +'<div style="font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:5px;">Key results · '+done+'/'+krs.length+'</div>'
+    +krs.map((k,i)=>'<div onclick="event.stopPropagation();_goalToggleKR(\''+g.id+'\','+i+')" style="display:flex;gap:8px;align-items:center;padding:3px 0;font-size:12.5px;cursor:pointer;"><span style="width:15px;height:15px;border-radius:4px;border:1.5px solid '+(k.done?'var(--accent)':'var(--border)')+';background:'+(k.done?'var(--accent)':'transparent')+';color:#fff;display:grid;place-items:center;font-size:10px;flex:none;">'+(k.done?'✓':'')+'</span><span style="'+(k.done?'color:var(--muted);text-decoration:line-through;':'')+'">'+esc(k.text)+'</span></div>').join('')+'</div>';
+}
+function _goalToggleAchieved(id){const g=S.goals.find(x=>x.id===id);if(!g)return;g.achieved=!g.achieved;save();renderGoals();if(g.achieved){try{_fireConfetti('deep');}catch(e){}try{toast('🏆 '+g.title+' — achieved!');}catch(e){}}}
+function _goalToggleKR(id,i){const g=S.goals.find(x=>x.id===id);if(!g||!g.keyResults||!g.keyResults[i])return;g.keyResults[i].done=!g.keyResults[i].done;save();renderGoals();}
+function _goalAreasHTML(areaGoals){
+  return '<div style="display:flex;flex-direction:column;gap:10px;">'+_AREA_DEFS.map(a=>{
+    const dirs=areaGoals.filter(g=>_goalArea(g)===a[0]);
+    return '<div style="border:1px solid var(--border);border-radius:14px;padding:12px 14px;background:var(--surface);">'
+      +'<div style="font-weight:700;font-size:14px;'+(dirs.length?'margin-bottom:7px;':'')+'">'+a[2]+' '+a[1]+'</div>'
+      +(dirs.length?'<div style="display:flex;flex-wrap:wrap;gap:6px;">'+dirs.map(g=>'<span onclick="openEditGoal(\''+g.id+'\')" title="A direction — no progress bar" style="font-size:12px;color:var(--muted);background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:3px 9px;cursor:pointer;">'+esc(g.title)+'</span>').join('')+'</div>':'')
+      +'</div>';
+  }).join('')+'</div>';
+}
+function _goalLaterRow(g){
+  return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;">'
+    +'<span style="flex:1;cursor:pointer;" onclick="openEditGoal(\''+g.id+'\')">'+esc(g.title)+'</span>'
+    +'<button class="btn bg sm" onclick="event.stopPropagation();_goalActivate(\''+g.id+'\')">Activate</button></div>';
+}
+function _goalActivate(id){const g=S.goals.find(x=>x.id===id);if(!g)return;g.active=true;if(g.layer==='area')g.layer='quarter';save();renderGoals();try{toast('Activated — now give it a next action.');}catch(e){}}
 function goalHTML(g){
   const c=CATS[g.category]||CATS.other;
   const s=goalStats(g.id);
@@ -4059,12 +4162,26 @@ function _fillHabitDrop(selId,val=''){
   const habits=S.habits||[];
   s.innerHTML='<option value="">— None —</option>'+habits.map(h=>`<option value="${h}"${h===val?' selected':''}>${h}</option>`).join('');
 }
+function _gmLayerChange(){
+  const layer=document.getElementById('g-layer').value;
+  const isArea=layer==='area';
+  // Areas are permanent directions — no active/later toggle, no next-action, never primary.
+  document.getElementById('g-active-wrap').style.display=isArea?'none':'';
+  document.getElementById('g-next-wrap').style.display=isArea?'none':'';
+  const primWrap=document.getElementById('g-primary').closest('label');
+  if(primWrap)primWrap.style.display=isArea?'none':'flex';
+  const lbl=document.getElementById('g-next-label');
+  if(lbl)lbl.textContent=layer==='year'?'Next action + slot (recommended)':'Next action + slot *';
+}
 function openAddGoal(){
   editG=null;
   document.getElementById('gm-title').textContent='Add Goal';
-  ['g-title','g-desc','g-target','g-current','g-unit'].forEach(i=>document.getElementById(i).value='');
+  ['g-title','g-desc','g-target','g-current','g-unit','g-next'].forEach(i=>document.getElementById(i).value='');
   document.getElementById('g-cat').value='other';
   document.getElementById('g-top').value='false';
+  document.getElementById('g-layer').value='quarter';
+  document.getElementById('g-active').value='true';
+  document.getElementById('g-primary').checked=false;
   document.getElementById('g-health-metric').value='';
   document.getElementById('g-finance-type').value='';
   _fillHabitDrop('g-habit','');
@@ -4072,6 +4189,7 @@ function openAddGoal(){
   document.getElementById('g-woop-outcome').value='';
   document.getElementById('g-woop-obstacle').value='';
   document.getElementById('g-woop-plan').value='';
+  _gmLayerChange();
   document.getElementById('gm').classList.remove('hidden');
   setTimeout(()=>_trapFocus(document.getElementById('gm')),50);
 }
@@ -4084,6 +4202,11 @@ function openEditGoal(id){
   document.getElementById('g-desc').value=g.description||'';
   document.getElementById('g-cat').value=g.category;
   document.getElementById('g-top').value=g.isTop3?'true':'false';
+  document.getElementById('g-layer').value=g.layer||'quarter';
+  document.getElementById('g-active').value=g.active?'true':'false';
+  document.getElementById('g-primary').checked=!!g.primary;
+  document.getElementById('g-next').value=g.nextAction||'';
+  _gmLayerChange();
   document.getElementById('g-health-metric').value=g.linkedHealthMetric||'';
   document.getElementById('g-finance-type').value=g.linkedFinanceType||'';
   _fillHabitDrop('g-habit',g.linkedHabit||'');
@@ -4102,10 +4225,21 @@ function openEditGoal(id){
 function saveGoal(){
   const title=document.getElementById('g-title').value.trim();
   if(!title){toast('🎯 Enter a goal title first');return;}
+  const layer=document.getElementById('g-layer').value;
+  const isArea=layer==='area';
+  const active=!isArea&&document.getElementById('g-active').value==='true';
+  const primary=!isArea&&document.getElementById('g-primary').checked;
+  const nextAction=document.getElementById('g-next').value.trim();
+  // Rule: never create/activate a quarter goal without its first physical step + slot.
+  if(layer==='quarter'&&active&&!nextAction){
+    toast('▶ Give it a next action + a time slot — an active goal without one is a wish.');
+    document.getElementById('g-next').focus();return;
+  }
   const d={
     title,description:document.getElementById('g-desc').value,
     category:document.getElementById('g-cat').value,
     isTop3:document.getElementById('g-top').value==='true',
+    layer, active, nextAction,
     linkedHealthMetric:document.getElementById('g-health-metric')?.value||'',
     linkedHabit:document.getElementById('g-habit')?.value||'',
     linkedFinanceType:document.getElementById('g-finance-type')?.value||'',
@@ -4114,6 +4248,10 @@ function saveGoal(){
     unit:document.getElementById('g-unit').value||'',
     woop:{outcome:document.getElementById('g-woop-outcome').value.trim(),obstacle:document.getElementById('g-woop-obstacle').value.trim(),plan:document.getElementById('g-woop-plan').value.trim()}
   };
+  // Only one primary at a time — setting this one clears the rest.
+  if(primary)S.goals.forEach(g=>{g.primary=false;});
+  d.primary=primary;
+  if(primary)d.active=true;
   if(editG){const i=S.goals.findIndex(g=>g.id===editG);S.goals[i]={...S.goals[i],...d};}
   else S.goals.push({id:uid(),...d});
   save();closeM('gm');renderGoals();

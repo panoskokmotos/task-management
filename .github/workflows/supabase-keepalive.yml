@@ -1,0 +1,27 @@
+name: Supabase Keep-Alive
+
+# Supabase free-tier projects auto-pause after 7 days with no API activity,
+# which breaks login (email/password, magic link, and Google OAuth all go
+# through the paused project's /auth endpoints). This workflow pings the
+# project's public REST endpoint every 2 days — well under the 7-day
+# threshold — so it never goes idle long enough to pause.
+#
+# The URL and key below are the same public Supabase Project URL and
+# publishable (anon) key already embedded client-side in index.html
+# (APP_CONFIG.supabaseUrl / supabaseAnon). They are safe to expose —
+# Row Level Security protects the data — so no repo secrets are needed.
+
+on:
+  schedule:
+    - cron: '0 6 */2 * *'  # every 2 days at 06:00 UTC
+  workflow_dispatch: {}    # allow manual runs from the Actions tab
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST endpoint
+        run: |
+          curl -sS -o /dev/null -w "HTTP %{http_code}\n" \
+            "https://bgvddpkdsftgynxyhnoc.supabase.co/rest/v1/" \
+            -H "apikey: sb_publishable_VndetAqTYLRXr4UEsu8Uig_y2mtTv-M"

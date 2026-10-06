@@ -12,6 +12,21 @@ _No new code was pushed this week. The analysis below covers the two most recent
 
 ## 🚨 Needs immediate attention
 
+### 0. AI prompts hardcode "Panos, founder of Givelink" for all users — production blocker
+- **File**: `index.html:11672, 11734, 5445, 5647, 5920, 7319, 7477, 7849`
+- **Commit**: has been present across multiple PRs; `72e03fe` touched these files
+- **Why this matters**: Any user who opens the app and tries AI features is told "You are the personal chief-of-staff for Panos, founder of Givelink (B2B SaaS for nonprofits)." The default username fallback is also the literal string `'Panos'` (index.html:2519). This is the highest-priority issue if the app is shared with anyone.
+
+### 0b. XSS: goal title/description/habit injected unescaped into innerHTML
+- **File**: `index.html:3554, 3570, 3571`
+- **Commit**: present in the goal card renderer, unchanged in recent commits
+- **Why this matters**: A crafted goal title like `<img src=x onerror=alert(document.cookie)>` runs arbitrary JS. The `esc()` helper is defined and used in 27 other places but missed here.
+
+### 0c. Push notification icon path references non-existent `./icons/` directory
+- **File**: `sw.js:46, 48`, `index.html:11289`
+- **Commit**: present since SW was set up; not touched in recent commits
+- **Why this matters**: All push notifications show no icon on any platform.
+
 ### 1. Claude API key sent from browser with `dangerous-direct-browser-access` header
 - **File**: `index.html:5022`
 - **Commit**: `72e03fe` (Givelink bug fixes and This Week view)

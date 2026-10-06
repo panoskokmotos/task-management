@@ -6,6 +6,29 @@ _Generated: 2026-10-06_
 
 ## 🔥 P0 — Ship this week (bugs breaking user flows)
 
+### 0. Owner name "Panos" and Givelink identity hardcoded into all AI prompts for all users
+- **What**: Every AI feature contextualises the user as "Panos, founder of Givelink" — morning briefing, inbox triage, automation suggestions, relationships AI, discomfort coach, brand audit, and weekly review all contain the owner's personal name, company, and life goals hardcoded in the prompt strings. Additionally, the default `profileName` fallback is the literal string `'Panos'`, so every guest or new user who hasn't set a name is greeted as "Panos".
+- **Where**: `index.html:2519` (default name), `index.html:11672, 11734, 5445, 5647, 5920, 7319, 7477, 7849` (AI prompts), `index.html:4932` (personal financial goals in seed data)
+- **Why it matters**: Any user who signs up and uses AI features receives personalised coaching that references "Givelink", "the SF move", and personal financial goals they have nothing to do with. This is the most embarrassing production bug if the app is shared with anyone outside the owner. It also breaks trust immediately.
+- **Effort**: M
+- **Suggested fix**:
+  - Replace all hardcoded personal references in AI prompts with template variables (`{{userName}}`, `{{userContext}}`).
+  - Add a "context about you" field in Settings that populates these variables; leave it empty by default.
+  - Change `let profileName = localStorage.getItem('taskos_name') || 'Panos'` to `|| ''` or `|| 'there'`.
+
+---
+
+### 0b. XSS: goal title, description, and linked habit name injected unescaped into innerHTML
+- **What**: Three fields that are user-editable — goal title, goal description, and linked habit name — are interpolated directly into `innerHTML` strings without passing through the `esc()` helper that is used correctly elsewhere.
+- **Where**: `index.html:3554` (`g.linkedHabit`), `index.html:3570` (`g.title`), `index.html:3571` (`g.description`)
+- **Why it matters**: A goal title like `<img src=x onerror=alert(document.cookie)>` executes arbitrary JavaScript. The `esc()` function is already defined and used in 27 other places — this is a missed application. Any third party who can see the same data (via Supabase or shared progress cards) could inject code.
+- **Effort**: S
+- **Suggested fix**:
+  - Wrap all three fields with `esc()`: `${esc(g.linkedHabit)}`, `${esc(g.title)}`, `${esc(g.description)}`.
+  - Audit the rest of the goal card builder for any other unescaped interpolations.
+
+---
+
 ### 1. Claude API key transmitted directly from the browser
 - **What**: When `APP_CONFIG.aiProxy` is empty (the default), the app calls `https://api.anthropic.com/v1/messages` directly with the user's API key and the `anthropic-dangerous-direct-browser-access` header, exposing it in network traffic visible to any browser extension or MITM proxy.
 - **Where**: `index.html:5014–5025`
@@ -52,6 +75,15 @@ _Generated: 2026-10-06_
   - Set `posthogKey` in `APP_CONFIG` and `POSTHOG_KEY` on landing.
   - Verify at least `signup`, `landing_view`, and `firstrun_started` fire in the network tab.
 
+### 5b. Push notification icon path points to non-existent `./icons/` directory
+- **What**: The service worker's push notification config and the in-page notification trigger both reference `./icons/icon-192.png` — a path that doesn't exist. The icon file is at the root as `./icon-192.png` (no subdirectory).
+- **Where**: `sw.js:46, 48`, `index.html:11289`
+- **Why it matters**: All push notifications show no icon on any platform. On Android this shows a blank grey circle; on iOS the notification is invisible in the lock screen widget.
+- **Effort**: S
+- **Suggested fix**:
+  - Change all three references from `'./icons/icon-192.png'` to `'./icon-192.png'`.
+  - Verify the fix by triggering a test notification in DevTools Application → Notifications.
+
 ---
 
 ## ⚡ P1 — High ROI (UX friction blocking conversion)
@@ -97,6 +129,17 @@ _Generated: 2026-10-06_
 ---
 
 ## 🛠 P2 — Code health (tech debt slowing velocity)
+
+### 9b. Social sharing cards and OG meta tags hardcode a Vercel staging domain
+- **What**: `_APP_URL` is hardcoded to `https://task-management-beige-eight.vercel.app/`, which is the Vercel auto-generated staging domain. This domain appears in: exported stats-card image footer text, OG meta tags (`og:url`, `og:image`), and referral links.
+- **Where**: `index.html:10180` (`_APP_URL`), `index.html:24–32` (OG tags), `index.html:10232` (stats card footer)
+- **Why it matters**: Every social share, referral link, and progress card screenshot shows `task-management-beige-eight.vercel.app` instead of the branded domain. Looks unprofessional and the link is not memorable.
+- **Effort**: S
+- **Suggested fix**:
+  - Replace the hardcoded URL with a config value in `APP_CONFIG`.
+  - Update OG tags in `<head>` to reference the same config variable or use a canonical URL.
+
+---
 
 ### 9. Entire app in a 14,926-line single HTML file
 - **What**: `index.html` contains all CSS (~2,000 lines), all HTML templates (~3,000 lines), and all JS logic (~9,000 lines) in a single file with no module boundaries.

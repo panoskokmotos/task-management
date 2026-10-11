@@ -2046,7 +2046,7 @@ Read 50 books this year"></textarea>
     <p style="font-size:12px;font-weight:700;color:var(--muted);margin-bottom:8px;">☁️ Cloud Sync (Supabase)</p>
     <div id="sb-status" style="font-size:12px;margin-bottom:8px;color:var(--muted);"></div>
     <div class="fg"><label>Supabase Project URL</label><input class="fc" id="set-sb-url" placeholder="https://xxxx.supabase.co"></div>
-    <div class="fg"><label>Supabase anon key</label><input class="fc" id="set-sb-anon" type="password" placeholder="eyJhbGciOi..."></div>
+    <div class="fg"><label>Supabase anon key</label><input class="fc" id="set-sb-anon" type="password" placeholder="sb_publishable_... or eyJhbGciOi..."></div>
     <div class="fr">
       <div class="fg"><label>Email</label><input class="fc" id="set-sb-email" type="email" placeholder="you@email.com"></div>
       <div class="fg"><label>Password</label><input class="fc" id="set-sb-pass" type="password" placeholder="••••••••"></div>
@@ -9239,7 +9239,7 @@ For draft/write/generate requests, produce the real content in "text". Resolve r
     const raw=await callClaude(prompt,700);
     if(raw){
       let act=null;
-      try{act=JSON.parse((raw.match(/\{[\s\S]*\}/)||[])[0]);}catch(e){}
+      try{act=JSON.parse((raw.match(/\{[\s\S]*\}/)||[])[0]);}catch(e){console.warn('task-reply: AI response JSON parse failed',e);}
       if(act)_applyTaskAction(id,act); else toast('Hmm — could not read that. Try rephrasing.');
     }
   }finally{
@@ -13763,16 +13763,16 @@ function _goalMomentum(goalId){
 }
 
 // ── STARTUP (runs last, after every top-level const is initialized) ──
-try{initQuickCapture();}catch(e){console.warn(e);}
-try{initPWA();}catch(e){console.warn(e);}
-try{initReminders();}catch(e){console.warn(e);}
-try{initChecklists();}catch(e){console.warn(e);}
-try{_initPullRefresh();}catch(e){console.warn(e);}
-try{_initSheetDismiss();}catch(e){console.warn(e);}
-try{_maybeOnboard();}catch(e){console.warn(e);}
-try{_renderSavedViews();_updateUnreadBadges();_addPinStars();_renderPinnedViews();}catch(e){}
-try{_initPostHog();}catch(e){}
-try{_captureRef();}catch(e){}
+try{initQuickCapture();}catch(e){console.warn('initQuickCapture',e);}
+try{initPWA();}catch(e){console.warn('initPWA',e);}
+try{initReminders();}catch(e){console.warn('initReminders',e);}
+try{initChecklists();}catch(e){console.warn('initChecklists',e);}
+try{_initPullRefresh();}catch(e){console.warn('_initPullRefresh',e);}
+try{_initSheetDismiss();}catch(e){console.warn('_initSheetDismiss',e);}
+try{_maybeOnboard();}catch(e){console.warn('_maybeOnboard',e);}
+try{_renderSavedViews();_updateUnreadBadges();_addPinStars();_renderPinnedViews();}catch(e){console.warn('_renderSavedViews',e);}
+try{_initPostHog();}catch(e){console.warn('_initPostHog',e);}
+try{_captureRef();}catch(e){console.warn('_captureRef',e);}
 try{_captureTemplate();}catch(e){}
 try{_authBoot();}catch(e){}
 try{_renderAccountChip();}catch(e){}

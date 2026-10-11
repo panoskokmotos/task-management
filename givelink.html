@@ -626,6 +626,7 @@ function renderBacklog(){
 }
 
 // ── WEEK PLAN ─────────────────────────────────────────────────────
+function _toISODate(s){if(!s)return null;if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;try{const d=new Date(s);return isNaN(d)?null:d.toISOString().slice(0,10);}catch(_){return null;}}
 function renderWeekPlan(){
   const el=document.getElementById('v-week');if(!el)return;
   const today=new Date();
@@ -635,7 +636,7 @@ function renderWeekPlan(){
   for(let i=0;i<7;i++){const d=new Date(mon);d.setDate(mon.getDate()+i);days.push(d);}
   const fmt=d=>d.toISOString().slice(0,10);
   const fmtLabel=d=>d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
-  const sprintTasks=curTasks().filter(t=>t.status!=='done');
+  const sprintTasks=curTasks().filter(t=>t.status!=='done').map(t=>({...t,plannedDate:_toISODate(t.plannedDate)}));
   const scheduled=sprintTasks.filter(t=>t.plannedDate);
   const unscheduled=sprintTasks.filter(t=>!t.plannedDate);
   const P=k=>PILLARS[k]||{hex:'var(--muted)',e:'',l:k};
@@ -1149,11 +1150,9 @@ function getApiKey(){
       const d=JSON.parse(localStorage.getItem('taskos_data_'+p.id)||'null');
       if(d&&d.apiKey)return d.apiKey;
     }
-  }catch(e){}
+  }catch(e){console.warn('getApiKey: profile parse failed',e);}
   // Fall back to shared key
-  let k=localStorage.getItem('taskos_api_key');
-  if(!k){k=prompt('Enter your Anthropic API key:');if(k)localStorage.setItem('taskos_api_key',k);}
-  return k||null;
+  return localStorage.getItem('taskos_api_key')||null;
 }
 
 function openAiSprintPlanner(){
@@ -1165,7 +1164,7 @@ function openAiSprintPlanner(){
 
 async function runAiSprintPlanner(){
   const apiKey=getApiKey();
-  if(!apiKey){toast('API key required.');return;}
+  if(!apiKey){toast('Claude API key required — set it in Task OS Settings (⚙️ → Claude API Key).');return;}
   const genBtn=document.getElementById('ai-gen-btn');
   genBtn.disabled=true;genBtn.textContent='⏳ Thinking...';
   document.getElementById('ai-sprint-body').innerHTML=`<div style="text-align:center;padding:36px 0;"><div style="font-size:32px;margin-bottom:12px;">🤖</div><div style="color:var(--muted);font-size:13px;">Claude is analyzing your sprint data...</div></div>`;
@@ -1325,10 +1324,9 @@ function syncToTaskOS(){
 async function callClaudeGL(prompt,maxTokens=800,model='claude-haiku-4-5-20251001'){
   let k=localStorage.getItem('taskos_api_key');
   if(!k){
-    try{const p=JSON.parse(localStorage.getItem('taskos')||'{}');k=p.claudeKey||'';}catch(e){}
+    try{const p=JSON.parse(localStorage.getItem('taskos')||'{}');k=p.claudeKey||'';}catch(e){console.warn('callClaudeGL: taskos parse failed',e);}
   }
-  if(!k){k=window.prompt('Enter Anthropic API key:');if(k)localStorage.setItem('taskos_api_key',k);}
-  if(!k){toast('API key required');return null;}
+  if(!k){toast('Claude API key required — set it in Task OS Settings (⚙️ → Claude API Key).');return null;}
   try{
     const res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
@@ -1501,14 +1499,13 @@ function deleteNP(){
 }
 function logActivityNP(){
   if(!editNpId)return;
-  const note=window.prompt('Log activity (what happened?):');
-  if(!note)return;
+  const note=document.getElementById('np-note').value.trim();
+  if(!note){toast('Enter a note in the "Latest Activity Note" field first.');return;}
   const np=S.nonprofits.find(n=>n.id===editNpId);if(!np)return;
   np.lastActivityNote=note;
   np.lastActivityAt=new Date().toISOString();
   if(!np.activityLog)np.activityLog=[];
   np.activityLog.push({date:new Date().toISOString(),note});
-  document.getElementById('np-note').value=note;
   save();toast('📝 Activity logged');
 }
 function advanceStageNP(){

@@ -1,5 +1,5 @@
 # Arete / Givelink — Improvement Plan
-_Generated 2026-10-11_
+_Generated 2026-10-11 · Reviewed 2026-10-16 · P0 items 1–5 still open_
 
 ---
 
